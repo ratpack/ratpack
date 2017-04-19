@@ -87,7 +87,7 @@ public class ServicesGraph {
           s -> node.getImplClass().isInstance(s),
           s -> {
             for (Class<?> dependencyType : dependsOn.value()) {
-              if (dependencyType.isInstance(s)) {
+              if (dependencyType.isInstance(unpackIfLegacy(s))) {
                 return true;
               }
             }

@@ -48,6 +48,30 @@ class LegacyServiceSpec extends RatpackGroovyDslSpec {
     }
   }
 
+  @DependsOn(LegacyRecordingService)
+  class DependentRecordingService extends RecordingService {
+
+    String prefix = ""
+    Runnable onStart
+    Runnable onStop
+
+    @Override
+    void onStart(StartEvent event) throws Exception {
+      events << "${prefix ? prefix + "-" : ""}start".toString()
+      if (onStart) {
+        Operation.of { onStart.run() }.then()
+      }
+    }
+
+    @Override
+    void onStop(StopEvent event) throws Exception {
+      events << "${prefix ? prefix + "-" : ""}stop".toString()
+      if (onStop) {
+        Operation.of { onStop.run() }.then()
+      }
+    }
+  }
+
   @SuppressWarnings("GrDeprecatedAPIUsage")
   class LegacyRecordingService implements ratpack.server.Service {
 
@@ -175,6 +199,19 @@ class LegacyServiceSpec extends RatpackGroovyDslSpec {
 
     then:
     events == ["1-start", "4-start", "2-start", "3-start", "3-stop", "2-stop", "4-stop", "1-stop"]
+  }
+
+  def "can define dependencies between legacy and non using annotation"() {
+    when:
+    bindings {
+      multiBindInstance new LegacyRecordingService(prefix: "1")
+      multiBindInstance new DependentRecordingService(prefix: "2")
+    }
+    server.start()
+    server.stop()
+
+    then:
+    events == ["1-start", "2-start", "2-stop", "1-stop"]
   }
 
   static ServiceDependencies dependsOn(String dependentPrefix, String dependencyPrefix) {
