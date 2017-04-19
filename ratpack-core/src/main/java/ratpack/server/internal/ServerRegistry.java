@@ -74,7 +74,7 @@ public abstract class ServerRegistry {
     try {
       userRegistry = userRegistryFactory.apply(baseRegistry);
     } catch (Exception e) {
-      Throwables.propagateIfPossible(e);
+      Throwables.throwIfUnchecked(e);
       throw new StartupFailureException("Failed to build user registry", e);
     }
     return userRegistry;

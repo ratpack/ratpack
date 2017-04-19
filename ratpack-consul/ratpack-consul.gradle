@@ -20,5 +20,7 @@ apply from: "$rootDir/gradle/javaModule.gradle"
 
 dependencies {
   compile project(":ratpack-core")
-  compile 'com.orbitz.consul:consul-client:0.12.6'
+  compile 'com.orbitz.consul:consul-client:0.12.6', {
+    exclude group: "com.google.guava", module: "guava"
+  }
 }

@@ -54,7 +54,7 @@ public class InferringPublicAddress implements PublicAddress {
     int port;
     HostAndPort forwardedHostData = getForwardedHostData(request);
     if (forwardedHostData != null) {
-      host = forwardedHostData.getHostText();
+      host = forwardedHostData.getHost();
       port = forwardedHostData.getPortOrDefault(-1);
     } else {
       URI absoluteRequestURI = getAbsoluteRequestUri(request);
@@ -64,11 +64,11 @@ public class InferringPublicAddress implements PublicAddress {
       } else {
         HostAndPort hostData = getHostData(request);
         if (hostData != null) {
-          host = hostData.getHostText();
+          host = hostData.getHost();
           port = hostData.getPortOrDefault(-1);
         } else {
           HostAndPort localAddress = request.getLocalAddress();
-          host = localAddress.getHostText();
+          host = localAddress.getHost();
           port = ProtocolUtil.isDefaultPortForScheme(localAddress.getPort(), scheme) ? -1 : localAddress.getPort();
         }
       }

@@ -134,7 +134,7 @@ public class RatpackWebContext implements WebContext {
 
   @Override
   public String getRemoteAddr() {
-    return request.getRemoteAddress().getHostText();
+    return request.getRemoteAddress().getHost();
   }
 
   @Override

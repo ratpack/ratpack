@@ -124,8 +124,8 @@ public class DefaultRequestFixture implements RequestFixture {
 
     DefaultRequest request = new DefaultRequest(
       Instant.now(), requestHeaders, HttpMethod.valueOf(method.toUpperCase()), HttpVersion.valueOf(protocol), uri,
-      new InetSocketAddress(remoteHostAndPort.getHostText(), remoteHostAndPort.getPort()),
-      new InetSocketAddress(localHostAndPort.getHostText(), localHostAndPort.getPort()),
+      new InetSocketAddress(remoteHostAndPort.getHost(), remoteHostAndPort.getPort()),
+      new InetSocketAddress(localHostAndPort.getHost(), localHostAndPort.getPort()),
       serverConfig,
       new RequestBodyReader() {
 

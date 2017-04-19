@@ -41,16 +41,16 @@ class DefaultMediaTypeSpec extends Specification {
 
   def "illegal content type is treated as just a type"() {
     when:
-    def c = ct(" application/json;charset ;foo=bar ")
+    def c = ct(" application json;charset ;foo=bar ")
 
     then:
-    c.type == "application/json;charset ;foo=bar"
+    c.type == "application json;charset ;foo=bar"
 
     when:
-    c = ct(" application/json;charset=foo ; bar=baz ")
+    c = ct(" application json;charset=foo ; bar=baz ")
 
     then:
-    c.type == "application/json;charset=foo ; bar=baz"
+    c.type == "application json;charset=foo ; bar=baz"
   }
 
   def "to string"() {

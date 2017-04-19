@@ -65,7 +65,7 @@ import java.util.Map;
  *       .handler(r ->
  *         ctx -> {
  *           // Put a value into the MDC
- *           MDC.put("clientIp", ctx.getRequest().getRemoteAddress().getHostText());
+ *           MDC.put("clientIp", ctx.getRequest().getRemoteAddress().getHost());
  *           // The logging implementation/configuration may inject values from the MDC into log statements
  *           LOGGER.info("about to block");
  *           Blocking.get(() -> {
