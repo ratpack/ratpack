@@ -298,4 +298,45 @@ class SessionSpec extends RatpackGroovyDslSpec {
     then:
     text.contains "com.google.inject.OutOfScopeException: Cannot access Key[type=ratpack.session.Session, annotation=[none]] outside of a request"
   }
+
+  def "deserialization errors are discarded and value nulled"() {
+    when:
+    def sessionSerializer = new SessionSerializer() {
+      @Override
+      def <T> void serialize(Class<T> type, T value, OutputStream out) throws Exception {
+        throw new UnsupportedOperationException()
+      }
+
+      @Override
+      def <T> T deserialize(Class<T> type, InputStream inputStream) throws Exception {
+        throw new UnsupportedOperationException()
+      }
+    }
+
+    handlers {
+      get("add") {
+        get(Session).set("foo", "bar").then {
+          render "ok"
+        }
+      }
+
+      get("read") {
+        get(Session).get("foo", sessionSerializer).then {
+          render Objects.toString(it)
+        }
+      }
+
+      get("keys") {
+        get(Session).keys.then {
+          render it.toString()
+        }
+      }
+    }
+
+    then:
+    getText("add") == "ok"
+    getText("keys") == "[SessionKey[name='foo', type=java.lang.String]]"
+    getText("read") == "Optional.empty"
+    getText("keys") == "[]"
+  }
 }

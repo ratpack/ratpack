@@ -63,6 +63,6 @@ public class DefaultSessionKey<T> implements SessionKey<T> {
 
   @Override
   public String toString() {
-    return "SessionKey[name='" + name + '\'' + ", type=" + type + ']';
+    return "SessionKey[name='" + name + '\'' + ", type=" + type.getName() + ']';
   }
 }
