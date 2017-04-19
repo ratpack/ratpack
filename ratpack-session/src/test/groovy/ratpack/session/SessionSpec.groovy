@@ -19,6 +19,7 @@ package ratpack.session
 import com.google.inject.AbstractModule
 import ratpack.exec.Execution
 import ratpack.exec.Promise
+import ratpack.session.internal.JavaBuiltinSessionSerializer
 import ratpack.test.internal.RatpackGroovyDslSpec
 import ratpack.test.internal.SimpleErrorHandler
 
@@ -337,6 +338,57 @@ class SessionSpec extends RatpackGroovyDslSpec {
     getText("add") == "ok"
     getText("keys") == "[SessionKey[name='foo', type=java.lang.String]]"
     getText("read") == "Optional.empty"
+    getText("keys") == "[]"
+  }
+
+  def "error deserializing session causes session to be discarded"() {
+    when:
+    def error = false
+    def sessionSerializer = new JavaBuiltinSessionSerializer() {
+      @Override
+      def <T> T deserialize(Class<T> type, InputStream inputStream) throws Exception {
+        error ? { throw new UnsupportedOperationException() }() : super.deserialize(type, inputStream)
+      }
+    }
+
+    bindings {
+      module SessionModule
+      bindInstance(SessionSerializer, sessionSerializer)
+      bindInstance(JavaSessionSerializer, sessionSerializer)
+    }
+    handlers {
+      get("add") {
+        get(Session).set("foo", "bar").then {
+          render "ok"
+        }
+      }
+
+      get("read") {
+        get(Session).get("foo").then {
+          render Objects.toString(it)
+        }
+      }
+
+      get("keys") {
+        get(Session).keys.then {
+          render it.toString()
+        }
+      }
+    }
+
+    then:
+    getText("add") == "ok"
+
+    when:
+    error = true
+
+    then:
+    getText("keys") == "[]"
+
+    when:
+    error = false
+
+    then:
     getText("keys") == "[]"
   }
 }

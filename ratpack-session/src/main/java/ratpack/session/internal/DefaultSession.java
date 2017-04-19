@@ -61,13 +61,13 @@ public class DefaultSession implements Session {
 
     private static final long serialVersionUID = 2;
 
-    public static final Ordering<SessionKey<?>> KEY_NAME_ORDERING = Ordering.natural()
+    private static final Ordering<SessionKey<?>> KEY_NAME_ORDERING = Ordering.natural()
       .nullsFirst()
-      .<SessionKey<?>>onResultOf(SessionKey::getName);
+      .onResultOf(SessionKey::getName);
 
-    public static final Ordering<SessionKey<?>> KEY_TYPE_ORDERING = Ordering.natural()
+    private static final Ordering<SessionKey<?>> KEY_TYPE_ORDERING = Ordering.natural()
       .nullsFirst()
-      .<SessionKey<?>>onResultOf(k -> k.getType() == null ? null : k.getType().getName());
+      .onResultOf(k -> k.getType() == null ? null : k.getType().getName());
 
     private static final Comparator<SessionKey<?>> COMPARATOR = KEY_NAME_ORDERING.compound(KEY_TYPE_ORDERING);
 
@@ -172,8 +172,18 @@ public class DefaultSession implements Session {
 
   private void hydrate(ByteBuf bytes) throws Exception {
     if (bytes.readableBytes() > 0) {
-      SerializedForm deserialized = defaultSerializer.deserialize(SerializedForm.class, new ByteBufInputStream(bytes));
-      entries = deserialized.entries;
+      try {
+        SerializedForm deserialized = defaultSerializer.deserialize(SerializedForm.class, new ByteBufInputStream(bytes));
+        if (deserialized == null) {
+          this.entries = new HashMap<>();
+        } else {
+          entries = deserialized.entries;
+        }
+      } catch (Exception e) {
+        LOGGER.warn("Exception thrown deserializing session " + getId() + " with serializer " + defaultSerializer + " (session will be discarded)", e);
+        this.entries = new HashMap<>();
+        markDirty();
+      }
     } else {
       this.entries = new HashMap<>();
     }
@@ -266,7 +276,7 @@ public class DefaultSession implements Session {
           T value = serializer.deserialize(key.getType(), new ByteArrayInputStream(bytes));
           return Optional.ofNullable(value);
         } catch (Exception e) {
-          LOGGER.warn("Exception thrown deserializing " + key + " with serializer " + serializer + " (value will be discarded from session)", e);
+          LOGGER.warn("Exception thrown deserializing entry " + key + " with serializer " + serializer + " (value will be discarded from session)", e);
           remove(key);
           return Optional.empty();
         }
