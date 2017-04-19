@@ -115,7 +115,9 @@ dependencies {
   }
   providedRuntime "org.jruby:jruby-complete:1.7.18"
 
-  runtime "org.apache.logging.log4j:log4j-slf4j-impl:${commonVersions.log4j}"
+  runtime "org.apache.logging.log4j:log4j-slf4j-impl:${commonVersions.log4j}", {
+    exclude group: "org.slf4j", module: "slf4j-api"
+  }
   runtime "org.apache.logging.log4j:log4j-api:${commonVersions.log4j}"
   runtime "org.apache.logging.log4j:log4j-core:${commonVersions.log4j}"
   runtime 'com.lmax:disruptor:3.3.2'

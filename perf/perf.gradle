@@ -24,9 +24,13 @@ configurations {
 
 dependencies {
   compile commonDependencies.groovy
-  compile commonDependencies.toolingApi
+  compile commonDependencies.toolingApi, {
+    exclude group: "org.slf4j", module: "slf4j-api"
+  }
   compile "org.slf4j:slf4j-simple:${commonVersions.slf4j}"
-  testCompile commonDependencies.spock
+  testCompile commonDependencies.spock, {
+    exclude group: "org.slf4j", module: "slf4j-api"
+  }
 }
 
 task createApps {
