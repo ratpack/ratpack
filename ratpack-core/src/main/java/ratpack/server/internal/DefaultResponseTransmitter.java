@@ -193,6 +193,7 @@ public class DefaultResponseTransmitter implements ResponseTransmitter {
     boolean compress = !responseHeaders.contains(HttpHeaderConstants.CONTENT_ENCODING, HttpHeaderConstants.IDENTITY, true);
 
     if (!isSsl && !compress && file.getFileSystem().equals(FileSystems.getDefault())) {
+      responseHeaders.remove(HttpHeaderConstants.CONTENT_ENCODING);
       Blocking.get(() -> new FileInputStream(file.toFile()).getChannel()).then(fileChannel -> {
         FileRegion defaultFileRegion = new DefaultFileRegion(fileChannel, 0, size);
         transmit(status, defaultFileRegion, true);
