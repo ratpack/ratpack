@@ -1,14 +1,32 @@
 package ratpack.rx2;
 
-import io.reactivex.*;
+import io.reactivex.BackpressureStrategy;
+import io.reactivex.Completable;
+import io.reactivex.Flowable;
+import io.reactivex.FlowableOnSubscribe;
+import io.reactivex.FlowableSubscriber;
+import io.reactivex.Maybe;
+import io.reactivex.Observable;
+import io.reactivex.ObservableOnSubscribe;
+import io.reactivex.Observer;
+import io.reactivex.Scheduler;
+import io.reactivex.Single;
 import io.reactivex.disposables.Disposable;
 import io.reactivex.plugins.RxJavaPlugins;
 import org.reactivestreams.Publisher;
 import org.reactivestreams.Subscription;
-import ratpack.exec.*;
+import ratpack.exec.ExecController;
+import ratpack.exec.Execution;
+import ratpack.exec.Operation;
+import ratpack.exec.Promise;
+import ratpack.exec.UnmanagedThreadException;
 import ratpack.func.Action;
 import ratpack.registry.RegistrySpec;
-import ratpack.rx2.internal.*;
+import ratpack.rx2.internal.DefaultSchedulers;
+import ratpack.rx2.internal.ErrorHandler;
+import ratpack.rx2.internal.ExecControllerBackedScheduler;
+import ratpack.rx2.internal.ExecutionBackedObserver;
+import ratpack.rx2.internal.ExecutionBackedSubscriber;
 import ratpack.stream.Streams;
 import ratpack.stream.TransformablePublisher;
 import ratpack.util.Exceptions;
@@ -189,6 +207,96 @@ public abstract class RxRatpack {
    */
   public static <T, I extends Iterable<T>> Observable<T> observeEach(Promise<I> promise) {
     return Observable.merge(observe(promise).map(Observable::fromIterable));
+  }
+
+  /**
+   * Converts a {@link Promise} into a {@link Single}.
+   * <p>
+   * The returned Single emits the promise's single value if it succeeds, and emits the error (i.e. via {@code onError()}) if it fails.
+   * <p>
+   * This method works well as a method reference to the {@link Promise#to(ratpack.func.Function)} method.
+   * <pre class="java">{@code
+   * import ratpack.rx.RxRatpack;
+   * import ratpack.exec.Promise;
+   * import ratpack.test.exec.ExecHarness;
+   * <p>
+   * import public static org.junit.Assert.assertEquals;
+   * <p>
+   * public class Example {
+   * public static String value;
+   * public static void main(String... args) throws Exception {
+   * ExecHarness.runSingle(e ->
+   * Promise.value("hello world")
+   * .to(RxRatpack::single)
+   * .map(String::toUpperCase)
+   * .subscribe(s -> value = s)
+   * );
+   * <p>
+   * assertEquals("HELLO WORLD", value);
+   * }
+   * }
+   * }</pre>
+   *
+   * @param promise the promise
+   * @param <T>     the type of value promised
+   * @return a single for the promised value
+   */
+  public static <T> Single<T> single(Promise<T> promise) {
+    return Single.create(subscriber ->
+      promise.onError(subscriber::onError).then(subscriber::onSuccess)
+    );
+  }
+
+  /**
+   * Converts a {@link Promise} into a {@link Maybe}.
+   * <p>
+   * The returned Maybe emits the promise's single value if it succeeds, and emits the error (i.e. via {@code onError()}) if it fails.
+   * <p>
+   * This method works well as a method reference to the {@link Promise#to(ratpack.func.Function)} method.
+   * <pre class="java">{@code
+   * import ratpack.rx.RxRatpack;
+   * import ratpack.exec.Promise;
+   * import ratpack.test.exec.ExecHarness;
+   * <p>
+   * import public static org.junit.Assert.assertEquals;
+   * <p>
+   * public class Example {
+   * public static String value;
+   * public static void main(String... args) throws Exception {
+   * ExecHarness.runSingle(e ->
+   * Promise.value("hello world")
+   * .to(RxRatpack::maybe)
+   * .map(String::toUpperCase)
+   * .subscribe(s -> value = s)
+   * );
+   * <p>
+   * assertEquals("HELLO WORLD", value);
+   * }
+   * }
+   * }</pre>
+   *
+   * @param promise the promise
+   * @param <T>     the type of value promised
+   * @return a maybe for the promised value
+   */
+  public static <T> Maybe<T> maybe(Promise<T> promise) {
+    return Maybe.create(subscriber ->
+      promise.onError(subscriber::onError).then(value -> {
+        subscriber.onSuccess(value);
+        subscriber.onComplete();
+      })
+    );
+  }
+
+  /**
+   * Converts a {@link Promise} into a {@link Completable}.
+   * <p>
+   * The returned Completable emits nothing if it succeeds, and emits the error (i.e. via {@code onError()}) if it fails.
+   */
+  public static Completable complete(Promise<Void> promise) {
+    return Completable.create(subscriber ->
+      promise.onError(subscriber::onError).then(value -> subscriber.onComplete())
+    );
   }
 
   /**
@@ -385,6 +493,17 @@ public abstract class RxRatpack {
    */
   public static <T> Promise<T> promiseSingle(Single<T> single) throws UnmanagedThreadException {
     return Promise.async(f -> single.subscribe(f::success, f::error));
+  }
+
+  /**
+   * @param maybe
+   * @param <T>
+   * @return
+   * @throws UnmanagedThreadException
+   * @see RxRatpack#promiseSingle(Observable)
+   */
+  public static <T> Promise<T> promiseSingle(Maybe<T> maybe) throws UnmanagedThreadException {
+    return Promise.async(f -> maybe.subscribe(f::success, f::error));
   }
 
   /**

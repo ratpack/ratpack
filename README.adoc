@@ -1,0 +1,84 @@
+= ratpack-rx2
+Ratpack support for rxjava2
+
+image::https://travis-ci.org/drmaas/ratpack-rx2.svg?branch=master["Build Status", https://travis-ci.org/drmaas/ratpack-rx2]
+
+image::https://forthebadge.com/images/badges/uses-badges.svg["forthebadge", https://forthebadge.com]
+
+== Gradle
+```
+compile 'me.drmaas:ratpack-rx2:x.x.x'
+```
+
+== Maven
+```
+<dependency>
+    <groupId>me.drmaas</groupId>
+    <artifactId>ratpack-rx2</artifactId>
+    <version>x.x.x/version>
+</dependency>
+```
+
+== Examples
+
+=== Observable
+```
+ratpack {
+  handlers {
+    get(":value") {
+      observe(Blocking.get {
+        pathTokens.value
+      }).promiseSingle().then {
+        render it
+      }
+    }
+  }
+}
+```
+
+=== Flowable
+```
+ratpack {
+  handlers {
+    get(":value") {
+      flow(Blocking.get {
+        pathTokens.value
+      }, BackpressureStrategy.BUFFER).promiseSingle().then {
+        render it
+      }
+    }
+  }
+}
+```
+
+=== Single
+```
+ratpack {
+  handlers {
+    get(":value") {
+      single(Blocking.get {
+        pathTokens.value
+      }).promiseSingle().then {
+        render it
+      }
+    }
+  }
+}
+```
+
+=== Maybe
+```
+ratpack {
+  handlers {
+    get(":value") {
+      maybe(Blocking.get {
+        pathTokens.value
+      }).promiseSingle().then {
+        render it
+      }
+    }
+  }
+}
+```
+
+A detailed listing of use cases should follow logically from those documentated at https://ratpack.io/manual/current/api/ratpack/rx/RxRatpack.html
