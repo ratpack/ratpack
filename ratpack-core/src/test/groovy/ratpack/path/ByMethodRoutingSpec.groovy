@@ -28,22 +28,24 @@ class ByMethodRoutingSpec extends RatpackGroovyDslSpec {
     when:
     handlers {
       path("foo") {
-        def prefix = "common"
         byMethod {
           get {
-            response.send("$prefix: get")
+            response.send(": get")
           }
           post {
-            response.send("$prefix: post")
+            response.send(": post")
           }
         }
       }
     }
 
     then:
-    getText("foo") == "common: get"
-    postText("foo") == "common: post"
+    getText("foo") == ": get"
+    postText("foo") == ": post"
     put("foo").statusCode == 405
+    head("foo").statusCode == 200
+    head("foo").headers."content-length" == "5" // length of GET response
+    head("foo").body.buffer.readableBytes() == 0
   }
 
   class SendHandler implements Handler {

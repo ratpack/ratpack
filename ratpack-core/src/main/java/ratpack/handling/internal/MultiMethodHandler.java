@@ -57,10 +57,16 @@ public class MultiMethodHandler implements Handler {
       context.getResponse().getHeaders().add(HttpHeaderConstants.ALLOW, methods);
       context.getResponse().status(200).send();
     } else {
-      for (Map.Entry<HttpMethod, Handler> entry : handlers.entrySet()) {
-        HttpMethod key = entry.getKey();
-        if (key.equals(method)) {
-          context.insert(entry.getValue());
+      Handler handler = handlers.get(method);
+      if (handler != null) {
+        context.insert(handler);
+        return;
+      }
+
+      if (method.isHead()) {
+        Handler getHandler = handlers.get(HttpMethod.GET);
+        if (getHandler != null) {
+          context.insert(getHandler);
           return;
         }
       }
