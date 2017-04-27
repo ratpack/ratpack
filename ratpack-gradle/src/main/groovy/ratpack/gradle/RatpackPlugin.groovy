@@ -82,8 +82,12 @@ class RatpackPlugin implements Plugin<Project> {
     CreateStartScripts startScripts = project.startScripts
     startScripts.with {
       doLast {
-        unixScript.text = unixScript.text.replaceAll('CLASSPATH=(")?(.+)(")?\n', 'CLASSPATH=$1\\$APP_HOME/app:$2$3\ncd "\\$APP_HOME/app"\n')
-        windowsScript.text = windowsScript.text.replaceAll('set CLASSPATH=?(.+)\r\n', 'set CLASSPATH=%APP_HOME%/app;$1\r\ncd "%APP_HOME%/app"\r\n')
+        unixScript.text = unixScript.text
+                .replaceAll('CLASSPATH=(")?(.+)(")?\n', 'CLASSPATH=$1\\$APP_HOME/app:$2$3\ncd "\\$APP_HOME/app"\n')
+                .replace(":\$APP_HOME/lib/${project.name}.jar",'')
+        windowsScript.text = windowsScript.text
+                .replaceAll('set CLASSPATH=?(.+)\r\n', 'set CLASSPATH=%APP_HOME%/app;$1\r\ncd "%APP_HOME%/app"\r\n')
+                .replace(":%APP_HOME%/lib/${project.name}.jar",'')
       }
     }
 
