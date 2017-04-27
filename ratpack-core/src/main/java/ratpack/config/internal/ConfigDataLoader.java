@@ -52,15 +52,17 @@ public class ConfigDataLoader {
    * Merges node data from the source into the dest, overwriting non-object fields in dest if they already exist.
    */
   private void merge(JsonNode sourceNode, JsonNode destNode) {
-    Iterator<String> fieldNames = sourceNode.fieldNames();
-    while (fieldNames.hasNext()) {
-      String fieldName = fieldNames.next();
-      JsonNode sourceFieldValue = sourceNode.get(fieldName);
-      JsonNode destFieldValue = destNode.get(fieldName);
-      if (destFieldValue != null && destFieldValue.isObject()) {
-        merge(sourceFieldValue, destFieldValue);
-      } else if (destNode instanceof ObjectNode) {
-        ((ObjectNode) destNode).replace(fieldName, sourceFieldValue);
+    if (sourceNode != null) {
+      Iterator<String> fieldNames = sourceNode.fieldNames();
+      while (fieldNames.hasNext()) {
+        String fieldName = fieldNames.next();
+        JsonNode sourceFieldValue = sourceNode.get(fieldName);
+        JsonNode destFieldValue = destNode.get(fieldName);
+        if (destFieldValue != null && destFieldValue.isObject()) {
+          merge(sourceFieldValue, destFieldValue);
+        } else if (destNode instanceof ObjectNode) {
+          ((ObjectNode) destNode).replace(fieldName, sourceFieldValue);
+        }
       }
     }
   }
