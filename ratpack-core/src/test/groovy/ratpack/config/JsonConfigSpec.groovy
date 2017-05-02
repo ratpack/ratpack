@@ -127,7 +127,7 @@ class JsonConfigSpec extends BaseConfigSpec {
     configFile.text = ''
 
     when:
-    ServerConfig.of { it.baseDir(baseDir).yaml(configFile) }
+    ServerConfig.of { it.baseDir(baseDir).json(configFile) }
 
     then:
     noExceptionThrown()
