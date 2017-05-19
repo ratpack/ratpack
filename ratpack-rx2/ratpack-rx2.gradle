@@ -1,0 +1,16 @@
+description = "Integration with the RxJava v2 library - https://github.com/ReactiveX/RxJava"
+
+apply from: "$rootDir/gradle/javaModule.gradle"
+
+ext.apiLinks = [
+  "http://reactivex.io/RxJava/2.x/javadoc/"
+]
+
+dependencies {
+  compile project(":ratpack-core")
+  compile commonDependencies.rxjava2
+  compile("io.reactivex:rxjava-reactive-streams:1.2.1") {
+    exclude group: "io.reactivex", module: "rxjava"
+    exclude group: "org.reactivestreams", module: "reactive-streams"
+  }
+}

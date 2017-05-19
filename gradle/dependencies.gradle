@@ -23,6 +23,7 @@ ext {
     groovy: "2.4.10",
     pac4j: "1.8.8",
     rxjava: "1.1.2",
+    rxjava2: "2.0.9",
     hystrix: "1.5.1",
     jackson: "2.8.7",
     dropwizardMetrics: "3.1.1",
@@ -74,6 +75,7 @@ ext {
       exclude group: "com.google.guava", module: "guava"
     }),
     rxjava: "io.reactivex:rxjava:$commonVersions.rxjava",
+    rxjava2: "io.reactivex:rxjava2:$commonsVersions.rxjava2",
     remote: dependencies.create("io.remotecontrol:remote-core:${commonVersions.remote}", {
       exclude group: "org.codehaus.groovy", module: "groovy-all"
     }),
