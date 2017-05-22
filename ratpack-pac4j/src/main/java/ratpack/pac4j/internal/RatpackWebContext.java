@@ -85,11 +85,12 @@ public class RatpackWebContext implements WebContext {
   }
 
   private RequestAttributes getRequestAttributes() {
-    RequestAttributes attributes = request.get(RequestAttributes.class);
-    if (attributes == null) {
-      attributes = new RequestAttributes();
-      request.add(attributes);
-    }
+    return request.maybeGet(RequestAttributes.class).orElseGet(this::addEmptyRequestAttributes);
+  }
+
+  private RequestAttributes addEmptyRequestAttributes() {
+    RequestAttributes attributes = new RequestAttributes();
+    request.add(attributes);
     return attributes;
   }
 
