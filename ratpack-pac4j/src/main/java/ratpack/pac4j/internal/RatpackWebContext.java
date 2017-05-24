@@ -218,7 +218,9 @@ public class RatpackWebContext implements WebContext {
     final DefaultCookie newCookie = new DefaultCookie(cookie.getName(), cookie.getValue());
     newCookie.setDomain(cookie.getDomain());
     newCookie.setPath(cookie.getPath());
-    newCookie.setMaxAge(cookie.getMaxAge());
+    if (cookie.getMaxAge() >= 0) {
+      newCookie.setMaxAge(cookie.getMaxAge());
+    }
     newCookie.setSecure(cookie.isSecure());
     newCookie.setHttpOnly(cookie.isHttpOnly());
     response.getCookies().add(newCookie);
