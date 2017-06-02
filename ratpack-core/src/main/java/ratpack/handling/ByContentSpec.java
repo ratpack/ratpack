@@ -78,7 +78,7 @@ public interface ByContentSpec {
    * @param block the code to invoke if the content type matches
    * @return this
    */
-  default ByContentSpec type(String mimeType, Block block) {
+  default ByContentSpec type(CharSequence mimeType, Block block) {
     return type(mimeType, Handlers.of(block));
   }
 
@@ -91,7 +91,7 @@ public interface ByContentSpec {
    * @return this
    * @since 1.5
    */
-  ByContentSpec type(String mimeType, Handler handler);
+  ByContentSpec type(CharSequence mimeType, Handler handler);
 
   /**
    * Specifies that the given handler should be used if the client wants content of the given MIME type.
@@ -102,7 +102,7 @@ public interface ByContentSpec {
    * @return this
    * @since 1.5
    */
-  ByContentSpec type(String mimeType, Class<? extends Handler> handlerType);
+  ByContentSpec type(CharSequence mimeType, Class<? extends Handler> handlerType);
 
   /**
    * Specifies that the given handler should be used if the client wants content of type "text/plain".

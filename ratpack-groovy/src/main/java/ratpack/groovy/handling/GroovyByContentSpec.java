@@ -41,7 +41,7 @@ public interface GroovyByContentSpec extends ByContentSpec {
    * @param handler the handler to invoke if the content type matches
    * @return this
    */
-  default GroovyByContentSpec type(String mimeType, @DelegatesTo(value = GroovyContext.class, strategy = Closure.DELEGATE_FIRST) Closure<?> handler) {
+  default GroovyByContentSpec type(CharSequence mimeType, @DelegatesTo(value = GroovyContext.class, strategy = Closure.DELEGATE_FIRST) Closure<?> handler) {
     return type(mimeType, Groovy.groovyHandler(handler));
   }
 
@@ -109,19 +109,19 @@ public interface GroovyByContentSpec extends ByContentSpec {
    * {@inheritDoc}
    */
   @Override
-  GroovyByContentSpec type(String mimeType, Block block);
+  GroovyByContentSpec type(CharSequence mimeType, Block block);
 
   /**
    * {@inheritDoc}
    */
   @Override
-  GroovyByContentSpec type(String mimeType, Handler handler);
+  GroovyByContentSpec type(CharSequence mimeType, Handler handler);
 
   /**
    * {@inheritDoc}
    */
   @Override
-  GroovyByContentSpec type(String mimeType, Class<? extends Handler> handlerType);
+  GroovyByContentSpec type(CharSequence mimeType, Class<? extends Handler> handlerType);
 
   /**
    * {@inheritDoc}
