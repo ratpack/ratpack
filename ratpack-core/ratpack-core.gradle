@@ -18,6 +18,7 @@ description = "The core HTTP and composition mechanisms of Ratpack"
 
 apply from: "$rootDir/gradle/javaModule.gradle"
 apply from: "$rootDir/gradle/versionFile.gradle"
+apply plugin: "osgi"
 
 ext.apiLinks = [
     "http://netty.io/4.1/api/",

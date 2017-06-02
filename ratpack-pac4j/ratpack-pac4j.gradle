@@ -17,6 +17,7 @@
 description = "Authentication via pac4j - https://github.com/pac4j/pac4j"
 
 apply from: "$rootDir/gradle/javaModule.gradle"
+apply plugin: "osgi"
 
 configurations {
   ["testCompile", "testRuntime"].each { configurationName ->
