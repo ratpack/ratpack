@@ -63,7 +63,8 @@ public interface RequestOutcome {
    * @return how long it took to process the request
    */
   default Duration getDuration() {
-    return Duration.between(getRequest().getTimestamp(), getSentAt());
+    final Instant sentAt = getSentAt();
+    return sentAt == null ? Duration.ZERO : Duration.between(getRequest().getTimestamp(), sentAt);
   }
 
 }
