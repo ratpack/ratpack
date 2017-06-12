@@ -20,7 +20,7 @@ apply from: "$rootDir/gradle/javaModule.gradle"
 
 dependencies {
   compile project(":ratpack-guice")
-  compile('org.thymeleaf:thymeleaf:2.1.4.RELEASE') {
+  compile('org.thymeleaf:thymeleaf:2.1.5.RELEASE') {
     exclude group: 'org.slf4j', module: 'slf4j-api'
     exclude group: 'org.javassist', module: 'javassist'
   }
