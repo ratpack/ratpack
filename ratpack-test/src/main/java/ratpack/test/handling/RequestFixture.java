@@ -276,6 +276,19 @@ public interface RequestFixture {
   RequestFixture pathBinding(String boundTo, String pastBinding, Map<String, String> pathTokens);
 
   /**
+   * Adds a path binding, with the given path tokens and parts.
+   * <p>
+   * By default, there are no path tokens and no path binding.
+   *
+   * @param boundTo the part of the request path that the binding bound to
+   * @param pastBinding the part of the request path past {@code boundTo}
+   * @param pathTokens the path tokens and binding to make available to the handler(s) under test
+   * @param description the description of the request path binding
+   * @return this
+   */
+  RequestFixture pathBinding(String boundTo, String pastBinding, Map<String, String> pathTokens, String description);
+
+  /**
    * Configures the context registry.
    *
    * @param action a registry specification action
