@@ -122,6 +122,12 @@ public class DefaultGroovyRequestFixture implements GroovyRequestFixture {
   }
 
   @Override
+  public GroovyRequestFixture pathBinding(String boundTo, String pastBinding, Map<String, String> pathTokens, String description) {
+    delegate.pathBinding(boundTo, pastBinding, pathTokens, description);
+    return this;
+  }
+
+  @Override
   public GroovyRequestFixture serverConfig(Action<? super ServerConfigBuilder> action) throws Exception {
     delegate.serverConfig(action);
     return this;
