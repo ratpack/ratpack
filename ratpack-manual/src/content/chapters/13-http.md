@@ -480,7 +480,7 @@ public class Example {
 }
 ```
 
-If you want to expire a cookie, you can do so with [`Response#expireCooke()`](api/ratpack/http/Response.html#expireCookie-java.lang.String-). 
+If you want to expire a cookie, you can do so with [`Response#expireCookie()`](api/ratpack/http/Response.html#expireCookie-java.lang.String-). 
 
 ```language-java
 import ratpack.http.client.ReceivedResponse;
