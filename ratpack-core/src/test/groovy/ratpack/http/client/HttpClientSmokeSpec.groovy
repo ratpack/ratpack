@@ -346,7 +346,32 @@ class HttpClientSmokeSpec extends BaseHttpClientSpec {
   }
 
   @IgnoreIf({ InetAddress.localHost.isLoopbackAddress() })
-  def "can set connect timeout"() {
+  def "can set default connect timeout"() {
+    setup:
+    bindings {
+      bindInstance(HttpClient, HttpClient.of { it.poolSize(pooled ? 8 : 0) ; it.connectTimeout(Duration.ofMillis(20)) })
+    }
+
+    when:
+    handlers {
+      get { HttpClient httpClient ->
+        httpClient.get("http://netty.io:65535".toURI()) onError {
+          render it.toString()
+        } then {
+          render "success!"
+        }
+      }
+    }
+
+    then:
+    text == "io.netty.channel.ConnectTimeoutException: Connect timeout (PT0.02S) connecting to http://netty.io:65535"
+
+    where:
+    pooled << [true, false]
+  }
+
+  @IgnoreIf({ InetAddress.localHost.isLoopbackAddress() })
+  def "can override connect timeout on request"() {
     setup:
     bindings {
       bindInstance(HttpClient, HttpClient.of { it.poolSize(pooled ? 8 : 0) })

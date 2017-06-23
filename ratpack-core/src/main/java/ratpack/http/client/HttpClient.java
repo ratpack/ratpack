@@ -128,6 +128,13 @@ public interface HttpClient extends AutoCloseable {
   Duration getReadTimeout();
 
   /**
+   * The default read timeout value.
+   *
+   * @since 1.5
+   */
+  Duration getConnectTimeout();
+
+  /**
    * The maximum response length accepted by the client.
    *
    * @since 1.4

@@ -61,6 +61,7 @@ class RequestConfig {
     Spec spec = new Spec(uri, httpClient.getByteBufAllocator());
 
     spec.readTimeout = httpClient.getReadTimeout();
+    spec.connectTimeout = httpClient.getConnectTimeout();
     spec.maxContentLength = httpClient.getMaxContentLength();
     spec.responseMaxChunkSize = httpClient.getMaxResponseChunkSize();
 
