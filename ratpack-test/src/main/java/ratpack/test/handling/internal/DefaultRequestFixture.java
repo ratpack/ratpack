@@ -232,7 +232,7 @@ public class DefaultRequestFixture implements RequestFixture {
 
   @Override
   public RequestFixture pathBinding(String boundTo, String pastBinding, Map<String, String> pathTokens, String description) {
-    pathBinding = new DefaultPathBinding(pastBinding, ImmutableMap.copyOf(pathTokens), new RootPathBinding(pastBinding), description);
+    pathBinding = new DefaultPathBinding(boundTo, ImmutableMap.copyOf(pathTokens), new RootPathBinding(boundTo + "/" + pastBinding), description);
     return this;
   }
 

@@ -378,6 +378,21 @@ class HandlerUnitTestingSpec extends Specification {
     rendered(String) == [a: "1", b: "2"].toString()
   }
 
+  def "can add path past binding for unit tests"() {
+    given:
+    fixture {
+      pathBinding "bound/to", "past/binding", [:]
+    }
+
+    when:
+    handle {
+      render([boundTo: pathBinding.boundTo, pastBinding: pathBinding.pastBinding].toString())
+    }
+
+    then:
+    rendered(String) == [boundTo: "bound/to", pastBinding: "past/binding"].toString()
+  }
+
   def "can access things inserted into registry"() {
     when:
     handle {
