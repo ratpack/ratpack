@@ -15,7 +15,7 @@
  */
 apply plugin: "com.gradle.build-scan"
 def env = System.getenv()
-
+def publishToSlack = findProperty("publishToSlack") != null
 
 buildScan {
   def commitId = env.REVISION
@@ -40,7 +40,21 @@ if (project.isCi) {
     tag "CI"
 
     if (isSemaphore) {
-      link "Semaphore CI", "https://semaphoreci.com/ratpack/ratpack/branches/${env.BRANCH_NAME.replace('.', '-')}/builds/${env.SEMAPHORE_BUILD_NUMBER}"
+      def semaphoreBuildLink = "https://semaphoreci.com/ratpack/ratpack/branches/${env.BRANCH_NAME.replace('.', '-')}/builds/${env.SEMAPHORE_BUILD_NUMBER}"
+      def semaphoreBuildTitle = "${env.SEMAPHORE_PROJECT_NAME}/${env.BRANCH_NAME}/#${env.SEMAPHORE_BUILD_NUMBER}"
+
+      link "Semaphore CI", semaphoreBuildLink
+
+      if (publishToSlack) {
+        buildFinished { buildResult ->
+
+          buildScanPublished {
+            def json="{'attachments': [{'fallback': '${semaphoreBuildTitle}', 'color': '${buildResult.failure != null ? 'danger' : 'good'}', 'title': '${semaphoreBuildTitle}', 'title_link': '${semaphoreBuildLink}', 'text': 'Build scan: ${it.buildScanUri}'}]}"
+            ['curl', '-s', '-d', "payload=$json", "https://hooks.slack.com/services/${env.SLACK_TOKEN}"].execute()
+          }
+
+        }
+      }
     }
 
     // Capture individual issues for some reports
