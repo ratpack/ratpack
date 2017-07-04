@@ -9,7 +9,7 @@ Ratpack has been made possible by the following people.
 The following people are currently actively contributing their time to Ratpack.
 
 * [David Carr](https://github.com/davidmc24)
-* [Luke Daley](https://github.com/alkemist)
+* [Luke Daley](https://github.com/ldaley)
 * [Marcin Erdmann](https://github.com/erdi)
 * [Rob Fletcher](https://github.com/robfletcher)
 * [Rus Hart](https://github.com/rhart)
