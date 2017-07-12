@@ -543,7 +543,7 @@ Don't forget to load the module in ratpack.
 You are now set for sessions.
 The following is a simple example of an application that uses sessions.
 
-```language-java
+```language-java tested
 import ratpack.session.Session
 
 import static ratpack.groovy.Groovy.ratpack
@@ -580,7 +580,7 @@ ratpack {
 }
 ```
 
-All session operations return either a `Promise` or an `Operation`.
+All session operations return either a [Promise](https://ratpack.io/manual/current/api/ratpack/exec/Promise.html) or an [Operation](https://ratpack.io/manual/current/api/ratpack/exec/Operation.html).
 You can use those in your transformation flow as shown.
 
 Make sure you terminate an old session before starting a new one (see `get('start')`-handler).
@@ -592,6 +592,8 @@ The ratpack session module uses in-memory sessions by default.
 It can hold up to 1000 sessions at a time and will drop the oldest session if a new session is opened.
 If you expect more than 1000 sessions you should consider to use a different session store than the default module.
 You could for example use the `ratpack-session-redis` module if you have a redis server handy.
+If your payload is small another option is to store some session data in the cookie itself by using the [client side session module](https://ratpack.io/manual/current/api/ratpack/session/clientside/ClientSideSessionModule.html).
+Since all Cookies for a website combined cannot exceed 4K
 
 ### The `ratpack-session-redis` module
 To use the redis session module add the dependency (`compile group: 'io.ratpack', name: 'ratpack-session-redis'`) to your project.
@@ -631,10 +633,8 @@ Here are some useful links to dive deeper into ratpack session handling:
 ### A final note when you use the default session store (in-memory):
 
 The default session store probably isn't useful in any production environment but it is useful for local testing with sessions.
-I found that the `session.terminate()` call sets the session cookie to an empty value.
+A call of `session.terminate()` sets the session cookie to an empty value.
 Consecutive calls therefor contain a cookie like this `JSESSIONID=`.
 At least the in-memory session store accepts the empty value as a valid session.
 Therefor if you don't terminate your session before you intend to create a new one by adding values to it, 
 you will add session data to the existing session with an empty uuid.
-
-(This note may become irrelevant once this has been fixed, if this is not expected behaviour - TBD)
