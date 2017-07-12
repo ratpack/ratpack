@@ -593,7 +593,7 @@ It can hold up to 1000 sessions at a time and will drop the oldest session if a 
 If you expect more than 1000 sessions you should consider to use a different session store than the default module.
 You could for example use the `ratpack-session-redis` module if you have a redis server handy.
 If your payload is small another option is to store some session data in the cookie itself by using the [client side session module](https://ratpack.io/manual/current/api/ratpack/session/clientside/ClientSideSessionModule.html).
-Since all Cookies for a website combined cannot exceed 4K
+Your payload should be small because all Cookies for a website (domain) combined cannot exceed 4K.
 
 ### The `ratpack-session-redis` module
 To use the redis session module add the dependency (`compile group: 'io.ratpack', name: 'ratpack-session-redis'`) to your project.
