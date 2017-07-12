@@ -520,9 +520,24 @@ You can add the session module to your project and start using ratpack managed s
 ### Preparation
 First off you need to add the required dependency to your project.
 Using gradle you can add the dependency by adding `compile group: 'io.ratpack', name: 'ratpack-session'` to dependencies.
-When you just started out your gradle dependency section will look like this:
+When you just started out your gradle file will look like this:
 
-```language-java
+```language-groovy gradle
+buildscript {
+  repositories {
+    jcenter()
+  }
+  dependencies {
+    classpath "io.ratpack:ratpack-gradle:1.5.0-rc-2"
+  }
+}
+
+apply plugin: "io.ratpack.ratpack-groovy"
+
+repositories {
+  jcenter()
+}
+
 dependencies {
   runtime 'org.slf4j:slf4j-simple:1.7.25'
   compile group: 'io.ratpack', name: 'ratpack-session', version: '1.5.0-rc-2' // note: the version is subject to change
@@ -532,10 +547,16 @@ dependencies {
 ```
 
 Don't forget to load the module in ratpack. 
-```language-java
+```language-groovy tested
+import static ratpack.groovy.Groovy.ratpack
+import ratpack.session.SessionModule
+
+ratpack {
 	bindings {
 		module(SessionModule)
 	}
+	/* ... */
+}
 ```
 
 ### Use session
@@ -543,7 +564,7 @@ Don't forget to load the module in ratpack.
 You are now set for sessions.
 The following is a simple example of an application that uses sessions.
 
-```language-java tested
+```language-groovy tested
 import ratpack.session.Session
 
 import static ratpack.groovy.Groovy.ratpack
@@ -599,7 +620,7 @@ Your payload should be small because all Cookies for a website (domain) combined
 To use the redis session module add the dependency (`compile group: 'io.ratpack', name: 'ratpack-session-redis'`) to your project.
 
 Then configure redis after loading the session module.
-```language-java
+```language-groovy
 bindings {
   module(SessionModule)
   RedisSessionModule redisSessionModule = new RedisSessionModule()
