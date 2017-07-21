@@ -83,6 +83,7 @@ public interface HttpClientSpec {
    *
    * @param connectTimeout the read timeout value for responses
    * @return {@code this}
+   * @since 1.5
    */
   HttpClientSpec connectTimeout(Duration connectTimeout);
 
