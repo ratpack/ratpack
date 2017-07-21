@@ -274,7 +274,7 @@ public interface RequestSpec {
   RequestSpec connectTimeout(Duration duration);
 
   /**
-   * @deprecated since 1.4, use {@link #connectTimeout(Duration)}
+   * @deprecated since 1.4, use {@link #readTimeout(Duration)}
    */
   @Deprecated
   default RequestSpec readTimeoutSeconds(int seconds) {

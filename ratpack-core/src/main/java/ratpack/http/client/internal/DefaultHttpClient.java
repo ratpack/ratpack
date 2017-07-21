@@ -97,13 +97,15 @@ public class DefaultHttpClient implements HttpClientInternal {
   private final int maxResponseChunkSize;
   private final int poolSize;
   private final Duration readTimeout;
+  private final Duration connectTimeout;
 
-  private DefaultHttpClient(ByteBufAllocator byteBufAllocator, int maxContentLength, int maxResponseChunkSize, int poolSize, Duration readTimeout) {
+  private DefaultHttpClient(ByteBufAllocator byteBufAllocator, int maxContentLength, int maxResponseChunkSize, int poolSize, Duration readTimeout, Duration connectTimeout) {
     this.byteBufAllocator = byteBufAllocator;
     this.maxContentLength = maxContentLength;
     this.maxResponseChunkSize = maxResponseChunkSize;
     this.poolSize = poolSize;
     this.readTimeout = readTimeout;
+    this.connectTimeout = connectTimeout;
   }
 
   @Override
@@ -137,6 +139,10 @@ public class DefaultHttpClient implements HttpClientInternal {
     return readTimeout;
   }
 
+  public Duration getConnectTimeout() {
+    return connectTimeout;
+  }
+
   @Override
   public void close() {
     channelPoolMap.close();
@@ -151,7 +157,8 @@ public class DefaultHttpClient implements HttpClientInternal {
       spec.maxContentLength,
       spec.responseMaxChunkSize,
       spec.poolSize,
-      spec.readTimeout
+      spec.readTimeout,
+      spec.connectTimeout
     );
   }
 
@@ -162,6 +169,7 @@ public class DefaultHttpClient implements HttpClientInternal {
     private int maxContentLength = ServerConfig.DEFAULT_MAX_CONTENT_LENGTH;
     private int responseMaxChunkSize = 8192;
     private Duration readTimeout = Duration.ofSeconds(30);
+    private Duration connectTimeout = Duration.ofSeconds(30);
 
     private Spec() {
     }
@@ -193,6 +201,12 @@ public class DefaultHttpClient implements HttpClientInternal {
     @Override
     public HttpClientSpec readTimeout(Duration readTimeout) {
       this.readTimeout = readTimeout;
+      return this;
+    }
+
+    @Override
+    public HttpClientSpec connectTimeout(Duration connectTimeout) {
+      this.connectTimeout = connectTimeout;
       return this;
     }
   }
