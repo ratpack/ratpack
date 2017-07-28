@@ -601,7 +601,7 @@ ratpack {
 }
 ```
 
-All session operations return either a [Promise](https://ratpack.io/manual/current/api/ratpack/exec/Promise.html) or an [Operation](https://ratpack.io/manual/current/api/ratpack/exec/Operation.html).
+All session operations return either a [Promise](api/ratpack/exec/Promise.html) or an [Operation](api/ratpack/exec/Operation.html).
 You can use those in your transformation flow as shown.
 
 Make sure you terminate an old session before starting a new one (see `get('start')`-handler).
@@ -613,7 +613,7 @@ The ratpack session module uses in-memory sessions by default.
 It can hold up to 1000 sessions at a time and will drop the oldest session if a new session is opened.
 If you expect more than 1000 sessions you should consider to use a different session store than the default module.
 You could for example use the `ratpack-session-redis` module if you have a redis server handy.
-If your payload is small another option is to store some session data in the cookie itself by using the [client side session module](https://ratpack.io/manual/current/api/ratpack/session/clientside/ClientSideSessionModule.html).
+If your payload is small another option is to store some session data in the cookie itself by using the [client side session module](api/ratpack/session/clientside/ClientSideSessionModule.html).
 Your payload should be small because all Cookies for a website (domain) combined cannot exceed 4K.
 
 ### The `ratpack-session-redis` module
@@ -648,8 +648,8 @@ Consecutive client requests contain the cookie in the `Cookie`-Header, so ratpac
 
 Here are some useful links to dive deeper into ratpack session handling:
 - more samples of how sessions work in the [ratpack-session module tests](https://github.com/ratpack/ratpack/blob/master/ratpack-session/src/test/groovy/ratpack/session/SessionSpec.groovy)
-- [ratpack javadoc](https://ratpack.io/manual/current/api/ratpack/session/SessionModule.html) contains lots of examples and information
-- cookie behaviour can be customized (i.e. change name of cookie, use custom ids/expiration date) by providing a custom [SessionCookieConfig](https://ratpack.io/manual/current/api/ratpack/session/SessionCookieConfig.html) to the session module 
+- [ratpack javadoc](api/ratpack/session/SessionModule.html) contains lots of examples and information
+- cookie behaviour can be customized (i.e. change name of cookie, use custom ids/expiration date) by providing a custom [SessionCookieConfig](api/ratpack/session/SessionCookieConfig.html) to the session module 
 
 ### A final note when you use the default session store (in-memory):
 
