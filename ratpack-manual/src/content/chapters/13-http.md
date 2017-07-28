@@ -513,4 +513,149 @@ Support for rendering different representations of a resource (JSON/XML/HTML, GI
 
 ## Sessions
 
-TODO introduce `ratpack-sessions` library
+Whenever you need to maintain consistency between multiple calls by the same client (in other words: stateful operations) you may want to use sessions.
+Ratpack offers a module to handle session handling for you.
+You can add the session module to your project and start using ratpack managed sessions.
+
+### Preparation
+First off you need to add the required dependency to your project.
+Using gradle you can add the dependency by adding `compile group: 'io.ratpack', name: 'ratpack-session'` to dependencies.
+When you just started out your gradle file will look like this:
+
+```language-groovy gradle
+buildscript {
+  repositories {
+    jcenter()
+  }
+  dependencies {
+    classpath "io.ratpack:ratpack-gradle:1.5.0-rc-2"
+  }
+}
+
+apply plugin: "io.ratpack.ratpack-groovy"
+
+repositories {
+  jcenter()
+}
+
+dependencies {
+  runtime 'org.slf4j:slf4j-simple:1.7.25'
+  compile group: 'io.ratpack', name: 'ratpack-session', version: '1.5.0-rc-2' // note: the version is subject to change
+
+  testCompile "org.spockframework:spock-core:1.0-groovy-2.4"
+}
+```
+
+Don't forget to load the module in ratpack. 
+```language-groovy tested
+import static ratpack.groovy.Groovy.ratpack
+import ratpack.session.SessionModule
+
+ratpack {
+	bindings {
+		module(SessionModule)
+	}
+	/* ... */
+}
+```
+
+### Use session
+
+You are now set for sessions.
+The following is a simple example of an application that uses sessions.
+
+```language-groovy tested
+import ratpack.session.Session
+
+import static ratpack.groovy.Groovy.ratpack
+import ratpack.session.SessionModule
+
+ratpack {
+	bindings {
+		module(SessionModule)
+	}
+
+	handlers {
+		get('start') { Session session ->
+			session.terminate().flatMap {
+				session.set('keyForDataStoredInSession', 'Hello Session!').promise()
+			}.then {
+				response.send('I started a session for you.')
+			}
+		}
+		get { Session session ->
+			session.get('keyForDataStoredInSession').then {
+				if (it.present) {
+					response.send("Message: ${it.get()}")
+				} else {
+					response.send('I have nothing to say to you')
+				}
+			}
+		}
+		get('stop') { Session session ->
+			session.terminate().then {
+				response.send('The session is dead, dead, dead.')
+			}
+		}
+	}
+}
+```
+
+All session operations return either a [Promise](https://ratpack.io/manual/current/api/ratpack/exec/Promise.html) or an [Operation](https://ratpack.io/manual/current/api/ratpack/exec/Operation.html).
+You can use those in your transformation flow as shown.
+
+Make sure you terminate an old session before starting a new one (see `get('start')`-handler).
+This way you make sure that you actually get a new session and don't just add data to an existing session.
+
+### Limitations 
+
+The ratpack session module uses in-memory sessions by default.
+It can hold up to 1000 sessions at a time and will drop the oldest session if a new session is opened.
+If you expect more than 1000 sessions you should consider to use a different session store than the default module.
+You could for example use the `ratpack-session-redis` module if you have a redis server handy.
+If your payload is small another option is to store some session data in the cookie itself by using the [client side session module](https://ratpack.io/manual/current/api/ratpack/session/clientside/ClientSideSessionModule.html).
+Your payload should be small because all Cookies for a website (domain) combined cannot exceed 4K.
+
+### The `ratpack-session-redis` module
+To use the redis session module add the dependency (`compile group: 'io.ratpack', name: 'ratpack-session-redis'`) to your project.
+
+Then configure redis after loading the session module.
+```language-groovy
+bindings {
+  module(SessionModule)
+  RedisSessionModule redisSessionModule = new RedisSessionModule()
+  redisSessionModule.configure {
+    it.host = 'localhost'
+    it.port =  6379
+    it.password = 'secret'
+  }
+  module(redisSessionModule)
+}
+```
+
+You may want to inject the configuration for redis using Guice or some other mechanism.
+Apart from that you have successfully configured ratpack to use redis to store sessions.
+Make your your redis server is running and available and give you ratpack application a spin.
+
+### Comments & useful links
+
+You now have a very rough idea of how to implement sessions in ratpack.
+
+Ratpack handles session consistency with cookies, namely a JSESSIONID cookie that contains a UUID.
+Whenever you first add data to the session the id is generated and the cookie will be sent to the client using the `Add-Cookie` header in the response.
+Therefor you need to make sure that you a response is sent to the client or the session will be lost.
+Consecutive client requests contain the cookie in the `Cookie`-Header, so ratpack can determine the client's session.
+
+Here are some useful links to dive deeper into ratpack session handling:
+- more samples of how sessions work in the [ratpack-session module tests](https://github.com/ratpack/ratpack/blob/master/ratpack-session/src/test/groovy/ratpack/session/SessionSpec.groovy)
+- [ratpack javadoc](https://ratpack.io/manual/current/api/ratpack/session/SessionModule.html) contains lots of examples and information
+- cookie behaviour can be customized (i.e. change name of cookie, use custom ids/expiration date) by providing a custom [SessionCookieConfig](https://ratpack.io/manual/current/api/ratpack/session/SessionCookieConfig.html) to the session module 
+
+### A final note when you use the default session store (in-memory):
+
+The default session store probably isn't useful in any production environment but it is useful for local testing with sessions.
+A call of `session.terminate()` sets the session cookie to an empty value.
+Consecutive calls therefor contain a cookie like this `JSESSIONID=`.
+At least the in-memory session store accepts the empty value as a valid session.
+Therefor if you don't terminate your session before you intend to create a new one by adding values to it, 
+you will add session data to the existing session with an empty uuid.
