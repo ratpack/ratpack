@@ -192,6 +192,12 @@ public interface HttpClient extends AutoCloseable {
   Promise<StreamedResponse> requestStream(URI uri, final Action<? super RequestSpec> requestConfigurer);
 
   /**
+   * A method to retrieve statistics on current connection utilization related to the HTTP Client internals.
+   * @return
+   */
+  HttpClientStats getHttpClientStats();
+
+  /**
    * @deprecated since 1.4, use {@link #of(Action)}
    */
   @Deprecated

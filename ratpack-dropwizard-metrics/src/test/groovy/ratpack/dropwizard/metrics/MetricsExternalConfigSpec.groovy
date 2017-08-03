@@ -166,4 +166,29 @@ class MetricsExternalConfigSpec extends RatpackGroovyDslSpec {
     metricsConfig.isBlockingTimingMetrics()
   }
 
+  def "can enable and disable httpClient metrics [enabled: #isEnabled]"() {
+    given:
+    def propsFile = tempFolder.newFile("application.properties").toPath()
+    propsFile.text = """
+    |metrics.httpClient.enabled=${isEnabled}
+    |metrics.httpClient.pollingFrequencyInSeconds=${pollingValue}
+    |""".stripMargin()
+
+    and:
+    def config = ConfigData.of { c -> c.props(propsFile) }
+
+    when:
+    def metricsConfig = config.get("/metrics", DropwizardMetricsConfig)
+
+    then:
+    metricsConfig.httpClient.enabled == isEnabled
+    metricsConfig.httpClient.pollingFrequencyInSeconds == pollingValue
+
+    where:
+    isEnabled | pollingValue
+    true      | 30
+    false     | 0
+  }
+
+
 }

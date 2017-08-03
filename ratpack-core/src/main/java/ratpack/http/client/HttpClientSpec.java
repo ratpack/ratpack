@@ -87,16 +87,30 @@ public interface HttpClientSpec {
    */
   HttpClientSpec connectTimeout(Duration connectTimeout);
 
-    /**
-     * The max size of the chunks to emit when reading a response as a stream.
-     * <p>
-     * Defaults to 8192.
-     * <p>
-     * Increasing this value can increase throughput at the expense of memory use.
-     *
-     * @param numBytes the max number of bytes to emit
-     * @return {@code this}
-     * @since 1.5
-     */
+  /**
+   * The max size of the chunks to emit when reading a response as a stream.
+   * <p>
+   * Defaults to 8192.
+   * <p>
+   * Increasing this value can increase throughput at the expense of memory use.
+   *
+   * @param numBytes the max number of bytes to emit
+   * @return {@code this}
+   * @since 1.5
+   */
   HttpClientSpec responseMaxChunkSize(int numBytes);
+
+  /**
+   * Setting the value to true will inform HttpClient to track metrics
+   * around it's connection usage.
+   * <p>
+   * Defaults to false.
+   * <p>
+   *
+   * @param enabled set to true to enable metrics collection
+   * @return {@code this}
+   * @since 1.5
+   */
+  HttpClientSpec enableMetricsCollection(boolean enabled);
+
 }
