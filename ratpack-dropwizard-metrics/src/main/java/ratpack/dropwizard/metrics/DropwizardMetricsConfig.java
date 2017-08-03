@@ -42,6 +42,7 @@ public class DropwizardMetricsConfig {
   private Optional<CsvConfig> csv = Optional.empty();
   private Optional<Slf4jConfig> slf4j = Optional.empty();
   private Optional<GraphiteConfig> graphite = Optional.empty();
+  private HttpClientConfig httpClient = new HttpClientConfig();
 
   /**
    * The state of jvm metrics collection.
@@ -314,6 +315,29 @@ public class DropwizardMetricsConfig {
         graphite = Optional.of(new GraphiteConfig());
         return graphite.get();
       }));
+      return this;
+    } catch (Exception e) {
+      throw uncheck(e);
+    }
+  }
+
+  /**
+   * Get the settings for the Graphite metrics publisher.
+   * @return the Graphite publisher settings
+   */
+  public HttpClientConfig getHttpClient() {
+    return httpClient;
+  }
+
+  /**
+   * Configure the Graphite metrics publisher.
+   *
+   * @param configure the configuration for the publisher
+   * @return this
+   */
+  public DropwizardMetricsConfig httpClient(Action<? super HttpClientConfig> configure) {
+    try {
+      configure.execute(httpClient);
       return this;
     } catch (Exception e) {
       throw uncheck(e);

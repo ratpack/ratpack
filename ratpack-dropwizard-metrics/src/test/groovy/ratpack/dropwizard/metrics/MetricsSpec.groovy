@@ -27,10 +27,19 @@ import groovy.json.JsonSlurper
 import org.junit.Rule
 import org.junit.rules.TemporaryFolder
 import org.slf4j.Logger
+import ratpack.error.ServerErrorHandler
+import ratpack.error.internal.DefaultDevelopmentErrorHandler
 import ratpack.exec.Blocking
+import ratpack.exec.ExecController
 import ratpack.exec.Promise
+import ratpack.groovy.handling.GroovyChain
+import ratpack.groovy.test.embed.GroovyEmbeddedApp
+import ratpack.http.client.HttpClient
+import ratpack.test.embed.EmbeddedApp
 import ratpack.test.internal.RatpackGroovyDslSpec
 import ratpack.websocket.RecordingWebSocketClient
+import spock.lang.AutoCleanup
+import spock.util.concurrent.BlockingVariable
 import spock.util.concurrent.PollingConditions
 
 import java.time.Duration
@@ -44,6 +53,20 @@ class MetricsSpec extends RatpackGroovyDslSpec {
 
   @Rule
   TemporaryFolder reportDirectory
+
+  @AutoCleanup
+  EmbeddedApp otherApp
+
+  EmbeddedApp otherApp(@DelegatesTo(value = GroovyChain, strategy = Closure.DELEGATE_FIRST) Closure<?> closure) {
+    otherApp = GroovyEmbeddedApp.of {
+      registryOf { add ServerErrorHandler, new DefaultDevelopmentErrorHandler() }
+      handlers(closure)
+    }
+  }
+
+  URI otherAppUrl(String path = "") {
+    new URI("$otherApp.address$path")
+  }
 
   def setup() {
     SharedMetricRegistries.clear()
@@ -721,4 +744,76 @@ class MetricsSpec extends RatpackGroovyDslSpec {
     0 * reporter.onTimerAdded("foo.get-requests", !null)
   }
 
+  def "it should report http client metrics"() {
+    given:
+    MetricRegistry registry
+    String ok = 'ok'
+    def result = new BlockingVariable<String>()
+    def httpClient = HttpClient.of {
+      it.poolSize(0)
+      it.enableMetricsCollection(true)
+    }
+
+    bindings {
+      bindInstance(HttpClient, httpClient)
+      module new DropwizardMetricsModule(), {
+        it.httpClient({ spec ->
+          spec.pollingFrequencyInSeconds(1)
+          spec.enable(true)
+        })
+      }
+    }
+
+    otherApp {
+      get {
+        Blocking.get({
+          return result.get()
+        })
+          .onError(it.&error)
+          .then(it.&render)
+      }
+    }
+
+    handlers { MetricRegistry metrics ->
+      registry = metrics
+      get {
+        ExecController execController = it.get(ExecController)
+        execController.fork().start({
+          httpClient.get(otherAppUrl())
+            .then({ val ->
+            assert val.body.text == ok
+          })
+        })
+        render ok
+      }
+    }
+
+    when:
+    text == ok
+
+    then:
+    polling.within(2) {
+      assert registry.getGauges().get('httpclient.total.active.connections').value == 1
+      assert registry.getGauges().get('httpclient.total.idle.connections').value == 0
+      assert registry.getGauges().get('httpclient.total.connections').value == 1
+      assert registry.getGauges().get("httpclient.${otherAppUrl().host}.total.active.connections").value == 1
+      assert registry.getGauges().get("httpclient.${otherAppUrl().host}.total.idle.connections").value == 0
+      assert registry.getGauges().get("httpclient.${otherAppUrl().host}.total.connections").value == 1
+
+
+    }
+
+    when:
+    result.set(ok)
+
+    then:
+    polling.within(2) {
+      assert registry.getGauges().get('httpclient.total.active.connections').value == 0
+      assert registry.getGauges().get('httpclient.total.idle.connections').value == 0
+      assert registry.getGauges().get('httpclient.total.connections').value == 0
+      assert registry.getGauges().get("httpclient.${otherAppUrl().host}.total.active.connections").value == 0
+      assert registry.getGauges().get("httpclient.${otherAppUrl().host}.total.idle.connections").value == 0
+      assert registry.getGauges().get("httpclient.${otherAppUrl().host}.total.connections").value == 0
+    }
+  }
 }

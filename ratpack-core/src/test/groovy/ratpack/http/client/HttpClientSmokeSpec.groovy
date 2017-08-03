@@ -22,8 +22,11 @@ import io.netty.handler.codec.http.HttpHeaderValues
 import io.netty.handler.codec.http.HttpHeaders
 import io.netty.util.CharsetUtil
 import ratpack.exec.Blocking
+import ratpack.exec.ExecController
 import ratpack.stream.Streams
 import spock.lang.IgnoreIf
+import spock.util.concurrent.BlockingVariable
+import spock.util.concurrent.PollingConditions
 
 import java.time.Duration
 import java.util.zip.GZIPInputStream
@@ -34,6 +37,8 @@ import static ratpack.sse.ServerSentEvents.serverSentEvents
 import static ratpack.stream.Streams.publish
 
 class HttpClientSmokeSpec extends BaseHttpClientSpec {
+
+  PollingConditions polling = new PollingConditions()
 
   def "can make simple get request"() {
     given:
@@ -852,6 +857,69 @@ BAR
 
     and:
     pathResponse.status.code == 404
+  }
+
+  def "can track http client metrics when pooling is disabled"() {
+    given:
+    String ok = 'ok'
+    def result = new BlockingVariable<String>()
+    def httpClient = HttpClient.of {
+      it.poolSize(0)
+      it.enableMetricsCollection(true)
+    }
+
+    bindings {
+      bindInstance(HttpClient, httpClient)
+    }
+
+    when:
+    otherApp {
+      get {
+        Blocking.get({
+          return result.get()
+        })
+        .onError(it.&error)
+        .then(it.&render)
+      }
+    }
+
+    then:
+    assert httpClient.getHttpClientStats().totalActiveConnectionCount == 0
+    assert httpClient.getHttpClientStats().totalIdleConnectionCount == 0
+    assert httpClient.getHttpClientStats().totalConnectionCount == 0
+
+    when:
+    handlers {
+      get {
+        ExecController execController = it.get(ExecController)
+        execController.fork().start({
+          httpClient.get(otherAppUrl())
+            .then({ val ->
+            assert val.body.text == ok
+          })
+        })
+        render ok
+      }
+    }
+
+    then:
+    text == "ok"
+
+    polling.within(2) {
+      assert httpClient.getHttpClientStats().totalActiveConnectionCount == 1
+      assert httpClient.getHttpClientStats().totalIdleConnectionCount == 0
+      assert httpClient.getHttpClientStats().totalConnectionCount == 1
+    }
+
+    when:
+    result.set(ok)
+
+    then:
+    polling.within(2) {
+      assert httpClient.getHttpClientStats().totalActiveConnectionCount == 0
+      assert httpClient.getHttpClientStats().totalIdleConnectionCount == 0
+      assert httpClient.getHttpClientStats().totalConnectionCount == 0
+    }
   }
 
 }
