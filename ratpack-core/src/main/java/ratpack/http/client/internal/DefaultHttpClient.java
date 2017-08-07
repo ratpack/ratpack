@@ -186,9 +186,9 @@ public class DefaultHttpClient implements HttpClientInternal {
       this.byteBufAllocator = spec.byteBufAllocator;
       this.poolSize = spec.poolSize;
       this.maxContentLength = spec.maxContentLength;
-	    this.responseMaxChunkSize = spec.responseMaxChunkSize;
+      this.responseMaxChunkSize = spec.responseMaxChunkSize;
       this.readTimeout = spec.readTimeout;
-	    this.connectTimeout = spec.connectTimeout;
+      this.connectTimeout = spec.connectTimeout;
       this.requestInterceptor = spec.requestInterceptor;
       this.responseInterceptor = spec.responseInterceptor;
     }

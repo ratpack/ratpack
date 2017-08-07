@@ -141,7 +141,7 @@ class RequestConfig {
       return this;
     }
 
-	@Override
+    @Override
     public int getRedirects() {
       return this.maxRedirects;
     }
@@ -184,7 +184,7 @@ class RequestConfig {
       return this;
     }
 
-	@Override
+    @Override
     public int getMaxContentLength() {
       return this.maxContentLength;
     }
