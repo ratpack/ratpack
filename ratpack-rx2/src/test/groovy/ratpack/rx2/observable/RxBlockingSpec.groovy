@@ -4,8 +4,8 @@ import io.reactivex.functions.Action
 import ratpack.error.ServerErrorHandler
 import ratpack.exec.Blocking
 import ratpack.rx2.RxRatpack
-import ratpack.rx2.internal.RatpackGroovyDslSpec
-import ratpack.rx2.internal.SimpleErrorHandler
+import ratpack.test.internal.RatpackGroovyDslSpec
+import ratpack.test.internal.SimpleErrorHandler
 
 import static ratpack.rx2.RxRatpack.observe
 import static ratpack.rx2.RxRatpack.observeEach

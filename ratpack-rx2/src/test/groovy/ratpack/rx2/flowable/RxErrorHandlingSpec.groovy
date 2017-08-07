@@ -17,7 +17,7 @@ import ratpack.groovy.test.handling.GroovyRequestFixture
 import ratpack.handling.Context
 import ratpack.handling.Handler
 import ratpack.rx2.RxRatpack
-import ratpack.rx2.internal.RatpackGroovyDslSpec
+import ratpack.test.internal.RatpackGroovyDslSpec
 
 import java.util.concurrent.Executors
 

@@ -4,7 +4,7 @@ import io.reactivex.BackpressureStrategy
 import io.reactivex.functions.Function
 import ratpack.http.client.HttpClient
 import ratpack.rx2.RxRatpack
-import ratpack.rx2.internal.BaseHttpClientSpec
+import ratpack.http.client.BaseHttpClientSpec
 
 import static ratpack.rx2.RxRatpack.flow
 

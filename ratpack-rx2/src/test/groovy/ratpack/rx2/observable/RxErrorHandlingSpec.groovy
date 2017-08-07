@@ -1,7 +1,7 @@
 package ratpack.rx2.observable
 
-import io.reactivex.Observable
 import io.reactivex.Observer
+import io.reactivex.Observable
 import io.reactivex.disposables.Disposable
 import io.reactivex.exceptions.CompositeException
 import io.reactivex.exceptions.OnErrorNotImplementedException
@@ -15,7 +15,7 @@ import ratpack.groovy.test.handling.GroovyRequestFixture
 import ratpack.handling.Context
 import ratpack.handling.Handler
 import ratpack.rx2.RxRatpack
-import ratpack.rx2.internal.RatpackGroovyDslSpec
+import ratpack.test.internal.RatpackGroovyDslSpec
 
 import java.util.concurrent.Executors
 

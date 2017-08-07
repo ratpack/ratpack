@@ -1,7 +1,7 @@
 package ratpack.rx2.observable
 
-import io.reactivex.BackpressureStrategy
 import io.reactivex.Observable
+import io.reactivex.BackpressureStrategy
 import org.reactivestreams.Publisher
 import org.reactivestreams.Subscriber
 import org.reactivestreams.Subscription
