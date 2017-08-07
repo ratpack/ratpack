@@ -4,7 +4,7 @@ apply from: "$rootDir/gradle/javaModule.gradle"
 
 dependencies {
   compile project(":ratpack-guice")
-  compile("com.zaxxer:HikariCP:2.3.5") {
+  compile("com.zaxxer:HikariCP:2.6.2") {
     exclude group: "org.slf4j", module: "slf4j-api"
   }
   testCompile commonDependencies.h2

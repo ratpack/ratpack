@@ -213,6 +213,12 @@ public interface GroovyRequestFixture extends RequestFixture {
    * {@inheritDoc}
    */
   @Override
+  GroovyRequestFixture pathBinding(String boundTo, String pastBinding, Map<String, String> pathTokens, String description);
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
   GroovyRequestFixture serverConfig(Action<? super ServerConfigBuilder> action) throws Exception;
 
   /**

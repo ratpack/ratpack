@@ -31,7 +31,7 @@ import static com.google.common.collect.Iterables.*;
 @Singleton
 public class RatpackVersions {
 
-  public static final Pattern FINAL_VERSION_PATTERN = Pattern.compile("\\d+\\.\\d+\\.\\d+");
+  public static final Pattern FINAL_VERSION_PATTERN = Pattern.compile("\\d+\\.\\d+\\.\\d+(-rc-\\d+)?");
   private final GitHubData gitHubData;
 
   @Inject
