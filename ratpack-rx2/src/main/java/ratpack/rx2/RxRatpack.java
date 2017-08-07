@@ -49,6 +49,8 @@ import java.util.concurrent.atomic.AtomicInteger;
  * <p>
  * The methods in this class are also provided as <a href="http://docs.groovy-lang.org/latest/html/documentation/#_extension_modules">Groovy Extensions</a>.
  * When using Groovy, each static method in this class is able to act as an instance-level method against the {@link Observable} type.
+ *
+ * @since 1.6
  */
 public abstract class RxRatpack {
 
