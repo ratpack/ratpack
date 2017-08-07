@@ -74,8 +74,8 @@ ext {
     guice:  dependencies.create("com.google.inject:guice:$commonVersions.guice", {
       exclude group: "com.google.guava", module: "guava"
     }),
-    rxjava: "io.reactivex:rxjava:$commonVersions.rxjava",
-    rxjava2: "io.reactivex:rxjava2:$commonVersions.rxjava2",
+    rxjava: "io.reactivex:rxjava:${commonVersions.rxjava}",
+    rxjava2: "io.reactivex.rxjava2:rxjava:${commonVersions.rxjava2}",
     remote: dependencies.create("io.remotecontrol:remote-core:${commonVersions.remote}", {
       exclude group: "org.codehaus.groovy", module: "groovy-all"
     }),
