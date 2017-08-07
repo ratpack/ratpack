@@ -23,7 +23,7 @@ ext {
     groovy: "2.4.11",
     pac4j: "1.8.8",
     rxjava: "1.1.2",
-    rxjava2: "2.0.9",
+    rxjava2: "2.1.2",
     hystrix: "1.5.1",
     jackson: "2.8.7",
     dropwizardMetrics: "3.1.1",

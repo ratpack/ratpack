@@ -8,7 +8,9 @@ ext.apiLinks = [
 
 dependencies {
   compile project(":ratpack-core")
-  compile commonDependencies.rxjava2
+  compile(commonDependencies.rxjava2) {
+    exclude group: "org.reactivestreams", module: "reactive-streams"
+  }
   compile("io.reactivex:rxjava-reactive-streams:1.2.1") {
     exclude group: "io.reactivex", module: "rxjava"
     exclude group: "org.reactivestreams", module: "reactive-streams"
