@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 the original author or authors.
+ * Copyright 2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,19 +14,21 @@
  * limitations under the License.
  */
 
-description = "Integration with the RxJava library - https://github.com/ReactiveX/RxJava"
+package ratpack.rx2.internal;
 
-apply from: "$rootDir/gradle/javaModule.gradle"
+import io.reactivex.Scheduler;
 
-ext.apiLinks = [
-  "http://reactivex.io/RxJava/1.x/javadoc/"
-]
+public class DefaultSchedulers {
 
-dependencies {
-  compile project(":ratpack-core")
-  compile commonDependencies.rxjava
-  compile("io.reactivex:rxjava-reactive-streams:1.0.1") {
-    exclude group: "io.reactivex", module: "rxjava"
-    exclude group: "org.reactivestreams", module: "reactive-streams"
+  private static Scheduler computationScheduler = new MultiExecControllerBackedScheduler();
+  private static Scheduler ioScheduler = new MultiExecControllerBackedScheduler();
+
+  public static Scheduler getComputationScheduler() {
+    return computationScheduler;
   }
+
+  public static Scheduler getIoScheduler() {
+    return ioScheduler;
+  }
+
 }

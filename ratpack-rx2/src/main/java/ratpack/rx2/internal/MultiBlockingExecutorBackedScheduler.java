@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 the original author or authors.
+ * Copyright 2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,19 +14,15 @@
  * limitations under the License.
  */
 
-description = "Integration with the RxJava library - https://github.com/ReactiveX/RxJava"
+package ratpack.rx2.internal;
 
-apply from: "$rootDir/gradle/javaModule.gradle"
+import ratpack.exec.ExecController;
 
-ext.apiLinks = [
-  "http://reactivex.io/RxJava/1.x/javadoc/"
-]
+public class MultiBlockingExecutorBackedScheduler extends MultiExecutorBackedScheduler {
 
-dependencies {
-  compile project(":ratpack-core")
-  compile commonDependencies.rxjava
-  compile("io.reactivex:rxjava-reactive-streams:1.0.1") {
-    exclude group: "io.reactivex", module: "rxjava"
-    exclude group: "org.reactivestreams", module: "reactive-streams"
+  @Override
+  public ExecutorBackedScheduler getExecutorBackedScheduler(ExecController execController) {
+    return new BlockingExecutorBackedScheduler(execController);
   }
+
 }
