@@ -85,11 +85,12 @@ public class RatpackWebContext implements WebContext {
   }
 
   private RequestAttributes getRequestAttributes() {
-    RequestAttributes attributes = request.get(RequestAttributes.class);
-    if (attributes == null) {
-      attributes = new RequestAttributes();
-      request.add(attributes);
-    }
+    return request.maybeGet(RequestAttributes.class).orElseGet(this::addEmptyRequestAttributes);
+  }
+
+  private RequestAttributes addEmptyRequestAttributes() {
+    RequestAttributes attributes = new RequestAttributes();
+    request.add(attributes);
     return attributes;
   }
 
@@ -217,7 +218,9 @@ public class RatpackWebContext implements WebContext {
     final DefaultCookie newCookie = new DefaultCookie(cookie.getName(), cookie.getValue());
     newCookie.setDomain(cookie.getDomain());
     newCookie.setPath(cookie.getPath());
-    newCookie.setMaxAge(cookie.getMaxAge());
+    if (cookie.getMaxAge() >= 0) {
+      newCookie.setMaxAge(cookie.getMaxAge());
+    }
     newCookie.setSecure(cookie.isSecure());
     newCookie.setHttpOnly(cookie.isHttpOnly());
     response.getCookies().add(newCookie);
