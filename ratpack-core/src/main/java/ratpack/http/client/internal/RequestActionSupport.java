@@ -249,7 +249,7 @@ abstract class RequestActionSupport<T> implements Upstream<T> {
                   s.get();
                 }
               };
-              redirectRequestConfig = redirectRequestConfig.append(redirectConfigurer);
+              redirectRequestConfig = redirectConfigurer.append(redirectRequestConfig);
 
               URI locationUrl;
               if (ABSOLUTE_PATTERN.matcher(locationValue).matches()) {

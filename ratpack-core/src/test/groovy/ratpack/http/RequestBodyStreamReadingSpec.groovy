@@ -65,7 +65,7 @@ class RequestBodyStreamReadingSpec extends RatpackGroovyDslSpec {
     }
     handlers {
       post("redirect") {
-        redirect "read"
+        redirect 303, "read"
       }
       post("read") {
         render ResponseChunks.bufferChunks("text/plain", request.bodyStream)

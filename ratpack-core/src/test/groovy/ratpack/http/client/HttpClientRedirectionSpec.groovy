@@ -197,7 +197,7 @@ class HttpClientRedirectionSpec extends BaseHttpClientSpec {
         onClose {
           println "a finished"
         }
-        redirect "b"
+        redirect 303, "b"
       }
       post("b") {
         request.maxContentLength = Long.MAX_VALUE
