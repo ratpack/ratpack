@@ -73,7 +73,7 @@ section(id: "main") {
     p {
       strong('Want to contribute to Ratpack?')
       yield ' We are always eager for more contributions. Browse the '
-      a(href: "http://github.com/ratpack/ratpack/issues", 'issue tracker')
+      a(href: "https://github.com/ratpack/ratpack/issues", 'issue tracker')
       yield ' and find something to do, or raise an issue with your contribution idea.'
     }
   }
