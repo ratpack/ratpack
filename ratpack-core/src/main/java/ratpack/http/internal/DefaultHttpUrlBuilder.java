@@ -23,6 +23,7 @@ import com.google.common.collect.MultimapBuilder;
 import com.google.common.escape.Escaper;
 import com.google.common.net.UrlEscapers;
 import io.netty.handler.codec.http.QueryStringDecoder;
+import io.netty.util.internal.StringUtil;
 import ratpack.http.HttpUrlBuilder;
 import ratpack.util.MultiValueMap;
 import ratpack.util.internal.InternalRatpackError;
@@ -117,24 +118,29 @@ public class DefaultHttpUrlBuilder implements HttpUrlBuilder {
   @Override
   public HttpUrlBuilder encodedPath(String path) {
     Objects.requireNonNull(path, "path must not be null");
-    Arrays.asList(path.split("/")).forEach(pathSegments::add);
+    Arrays.asList(path.split("/", -1)).forEach(pathSegments::add);
     return this;
   }
 
   @Override
   public HttpUrlBuilder path(String path) {
     Objects.requireNonNull(path, "path must not be null");
-    Arrays.asList(path.split("/")).forEach(this::segment);
+    Arrays.asList(path.split("/", -1)).forEach(this::segment);
     return this;
   }
 
   @Override
   public HttpUrlBuilder segment(String pathSegment, Object... args) {
     Objects.requireNonNull(pathSegment, "pathSegment must not be null");
-    if (args.length == 0) {
-      pathSegments.add(PATH_SEGMENT_ESCAPER.escape(pathSegment));
+    if (StringUtil.isNullOrEmpty(pathSegment)) {
+      hasTrailingSlash = true;
     } else {
-      pathSegments.add(PATH_SEGMENT_ESCAPER.escape(String.format(pathSegment, args)));
+      hasTrailingSlash = false;
+      if (args.length == 0) {
+        pathSegments.add(PATH_SEGMENT_ESCAPER.escape(pathSegment));
+      } else {
+        pathSegments.add(PATH_SEGMENT_ESCAPER.escape(String.format(pathSegment, args)));
+      }
     }
     return this;
   }

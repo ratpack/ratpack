@@ -122,6 +122,13 @@ class HttpUrlBuilderSpec extends Specification {
     build { encodedPath "foo%2Fbar" } == "http://localhost/foo%2Fbar"
   }
 
+  def "can append trailing slash"() {
+    expect:
+    build { path("foo/") } == "http://localhost/foo/"
+    build { path("foo/").path("/foo/") } == "http://localhost/foo/foo/"
+    build { path("foo/").params("bar") } == "http://localhost/foo/?bar"
+  }
+
   def "round trip - #string"() {
     expect:
     build(string) == string
