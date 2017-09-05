@@ -158,6 +158,7 @@ public abstract class RxRatpack {
    * @return an observable for the promised value
    */
   public static <T> Observable<T> observe(Promise<T> promise) {
+    if(promise == null) throw new NullPointerException("Parameter promise cannot be null");
     return Observable.create(subscriber ->
       promise.onError(subscriber::onError).then(value -> {
         subscriber.onNext(value);
@@ -195,6 +196,7 @@ public abstract class RxRatpack {
    * @return an observable for the operation
    */
   public static Observable<Void> observe(Operation operation) {
+    if(operation == null) throw new NullPointerException("Parameter operation cannot be null");
     return Observable.create(subscriber -> operation.onError(subscriber::onError).then(subscriber::onCompleted));
   }
 
@@ -291,6 +293,7 @@ public abstract class RxRatpack {
    * @throws UnmanagedThreadException if called outside of an execution
    */
   public static <T> Promise<List<T>> promise(Observable<T> observable) throws UnmanagedThreadException {
+    if(observable == null) throw new NullPointerException("Parameter observable cannot be null");
     return Promise.async(f -> observable.toList().subscribe(f::success, f::error));
   }
 
@@ -348,6 +351,7 @@ public abstract class RxRatpack {
    * @throws UnmanagedThreadException if called outside of an execution
    */
   public static <T> Promise<List<T>> promise(Observable.OnSubscribe<T> onSubscribe) throws UnmanagedThreadException {
+    if(onSubscribe == null) throw new NullPointerException("Parameter onSubscribe cannot be null");
     return promise(Observable.create(onSubscribe));
   }
 
@@ -421,6 +425,7 @@ public abstract class RxRatpack {
    * @see #promiseSingle(Observable.OnSubscribe)
    */
   public static <T> Promise<T> promiseSingle(Observable<T> observable) throws UnmanagedThreadException {
+    if(observable == null) throw new NullPointerException("Parameter observable cannot be null");
     return Promise.async(f -> observable.single().subscribe(f::success, f::error));
   }
 
@@ -490,6 +495,7 @@ public abstract class RxRatpack {
    * @see #promiseSingle(Observable)
    */
   public static <T> Promise<T> promiseSingle(Observable.OnSubscribe<T> onSubscribe) throws UnmanagedThreadException {
+    if(onSubscribe == null) throw new NullPointerException("Parameter onSubscribe cannot be null");
     return promiseSingle(Observable.create(onSubscribe));
   }
 
@@ -574,6 +580,7 @@ public abstract class RxRatpack {
    * @return a ReactiveStreams publisher containing each value of the observable
    */
   public static <T> TransformablePublisher<T> publisher(Observable.OnSubscribe<T> onSubscribe) {
+    if(onSubscribe == null) throw new NullPointerException("Parameter onSubscribe cannot be null");
     return publisher(Observable.create(onSubscribe));
   }
 
@@ -618,6 +625,7 @@ public abstract class RxRatpack {
    * @see #promise(Observable)
    */
   public static <T> Observable<T> bindExec(Observable<T> source) {
+    if(source == null) throw new NullPointerException("Parameter source cannot be null");
     return Exceptions.uncheck(() -> promise(source).to(RxRatpack::observeEach));
   }
 
