@@ -32,6 +32,7 @@ import io.netty.util.ReferenceCountUtil;
 import io.netty.util.ResourceLeakDetector;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import ratpack.api.Nullable;
 import ratpack.exec.Blocking;
 import ratpack.exec.Promise;
 import ratpack.exec.Throttle;
@@ -89,6 +90,8 @@ public class DefaultRatpackServer implements RatpackServer {
 
   protected boolean useSsl;
   private final Impositions impositions;
+
+  @Nullable
   private Thread shutdownHookThread;
 
   public DefaultRatpackServer(Action<? super RatpackServerSpec> definitionFactory, Impositions impositions) throws Exception {
@@ -135,17 +138,21 @@ public class DefaultRatpackServer implements RatpackServer {
       System.out.println(startMessage);
     }
 
-    shutdownHookThread = new Thread("ratpack-shutdown-thread") {
-      @Override
-      public void run() {
-        try {
-          DefaultRatpackServer.this.stop();
-        } catch (Exception ignored) {
-          ignored.printStackTrace(System.err);
+    if (serverConfig.isRegisterShutdownHook()) {
+      shutdownHookThread = new Thread("ratpack-shutdown-thread") {
+        @Override
+        public void run() {
+          try {
+            DefaultRatpackServer.this.stop();
+          } catch (Exception ignored) {
+            ignored.printStackTrace(System.err);
+          }
         }
-      }
-    };
-    Runtime.getRuntime().addShutdownHook(shutdownHookThread);
+      };
+      Runtime.getRuntime().addShutdownHook(shutdownHookThread);
+    } else {
+      LOGGER.warn("Ratpack did not configure shutdown hook.");
+    }
   }
 
   private static class DefinitionBuild {

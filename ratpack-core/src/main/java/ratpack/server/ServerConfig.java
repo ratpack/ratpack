@@ -175,6 +175,15 @@ public interface ServerConfig extends ConfigData {
   int getThreads();
 
   /**
+   * Created application has a shutdown hook registered.
+   * <p>
+   * Defaults to {@code true} to ensure that JVM shutdowns are handled gracefully.
+   *
+   * @return whether shutdownHook should be registered or not
+   */
+  boolean isRegisterShutdownHook();
+
+  /**
    * The public address of the site used for redirects.
    *
    * @return The url of the public address

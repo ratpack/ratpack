@@ -142,6 +142,14 @@ public interface ServerConfigBuilder extends ConfigDataBuilder {
   ServerConfigBuilder threads(int threads);
 
   /**
+   * Sets if the created {@link RatpackServer} should have a shutdown hook
+   * registered. Defaults to {@code true} to ensure that JVM shutdowns are handled
+   * gracefully.
+   * @param registerShutdownHook if the shutdown hook should be registered
+   */
+  ServerConfigBuilder registerShutdownHook(boolean registerShutdownHook);
+
+  /**
    * The public address of the application.
    * <p>
    * Default value is {@code null}.
