@@ -33,6 +33,7 @@ public class DropwizardMetricsConfig {
   public static final Duration DEFAULT_INTERVAL = Duration.ofSeconds(30);
 
   private boolean jvmMetrics;
+  private boolean prometheusCollection;
   private boolean requestTimingMetrics = true;
   private boolean blockingTimingMetrics = true;
   private Map<String, String> requestMetricGroups;
@@ -60,6 +61,31 @@ public class DropwizardMetricsConfig {
    */
   public DropwizardMetricsConfig jvmMetrics(boolean jvmMetrics) {
     this.jvmMetrics = jvmMetrics;
+    return this;
+  }
+
+  /**
+   * The state of the Prometheus metrics collector.
+   *
+   * @return True if Prometheus metrics collection is enabled. False otherwise
+   * @since 1.6
+   */
+  public boolean isPrometheusCollection() {
+    return prometheusCollection;
+  }
+
+  /**
+   * The state of Prometheus metrics collection.
+   * This method only enables binding the metric registry to the Prometheus collector.
+   * The Prometheus formatted metrics can be exposed by adding the {@link MetricsPrometheusHandler} to the handler chain.
+   *
+   * @param prometheusCollection True if metrics should be collected into the Prometheus collector. False otherwise
+   * @return this
+   * @see MetricsPrometheusHandler
+   * @since 1.6
+   */
+  public DropwizardMetricsConfig prometheusCollection(boolean prometheusCollection) {
+    this.prometheusCollection = prometheusCollection;
     return this;
   }
 

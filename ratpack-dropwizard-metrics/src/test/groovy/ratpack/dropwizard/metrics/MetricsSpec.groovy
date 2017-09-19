@@ -762,4 +762,54 @@ class MetricsSpec extends RatpackGroovyDslSpec {
     0 * reporter.onTimerAdded("foo.get-requests", !null)
   }
 
+  def "can use prometheus metrics endpoint"() {
+    given:
+    bindings {
+      module new DropwizardMetricsModule(), { it.prometheusCollection(true) }
+    }
+    handlers { MetricRegistry metrics ->
+
+      metrics.register("fooGauge", new com.codahale.metrics.Gauge<Integer>() {
+        @Override
+        public Integer getValue() {
+          2
+        }
+      })
+
+      get {
+        metrics.meter("fooMeter").mark()
+        metrics.counter("fooCounter").inc()
+        metrics.histogram("fooHistogram").update(metrics.counter("fooCounter").count)
+        render "foo"
+      }
+
+      get("admin/metrics-report", new MetricsPrometheusHandler())
+    }
+
+    when:
+    get("/")
+    def metrics = getText("admin/metrics-report").split("\n")
+
+    then:
+    metrics.contains("fooGauge 2.0")
+    metrics.contains("2xx_responses 1.0")
+    metrics.contains("fooCounter 1.0")
+    metrics.contains("fooHistogram{quantile=\"0.5\",} 1.0")
+    metrics.contains("fooHistogram{quantile=\"0.75\",} 1.0")
+    metrics.contains("fooHistogram{quantile=\"0.95\",} 1.0")
+    metrics.contains("fooHistogram{quantile=\"0.98\",} 1.0")
+    metrics.contains("fooHistogram{quantile=\"0.99\",} 1.0")
+    metrics.contains("fooHistogram{quantile=\"0.999\",} 1.0")
+    metrics.contains("fooHistogram_count 1.0")
+    metrics.find { it.startsWith("root_get_requests{quantile=\"0.5\",}") }
+    metrics.find { it.startsWith("root_get_requests{quantile=\"0.75\",}") }
+    metrics.find { it.startsWith("root_get_requests{quantile=\"0.95\",}") }
+    metrics.find { it.startsWith("root_get_requests{quantile=\"0.98\",}") }
+    metrics.find { it.startsWith("root_get_requests{quantile=\"0.99\",}") }
+    metrics.find { it.startsWith("root_get_requests{quantile=\"0.999\",}") }
+    metrics.contains("root_get_requests_count 1.0")
+    metrics.contains("fooMeter_total 1.0")
+
+  }
+
 }
