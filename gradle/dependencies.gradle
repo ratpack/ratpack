@@ -39,6 +39,7 @@ ext {
     commonsCodec: "1.10",
     xmlApis: "1.4.01",
     snakeyaml: "1.17",
+    prometheusClient: "0.0.21",
   ]
 
   if (System.getenv('CI_GROOVY_VERSION')) {

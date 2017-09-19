@@ -27,6 +27,8 @@ import com.google.inject.Injector;
 import com.google.inject.Provider;
 import com.google.inject.matcher.Matchers;
 import com.google.inject.multibindings.Multibinder;
+import io.prometheus.client.CollectorRegistry;
+import io.prometheus.client.dropwizard.DropwizardExports;
 import ratpack.dropwizard.metrics.internal.*;
 import ratpack.guice.ConfigurableModule;
 import ratpack.handling.HandlerDecorator;
@@ -184,6 +186,8 @@ public class DropwizardMetricsModule extends ConfigurableModule<DropwizardMetric
     bind(RequestTimingHandler.class).toProvider(RequestTimingHandlerProvider.class).in(SINGLETON);
     Provider<RequestTimingHandler> handlerProvider = getProvider(RequestTimingHandler.class);
     Multibinder.newSetBinder(binder(), HandlerDecorator.class).addBinding().toProvider(() -> HandlerDecorator.prepend(handlerProvider.get()));
+
+    bind(CollectorRegistry.class).in(SINGLETON);
   }
 
   private <T> T injected(T instance) {
@@ -239,6 +243,12 @@ public class DropwizardMetricsModule extends ConfigurableModule<DropwizardMetric
         metricRegistry.registerAll(new GarbageCollectorMetricSet());
         metricRegistry.registerAll(new ThreadStatesGaugeSet());
         metricRegistry.registerAll(new MemoryUsageGaugeSet());
+      }
+
+      if (config.isPrometheusCollection()) {
+        final CollectorRegistry collectorRegistry = injector.getInstance(CollectorRegistry.class);
+        final MetricRegistry metricRegistry = injector.getInstance(MetricRegistry.class);
+        collectorRegistry.register(new DropwizardExports(metricRegistry));
       }
     }
 
