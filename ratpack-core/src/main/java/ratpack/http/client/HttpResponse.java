@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 the original author or authors.
+ * Copyright 2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,17 +16,31 @@
 
 package ratpack.http.client;
 
-import ratpack.http.Response;
-import ratpack.http.TypedData;
+import ratpack.http.Headers;
+import ratpack.http.Status;
 
-public interface ReceivedResponse extends HttpResponse {
+/**
+ * Base type of responses from {@link HttpClient} regardless of if the request is streaming or not.
+ *
+ * @since 1.6
+ */
+public interface HttpResponse {
 
   /**
    *
-   * @return The {@link ratpack.http.TypedData} that represents the body.
+   * @return {@link ratpack.http.Status} of the response.
    */
-  TypedData getBody();
+  Status getStatus();
 
-  void forwardTo(Response response);
+  /**
+   *
+   * @return The integer status code of the response.
+   */
+  int getStatusCode();
 
+  /**
+   *
+   * @return {@link ratpack.http.Headers} from the response.
+   */
+  Headers getHeaders();
 }

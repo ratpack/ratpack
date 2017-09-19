@@ -20,3 +20,4 @@ It should not be considered the final announcement for any release at any time.
 * Added `Stream.batch`
 * Added `Execution.sleep`
 * Deprecated `Promise.wrap`
+* Add HttpClient interceptors

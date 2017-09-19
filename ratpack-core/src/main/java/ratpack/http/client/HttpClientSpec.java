@@ -18,6 +18,7 @@ package ratpack.http.client;
 
 import io.netty.buffer.ByteBufAllocator;
 import io.netty.buffer.PooledByteBufAllocator;
+import ratpack.exec.Operation;
 import ratpack.func.Action;
 import ratpack.server.ServerConfig;
 
@@ -77,11 +78,11 @@ public interface HttpClientSpec {
   HttpClientSpec readTimeout(Duration readTimeout);
 
   /**
-   * The read timeout value for responses.
+   * The connect timeout value for requests.
    * <p>
    * Defaults to 30 seconds.
    *
-   * @param connectTimeout the read timeout value for responses
+   * @param connectTimeout the connect timeout value for requests
    * @return {@code this}
    * @since 1.5
    */
@@ -99,4 +100,38 @@ public interface HttpClientSpec {
      * @since 1.5
      */
   HttpClientSpec responseMaxChunkSize(int numBytes);
+  
+  /**
+   * Add an interceptor for all requests handled by this client.
+   * <p>
+   * This function is additive.
+   *
+   * @param interceptor the action to perform on the spec before transmitting.
+   * @return {@code} this
+   * @since 1.6
+   */
+  HttpClientSpec requestIntercept(Action<? super RequestSpec> interceptor);
+
+  /**
+   * Add an interceptor for all responses returned by this client.
+   * <p>
+   * This function is additive.
+   *
+   * @param interceptor the action to perform on the response before returning.
+   * @return {@code this}
+   * @since 1.6
+   */
+  HttpClientSpec responseIntercept(Action<? super HttpResponse> interceptor);
+
+  /**
+   * Execute the provide {@link Operation} for all responses returned by this client.
+   * <p>
+   * This function will wrap the provided operation and subscribe to it.
+   * This function is additive with {@link #responseIntercept(Action)}.
+   *
+   * @param operation the operation to subscribe to before return the response.
+   * @return {@code this}
+   * @since 1.6
+   */
+  HttpClientSpec responseIntercept(Operation operation);
 }

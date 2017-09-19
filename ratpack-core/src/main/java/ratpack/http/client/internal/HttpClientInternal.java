@@ -16,10 +16,17 @@
 
 package ratpack.http.client.internal;
 
+import ratpack.func.Action;
 import ratpack.http.client.HttpClient;
+import ratpack.http.client.HttpResponse;
+import ratpack.http.client.RequestSpec;
 
 interface HttpClientInternal extends HttpClient {
 
   HttpChannelPoolMap getChannelPoolMap();
+
+  Action<? super RequestSpec> getRequestInterceptor();
+
+  Action<? super HttpResponse> getResponseInterceptor();
 
 }
