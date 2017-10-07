@@ -17,8 +17,6 @@
 package ratpack.retrofit.internal;
 
 import okhttp3.*;
-import okhttp3.Call;
-import okhttp3.Response;
 import okio.Buffer;
 import okio.BufferedSource;
 import ratpack.exec.Execution;
@@ -30,28 +28,85 @@ import ratpack.http.client.ReceivedResponse;
 import ratpack.http.client.RequestSpec;
 
 import java.io.IOException;
+import java.time.Duration;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 
 public class RatpackCallFactory implements okhttp3.Call.Factory {
 
-  public static final RatpackCallFactory INSTANCE = new RatpackCallFactory();
+  private Duration connectTimeout;
+  private Duration readTimeout;
 
-  private RatpackCallFactory() {
+  private RatpackCallFactory(Duration connectTimeout, Duration readTimeout) {
+    this.connectTimeout = connectTimeout;
+    this.readTimeout = readTimeout;
+  }
+
+  public static class Builder {
+
+    private Duration connectTimeout;
+    private Duration readTimeout;
+
+    private Builder() {
+    }
+
+    /**
+     * Configure the connect timeout for this client.
+     *
+     * @param connectTimeout connect timeout duration
+     * @return this
+     */
+    public RatpackCallFactory.Builder connectTimeout(Duration connectTimeout) {
+      this.connectTimeout = connectTimeout;
+      return this;
+    }
+
+    /**
+     * Configure the read timeout for this client.
+     *
+     * @param readTimeout read timeout duration
+     * @return this
+     */
+    public RatpackCallFactory.Builder readTimeout(Duration readTimeout) {
+      this.readTimeout = readTimeout;
+      return this;
+    }
+
+    /**
+     * Build the instance.
+     *
+     * @return The instance.
+     */
+    public RatpackCallFactory build() {
+      return new RatpackCallFactory(this.connectTimeout, this.readTimeout);
+    }
+  }
+
+  /**
+   * Creates a new builder.
+   *
+   * @return The builder.
+   */
+  public static RatpackCallFactory.Builder builder() {
+    return new RatpackCallFactory.Builder();
   }
 
   @Override
   public Call newCall(Request request) {
-    return new RatpackCall(request);
+    return new RatpackCall(request, connectTimeout, readTimeout);
   }
 
   static class RatpackCall implements Call {
 
     private final Request request;
+    private Duration connectTimeout;
+    private Duration readTimeout;
 
-    public RatpackCall(Request request) {
+    public RatpackCall(Request request, Duration connectTimeout, Duration readTimeout) {
       this.request = request;
+      this.connectTimeout = connectTimeout;
+      this.readTimeout = readTimeout;
     }
 
     @Override
@@ -91,10 +146,16 @@ public class RatpackCallFactory implements okhttp3.Call.Factory {
       if (request.body() != null) {
         spec.body(this::configureBody);
       }
+      if (connectTimeout != null) {
+        spec.connectTimeout(connectTimeout);
+      }
+      if (readTimeout != null) {
+        spec.readTimeout(readTimeout);
+      }
     }
 
     private void configureHeaders(MutableHeaders h) {
-      for(Map.Entry<String, List<String>> entry : request.headers().toMultimap().entrySet()) {
+      for (Map.Entry<String, List<String>> entry : request.headers().toMultimap().entrySet()) {
         h.set(entry.getKey(), entry.getValue());
       }
     }
