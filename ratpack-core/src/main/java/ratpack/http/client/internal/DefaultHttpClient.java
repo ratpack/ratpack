@@ -82,7 +82,7 @@ public class DefaultHttpClient implements HttpClientInternal {
         .option(ChannelOption.SO_KEEPALIVE, isPooling());
 
       if (isPooling()) {
-        ChannelPool channelPool = new FixedChannelPool(bootstrap, POOLING_HANDLER, getPoolSize());
+        ChannelPool channelPool = new FixedChannelPool(bootstrap, POOLING_HANDLER, getPoolSize(), getPoolQueueSize());
         ((ExecControllerInternal) key.execution.getController()).onClose(() -> {
           remove(key);
           channelPool.close();
@@ -103,6 +103,11 @@ public class DefaultHttpClient implements HttpClientInternal {
   @Override
   public int getPoolSize() {
     return spec.poolSize;
+  }
+
+  @Override
+  public int getPoolQueueSize() {
+    return spec.poolQueueSize;
   }
 
   private boolean isPooling() {
@@ -172,6 +177,7 @@ public class DefaultHttpClient implements HttpClientInternal {
 
     private ByteBufAllocator byteBufAllocator = PooledByteBufAllocator.DEFAULT;
     private int poolSize;
+    private int poolQueueSize = Integer.MAX_VALUE;
     private int maxContentLength = ServerConfig.DEFAULT_MAX_CONTENT_LENGTH;
     private int responseMaxChunkSize = 8192;
     private Duration readTimeout = Duration.ofSeconds(30);
@@ -185,6 +191,7 @@ public class DefaultHttpClient implements HttpClientInternal {
     private Spec(Spec spec) {
       this.byteBufAllocator = spec.byteBufAllocator;
       this.poolSize = spec.poolSize;
+      this.poolQueueSize = spec.poolQueueSize;
       this.maxContentLength = spec.maxContentLength;
       this.responseMaxChunkSize = spec.responseMaxChunkSize;
       this.readTimeout = spec.readTimeout;
@@ -196,6 +203,12 @@ public class DefaultHttpClient implements HttpClientInternal {
     @Override
     public HttpClientSpec poolSize(int poolSize) {
       this.poolSize = poolSize;
+      return this;
+    }
+
+    @Override
+    public HttpClientSpec poolQueueSize(int poolQueueSize) {
+      this.poolQueueSize = poolQueueSize;
       return this;
     }
 
