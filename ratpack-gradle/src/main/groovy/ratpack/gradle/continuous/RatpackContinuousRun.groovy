@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 the original author or authors.
+ * Copyright 2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,7 +19,6 @@ package ratpack.gradle.continuous
 import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.api.tasks.JavaExec
 import org.gradle.api.tasks.TaskAction
-import org.gradle.deployment.internal.DeploymentHandle
 import org.gradle.deployment.internal.DeploymentRegistry
 import org.gradle.internal.Factory
 import org.gradle.process.internal.JavaExecHandleBuilder
@@ -33,6 +32,7 @@ class RatpackContinuousRun extends JavaExec {
 
   private static final V2_13 = VersionNumber.parse("2.13")
   private static final V2_14 = VersionNumber.parse("2.14")
+  private static final V4_2 = VersionNumber.parse("4.2")
 
   public boolean flattenClassloaders
 
@@ -48,13 +48,24 @@ class RatpackContinuousRun extends JavaExec {
   void exec() {
     String deploymentId = getPath()
     DeploymentRegistry deploymentRegistry = getDeploymentRegistry()
-    RatpackAdapter deploymentHandle = (RatpackAdapter) deploymentRegistry.get(DeploymentHandle, deploymentId)
-    if (deploymentHandle == null) {
-      RatpackAdapter proxy = (RatpackAdapter) Proxy.newProxyInstance(getClass().getClassLoader(), [DeploymentHandle, RatpackAdapter] as Class<?>[], new ProxyBacking(new RatpackDeploymentHandle(createAdapter())))
-      deploymentRegistry.register(deploymentId, (DeploymentHandle) proxy)
-      proxy.start()
+    def loader = getClass().getClassLoader()
+    def deploymentHandleClass = loader.loadClass("org.gradle.deployment.internal.DeploymentHandle")
+    if (gradleVersion < V4_2) {
+      RatpackAdapter deploymentHandle = (RatpackAdapter) deploymentRegistry.get(deploymentHandleClass, deploymentId)
+      if (deploymentHandle == null) {
+        RatpackAdapter proxy = (RatpackAdapter) Proxy.newProxyInstance(loader, [deploymentHandleClass, RatpackAdapter] as Class<?>[], new ProxyBacking(createAdapter()))
+        deploymentRegistry.register(deploymentId, proxy)
+        proxy.start()
+      } else {
+        deploymentHandle.reload()
+      }
     } else {
-      deploymentHandle.reload()
+      RatpackDeploymentHandle deploymentHandle = deploymentRegistry.get(deploymentId, RatpackDeploymentHandle)
+      if (deploymentHandle == null) {
+        deploymentRegistry.start(deploymentId, DeploymentRegistry.ChangeBehavior.NONE, RatpackDeploymentHandle, createAdapter())
+      } else {
+        deploymentHandle.reload()
+      }
     }
   }
 
