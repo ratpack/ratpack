@@ -588,10 +588,11 @@ public interface Promise<T> {
    * @param predicate the condition to decide which transformation to apply
    * @param onTrue the transformation to apply when the predicate is true
    * @param onFalse the transformation to apply when the predicate is false
+   * @param <O> the type of the transformed object
    * @return a promise
    * @since 1.5
    */
-  default Promise<T> mapIf(Predicate<? super T> predicate, Function<? super T, ? extends T> onTrue, Function<? super T, ? extends T> onFalse) {
+  default <O> Promise<O> mapIf(Predicate<? super T> predicate, Function<? super T, ? extends O> onTrue, Function<? super T, ? extends O> onFalse) {
     return map(Function.when(predicate, onTrue, onFalse));
   }
 
@@ -1343,7 +1344,7 @@ public interface Promise<T> {
    * @return a promise
    * @since 1.5
    */
-  default Promise<T> flatMapIf(Predicate<? super T> predicate, Function<? super T, ? extends Promise<T>> onTrue, Function<? super T, ? extends Promise<T>> onFalse) {
+  default <O> Promise<O> flatMapIf(Predicate<? super T> predicate, Function<? super T, ? extends Promise<O>> onTrue, Function<? super T, ? extends Promise<O>> onFalse) {
     return flatMap(Function.when(predicate, onTrue, onFalse));
   }
 
