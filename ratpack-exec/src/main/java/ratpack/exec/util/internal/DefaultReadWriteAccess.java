@@ -28,15 +28,24 @@ import java.time.Duration;
 import java.util.Queue;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.TimeUnit;
-import java.util.concurrent.atomic.AtomicBoolean;
-import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.atomic.AtomicIntegerFieldUpdater;
 import java.util.concurrent.atomic.AtomicReference;
 
 public class DefaultReadWriteAccess implements ReadWriteAccess {
 
+  private static final AtomicIntegerFieldUpdater<DefaultReadWriteAccess> DRAINING_UPDATER =
+    AtomicIntegerFieldUpdater.newUpdater(DefaultReadWriteAccess.class, "draining");
+  private static final AtomicIntegerFieldUpdater<DefaultReadWriteAccess> ACTIVE_READERS_UPDATER =
+    AtomicIntegerFieldUpdater.newUpdater(DefaultReadWriteAccess.class, "activeReaders");
+
   private final Queue<Access<?>> queue = new ConcurrentLinkedQueue<>();
-  private final AtomicBoolean draining = new AtomicBoolean();
-  private final AtomicInteger activeReaders = new AtomicInteger();
+
+  @SuppressWarnings("unused")
+  private volatile int draining;
+
+  @SuppressWarnings("unused")
+  private volatile int activeReaders;
+
   private final Duration defaultTimeout;
 
   private AtomicReference<Access<?>> pendingWriteRef = new AtomicReference<>();
@@ -98,7 +107,7 @@ public class DefaultReadWriteAccess implements ReadWriteAccess {
       this.execution = DefaultExecution.get();
 
       execution.delimit(e -> {
-        relinquish(false);
+        relinquish();
         if (fire()) {
           downstream.error(e);
         }
@@ -132,7 +141,7 @@ public class DefaultReadWriteAccess implements ReadWriteAccess {
 
     private void access() {
       if (read) {
-        activeReaders.incrementAndGet();
+        incActiveReaders();
       }
 
       if (fire()) {
@@ -143,31 +152,31 @@ public class DefaultReadWriteAccess implements ReadWriteAccess {
           upstream.connect(new Downstream<T>() {
             @Override
             public void success(T value) {
-              relinquish(false);
+              relinquish();
               downstream.success(value);
             }
 
             @Override
             public void error(Throwable throwable) {
-              relinquish(false);
+              relinquish();
               downstream.error(throwable);
             }
 
             @Override
             public void complete() {
-              relinquish(false);
+              relinquish();
               downstream.complete();
             }
           })
         );
       } else {
-        relinquish(true);
+        relinquish();
       }
     }
 
-    private void relinquish(boolean didTimeout) {
+    private void relinquish() {
       if (read) {
-        if (activeReaders.decrementAndGet() == 0) {
+        if (decActiveReaders() == 0) {
           Access<?> pendingWrite = pendingWriteRef.getAndSet(null);
           if (pendingWrite != null) {
             pendingWrite.access();
@@ -175,7 +184,7 @@ public class DefaultReadWriteAccess implements ReadWriteAccess {
           }
         }
       } else {
-        draining.set(false);
+        notDraining();
       }
 
       drain();
@@ -183,18 +192,18 @@ public class DefaultReadWriteAccess implements ReadWriteAccess {
   }
 
   private void drain() {
-    if (draining.compareAndSet(false, true)) {
+    if (startDraining()) {
       Access<?> access = queue.poll();
       while (access != null) {
         if (access.read) {
           access.access();
           access = queue.poll();
         } else {
-          if (activeReaders.get() == 0) {
+          if (activeReaders() == 0) {
             access.access();
           } else {
             pendingWriteRef.set(access);
-            if (activeReaders.get() == 0) {
+            if (activeReaders() == 0) {
               access = pendingWriteRef.getAndSet(null);
               if (access != null) {
                 access.access();
@@ -204,10 +213,30 @@ public class DefaultReadWriteAccess implements ReadWriteAccess {
           return;
         }
       }
-      draining.set(false);
+      notDraining();
       if (!queue.isEmpty()) {
         drain();
       }
     }
+  }
+
+  private void notDraining() {
+    DRAINING_UPDATER.set(this, 0);
+  }
+
+  private int decActiveReaders() {
+    return ACTIVE_READERS_UPDATER.decrementAndGet(DefaultReadWriteAccess.this);
+  }
+
+  private void incActiveReaders() {
+    ACTIVE_READERS_UPDATER.incrementAndGet(DefaultReadWriteAccess.this);
+  }
+
+  private double activeReaders() {
+    return ACTIVE_READERS_UPDATER.get(this);
+  }
+
+  private boolean startDraining() {
+    return DRAINING_UPDATER.compareAndSet(this, 0, 1);
   }
 }
