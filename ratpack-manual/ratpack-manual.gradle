@@ -56,6 +56,9 @@ dependencies {
   testRuntime project(path: ":ratpack-pac4j", configuration: "testRuntime")
 }
 
+// Gradle needs to use its version of Groovy, exclude ours
+configurations.testCompile.exclude module: "groovy-all"
+
 def projectDependencies = configurations.testCompile.dependencies.withType(ProjectDependency)
 assert projectDependencies.any { it.dependencyProject.path == ":ratpack-hikari" }  // Hikari creates a clash on commons logging
 projectDependencies.findAll {
