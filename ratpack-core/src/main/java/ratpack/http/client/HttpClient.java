@@ -121,6 +121,13 @@ public interface HttpClient extends AutoCloseable {
   int getPoolSize();
 
   /**
+   * The number of connections that the client will queue if pool was depleted for any given server.
+   *
+   * @since 1.6
+   */
+  int getPoolQueueSize();
+
+  /**
    * The default read timeout value.
    *
    * @since 1.4
