@@ -166,7 +166,7 @@ class MetricsExternalConfigSpec extends RatpackGroovyDslSpec {
     metricsConfig.isBlockingTimingMetrics()
   }
 
-  def "can enable and disable httpClient metrics [enabled: #isEnabled]"() {
+  def "it should enable and disable httpClient metrics [enabled: #isEnabled]"() {
     given:
     def propsFile = tempFolder.newFile("application.properties").toPath()
     propsFile.text = """
@@ -189,6 +189,5 @@ class MetricsExternalConfigSpec extends RatpackGroovyDslSpec {
     true      | 30
     false     | 0
   }
-
 
 }

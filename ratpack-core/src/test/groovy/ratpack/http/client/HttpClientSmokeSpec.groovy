@@ -878,8 +878,8 @@ BAR
         Blocking.get({
           return result.get()
         })
-        .onError(it.&error)
-        .then(it.&render)
+          .onError(it.&error)
+          .then(it.&render)
       }
     }
 

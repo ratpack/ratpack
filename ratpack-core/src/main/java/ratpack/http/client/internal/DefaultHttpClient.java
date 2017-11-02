@@ -255,7 +255,6 @@ public class DefaultHttpClient implements HttpClientInternal {
       return this;
     }
 
-    @Override
     public HttpClientSpec enableMetricsCollection(boolean enableMetricsCollection) {
       this.enableMetricsCollection = enableMetricsCollection;
       return this;
@@ -298,7 +297,7 @@ public class DefaultHttpClient implements HttpClientInternal {
         )
     );
   }
-  @Override
+
   public HttpClientStats getHttpClientStats() {
     return new HttpClientStats(
       hostStats.entrySet().stream().collect(Collectors.toMap(

@@ -157,8 +157,8 @@ class HttpClientKeepAliveInstrumentationSpec extends BaseHttpClientSpec {
         Blocking.get({
           return result.get()
         })
-        .onError(it.&error)
-        .then(it.&render)
+          .onError(it.&error)
+          .then(it.&render)
       }
     }
 
@@ -174,8 +174,8 @@ class HttpClientKeepAliveInstrumentationSpec extends BaseHttpClientSpec {
         execController.fork().start({
           poolingHttpClient.get(otherAppUrl())
             .then({ val ->
-              assert val.body.text == ok
-            })
+            assert val.body.text == ok
+          })
         })
         render ok
       }

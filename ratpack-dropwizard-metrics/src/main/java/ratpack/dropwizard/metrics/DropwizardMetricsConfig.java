@@ -16,6 +16,7 @@
 package ratpack.dropwizard.metrics;
 
 import ratpack.dropwizard.metrics.internal.DefaultRequestTimingHandler;
+import ratpack.dropwizard.metrics.internal.HttpClientConfig;
 import ratpack.func.Action;
 
 import java.time.Duration;

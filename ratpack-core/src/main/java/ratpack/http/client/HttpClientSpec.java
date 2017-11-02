@@ -149,18 +149,4 @@ public interface HttpClientSpec {
    * @since 1.6
    */
   HttpClientSpec responseIntercept(Operation operation);
-
-  /**
-   * Setting the value to true will inform HttpClient to track metrics
-   * around it's connection usage.
-   * <p>
-   * Defaults to false.
-   * <p>
-   *
-   * @param enabled set to true to enable metrics collection
-   * @return {@code this}
-   * @since 1.5
-   */
-  HttpClientSpec enableMetricsCollection(boolean enabled);
-
 }

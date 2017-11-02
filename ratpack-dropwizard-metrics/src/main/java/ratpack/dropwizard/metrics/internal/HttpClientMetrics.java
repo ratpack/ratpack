@@ -21,10 +21,10 @@ import com.codahale.metrics.MetricRegistry;
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
 import ratpack.dropwizard.metrics.DropwizardMetricsConfig;
-import ratpack.dropwizard.metrics.HttpClientConfig;
 import ratpack.exec.ExecController;
 import ratpack.http.client.HttpClient;
-import ratpack.http.client.HttpClientStats;
+import ratpack.http.client.internal.DefaultHttpClient;
+import ratpack.http.client.internal.HttpClientStats;
 import ratpack.service.Service;
 import ratpack.service.StartEvent;
 import java.util.concurrent.ConcurrentHashMap;
@@ -59,7 +59,7 @@ public class HttpClientMetrics implements Service, Runnable {
 
   @Override
   public void onStart(StartEvent event) throws Exception {
-    if (config.isEnabled()) {
+    if (config.isEnabled() && httpClient instanceof DefaultHttpClient) {
       ExecController execController = event.getRegistry().get(ExecController.class);
       execController.getExecutor().scheduleAtFixedRate(this, 0, config.getPollingFrequencyInSeconds(), TimeUnit.SECONDS);
     }
@@ -67,7 +67,7 @@ public class HttpClientMetrics implements Service, Runnable {
 
   @Override
   public void run() {
-    HttpClientStats httpClientStats = httpClient.getHttpClientStats();
+    HttpClientStats httpClientStats = ((DefaultHttpClient) httpClient).getHttpClientStats();
     gauge(TOTAL_ACTIVE_CONNECTIONS).setValue(httpClientStats.getTotalActiveConnectionCount());
     gauge(TOTAL_IDLE_CONNECTIONS).setValue(httpClientStats.getTotalIdleConnectionCount());
     gauge(TOTAL_CONNECTIONS).setValue(httpClientStats.getTotalConnectionCount());

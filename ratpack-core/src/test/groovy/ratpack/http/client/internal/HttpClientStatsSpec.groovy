@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package ratpack.http.client
+package ratpack.http.client.internal
 
 import spock.lang.Specification
 

@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package ratpack.dropwizard.metrics;
+package ratpack.dropwizard.metrics.internal;
 
 public class HttpClientConfig {
 
@@ -50,7 +50,6 @@ public class HttpClientConfig {
    * </p>
    *
    * @return Number of seconds to wait between polling HttpClient for metrics.
-   * @since 1.5
    */
   public int getPollingFrequencyInSeconds() {
     return this.pollingFrequencyInSeconds;
@@ -60,7 +59,6 @@ public class HttpClientConfig {
    * The frequency in seconds of which the HttpClient metrics will be refreshed.
    * @param seconds Frequency in seconds of which to refresh HttpClient metrics.
    * @return this
-   * @since 1.5
    */
   public HttpClientConfig pollingFrequencyInSeconds(int seconds) {
     this.pollingFrequencyInSeconds = seconds;
