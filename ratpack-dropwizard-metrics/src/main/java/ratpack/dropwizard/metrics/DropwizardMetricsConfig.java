@@ -33,6 +33,8 @@ public class DropwizardMetricsConfig {
   public static final Duration DEFAULT_INTERVAL = Duration.ofSeconds(30);
 
   private boolean jvmMetrics;
+  private boolean byteBufAllocatorMetrics;
+  private boolean detailedByteBufAllocatorMetrics;
   private boolean requestTimingMetrics = true;
   private boolean blockingTimingMetrics = true;
   private Map<String, String> requestMetricGroups;
@@ -59,6 +61,48 @@ public class DropwizardMetricsConfig {
    */
   public DropwizardMetricsConfig jvmMetrics(boolean jvmMetrics) {
     this.jvmMetrics = jvmMetrics;
+    return this;
+  }
+
+  /**
+   * The state of byte buf allocator metrics collection.
+   *
+   * @return True if byte buf allocator metrics collection is enabled. False otherwise
+   * @since 1.6
+   */
+  public boolean isByteBufAllocatorMetrics() {
+    return byteBufAllocatorMetrics;
+  }
+
+  /**
+   * The state of request timing metrics reporting.
+   * @param byteBufAllocatorMetrics True if byte buf allocator metrics are to be reported. False otherwise
+   * @return this
+   * @since 1.6
+   */
+  public DropwizardMetricsConfig byteBufAllocatorMetrics(boolean byteBufAllocatorMetrics) {
+    this.byteBufAllocatorMetrics = byteBufAllocatorMetrics;
+    return this;
+  }
+
+  /**
+   * The state of detailed byte buf allocator metrics collection. (byte buf allocator metrics needs to be enabled)
+   *
+   * @return True if detailed byte buf allocator metrics collection is enabled. False otherwise
+   * @since 1.6
+   */
+  public boolean isDetailedByteBufAllocatorMetrics() {
+    return detailedByteBufAllocatorMetrics;
+  }
+
+  /**
+   * The state of detailed byte buf allocator metrics reporting.
+   * @param detailedByteBufAllocatorMetrics True if detailed byte buf allocator metrics are to be reported. False otherwise
+   * @return this
+   * @since 1.6
+   */
+  public DropwizardMetricsConfig detailedByteBufAllocatorMetrics(boolean detailedByteBufAllocatorMetrics) {
+    this.detailedByteBufAllocatorMetrics = detailedByteBufAllocatorMetrics;
     return this;
   }
 
