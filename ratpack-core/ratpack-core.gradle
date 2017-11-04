@@ -60,6 +60,7 @@ dependencies {
     exclude group: "com.fasterxml.jackson.core", module: "jackson-databind"
     exclude group: "com.google.guava", module: "guava"
   }
+  testCompile 'org.awaitility:awaitility:3.0.0'
 }
 
 test {
