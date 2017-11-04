@@ -27,6 +27,7 @@ import com.google.inject.Injector;
 import com.google.inject.Provider;
 import com.google.inject.matcher.Matchers;
 import com.google.inject.multibindings.Multibinder;
+import io.netty.buffer.PooledByteBufAllocator;
 import ratpack.dropwizard.metrics.internal.*;
 import ratpack.guice.ConfigurableModule;
 import ratpack.handling.HandlerDecorator;
@@ -239,6 +240,18 @@ public class DropwizardMetricsModule extends ConfigurableModule<DropwizardMetric
         metricRegistry.registerAll(new GarbageCollectorMetricSet());
         metricRegistry.registerAll(new ThreadStatesGaugeSet());
         metricRegistry.registerAll(new MemoryUsageGaugeSet());
+      }
+
+      if (config.isByteBufAllocatorMetrics()) {
+        final MetricRegistry metricRegistry = injector.getInstance(MetricRegistry.class);
+        // Ratpack uses default PooledByteBufAllocator to allocate request bodies and other things.
+        // Allocator is resolved in static block in PooledByteBufAllocator based on OS, presence of Unsafe package, etc.
+        metricRegistry.registerAll(
+          new PooledByteBufAllocatorMetricSet(
+            PooledByteBufAllocator.DEFAULT,
+            config.isDetailedByteBufAllocatorMetrics()
+          )
+        );
       }
     }
 

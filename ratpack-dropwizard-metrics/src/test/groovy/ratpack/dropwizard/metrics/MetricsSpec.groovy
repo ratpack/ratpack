@@ -285,7 +285,7 @@ class MetricsSpec extends RatpackGroovyDslSpec {
 
   }
 
-  def "can properly capture timing events" () {
+  def "can properly capture timing events"() {
     MetricRegistry registry
 
     given:
@@ -407,6 +407,35 @@ class MetricsSpec extends RatpackGroovyDslSpec {
     (1.._) * reporter.onGaugeAdded(!null, { it.class.name.startsWith("com.codahale.metrics.jvm.GarbageCollectorMetricSet") })
     (1.._) * reporter.onGaugeAdded(!null, { it.class.name.startsWith("com.codahale.metrics.jvm.ThreadStatesGaugeSet") })
     (1.._) * reporter.onGaugeAdded(!null, { it.class.name.startsWith("com.codahale.metrics.jvm.MemoryUsageGaugeSet") })
+  }
+
+  def "can collect byte buf allocator metrics"() {
+
+    def reporter = Mock(MetricRegistryListener)
+
+    given:
+    bindings {
+      module new DropwizardMetricsModule(), {
+        it.byteBufAllocatorMetrics(true)
+          .detailedByteBufAllocatorMetrics(true)
+      }
+    }
+
+    handlers { MetricRegistry metrics ->
+      metrics.addListener(reporter)
+
+      all {
+        render ""
+      }
+    }
+
+    when:
+    get()
+
+    then:
+    (1.._) * reporter.onGaugeAdded(!null, {
+      it.class.name.startsWith("ratpack.dropwizard.metrics.PooledByteBufAllocatorMetricSet")
+    })
   }
 
   def "can use metrics endpoint"() {
