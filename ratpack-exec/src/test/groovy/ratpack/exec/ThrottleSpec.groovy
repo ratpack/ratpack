@@ -16,6 +16,7 @@
 
 package ratpack.exec
 
+import ratpack.exec.util.ParallelBatch
 import ratpack.test.exec.ExecHarness
 import spock.lang.AutoCleanup
 import spock.lang.Specification
@@ -131,4 +132,22 @@ class ThrottleSpec extends Specification {
     l == [0, 1, 2, 3, 4, 5]
   }
 
+  def "throttled promises can be routed"() {
+    given:
+    Throttle throttle = Throttle.ofSize(2)
+    List<Promise> promises = []
+
+    for (int i = 0; i < 100; i++) {
+      promises << Promise.value(i)
+        .route({ it > 10 }, {})
+        .throttled(throttle)
+    }
+    when:
+    def results = ExecHarness.yieldSingle {
+      ParallelBatch.of(promises).yield()
+    }.value
+
+    then:
+    results == (0..10) + ([null] * 89)
+  }
 }
