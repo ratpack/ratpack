@@ -24,6 +24,9 @@ import spock.lang.Shared
 import java.util.concurrent.Callable
 import java.util.concurrent.CountDownLatch
 import java.util.concurrent.Executors
+import java.util.concurrent.TimeUnit
+
+import static org.awaitility.Awaitility.await
 
 class HttpClientConnectionPoolSpec extends BaseHttpClientSpec {
 
@@ -60,6 +63,10 @@ class HttpClientConnectionPoolSpec extends BaseHttpClientSpec {
     def queuedOrRejectedFuture2 = executor.submit({ harness.yield(requestClosure) } as Callable<ExecResult<String>>)
 
     then:
+    await("wait for one request to get rejected")
+      .atMost(30, TimeUnit.SECONDS)
+      .pollInterval(100, TimeUnit.MILLISECONDS)
+      .until { queuedOrRejectedFuture1.isDone() || queuedOrRejectedFuture2.isDone() }
     !blockedFuture.isDone()
 
     blockLatch.countDown()
@@ -68,9 +75,9 @@ class HttpClientConnectionPoolSpec extends BaseHttpClientSpec {
     queuedOrRejectedFuture1.get().error ^ queuedOrRejectedFuture2.get().error
 
     with(queuedOrRejectedFuture1.get()) {
-        error ?
-          throwable.message == "Too many outstanding acquire operations"
-          : value == "ok"
+      error ?
+        throwable.message == "Too many outstanding acquire operations"
+        : value == "ok"
     }
     with(queuedOrRejectedFuture2.get()) {
       error ?
