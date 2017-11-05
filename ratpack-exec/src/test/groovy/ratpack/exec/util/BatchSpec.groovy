@@ -167,4 +167,15 @@ class BatchSpec extends Specification {
     exec.yield { batch.publisher().toList() }.value.empty
   }
 
+  def "parallel batch can have promises with error handling"() {
+    when:
+    def r = exec.yield {
+      ParallelBatch.of(Promise.error(new RuntimeException("1")).onError {}, Promise.value(1)).yieldAll()
+    }.value
+
+    then:
+    r.size() == 2
+    r[0].value == null
+    r[1].value == 1
+  }
 }
