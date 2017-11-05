@@ -149,4 +149,22 @@ class BatchSpec extends Specification {
     thrown RuntimeException
   }
 
+  def "parallel batch may be empty"() {
+    expect:
+    def batch = ParallelBatch.of(Collections.emptyList())
+    exec.yield { batch.yield() }.value.empty
+    exec.yield { batch.yieldAll() }.value.empty
+    exec.execute(batch.forEach {})
+    exec.yield { batch.publisher().toList() }.value.empty
+  }
+
+  def "serial batch may be empty"() {
+    expect:
+    def batch = SerialBatch.of(Collections.emptyList())
+    exec.yield { batch.yield() }.value.empty
+    exec.yield { batch.yieldAll() }.value.empty
+    exec.execute(batch.forEach {})
+    exec.yield { batch.publisher().toList() }.value.empty
+  }
+
 }
