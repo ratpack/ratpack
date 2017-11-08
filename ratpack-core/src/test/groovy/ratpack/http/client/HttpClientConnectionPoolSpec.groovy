@@ -16,28 +16,23 @@
 
 package ratpack.http.client
 
-import ratpack.exec.ExecResult
+import ratpack.exec.util.ParallelBatch
 import ratpack.test.exec.ExecHarness
 import spock.lang.AutoCleanup
-import spock.lang.Shared
+import spock.util.concurrent.AsyncConditions
 
-import java.util.concurrent.Callable
 import java.util.concurrent.CountDownLatch
-import java.util.concurrent.Executors
 
 class HttpClientConnectionPoolSpec extends BaseHttpClientSpec {
 
-  @AutoCleanup(value = "shutdown")
-  @Shared
-  def executor = Executors.newCachedThreadPool()
-
-  @Shared
+  @AutoCleanup
   def harness = ExecHarness.harness()
 
   def "pool limits the number of connection and its queue"() {
     given:
-    def blockLatch = new CountDownLatch(1)
-    def orderLatch = new CountDownLatch(1)
+    def async = new AsyncConditions(2)
+    def requestReceivedLatch = new CountDownLatch(1)
+    def resumeRequestLatch = new CountDownLatch(1)
 
     def poolingHttpClient = HttpClient.of {
       it.poolSize(1).poolQueueSize(1)
@@ -45,37 +40,40 @@ class HttpClientConnectionPoolSpec extends BaseHttpClientSpec {
 
     otherApp {
       get {
-        orderLatch.countDown()
-        blockLatch.await()
+        requestReceivedLatch.countDown()
+        resumeRequestLatch.await()
         render "ok"
       }
     }
-    def requestClosure = { poolingHttpClient.get(otherAppUrl()).map { r -> r.body.text } }
 
     when:
-    def blockedFuture = executor.submit({ harness.yield(requestClosure) } as Callable<ExecResult<String>>)
-    orderLatch.await()
-
-    def queuedOrRejectedFuture1 = executor.submit({ harness.yield(requestClosure) } as Callable<ExecResult<String>>)
-    def queuedOrRejectedFuture2 = executor.submit({ harness.yield(requestClosure) } as Callable<ExecResult<String>>)
+    def request = poolingHttpClient.get(otherAppUrl()).map { r -> r.body.text }
 
     then:
-    !blockedFuture.isDone()
-
-    blockLatch.countDown()
-    blockedFuture.get().value == "ok"
-
-    queuedOrRejectedFuture1.get().error ^ queuedOrRejectedFuture2.get().error
-
-    with(queuedOrRejectedFuture1.get()) {
-        error ?
-          throwable.message == "Too many outstanding acquire operations"
-          : value == "ok"
+    Thread.start {
+      async.evaluate {
+        assert harness.yield { request }.valueOrThrow == "ok"
+      }
     }
-    with(queuedOrRejectedFuture2.get()) {
-      error ?
-        throwable.message == "Too many outstanding acquire operations"
-        : value == "ok"
+    requestReceivedLatch.await()
+
+    and:
+    Thread.start {
+      async.evaluate {
+        def results = harness.yield { ParallelBatch.of([request] * 3).yieldAll() }.valueOrThrow
+
+        def success = results.findAll { it.success }
+        assert success.size() == 1
+        assert success.every { it.value == "ok" }
+
+        def errors = results.findAll { it.error }
+        assert errors.size() == 2
+        assert errors.every { it.throwable.message == "Too many outstanding acquire operations" }
+      }
     }
+    resumeRequestLatch.countDown()
+
+    and:
+    async.await()
   }
 }
