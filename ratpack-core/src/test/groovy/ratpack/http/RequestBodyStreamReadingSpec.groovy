@@ -47,7 +47,8 @@ class RequestBodyStreamReadingSpec extends RatpackGroovyDslSpec {
         render "ok"
       }
       post("read") {
-        render ResponseChunks.bufferChunks("text/plain", request.bodyStream)
+        response.sendStream(request.bodyStream)
+//        render ResponseChunks.bufferChunks("text/plain", request.bodyStream)
       }
     }
 
