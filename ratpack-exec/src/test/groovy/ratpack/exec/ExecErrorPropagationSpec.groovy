@@ -96,4 +96,14 @@ class ExecErrorPropagationSpec extends Specification {
     }.valueOrThrow == 2
   }
 
+  def "error is propagated when converting to operation"() {
+    expect:
+    harness.yield {
+      Promise.error(new RuntimeException("!"))
+        .operation()
+        .onError { throw new RuntimeException("!!") }
+        .promise()
+    }.throwable.message == "!!"
+  }
+
 }

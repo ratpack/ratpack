@@ -39,27 +39,6 @@ connection: close
     status << noBodyResponseStatuses()
   }
 
-  def "content length is sent for #status response with body"() {
-    // Note: this violates the spec, but if the user wants to do it…
-    when:
-    handlers {
-      get {
-        response.status(status.code()).send("foo")
-      }
-    }
-
-    then:
-    rawResponse() == """HTTP/1.1 ${status}
-content-type: text/plain;charset=UTF-8
-content-length: 3
-connection: close
-
-foo"""
-
-    where:
-    status << noBodyResponseStatuses()
-  }
-
   static List<HttpResponseStatus> noBodyResponseStatuses() {
     [HttpResponseStatus.valueOf(100), HttpResponseStatus.valueOf(150), HttpResponseStatus.valueOf(199), HttpResponseStatus.valueOf(204), HttpResponseStatus.valueOf(304)]
   }

@@ -19,7 +19,6 @@ package ratpack.exec;
 import ratpack.api.NonBlocking;
 import ratpack.exec.internal.CachingUpstream;
 import ratpack.exec.internal.DefaultExecution;
-import ratpack.exec.internal.DefaultOperation;
 import ratpack.exec.internal.DefaultPromise;
 import ratpack.exec.util.Promised;
 import ratpack.func.*;
@@ -737,14 +736,15 @@ public interface Promise<T> {
    * @since 1.1
    */
   default Promise<T> nextOp(Function<? super T, ? extends Operation> function) {
-    return transform(up -> down -> up.connect(
-      down.<T>onSuccess(value ->
-        function.apply(value)
-          .onError(down::error)
-          .then(() ->
-            down.success(value)
-          )
-      )
+    return transform(up -> down ->
+      up.connect(
+        down.<T>onSuccess(value ->
+          function.apply(value)
+            .onError(down::error)
+            .then(() ->
+              down.success(value)
+            )
+        )
       )
     );
   }
@@ -952,17 +952,17 @@ public interface Promise<T> {
     );
   }
 
+  /**
+   * Converts this promise to an operation, by effectively discarding the result.
+   *
+   * @return an operation
+   */
   default Operation operation() {
     return operation(Action.noop());
   }
 
-  default Operation operation(Action<? super T> action) {
-    return new DefaultOperation(
-      map(t -> {
-        action.execute(t);
-        return null;
-      })
-    );
+  default Operation operation(@NonBlocking Action<? super T> action) {
+    return Operation.of(() -> then(action));
   }
 
   /**
