@@ -18,6 +18,7 @@ package ratpack.http.client;
 
 import io.netty.buffer.ByteBufAllocator;
 import io.netty.buffer.PooledByteBufAllocator;
+import ratpack.exec.Operation;
 import ratpack.func.Action;
 import ratpack.server.ServerConfig;
 
@@ -57,6 +58,21 @@ public interface HttpClientSpec {
   HttpClientSpec poolSize(int poolSize);
 
   /**
+   * The maximum number of requests that will be queued if connection pool was depleted.
+   * <p>
+   * Defaults to {@link Integer#MAX_VALUE}.
+   * <p>
+   * Setting this option is recommended, because the http client queues requests when the pool is depleted. Once
+   * a connection is available, the request is processed and all resources released.
+   * <p>
+   * The option is not applied if pool size is not set.
+   *
+   * @param poolQueueSize the connection pool queue size
+   * @return {@code this}
+   */
+  HttpClientSpec poolQueueSize(int poolQueueSize);
+
+  /**
    * The maximum size to allow for responses.
    * <p>
    * Defaults to {@link ServerConfig#DEFAULT_MAX_CONTENT_LENGTH}.
@@ -77,11 +93,11 @@ public interface HttpClientSpec {
   HttpClientSpec readTimeout(Duration readTimeout);
 
   /**
-   * The read timeout value for responses.
+   * The connect timeout value for requests.
    * <p>
    * Defaults to 30 seconds.
    *
-   * @param connectTimeout the read timeout value for responses
+   * @param connectTimeout the connect timeout value for requests
    * @return {@code this}
    * @since 1.5
    */
@@ -99,4 +115,38 @@ public interface HttpClientSpec {
      * @since 1.5
      */
   HttpClientSpec responseMaxChunkSize(int numBytes);
+
+  /**
+   * Add an interceptor for all requests handled by this client.
+   * <p>
+   * This function is additive.
+   *
+   * @param interceptor the action to perform on the spec before transmitting.
+   * @return {@code} this
+   * @since 1.6
+   */
+  HttpClientSpec requestIntercept(Action<? super RequestSpec> interceptor);
+
+  /**
+   * Add an interceptor for all responses returned by this client.
+   * <p>
+   * This function is additive.
+   *
+   * @param interceptor the action to perform on the response before returning.
+   * @return {@code this}
+   * @since 1.6
+   */
+  HttpClientSpec responseIntercept(Action<? super HttpResponse> interceptor);
+
+  /**
+   * Execute the provide {@link Operation} for all responses returned by this client.
+   * <p>
+   * This function will wrap the provided operation and subscribe to it.
+   * This function is additive with {@link #responseIntercept(Action)}.
+   *
+   * @param operation the operation to subscribe to before return the response.
+   * @return {@code this}
+   * @since 1.6
+   */
+  HttpClientSpec responseIntercept(Operation operation);
 }
