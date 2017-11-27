@@ -47,7 +47,7 @@ class RequestBodyStreamReadingSpec extends RatpackGroovyDslSpec {
         render "ok"
       }
       post("read") {
-        response.sendStream(request.bodyStream)
+        render(composeString(request.bodyStream))
       }
     }
 
@@ -69,7 +69,7 @@ class RequestBodyStreamReadingSpec extends RatpackGroovyDslSpec {
         redirect 303, "read"
       }
       post("read") {
-        render ResponseChunks.bufferChunks("text/plain", request.bodyStream)
+        render(composeString(request.bodyStream))
       }
     }
 
@@ -85,7 +85,7 @@ class RequestBodyStreamReadingSpec extends RatpackGroovyDslSpec {
     }
     handlers {
       post {
-        render ResponseChunks.bufferChunks("text/plain", request.bodyStream)
+        render(composeString(request.bodyStream))
       }
     }
 
@@ -98,8 +98,8 @@ class RequestBodyStreamReadingSpec extends RatpackGroovyDslSpec {
     when:
     handlers {
       post {
-        Blocking.get { "foo " }.map { request.bodyStream }.then { body ->
-          render ResponseChunks.bufferChunks("text/plain", body)
+        Blocking.get { "foo " }.map { composeString(request.bodyStream) }.then { body ->
+          render body
         }
       }
     }
