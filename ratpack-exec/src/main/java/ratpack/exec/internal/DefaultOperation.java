@@ -37,37 +37,41 @@ public class DefaultOperation implements Operation {
 
   @Override
   public Operation onError(Action<? super Throwable> onError) {
-    return promise.transform(up -> down -> up.connect(new Downstream<Void>() {
-      @Override
-      public void success(Void value) {
-        down.success(value);
-      }
-
-      @Override
-      public void error(Throwable throwable) {
-        Operation.of(() -> onError.execute(throwable)).promise().connect(new Downstream<Void>() {
+    return new DefaultOperation(
+      promise.transform(up -> down ->
+        up.connect(new Downstream<Void>() {
           @Override
           public void success(Void value) {
-            down.complete();
+            down.success(value);
           }
 
           @Override
           public void error(Throwable throwable) {
-            down.error(throwable);
+            Operation.of(() -> onError.execute(throwable)).promise().connect(new Downstream<Void>() {
+              @Override
+              public void success(Void value) {
+                down.complete();
+              }
+
+              @Override
+              public void error(Throwable throwable) {
+                down.error(throwable);
+              }
+
+              @Override
+              public void complete() {
+                down.complete();
+              }
+            });
           }
 
           @Override
           public void complete() {
             down.complete();
           }
-        });
-      }
-
-      @Override
-      public void complete() {
-        down.complete();
-      }
-    })).operation();
+        })
+      )
+    );
   }
 
   @Override
