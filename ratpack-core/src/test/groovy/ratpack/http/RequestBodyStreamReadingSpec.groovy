@@ -55,8 +55,9 @@ class RequestBodyStreamReadingSpec extends RatpackGroovyDslSpec {
     then:
     requestSpec { RequestSpec requestSpec -> requestSpec.body.stream({ it << "foo" }) }
     postText("ignore") == "ok"
-    requestSpec { RequestSpec requestSpec -> requestSpec.body.stream({ it << "bar" }) }
-    postText("read") == "bar"
+    def bar = "bar" * (1024 * 8)
+    requestSpec { RequestSpec requestSpec -> requestSpec.body.stream({ it << bar }) }
+    postText("read") == bar
   }
 
   def "can read body after redirect"() {
