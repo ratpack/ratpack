@@ -148,7 +148,9 @@ public class DefaultRatpackServer implements RatpackServer {
       };
       Runtime.getRuntime().addShutdownHook(shutdownHookThread);
     } catch (Exception e) {
-      execController.close();
+      if (execController != null) {
+        execController.close();
+      }
       stop();
       throw e;
     }
