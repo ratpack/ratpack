@@ -69,6 +69,7 @@ public interface HttpClientSpec {
    *
    * @param poolQueueSize the connection pool queue size
    * @return {@code this}
+   * @since 1.6
    */
   HttpClientSpec poolQueueSize(int poolQueueSize);
 

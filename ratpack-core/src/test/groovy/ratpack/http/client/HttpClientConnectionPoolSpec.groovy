@@ -19,9 +19,9 @@ package ratpack.http.client
 import ratpack.exec.util.ParallelBatch
 import ratpack.test.exec.ExecHarness
 import spock.lang.AutoCleanup
-import spock.util.concurrent.AsyncConditions
 
 import java.util.concurrent.CountDownLatch
+import java.util.concurrent.atomic.AtomicInteger
 
 class HttpClientConnectionPoolSpec extends BaseHttpClientSpec {
 
@@ -30,9 +30,8 @@ class HttpClientConnectionPoolSpec extends BaseHttpClientSpec {
 
   def "pool limits the number of connection and its queue"() {
     given:
-    def async = new AsyncConditions(2)
-    def requestReceivedLatch = new CountDownLatch(1)
-    def resumeRequestLatch = new CountDownLatch(1)
+    def resumeRequestLatch = new CountDownLatch(2)
+    def activeCounter = new AtomicInteger()
 
     def poolingHttpClient = HttpClient.of {
       it.poolSize(1).poolQueueSize(1)
@@ -40,40 +39,30 @@ class HttpClientConnectionPoolSpec extends BaseHttpClientSpec {
 
     otherApp {
       get {
-        requestReceivedLatch.countDown()
+        assert activeCounter.getAndIncrement() == 0
         resumeRequestLatch.await()
+        activeCounter.decrementAndGet()
         render "ok"
       }
     }
 
     when:
-    def request = poolingHttpClient.get(otherAppUrl()).map { r -> r.body.text }
+    def request = poolingHttpClient.get(otherAppUrl()).
+      map { r -> r.body.text }.
+      wiretap {
+        if (it.error) {
+          resumeRequestLatch.countDown()
+        }
+      }
+
+    def requests = harness.yield {
+      ParallelBatch.of([request] * 4).yieldAll()
+    }.value
+
 
     then:
-    Thread.start {
-      async.evaluate {
-        assert harness.yield { request }.valueOrThrow == "ok"
-      }
-    }
-    requestReceivedLatch.await()
-
-    and:
-    Thread.start {
-      async.evaluate {
-        def results = harness.yield { ParallelBatch.of([request] * 3).yieldAll() }.valueOrThrow
-
-        def success = results.findAll { it.success }
-        assert success.size() == 1
-        assert success.every { it.value == "ok" }
-
-        def errors = results.findAll { it.error }
-        assert errors.size() == 2
-        assert errors.every { it.throwable.message == "Too many outstanding acquire operations" }
-      }
-    }
-    resumeRequestLatch.countDown()
-
-    and:
-    async.await()
+    requests.findAll { it.value == "ok" }.size() == 2
+    requests.findAll { it.error }.size() == 2
   }
+
 }
