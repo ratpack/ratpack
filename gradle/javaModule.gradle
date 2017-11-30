@@ -78,7 +78,7 @@ task javadocJar(type: Jar) {
 }
 
 artifacts {
-  archives javadocJar, sourceJar
+  published javadocJar, sourceJar, jar
 }
 
 tasks.withType(Test) {

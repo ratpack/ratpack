@@ -17,6 +17,7 @@
 apply plugin: "maven"
 apply from: "${rootDir}/gradle/pom.gradle"
 apply plugin: "signing"
+apply plugin: "artifactory"
 
 afterEvaluate {
   assert description: "Project $project.path is published, must have a description"
@@ -28,11 +29,19 @@ tasks.withType(Upload).matching { it.name != "install" }.all {
   }
 }
 
+configurations {
+  pomSignature
+}
+
 if (!isSnapshot) {
   tasks.withType(Upload) {
     repositories.matching { it.name == "mavenInstaller" }.all {
       beforeDeployment { deployment ->
-        signing.signPom(deployment)
+        artifacts {
+          pomSignature signing.signPom(deployment), {
+            extension = "pom.asc"
+          }
+        }
       }
     }
   }
@@ -40,7 +49,7 @@ if (!isSnapshot) {
 
 signing {
   if (!isSnapshot) {
-    sign configurations.archives
+    sign configurations.published
   }
 }
 
@@ -66,7 +75,6 @@ configurations {
   }
 }
 
-apply plugin: "artifactory"
 artifactoryPublish { task ->
   rootProject.artifactory {
     publish {
@@ -78,6 +86,9 @@ artifactoryPublish { task ->
             password = ratpackBintrayApiKey
           }
         }
+      }
+      defaults {
+        publishConfigs('published', 'signatures', 'pomSignature')
       }
     }
   }
