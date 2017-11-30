@@ -140,6 +140,9 @@ allprojects {
     maven { url 'https://oss.jfrog.org/artifactory/repo' }
   }
 
+  configurations {
+    published
+  }
 }
 
 apply from: "gradle/idea/idea.gradle"
