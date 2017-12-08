@@ -51,12 +51,36 @@ public class DefaultThrottle implements Throttle {
         Promise.<Downstream<? super T>>async(innerDown -> {
           queue.add(() -> innerDown.success(down));
           drain();
-        }).then(up::connect);
+        })
+          .then(up::connect);
       }
-    }).wiretap(r -> {
-      active.decrementAndGet();
-      drain();
-    });
+    })
+      .transform(up -> down ->
+        up.connect(new Downstream<T>() {
+          @Override
+          public void success(T value) {
+            post();
+            down.success(value);
+          }
+
+          @Override
+          public void error(Throwable throwable) {
+            post();
+            down.error(throwable);
+          }
+
+          @Override
+          public void complete() {
+            post();
+            down.complete();
+          }
+        })
+      );
+  }
+
+  private void post() {
+    active.decrementAndGet();
+    drain();
   }
 
   @Override
