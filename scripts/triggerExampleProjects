@@ -1,6 +1,6 @@
 #!/bin/bash
 
-SNAP_KEY = $1
+SNAP_KEY=$1
 
 if [ "$BRANCH_NAME" = "master" ]; then
   curl -XPOST -uerdi:$SNAP_KEY https://api.snap-ci.com/project/ratpack/example-ratpack-gradle-java-app/branch/latest/trigger
