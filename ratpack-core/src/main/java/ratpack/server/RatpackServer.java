@@ -19,6 +19,7 @@ package ratpack.server;
 import ratpack.api.Nullable;
 import ratpack.func.Action;
 import ratpack.impose.Impositions;
+import ratpack.registry.Registry;
 import ratpack.server.internal.DefaultRatpackServer;
 
 /**
@@ -190,4 +191,10 @@ public interface RatpackServer {
    */
   RatpackServer reload() throws Exception;
 
+  /**
+   * Convenience method to provide easy access to the application registry via a server reference
+   *
+   * @return a Ratpack registry
+   */
+  Registry getRegistry();
 }

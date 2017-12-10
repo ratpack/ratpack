@@ -349,5 +349,10 @@ public class DefaultRequestFixture implements RequestFixture {
     public RatpackServer reload() throws Exception {
       throw new UnsupportedOperationException();
     }
+
+    @Override
+    public Registry getRegistry() {
+      throw new UnsupportedOperationException();
+    }
   }
 }
