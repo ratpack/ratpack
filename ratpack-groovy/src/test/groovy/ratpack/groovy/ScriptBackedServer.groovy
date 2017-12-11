@@ -61,7 +61,7 @@ class ScriptBackedServer implements RatpackServer {
   }
 
   @Override
-  Registry getRegistry() {
+  Optional<Registry> getRegistry() {
     return nestedServer.registry
   }
 

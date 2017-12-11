@@ -22,6 +22,8 @@ import ratpack.impose.Impositions;
 import ratpack.registry.Registry;
 import ratpack.server.internal.DefaultRatpackServer;
 
+import java.util.Optional;
+
 /**
  * The entry point for creating and starting a Ratpack application.
  * <p>
@@ -195,6 +197,7 @@ public interface RatpackServer {
    * Convenience method to provide easy access to the application registry via a server reference
    *
    * @return a Ratpack registry
+   * @since 1.6
    */
-  Registry getRegistry();
+  Optional<Registry> getRegistry();
 }

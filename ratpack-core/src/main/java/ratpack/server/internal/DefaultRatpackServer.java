@@ -373,8 +373,8 @@ public class DefaultRatpackServer implements RatpackServer {
   }
 
   @Override
-  public Registry getRegistry() {
-    return this.serverRegistry;
+  public Optional<Registry> getRegistry() {
+    return Optional.of(this.serverRegistry);
   }
 
   @Override

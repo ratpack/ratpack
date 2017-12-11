@@ -99,7 +99,7 @@ class RatpackServerTestSpec extends Specification {
     server.start()
 
     then:
-    server.registry.get(String) == "foo"
+    server.registry.get().get(String) == "foo"
   }
 
   def "configuration changes are applied up on reload"() {
