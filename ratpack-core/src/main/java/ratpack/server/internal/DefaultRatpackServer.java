@@ -373,6 +373,11 @@ public class DefaultRatpackServer implements RatpackServer {
   }
 
   @Override
+  public Optional<Registry> getRegistry() {
+    return Optional.of(this.serverRegistry);
+  }
+
+  @Override
   public synchronized boolean isRunning() {
     return channel != null;
   }
