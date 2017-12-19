@@ -444,6 +444,17 @@ class StaticFileSpec extends RatpackGroovyDslSpec {
     post("foo.txt").statusCode == 405
   }
 
+  def "getting a data URL returns 404"() {
+    when:
+    write("public/foo.txt", "bar")
+    handlers {
+      files { dir "public" }
+    }
+
+    then:
+    get("/data:application/json").statusCode == 404
+  }
+
   private static Date parseDateHeader(ReceivedResponse response, String name) {
     HttpHeaderDateFormat.get().parse(response.headers.get(name))
   }
