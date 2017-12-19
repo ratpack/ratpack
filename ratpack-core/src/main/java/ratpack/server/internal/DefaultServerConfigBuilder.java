@@ -128,6 +128,11 @@ public class DefaultServerConfigBuilder implements ServerConfigBuilder {
   }
 
   @Override
+  public ServerConfigBuilder registerShutdownHook(boolean registerShutdownHook) {
+    return addToServer(n -> n.put("registerShutdownHook", registerShutdownHook));
+  }
+
+  @Override
   public ServerConfigBuilder publicAddress(URI publicAddress) {
     return addToServer(n -> n.putPOJO("publicAddress", publicAddress));
   }

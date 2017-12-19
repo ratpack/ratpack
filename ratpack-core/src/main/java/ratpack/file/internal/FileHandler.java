@@ -50,11 +50,17 @@ public class FileHandler implements Handler {
       throw uncheck(e);
     }
 
-    Path asset = context.file(path);
-    if (asset != null) {
+    boolean assetFound = false;
 
-      servePath(context, asset);
-    } else {
+    if (path != null) {
+      Path asset = context.file(path);
+      if (asset != null) {
+        servePath(context, asset);
+        assetFound = true;
+      }
+    }
+
+    if (!assetFound) {
       context.clientError(404);
     }
   }

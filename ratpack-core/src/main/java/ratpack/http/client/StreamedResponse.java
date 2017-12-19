@@ -18,10 +18,8 @@ package ratpack.http.client;
 
 import io.netty.buffer.ByteBuf;
 import ratpack.func.Action;
-import ratpack.http.Headers;
 import ratpack.http.MutableHeaders;
 import ratpack.http.Response;
-import ratpack.http.Status;
 import ratpack.stream.TransformablePublisher;
 
 /**
@@ -31,24 +29,7 @@ import ratpack.stream.TransformablePublisher;
  * subscribing to the {@link org.reactivestreams.Publisher} returned from {@link #getBody()} or can
  * be directly streamed as a server response using {@link #forwardTo(ratpack.http.Response, ratpack.func.Action)}.
  */
-public interface StreamedResponse {
-  /**
-   *
-   * @return {@link ratpack.http.Status} of the response.
-   */
-  Status getStatus();
-
-  /**
-   *
-   * @return the integer status code of the response.
-   */
-  int getStatusCode();
-
-  /**
-   *
-   * @return {@link ratpack.http.Headers} from the response.
-   */
-  Headers getHeaders();
+public interface StreamedResponse extends HttpResponse {
 
   /**
    *

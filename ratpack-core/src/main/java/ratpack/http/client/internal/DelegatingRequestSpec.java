@@ -48,6 +48,11 @@ public class DelegatingRequestSpec implements RequestSpec {
   }
 
   @Override
+  public int getRedirects() {
+    return delegate.getRedirects();
+  }
+
+  @Override
   public RequestSpec onRedirect(Function<? super ReceivedResponse, Action<? super RequestSpec>> function) {
     delegate.onRedirect(function);
     return this;
@@ -58,6 +63,11 @@ public class DelegatingRequestSpec implements RequestSpec {
   public RequestSpec sslContext(SSLContext sslContext) {
     delegate.sslContext(sslContext);
     return this;
+  }
+
+  @Override
+  public SslContext getSslContext() {
+    return delegate.getSslContext();
   }
 
   @Override
@@ -91,9 +101,19 @@ public class DelegatingRequestSpec implements RequestSpec {
   }
 
   @Override
+  public HttpMethod getMethod() {
+    return delegate.getMethod();
+  }
+
+  @Override
   public RequestSpec decompressResponse(boolean shouldDecompress) {
     delegate.decompressResponse(shouldDecompress);
     return this;
+  }
+
+  @Override
+  public boolean getDecompressResponse() {
+    return delegate.getDecompressResponse();
   }
 
   @Override
@@ -108,9 +128,19 @@ public class DelegatingRequestSpec implements RequestSpec {
   }
 
   @Override
+  public Duration getConnectTimeout() {
+    return delegate.getConnectTimeout();
+  }
+
+  @Override
   public RequestSpec readTimeout(Duration duration) {
     delegate.readTimeout(duration);
     return this;
+  }
+
+  @Override
+  public Duration getReadTimeout() {
+    return delegate.getReadTimeout();
   }
 
   @Override
@@ -139,6 +169,11 @@ public class DelegatingRequestSpec implements RequestSpec {
   public RequestSpec responseMaxChunkSize(int numBytes) {
     delegate.responseMaxChunkSize(numBytes);
     return this;
+  }
+
+  @Override
+  public int getMaxContentLength() {
+    return delegate.getMaxContentLength();
   }
 
 }
