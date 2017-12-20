@@ -17,6 +17,8 @@
 package ratpack.retrofit
 
 import io.netty.buffer.UnpooledByteBufAllocator
+import ratpack.error.ServerErrorHandler
+import ratpack.error.internal.DefaultDevelopmentErrorHandler
 import ratpack.exec.Promise
 import ratpack.groovy.test.embed.GroovyEmbeddedApp
 import ratpack.handling.Context
@@ -30,6 +32,9 @@ import retrofit2.Response
 import retrofit2.http.GET
 import spock.lang.AutoCleanup
 import spock.lang.Specification
+import spock.lang.Unroll
+
+import java.time.Duration
 
 class RatpackRetrofitSpec extends Specification {
 
@@ -60,10 +65,12 @@ class RatpackRetrofitSpec extends Specification {
 
   Context mockContext = Mock()
 
-  def HttpClient client() {
+  HttpClient client() {
     HttpClient.of {
       it.byteBufAllocator(UnpooledByteBufAllocator.DEFAULT)
       it.maxContentLength(ServerConfig.DEFAULT_MAX_CONTENT_LENGTH)
+      it.connectTimeout(Duration.ofMillis(3000))
+      it.readTimeout(Duration.ofMillis(3000))
     }
   }
 
@@ -163,4 +170,69 @@ class RatpackRetrofitSpec extends Specification {
     thrown(ConnectException)
 
   }
+
+  @Unroll
+  def "test client connect timeout - #connectTimeout"() {
+    given:
+    def builder = RatpackRetrofit
+      .client("http://ratpack.io:65535")
+    if (connectTimeout != null) {
+      builder.connectTimeout(Duration.ofMillis(connectTimeout))
+    }
+    service = builder.build(Service)
+
+    when:
+    ExecHarness.yieldSingle(setup) {
+      service.rootResponse()
+    }.valueOrThrow
+
+    then:
+    def e = thrown(ConnectException)
+    if (connectTimeout != null) {
+      assert e.message == "Connect timeout (PT1S) connecting to http://ratpack.io:65535/"
+    } else {
+      assert e.message == "Connect timeout (PT3S) connecting to http://ratpack.io:65535/"
+    }
+
+    where:
+    connectTimeout << [1000, null]
+  }
+
+  @Unroll
+  def "test client read timeout - #readTimeout"() {
+    given:
+    def otherApp = GroovyEmbeddedApp.of {
+      registryOf { add ServerErrorHandler, new DefaultDevelopmentErrorHandler() }
+      handlers {
+        get {
+          sleep 3000
+          render "OK"
+        }
+      }
+    }
+
+    and:
+    def builder = RatpackRetrofit
+      .client(otherApp.address)
+    if (readTimeout != null) {
+      builder.readTimeout(Duration.ofMillis(1000))
+    }
+    service = builder.build(Service)
+
+    when:
+    ExecHarness.yieldSingle(setup) {
+      service.rootResponse()
+    }.valueOrThrow
+
+    then:
+    def e = thrown(IOException)
+    if (readTimeout != null) {
+      assert e.message == "ratpack.http.client.HttpClientReadTimeoutException: Read timeout (PT1S) waiting on HTTP server at $otherApp.address"
+    } else {
+      assert e.message == "ratpack.http.client.HttpClientReadTimeoutException: Read timeout (PT3S) waiting on HTTP server at $otherApp.address"
+    }
+    where:
+    readTimeout << [1000, null]
+  }
+
 }

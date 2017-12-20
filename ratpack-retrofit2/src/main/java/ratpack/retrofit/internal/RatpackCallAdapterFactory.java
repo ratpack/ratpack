@@ -26,13 +26,65 @@ import retrofit2.*;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
+import java.time.Duration;
 
 public class RatpackCallAdapterFactory extends CallAdapter.Factory {
 
-  public static final RatpackCallAdapterFactory INSTANCE = new RatpackCallAdapterFactory();
+  private Duration connectTimeout;
+  private Duration readTimeout;
 
-  private RatpackCallAdapterFactory() {
+  private RatpackCallAdapterFactory(Duration connectTimeout, Duration readTimeout) {
+    this.connectTimeout = connectTimeout;
+    this.readTimeout = readTimeout;
+  }
 
+  public static class Builder {
+
+    private Duration connectTimeout;
+    private Duration readTimeout;
+
+    private Builder() {
+    }
+
+    /**
+     * Configure the connect timeout for this client.
+     *
+     * @param connectTimeout connect timeout duration
+     * @return this
+     */
+    public RatpackCallAdapterFactory.Builder connectTimeout(Duration connectTimeout) {
+      this.connectTimeout = connectTimeout;
+      return this;
+    }
+
+    /**
+     * Configure the read timeout for this client.
+     *
+     * @param readTimeout read timeout duration
+     * @return this
+     */
+    public RatpackCallAdapterFactory.Builder readTimeout(Duration readTimeout) {
+      this.readTimeout = readTimeout;
+      return this;
+    }
+
+    /**
+     * Build the instance.
+     *
+     * @return The instance.
+     */
+    public RatpackCallAdapterFactory build() {
+      return new RatpackCallAdapterFactory(this.connectTimeout, this.readTimeout);
+    }
+  }
+
+  /**
+   * Creates a new builder.
+   *
+   * @return The builder.
+   */
+  public static RatpackCallAdapterFactory.Builder builder() {
+    return new RatpackCallAdapterFactory.Builder();
   }
 
   @Override
@@ -61,7 +113,7 @@ public class RatpackCallAdapterFactory extends CallAdapter.Factory {
       Type responseType = Utils.getSingleParameterUpperBound((ParameterizedType) parameterType);
       return new ResponseCallAdapter(responseType);
     } else if (parameterTypeToken.getRawType() == ReceivedResponse.class) {
-      return new ReceivedResponseCallAdapter(parameterType);
+      return new ReceivedResponseCallAdapter(parameterType, readTimeout, connectTimeout);
     }
     //Else we're just promising a value
     return new SimpleCallAdapter(parameterType);
@@ -70,9 +122,13 @@ public class RatpackCallAdapterFactory extends CallAdapter.Factory {
   static final class ReceivedResponseCallAdapter implements CallAdapter<Promise<?>> {
 
     private final Type responseType;
+    private Duration connectTimeout;
+    private Duration readTimeout;
 
-    ReceivedResponseCallAdapter(Type responseType) {
+    ReceivedResponseCallAdapter(Type responseType, Duration connectTimeout, Duration readTimeout) {
       this.responseType = responseType;
+      this.connectTimeout = connectTimeout;
+      this.readTimeout = readTimeout;
     }
 
     @Override
@@ -82,7 +138,7 @@ public class RatpackCallAdapterFactory extends CallAdapter.Factory {
 
     @Override
     public <R> Promise<ReceivedResponse> adapt(Call<R> call) {
-      return new RatpackCallFactory.RatpackCall(call.request()).promise();
+      return new RatpackCallFactory.RatpackCall(call.request(), connectTimeout, readTimeout).promise();
     }
   }
 

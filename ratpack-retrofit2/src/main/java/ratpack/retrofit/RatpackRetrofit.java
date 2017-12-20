@@ -27,6 +27,7 @@ import retrofit2.Retrofit;
 import retrofit2.converter.scalars.ScalarsConverterFactory;
 
 import java.net.URI;
+import java.time.Duration;
 
 /**
  * Builder for providing integration of Retrofit2 with Ratpack's {@link HttpClient}.
@@ -104,6 +105,8 @@ public abstract class RatpackRetrofit {
 
     private final URI uri;
     private Action<? super Retrofit.Builder> builderAction = Action.noop();
+    private Duration connectTimeout;
+    private Duration readTimeout;
 
     private Builder(URI uri) {
       Preconditions.checkNotNull(uri, "Must provide the base uri.");
@@ -125,6 +128,27 @@ public abstract class RatpackRetrofit {
       return this;
     }
 
+    /**
+     * Configure the connect timeout for this client.
+     *
+     * @param connectTimeout connect timeout duration
+     * @return this
+     */
+    public Builder connectTimeout(Duration connectTimeout) {
+      this.connectTimeout = connectTimeout;
+      return this;
+    }
+
+    /**
+     * Configure the read timeout for this client.
+     *
+     * @param readTimeout read timeout duration
+     * @return this
+     */
+    public Builder readTimeout(Duration readTimeout) {
+      this.readTimeout = readTimeout;
+      return this;
+    }
 
     /**
      * Creates the underlying {@link Retrofit} instance and configures it to interface with {@link HttpClient} and {@link ratpack.exec.Promise}.
@@ -134,8 +158,8 @@ public abstract class RatpackRetrofit {
      */
     public Retrofit retrofit() {
       Retrofit.Builder builder = new Retrofit.Builder()
-        .callFactory(RatpackCallFactory.INSTANCE)
-        .addCallAdapterFactory(RatpackCallAdapterFactory.INSTANCE)
+        .callFactory(RatpackCallFactory.builder().connectTimeout(this.connectTimeout).readTimeout(this.readTimeout).build())
+        .addCallAdapterFactory(RatpackCallAdapterFactory.builder().connectTimeout(this.connectTimeout).readTimeout(this.readTimeout).build())
         .addConverterFactory(ScalarsConverterFactory.create())
         .addConverterFactory(ReceivedResponseConverterFactory.INSTANCE);
       builder.baseUrl(uri.toString());
