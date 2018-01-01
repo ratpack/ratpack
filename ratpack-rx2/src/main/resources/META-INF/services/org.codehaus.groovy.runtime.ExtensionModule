@@ -1,0 +1,3 @@
+moduleName=ratpack-rx2
+moduleVersion=
+extensionClasses=ratpack.rx2.RxRatpack

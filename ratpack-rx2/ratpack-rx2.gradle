@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 the original author or authors.
+ * Copyright 2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,18 +14,20 @@
  * limitations under the License.
  */
 
-description = "Integration with the RxJava library - https://github.com/ReactiveX/RxJava"
+description = "Integration with the RxJava v2 library - https://github.com/ReactiveX/RxJava"
 
 apply from: "$rootDir/gradle/javaModule.gradle"
 
 ext.apiLinks = [
-  "http://reactivex.io/RxJava/1.x/javadoc/"
+  "http://reactivex.io/RxJava/2.x/javadoc/"
 ]
 
 dependencies {
   compile project(":ratpack-core")
-  compile commonDependencies.rxjava
-  compile("io.reactivex:rxjava-reactive-streams:1.0.1") {
+  compile(commonDependencies.rxjava2) {
+    exclude group: "org.reactivestreams", module: "reactive-streams"
+  }
+  compile("io.reactivex:rxjava-reactive-streams:1.2.1") {
     exclude group: "io.reactivex", module: "rxjava"
     exclude group: "org.reactivestreams", module: "reactive-streams"
   }
