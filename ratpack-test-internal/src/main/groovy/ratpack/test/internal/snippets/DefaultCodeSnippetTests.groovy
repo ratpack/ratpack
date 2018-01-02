@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 the original author or authors.
+ * Copyright 2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,19 +14,23 @@
  * limitations under the License.
  */
 
-description = "Integration with the RxJava v2 library - https://github.com/ReactiveX/RxJava"
+package ratpack.test.internal.snippets
 
-apply from: "$rootDir/gradle/javaModule.gradle"
+import org.junit.runner.Runner
+import ratpack.test.internal.snippets.junit.SnippetRunner
 
-ext.apiLinks = [
-  "http://reactivex.io/RxJava/2.x/javadoc/"
-]
+class DefaultCodeSnippetTests implements CodeSnippetTests {
 
-dependencies {
-  compile project(":ratpack-core")
-  compile(commonDependencies.rxjava2)
-}
+  private final Class<?> clazz
+  private final List<Runner> runners
 
-configurations.all*.resolutionStrategy {
-      force "org.reactivestreams:reactive-streams:1.0.0.final", "org.reactivestreams:reactive-streams:1.0.2"
+  DefaultCodeSnippetTests(Class<?> clazz, List<Runner> runners) {
+    this.clazz = clazz
+    this.runners = runners
+  }
+
+  void add(TestCodeSnippet snippet) {
+    runners.add(new SnippetRunner(clazz, snippet))
+  }
+
 }

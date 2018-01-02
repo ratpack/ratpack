@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 the original author or authors.
+ * Copyright 2013 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,19 +14,30 @@
  * limitations under the License.
  */
 
-description = "Integration with the RxJava v2 library - https://github.com/ReactiveX/RxJava"
+package ratpack.test.internal.snippets.fixture;
 
-apply from: "$rootDir/gradle/javaModule.gradle"
+import ratpack.func.Block;
 
-ext.apiLinks = [
-  "http://reactivex.io/RxJava/2.x/javadoc/"
-]
+public class SnippetFixture {
 
-dependencies {
-  compile project(":ratpack-core")
-  compile(commonDependencies.rxjava2)
-}
+  public void around(Block action) throws Exception {
+    action.execute();
+  }
 
-configurations.all*.resolutionStrategy {
-      force "org.reactivestreams:reactive-streams:1.0.0.final", "org.reactivestreams:reactive-streams:1.0.2"
+  public String transform(String text) {
+    return text;
+  }
+
+  public String pre() {
+    return "";
+  }
+
+  public String post() {
+    return "";
+  }
+
+  public Integer getOffset() {
+    return pre().split("\n").length;
+  }
+
 }
