@@ -17,6 +17,7 @@
 package ratpack.manual
 
 import com.google.common.base.StandardSystemProperty
+import ratpack.rx.RxRatpack
 import ratpack.test.internal.snippets.CodeSnippetTestCase
 import ratpack.test.internal.snippets.CodeSnippetTests
 import ratpack.test.internal.snippets.executer.GradleSnippetExecuter
@@ -27,6 +28,10 @@ import ratpack.manual.snippets.extractor.ManualSnippetExtractor
 import ratpack.test.internal.snippets.fixture.*
 
 class ManualCodeSnippetTests extends CodeSnippetTestCase {
+
+  static {
+    RxRatpack.initialize()
+  }
 
   public static final LinkedHashMap<String, SnippetExecuter> FIXTURES = [
     "language-groovy groovy-chain-dsl": new GroovySnippetExecuter(true, new GroovyChainDslFixture()),
