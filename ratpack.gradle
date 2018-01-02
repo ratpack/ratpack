@@ -65,7 +65,7 @@ ext {
     "ratpack-spring-boot-starter"
   ]
 
-  apiModules = publishedModules.findAll { !(it.name in ["ratpack-manual", "ratpack-gradle", "ratpack-spring-boot-starter", "ratpack-rx2"]) }
+  apiModules = publishedModules.findAll { !(it.name in ["ratpack-manual", "ratpack-gradle", "ratpack-spring-boot-starter"]) }
 }
 
 apply from: 'gradle/buildScan.gradle'
