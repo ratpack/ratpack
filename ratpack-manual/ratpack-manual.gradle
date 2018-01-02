@@ -70,6 +70,14 @@ projectDependencies.findAll {
   it.exclude group: "commons-logging", module: "commons-logging"
 }
 
+configurations.all {
+  if (it.name in ["testCompile", "testRuntime", "testCompileClasspath", "testRuntimeClasspath"]) {
+    resolutionStrategy {
+      force "org.reactivestreams:reactive-streams:1.0.0.final"
+    }
+  }
+}
+
 apply from: "$rootDir/gradle/markdown2book.gradle"
 
 idea {
