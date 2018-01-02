@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 the original author or authors.
+ * Copyright 2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,19 +14,21 @@
  * limitations under the License.
  */
 
-description = "Integration with the RxJava v2 library - https://github.com/ReactiveX/RxJava"
+package ratpack.test.internal.snippets.executer;
 
-apply from: "$rootDir/gradle/javaModule.gradle"
+public class CompileException extends RuntimeException {
 
-ext.apiLinks = [
-  "http://reactivex.io/RxJava/2.x/javadoc/"
-]
+  private static final long serialVersionUID = 0;
 
-dependencies {
-  compile project(":ratpack-core")
-  compile(commonDependencies.rxjava2)
-}
+  private final int lineNo;
 
-configurations.all*.resolutionStrategy {
-      force "org.reactivestreams:reactive-streams:1.0.0.final", "org.reactivestreams:reactive-streams:1.0.2"
+  public CompileException(Throwable cause, int lineNo) {
+    super(cause);
+    this.lineNo = lineNo;
+  }
+
+  public int getLineNo() {
+    return lineNo;
+  }
+
 }

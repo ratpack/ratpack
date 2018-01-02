@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 the original author or authors.
+ * Copyright 2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,19 +14,10 @@
  * limitations under the License.
  */
 
-description = "Integration with the RxJava v2 library - https://github.com/ReactiveX/RxJava"
+package ratpack.test.internal.snippets;
 
-apply from: "$rootDir/gradle/javaModule.gradle"
+public interface CodeSnippetTests {
 
-ext.apiLinks = [
-  "http://reactivex.io/RxJava/2.x/javadoc/"
-]
+  void add(TestCodeSnippet testCodeSnippet);
 
-dependencies {
-  compile project(":ratpack-core")
-  compile(commonDependencies.rxjava2)
-}
-
-configurations.all*.resolutionStrategy {
-      force "org.reactivestreams:reactive-streams:1.0.0.final", "org.reactivestreams:reactive-streams:1.0.2"
 }

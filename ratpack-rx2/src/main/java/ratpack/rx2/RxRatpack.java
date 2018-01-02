@@ -46,7 +46,6 @@ import ratpack.rx2.internal.ExecutionBackedSubscriber;
 import ratpack.stream.Streams;
 import ratpack.stream.TransformablePublisher;
 import ratpack.util.Exceptions;
-import rx.RxReactiveStreams;
 
 import java.util.List;
 import java.util.concurrent.atomic.AtomicBoolean;
