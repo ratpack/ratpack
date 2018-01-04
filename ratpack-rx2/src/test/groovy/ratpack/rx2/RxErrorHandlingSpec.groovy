@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 the original author or authors.
+ * Copyright 2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,17 +14,16 @@
  * limitations under the License.
  */
 
-package ratpack.rx2.flowable
+package ratpack.rx2
 
-import io.reactivex.BackpressureStrategy
-import io.reactivex.Flowable
-import io.reactivex.FlowableSubscriber
+import io.reactivex.Observer
+import io.reactivex.Observable
+import io.reactivex.disposables.Disposable
 import io.reactivex.exceptions.CompositeException
 import io.reactivex.exceptions.OnErrorNotImplementedException
 import io.reactivex.exceptions.UndeliverableException
-import io.reactivex.functions.Function
+import io.reactivex.functions.Consumer
 import io.reactivex.schedulers.Schedulers
-import org.reactivestreams.Subscription
 import ratpack.error.ServerErrorHandler
 import ratpack.exec.ExecController
 import ratpack.exec.Promise
@@ -32,7 +31,6 @@ import ratpack.groovy.test.embed.GroovyEmbeddedApp
 import ratpack.groovy.test.handling.GroovyRequestFixture
 import ratpack.handling.Context
 import ratpack.handling.Handler
-import ratpack.rx2.RxRatpack
 import ratpack.test.internal.RatpackGroovyDslSpec
 
 import java.util.concurrent.Executors
@@ -68,7 +66,7 @@ class RxErrorHandlingSpec extends RatpackGroovyDslSpec {
     when:
     handlers {
       get {
-        Promise.error(error).flow(BackpressureStrategy.BUFFER).subscribe {
+        Promise.error(error).observe().subscribe {
           render "got to end"
         }
       }
@@ -83,7 +81,7 @@ class RxErrorHandlingSpec extends RatpackGroovyDslSpec {
     def e = new Error("Error")
     handlers {
       get {
-        Promise.error(e).flow(BackpressureStrategy.BUFFER).subscribe {
+        Promise.error(e).observe().subscribe {
           render "got to end"
         }
       }
@@ -97,9 +95,9 @@ class RxErrorHandlingSpec extends RatpackGroovyDslSpec {
     when:
     handlers {
       get {
-        Promise.value("").flow(BackpressureStrategy.BUFFER).subscribe {
+        Promise.value("").single().subscribe({
           throw error
-        }
+        } as Consumer)
       }
     }
 
@@ -111,11 +109,11 @@ class RxErrorHandlingSpec extends RatpackGroovyDslSpec {
     when:
     handlers {
       get {
-        Promise.value("").flow(BackpressureStrategy.BUFFER).subscribe {
-          Promise.error(error).flow(BackpressureStrategy.BUFFER).subscribe {
+        Promise.value("").single().subscribe({
+          Promise.error(error).single().subscribe({
             render "got to end"
-          }
-        }
+          } as Consumer)
+        } as Consumer)
       }
     }
 
@@ -127,11 +125,11 @@ class RxErrorHandlingSpec extends RatpackGroovyDslSpec {
     when:
     handlers {
       get {
-        Promise.value("").flow(BackpressureStrategy.BUFFER).subscribe {
-          Promise.value("").flow(BackpressureStrategy.BUFFER).subscribe {
+        Promise.value("").single().subscribe({
+          Promise.value("").single().subscribe({
             throw error
-          }
-        }
+          } as Consumer)
+        } as Consumer)
       }
     }
 
@@ -144,7 +142,7 @@ class RxErrorHandlingSpec extends RatpackGroovyDslSpec {
     def otherError = new RuntimeException("other")
     handlers {
       get {
-        Promise.error(error).flow(BackpressureStrategy.BUFFER).subscribe {
+        Promise.error(error).observe().subscribe {
           render "success"
         } {
           throw otherError
@@ -165,7 +163,7 @@ class RxErrorHandlingSpec extends RatpackGroovyDslSpec {
     when:
     handlers {
       get {
-        Flowable.error(e).subscribe()
+        Observable.error(e).subscribe()
       }
     }
 
@@ -181,7 +179,7 @@ class RxErrorHandlingSpec extends RatpackGroovyDslSpec {
     when:
     handlers {
       get {
-        Flowable.error(e).map({ 2 } as Function).subscribe()
+        Observable.error(e).map { 2 }.subscribe()
       }
     }
 
@@ -197,7 +195,7 @@ class RxErrorHandlingSpec extends RatpackGroovyDslSpec {
     when:
     handlers {
       get {
-        Flowable.just("foo").subscribe {
+        Observable.just("foo").subscribe {
           throw e
         }
       }
@@ -215,7 +213,7 @@ class RxErrorHandlingSpec extends RatpackGroovyDslSpec {
     when:
     handlers {
       get {
-        Flowable.just("foo").subscribe {
+        Observable.just("foo").subscribe {
           next()
         }
       }
@@ -241,7 +239,7 @@ class RxErrorHandlingSpec extends RatpackGroovyDslSpec {
         }
       }
       handlers {
-        get { Flowable.error(new Exception("1")).subscribe() }
+        get { Observable.error(new Exception("1")).subscribe() }
       }
     }
     def app2 = GroovyEmbeddedApp.of {
@@ -254,7 +252,7 @@ class RxErrorHandlingSpec extends RatpackGroovyDslSpec {
         }
       }
       handlers {
-        get { Flowable.error(new Exception("2")).subscribe() }
+        get { Observable.error(new Exception("2")).subscribe() }
       }
     }
 
@@ -268,7 +266,7 @@ class RxErrorHandlingSpec extends RatpackGroovyDslSpec {
     def e = new Exception("!")
 
     when:
-    def result = GroovyRequestFixture.handle({ Flowable.error(e).subscribe() } as Handler) {
+    def result = GroovyRequestFixture.handle({ Observable.error(e).subscribe() } as Handler) {
 
     }
 
@@ -282,9 +280,9 @@ class RxErrorHandlingSpec extends RatpackGroovyDslSpec {
       get { ExecController execController ->
         Promise.async { f ->
           execController.executor.execute {
-            Flowable.error(error).subscribe(new FlowableSubscriber<Object>() {
+            Observable.error(error).subscribe(new Observer<Object>() {
               @Override
-              void onSubscribe(Subscription s) {
+              void onSubscribe(Disposable d) {
 
               }
 
@@ -325,8 +323,8 @@ class RxErrorHandlingSpec extends RatpackGroovyDslSpec {
     when:
     handlers {
       get {
-        Flowable.just(1).
-          flatMap({ Flowable.error(e) } as Function).
+        Observable.just(1).
+          flatMap { Observable.error(e) }.
           subscribe { render "onNext" }
       }
     }
@@ -339,11 +337,11 @@ class RxErrorHandlingSpec extends RatpackGroovyDslSpec {
     when:
     handlers {
       get {
-        Flowable.just(1).
-          subscribe(new FlowableSubscriber<Integer>() {
+        Observable.just(1).
+          subscribe(new Observer<Integer>() {
             @Override
-            void onSubscribe(Subscription s) {
-              s.request(1)
+            void onSubscribe(Disposable d) {
+
             }
 
             @Override
@@ -358,6 +356,7 @@ class RxErrorHandlingSpec extends RatpackGroovyDslSpec {
 
             @Override
             void onNext(Integer integer) {
+
             }
           })
       }
@@ -374,10 +373,11 @@ class RxErrorHandlingSpec extends RatpackGroovyDslSpec {
     when:
     handlers {
       get {
-        Flowable.error(new RuntimeException("1")).
-          subscribe(new FlowableSubscriber<Integer>() {
+        Observable.error(new RuntimeException("1")).
+          subscribe(new Observer<Integer>() {
             @Override
-            void onSubscribe(Subscription s) {
+            void onSubscribe(Disposable d) {
+
             }
 
             @Override
@@ -392,6 +392,7 @@ class RxErrorHandlingSpec extends RatpackGroovyDslSpec {
 
             @Override
             void onNext(Integer integer) {
+
             }
           })
       }
@@ -409,7 +410,7 @@ class RxErrorHandlingSpec extends RatpackGroovyDslSpec {
     when:
     handlers {
       get {
-        Flowable.error(error).subscribeOn(Schedulers.from(Executors.newSingleThreadExecutor())).bindExec(BackpressureStrategy.BUFFER).promise()
+        Observable.error(error).subscribeOn(Schedulers.from(Executors.newSingleThreadExecutor())).bindExec().promiseAll()
           .onError { render it.toString() }
           .then { render "no error" }
       }

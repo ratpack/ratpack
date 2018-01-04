@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 the original author or authors.
+ * Copyright 2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,15 +14,9 @@
  * limitations under the License.
  */
 
-description = "Integration with the RxJava v2 library - https://github.com/ReactiveX/RxJava"
-
-apply from: "$rootDir/gradle/javaModule.gradle"
-
-ext.apiLinks = [
-  "http://reactivex.io/RxJava/2.x/javadoc/"
-]
-
-dependencies {
-  compile project(":ratpack-core")
-  compile(commonDependencies.rxjava2)
-}
+/**
+ * Provides integration with the <a href="https://github.com/Netflix/RxJava">RxJava</a> library.
+ *
+ * @see ratpack.rx2.RxRatpack
+ */
+package ratpack.rx2;
