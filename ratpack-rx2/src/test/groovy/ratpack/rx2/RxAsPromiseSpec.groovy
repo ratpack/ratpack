@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 the original author or authors.
+ * Copyright 2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,13 +14,13 @@
  * limitations under the License.
  */
 
-package ratpack.rx2.flowable
+package ratpack.rx2
 
-import io.reactivex.BackpressureStrategy
-import io.reactivex.Flowable
+import io.reactivex.Completable
+import io.reactivex.Observable
+import io.reactivex.Single
 import ratpack.exec.Blocking
 import ratpack.exec.Operation
-import ratpack.rx2.RxRatpack
 import ratpack.test.exec.ExecHarness
 import spock.lang.AutoCleanup
 import spock.lang.Specification
@@ -34,16 +34,20 @@ class RxAsPromiseSpec extends Specification {
   static class AsyncService {
     int counter = 0
 
-    public Flowable<Void> fail() {
-      RxRatpack.flow(Blocking.get { throw new RuntimeException("!!!") }, BackpressureStrategy.BUFFER)
+    public Single<Void> fail() {
+      RxRatpack.single(Blocking.get { throw new RuntimeException("!!!") })
     }
 
-    public <T> Flowable<T> flow(T value) {
-      RxRatpack.flow(Blocking.get { value }, BackpressureStrategy.BUFFER)
+    public <T> Single<T> single(T value) {
+      RxRatpack.single(Blocking.get { value })
     }
 
-    public Flowable<Void> increment() {
-      RxRatpack.flow(Operation.of { counter++ }, BackpressureStrategy.BUFFER)
+    public <T> Observable<T> observe(T... values) {
+      RxRatpack.observe(Blocking.get { values.toList() })
+    }
+
+    public Completable increment() {
+      RxRatpack.complete(Operation.of { counter++ })
     }
   }
 
@@ -51,12 +55,20 @@ class RxAsPromiseSpec extends Specification {
     RxRatpack.initialize()
   }
 
-  def "can test async service"() {
+  def "can unpack single"() {
     when:
-    def result = harness.yield { service.flow("foo").promise() }
+    def result = harness.yield { service.single("foo").promise() }
 
     then:
-    result.valueOrThrow == ["foo"]
+    result.valueOrThrow == "foo"
+  }
+
+  def "can unpack observable"() {
+    when:
+    def result = harness.yield { service.observe("foo", "bar").promiseAll() }
+
+    then:
+    result.valueOrThrow == ["foo", "bar"]
   }
 
   def "failed observable causes exception to be thrown"() {
@@ -68,15 +80,7 @@ class RxAsPromiseSpec extends Specification {
     e.message == "!!!"
   }
 
-  def "can unpack single"() {
-    when:
-    def result = harness.yield { service.flow("foo").promiseSingle() }
-
-    then:
-    result.valueOrThrow == "foo"
-  }
-
-  def "can observe operation"() {
+  def "can complete operation"() {
     given:
     def nexted = false
 
@@ -90,7 +94,7 @@ class RxAsPromiseSpec extends Specification {
     then:
     noExceptionThrown()
     service.counter == 1
-    !nexted
+    nexted
 
   }
 

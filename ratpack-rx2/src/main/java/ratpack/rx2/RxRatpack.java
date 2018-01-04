@@ -18,19 +18,15 @@ package ratpack.rx2;
 
 import io.reactivex.BackpressureStrategy;
 import io.reactivex.Completable;
-import io.reactivex.Flowable;
-import io.reactivex.FlowableOnSubscribe;
-import io.reactivex.FlowableSubscriber;
-import io.reactivex.Maybe;
 import io.reactivex.Observable;
 import io.reactivex.ObservableOnSubscribe;
 import io.reactivex.Observer;
 import io.reactivex.Scheduler;
 import io.reactivex.Single;
+import io.reactivex.SingleOnSubscribe;
 import io.reactivex.disposables.Disposable;
 import io.reactivex.plugins.RxJavaPlugins;
 import org.reactivestreams.Publisher;
-import org.reactivestreams.Subscription;
 import ratpack.exec.ExecController;
 import ratpack.exec.Execution;
 import ratpack.exec.Operation;
@@ -61,7 +57,7 @@ import java.util.concurrent.atomic.AtomicInteger;
  * <p>
  * Conveniently, the {@link #initialize()} method installs an RxJava extension that provides a default error handling strategy for observables that integrates with Ratpack's execution model.
  * <p>
- * To test observable based services that use Ratpack's execution semantics, use the {@code ExecHarness} and convert the observable back to a promise with {@link #promise(Observable)}.
+ * To test observable based services that use Ratpack's execution semantics, use the {@code ExecHarness} and convert the observable back to a promise with {@link #promiseAll(Observable)}.
  * <p>
  * The methods in this class are also provided as <a href="http://docs.groovy-lang.org/latest/html/documentation/#_extension_modules">Groovy Extensions</a>.
  * When using Groovy, each static method in this class is able to act as an instance-level method against the {@link Observable} type.
@@ -115,119 +111,6 @@ public abstract class RxRatpack {
     RxJavaPlugins.setOnFlowableSubscribe((flowable, subscriber) -> new ExecutionBackedSubscriber<>(subscriber));
   }
 
-  /**
-   * Converts a {@link Operation} into an {@link Observable}.
-   * <p>
-   * The returned observable emits completes upon completion of the operation without emitting a value, and emits the error (i.e. via {@code onError()}) if it fails.
-   * <pre class="java">{@code
-   * import ratpack.rx2.RxRatpack;
-   * import ratpack.exec.Operation;
-   * import ratpack.test.exec.ExecHarness;
-   *
-   * import static org.junit.Assert.assertTrue;
-   *
-   * public class Example {
-   *   public static boolean executed;
-   *   public static void main(String... args) throws Exception {
-   *     ExecHarness.runSingle(e ->
-   *       Operation.of(() -> executed = true)
-   *         .to(RxRatpack::observe)
-   *         .subscribe()
-   *     );
-   *
-   *     assertTrue(executed);
-   *   }
-   * }
-   * }</pre>
-   *
-   * @param operation the operation
-   * @return an observable for the operation
-   */
-  public static Observable<Void> observe(Operation operation) {
-    return Observable.create(subscriber -> operation.onError(subscriber::onError).then(subscriber::onComplete));
-  }
-
-  /**
-   * Converts a {@link Promise} into an {@link Observable}.
-   * <p>
-   * The returned observable emits the promise's single value if it succeeds, and emits the error (i.e. via {@code onError()}) if it fails.
-   * <p>
-   * This method works well as a method reference to the {@link Promise#to(ratpack.func.Function)} method.
-   * <pre class="java">{@code
-   * import ratpack.rx2.RxRatpack;
-   * import ratpack.exec.Promise;
-   * import ratpack.test.exec.ExecHarness;
-   *
-   * import static org.junit.Assert.assertEquals;
-   * import static org.junit.Assert.assertEquals;
-   *
-   * public class Example {
-   *   public static String value;
-   *   public static void main(String... args) throws Exception {
-   *     ExecHarness.runSingle(e ->
-   *       Promise.value("hello world")
-   *         .to(RxRatpack::observe)
-   *         .map(String::toUpperCase)
-   *         .subscribe(s -> value = s)
-   *     );
-   *
-   *     assertEquals("HELLO WORLD", value);
-   *   }
-   * }
-   * }</pre>
-   *
-   * @param promise the promise
-   * @param <T>     the type of value promised
-   * @return an observable for the promised value
-   */
-  public static <T> Observable<T> observe(Promise<T> promise) {
-    return Observable.create(subscriber ->
-      promise.onError(subscriber::onError).then(value -> {
-        subscriber.onNext(value);
-        subscriber.onComplete();
-      })
-    );
-  }
-
-  /**
-   * Converts a {@link Promise} for an iterable into an {@link Observable}.
-   * <p>
-   * The promised iterable will be emitted to the observer one element at a time, like {@link Observable#fromIterable(Iterable)}.
-   * <p>
-   * <pre class="java">{@code
-   * import ratpack.rx2.RxRatpack;
-   * import ratpack.exec.Promise;
-   * import ratpack.test.exec.ExecHarness;
-   *
-   * import java.util.Arrays;
-   * import java.util.LinkedList;
-   * import java.util.List;
-   *
-   * import static org.junit.Assert.assertEquals;
-   *
-   * public class Example {
-   *   public static void main(String... args) throws Exception {
-   *     final List<String> items = new LinkedList<>();
-   *     ExecHarness.runSingle(e ->
-   *       Promise.value(Arrays.asList("foo", "bar"))
-   *         .to(RxRatpack::observeEach)
-   *         .subscribe(items::add)
-   *     );
-   *
-   *     assertEquals(Arrays.asList("foo", "bar"), items);
-   *   }
-   * }
-   * }</pre>
-   *
-   * @param promise the promise
-   * @param <T>     the element type of the promised iterable
-   * @param <I>     the type of iterable
-   * @return an observable for each element of the promised iterable
-   * @see #observe(ratpack.exec.Promise)
-   */
-  public static <T, I extends Iterable<T>> Observable<T> observeEach(Promise<I> promise) {
-    return Observable.merge(observe(promise).map(Observable::fromIterable));
-  }
 
   /**
    * Converts a {@link Promise} into a {@link Single}.
@@ -267,63 +150,34 @@ public abstract class RxRatpack {
     );
   }
 
+
   /**
-   * Converts a {@link Promise} into a {@link Maybe}.
+   * Converts a {@link Operation} into a {@link Completable}.
    * <p>
-   * The returned Maybe emits the promise's single value if it succeeds, and emits the error (i.e. via {@code onError()}) if it fails.
-   * <p>
-   * This method works well as a method reference to the {@link Promise#to(ratpack.func.Function)} method.
-   * <pre class="java">{@code
-   * import ratpack.rx2.RxRatpack;
-   * import ratpack.exec.Promise;
-   * import ratpack.test.exec.ExecHarness;
-   *
-   * import static org.junit.Assert.assertEquals;
-   *
-   * public class Example {
-   *   public static String value;
-   *   public static void main(String... args) throws Exception {
-   *     ExecHarness.runSingle(e ->
-   *       Promise.value("hello world")
-   *       .to(RxRatpack::maybe)
-   *       .map(String::toUpperCase)
-   *       .subscribe(s -> value = s)
-   *     );
-   *
-   *     assertEquals("HELLO WORLD", value);
-   *   }
-   * }
-   * }</pre>
-   *
-   * @param promise the promise
-   * @param <T>     the type of value promised
-   * @return a maybe for the promised value
+   * The returned Completable emits nothing if it succeeds, and emits the error (i.e. via {@code onError()}) if it fails.
    */
-  public static <T> Maybe<T> maybe(Promise<T> promise) {
-    return Maybe.create(subscriber ->
-      promise.onError(subscriber::onError).then(value -> {
-        subscriber.onSuccess(value);
-        subscriber.onComplete();
-      })
+  public static Completable complete(Operation operation) {
+    return Completable.create(subscriber ->
+      operation.onError(subscriber::onError).then(subscriber::onComplete)
     );
   }
 
   /**
-   * Converts a {@link Promise} into a {@link Completable}.
-   * <p>
-   * The returned Completable emits nothing if it succeeds, and emits the error (i.e. via {@code onError()}) if it fails.
+   * Observe a promise list as an observable stream.
+   *
+   * @param promise
+   * @param <T>
+   * @return
    */
-  public static Completable complete(Promise<Void> promise) {
-    return Completable.create(subscriber ->
-      promise.onError(subscriber::onError).then(value -> subscriber.onComplete())
-    );
+  public static <T, I extends Iterable<T>> Observable<T> observe(Promise<I> promise) {
+    return Observable.merge(single(promise).toObservable().map(Observable::fromIterable));
   }
 
   /**
    * Converts an {@link Observable} into a {@link Promise}, for all of the observable's items.
    * <p>
    * This method can be used to simply adapt an observable to a promise, but can also be used to bind an observable to the current execution.
-   * It is sometimes more convenient to use {@link #promise(ObservableOnSubscribe)} over this method.
+   * It is sometimes more convenient to use {@link #promiseAll(ObservableOnSubscribe)} over this method.
    * <p>
    * <pre class="java">{@code
    * import ratpack.rx2.RxRatpack;
@@ -347,7 +201,7 @@ public abstract class RxRatpack {
    *
    *   public static void main(String[] args) throws Throwable {
    *     List<String> results = ExecHarness.yieldSingle(execution ->
-   *       RxRatpack.promise(new AsyncService().observe("foo"))
+   *       RxRatpack.promiseAll(new AsyncService().observe("foo"))
    *     ).getValue();
    *
    *     assertEquals(Arrays.asList("foo"), results);
@@ -358,7 +212,7 @@ public abstract class RxRatpack {
    * This method uses {@link Observable#toList()} to collect the observable's contents into a list.
    * It therefore should not be used with observables with many or infinite items.
    * <p>
-   * If it is expected that the observable only emits one element, it is typically more convenient to use {@link #promiseSingle(Observable)}.
+   * If it is expected that the observable only emits one element, it is typically more convenient to use {@link #promise(Single)}.
    * <p>
    * If the observable emits an error, the returned promise will fail with that error.
    * <p>
@@ -368,9 +222,9 @@ public abstract class RxRatpack {
    * @param <T>        the type of the value observed
    * @return a promise that returns all values from the observable
    * @throws UnmanagedThreadException if called outside of an execution
-   * @see #promiseSingle(Observable)
+   * @see #promise(Single)
    */
-  public static <T> Promise<List<T>> promise(Observable<T> observable) throws UnmanagedThreadException {
+  public static <T> Promise<List<T>> promiseAll(Observable<T> observable) throws UnmanagedThreadException {
     return Promise.async(f -> observable.toList().subscribe(f::success, f::error));
   }
 
@@ -402,7 +256,7 @@ public abstract class RxRatpack {
    *
    *   public static void main(String[] args) throws Throwable {
    *     List<String> results = ExecHarness.yieldSingle(execution ->
-   *       new AsyncService().observe("foo").as(RxRatpack::promise)
+   *       new AsyncService().observe("foo").as(RxRatpack::promiseAll)
    *     ).getValue();
    *
    *     assertEquals(Arrays.asList("foo"), results);
@@ -414,8 +268,6 @@ public abstract class RxRatpack {
    * This method uses {@link Observable#toList()} to collect the observable's contents into a list.
    * It therefore should not be used with observables with many or infinite items.
    * <p>
-   * If it is expected that the observable only emits one element, it is typically more convenient to use {@link #promiseSingle(Observable)}.
-   * <p>
    * If the observable emits an error, the returned promise will fail with that error.
    * <p>
    * This method must be called during an execution.
@@ -424,84 +276,10 @@ public abstract class RxRatpack {
    * @param <T>         the type of the value observed
    * @return a promise that returns all values from the observable
    * @throws UnmanagedThreadException if called outside of an execution
-   * @see #promiseSingle(Observable)
-   * @see #promise(Observable)
+   * @see #promiseAll(Observable)
    */
-  public static <T> Promise<List<T>> promise(ObservableOnSubscribe<T> onSubscribe) throws UnmanagedThreadException {
-    return promise(Observable.create(onSubscribe));
-  }
-
-  /**
-   * Converts an {@link Observable} into a {@link Promise}, for the observable's single item.
-   * <p>
-   * This method can be used to simply adapt an observable to a promise, but can also be used to bind an observable to the current execution.
-   * It is sometimes more convenient to use {@link #promiseSingle(ObservableOnSubscribe)} over this method.
-   * <p>
-   * <pre class="java">{@code
-   * import ratpack.rx2.RxRatpack;
-   * import ratpack.test.exec.ExecHarness;
-   * import io.reactivex.Observable;
-   *
-   * import static org.junit.Assert.assertEquals;
-   *
-   * public class Example {
-   *   public static class AsyncService {
-   *     public <T> Observable<T> observe(final T value) {
-   *       return Observable.create(subscriber ->
-   *         new Thread(() -> {
-   *           subscriber.onNext(value);
-   *           subscriber.onComplete();
-   *         }).start()
-   *       );
-   *     }
-   *   }
-   *
-   *   public static void main(String[] args) throws Throwable {
-   *     String result = ExecHarness.yieldSingle(execution ->
-   *       RxRatpack.promiseSingle(new AsyncService().observe("foo"))
-   *     ).getValue();
-   *
-   *   assertEquals("foo", result);
-   *   }
-   * }
-   * }</pre>
-   * <p>
-   * This method uses {@link Observable#singleElement()} to enforce that the observable only emits one item.
-   * If the observable may be empty, then use {@link Observable#single(Object)} to provide a default value.
-   * <p>
-   * <pre class="java">{@code
-   * import ratpack.rx2.RxRatpack;
-   * import ratpack.test.exec.ExecHarness;
-   * import io.reactivex.Observable;
-   *
-   * import static org.junit.Assert.assertEquals;
-   *
-   * public class Example {
-   *   public static void main(String[] args) throws Throwable {
-   *     String result = ExecHarness.yieldSingle(execution ->
-   *       RxRatpack.promiseSingle(Observable.<String>empty().single("foo"))
-   *     ).getValue();
-   *     assertEquals("foo", result);
-   *   }
-   * }
-   * }</pre>
-   * <p>
-   * If it is expected that the observable may emit more than one element, use {@link #promise(Observable)}.
-   * <p>
-   * If the observable emits an error, the returned promise will fail with that error.
-   * If the observable emits no items, the returned promise will fail with a {@link java.util.NoSuchElementException}.
-   * If the observable emits more than one item, the returned promise will fail with an {@link IllegalStateException}.
-   * <p>
-   * This method must be called during an execution.
-   *
-   * @param observable the observable
-   * @param <T>        the type of the value observed
-   * @return a promise that returns the sole value from the observable
-   * @see #promise(Observable)
-   * @see #promiseSingle(ObservableOnSubscribe)
-   */
-  public static <T> Promise<T> promiseSingle(Observable<T> observable) throws UnmanagedThreadException {
-    return Promise.async(f -> observable.singleElement().subscribe(f::success, f::error));
+  public static <T> Promise<List<T>> promiseAll(ObservableOnSubscribe<T> onSubscribe) throws UnmanagedThreadException {
+    return promiseAll(Observable.create(onSubscribe));
   }
 
   /**
@@ -509,42 +287,29 @@ public abstract class RxRatpack {
    * @param <T>
    * @return
    * @throws UnmanagedThreadException
-   * @see RxRatpack#promiseSingle(Observable)
    */
-  public static <T> Promise<T> promiseSingle(Single<T> single) throws UnmanagedThreadException {
+  public static <T> Promise<T> promise(Single<T> single) throws UnmanagedThreadException {
     return Promise.async(f -> single.subscribe(f::success, f::error));
   }
 
   /**
-   * @param maybe
-   * @param <T>
-   * @return
-   * @throws UnmanagedThreadException
-   * @see RxRatpack#promiseSingle(Observable)
-   */
-  public static <T> Promise<T> promiseSingle(Maybe<T> maybe) throws UnmanagedThreadException {
-    return Promise.async(f -> maybe.subscribe(f::success, f::error));
-  }
-
-  /**
-   * Converts an {@link Observable} into a {@link Promise}, for the observable's single item.
+   * Converts an {@link SingleOnSubscribe} into a {@link Promise}, for the Single's item.
    * <p>
-   * This method can be used to simply adapt an observable to a promise, but can also be used to bind an observable to the current execution.
+   * This method can be used to simply adapt a Single to a promise, but can also be used to bind a Single to the current execution.
    * <p>
    * <pre class="java">{@code
    * import ratpack.rx2.RxRatpack;
    * import ratpack.test.exec.ExecHarness;
-   * import io.reactivex.Observable;
+   * import io.reactivex.Single;
    *
    * import static org.junit.Assert.assertEquals;
    *
    * public class Example {
    *   public static class AsyncService {
-   *     public <T> Observable<T> observe(final T value) {
-   *       return Observable.create(subscriber ->
+   *     public <T> Single<T> single(final T value) {
+   *       return Single.create(subscriber ->
    *         new Thread(() -> {
-   *           subscriber.onNext(value);
-   *           subscriber.onComplete();
+   *           subscriber.onSuccess(value);
    *         }).start()
    *       );
    *     }
@@ -552,48 +317,26 @@ public abstract class RxRatpack {
    *
    *   public static void main(String[] args) throws Throwable {
    *     String result = ExecHarness.yieldSingle(execution ->
-   *       new AsyncService().observe("foo").as(RxRatpack::promiseSingle)
+   *       new AsyncService().single("foo").as(RxRatpack::promise)
    *     ).getValue();
    *
    *     assertEquals("foo", result);
    *   }
    * }
    * }</pre>
-   * <p>
-   * This method uses {@link Observable#singleElement()} to enforce that the observable only emits one item.
-   * If the observable may be empty, then use {@link Observable#single(Object)} to provide a default value.
-   * <pre class="java">{@code
-   * import ratpack.rx2.RxRatpack;
-   * import ratpack.test.exec.ExecHarness;
-   * import io.reactivex.Observable;
-   *
-   * import static org.junit.Assert.assertEquals;
-   *
-   * public class Example {
-   *   public static void main(String[] args) throws Throwable {
-   *     String result = ExecHarness.yieldSingle(execution ->
-   *       Observable.<String>empty().single("foo").as(RxRatpack::promiseSingle)
-   *     ).getValue();
-   *     assertEquals("foo", result);
-   *   }
-   * }
-   * }</pre>
-   * If it is expected that the observable may emit more than one element, use {@link #promise(ObservableOnSubscribe)}.
    * <p>
    * If the observable emits an error, the returned promise will fail with that error.
    * If the observable emits no items, the returned promise will fail with a {@link java.util.NoSuchElementException}.
-   * If the observable emits more than one item, the returned promise will fail with an {@link IllegalStateException}.
    * <p>
    * This method must be called during an execution.
    *
    * @param onSubscribe the on subscribe function
    * @param <T>         the type of the value observed
-   * @return a promise that returns the sole value from the observable
-   * @see #promise(ObservableOnSubscribe)
-   * @see #promiseSingle(Observable)
+   * @return a promise that returns the value from the single
+   * @see #promise(Single)
    */
-  public static <T> Promise<T> promiseSingle(ObservableOnSubscribe<T> onSubscribe) throws UnmanagedThreadException {
-    return promiseSingle(Observable.create(onSubscribe));
+  public static <T> Promise<T> promise(SingleOnSubscribe<T> onSubscribe) throws UnmanagedThreadException {
+    return promise(Single.create(onSubscribe));
   }
 
   /**
@@ -689,7 +432,6 @@ public abstract class RxRatpack {
    * Binds the given observable to the current execution, allowing integration of third-party asynchronous observables with Ratpack's execution model.
    * <p>
    * This method is useful when you want to consume an asynchronous observable within a Ratpack execution, as an observable.
-   * It is just a combination of {@link #promise(Observable)} and {@link #observeEach(Promise)}.
    * <p>
    * <pre class="java">{@code
    * import io.reactivex.Observable;
@@ -711,7 +453,7 @@ public abstract class RxRatpack {
    *     );
    *
    *     List<String> strings = ExecHarness.yieldSingle(e ->
-   *       RxRatpack.promise(asyncObservable.compose(RxRatpack::bindExec))
+   *       RxRatpack.promiseAll(asyncObservable.compose(RxRatpack::bindExec))
    *     ).getValue();
    *
    *     assertEquals(Arrays.asList("foo", "bar"), strings);
@@ -723,11 +465,10 @@ public abstract class RxRatpack {
    * @param source the observable source
    * @param <T>    the type of item observed
    * @return an observable stream equivalent to the given source
-   * @see #observeEach(Promise)
-   * @see #promise(Observable)
+   * @see #promiseAll(Observable)
    */
   public static <T> Observable<T> bindExec(Observable<T> source) {
-    return Exceptions.uncheck(() -> promise(source).to(RxRatpack::observeEach));
+    return Exceptions.uncheck(() -> promiseAll(source).to(RxRatpack::observe));
   }
 
   /**
@@ -765,12 +506,12 @@ public abstract class RxRatpack {
    *           .map((val) -> Pair.of(val, Thread.currentThread().getName()))
    *           .compose(RxRatpack::fork);
    *
-   *         return RxRatpack.promiseSingle(
+   *         return RxRatpack.promise(
    *           Observable.zip(unforkedObservable, forkedObservable, (Integer intVal, Pair<Integer, String> pair) -> {
    *             String forkedComputeThread = pair.right;
    *             assertNotEquals(originalComputeThread, forkedComputeThread);
    *             return intVal + pair.left;
-   *           })
+   *           }).firstOrError()
    *         );
    *       }).getValueOrThrow();
    *
@@ -786,7 +527,7 @@ public abstract class RxRatpack {
    * @see #forkEach(Observable)
    */
   public static <T> Observable<T> fork(Observable<T> observable) {
-    return observeEach(promise(observable).fork());
+    return observe(promiseAll(observable).fork());
   }
 
   /**
@@ -821,7 +562,7 @@ public abstract class RxRatpack {
    *           (RegistrySpec registrySpec) -> registrySpec.add("bar")
    *         );
    *
-   *         return RxRatpack.promiseSingle(forkedObservable);
+   *         return RxRatpack.promise(forkedObservable.firstOrError());
    *       }).getValueOrThrow();
    *
    *       assertEquals(concatenatedResult, "foobar");
@@ -831,16 +572,15 @@ public abstract class RxRatpack {
    * }</pre>
    *
    * @param observable         the observable sequence to execute on a different compute thread
-   * @param doWithRegistrySpec an Action where objects can be inserted into the registry of the forked execution
+   * @param registrySpec an Action where objects can be inserted into the registry of the forked execution
    * @param <T>                the element type
    * @return an observable on the compute thread that <code>fork</code> was called from
    * @throws Exception
    * @see #fork(Observable)
    */
-  public static <T> Observable<T> fork(Observable<T> observable, Action<? super RegistrySpec> doWithRegistrySpec) throws Exception {
-    return observeEach(promise(observable).fork(execSpec -> execSpec.register(doWithRegistrySpec)));
+  public static <T> Observable<T> fork(Observable<T> observable, Action<? super RegistrySpec> registrySpec) throws Exception {
+    return observe(promiseAll(observable).fork(execSpec -> execSpec.register(registrySpec)));
   }
-
 
   /**
    * Parallelize an observable by creating a new Ratpack execution for each element.
@@ -869,7 +609,7 @@ public abstract class RxRatpack {
    *
    *     try (ExecHarness execHarness = ExecHarness.harness(6)) {
    *       List<Integer> values = execHarness.yield(execution ->
-   *         RxRatpack.promise(
+   *         RxRatpack.promiseAll(
    *           Observable.just(1, 2, 3, 4, 5)
    *             .compose(RxRatpack::forkEach) // parallelize
    *             .doOnNext(value -> Exceptions.uncheck(() -> barrier.await())) // wait for all values
@@ -891,7 +631,7 @@ public abstract class RxRatpack {
    * @return an observable
    */
   public static <T> Observable<T> forkEach(Observable<T> observable) {
-    return RxRatpack.forkEach(observable, Action.noop());
+    return forkEach(observable, Action.noop());
   }
 
   /**
@@ -902,13 +642,13 @@ public abstract class RxRatpack {
    * You do not have access to the original execution inside the {@link Action}.
    *
    * @param observable         the observable sequence to process each element of in a forked execution
-   * @param doWithRegistrySpec an Action where objects can be inserted into the registry of the forked execution
+   * @param registrySpec an Action where objects can be inserted into the registry of the forked execution
    * @param <T>                the element type
    * @return an observable
    * @see #forkEach(Observable)
    * @see #fork(Observable, Action)
    */
-  public static <T> Observable<T> forkEach(Observable<T> observable, Action<? super RegistrySpec> doWithRegistrySpec) {
+  public static <T> Observable<T> forkEach(Observable<T> observable, Action<? super RegistrySpec> registrySpec) {
     return observable.lift(downstream -> new Observer<T>() {
 
       private final AtomicInteger wip = new AtomicInteger(1);
@@ -952,227 +692,11 @@ public abstract class RxRatpack {
 
         wip.incrementAndGet();
         Execution.fork()
-          .register(doWithRegistrySpec)
+          .register(registrySpec)
           .onComplete(e -> this.maybeDone())
           .onError(this::onError)
           .start(e -> {
             if (!closed.get()) {
-              downstream.onNext(t);
-            }
-          });
-      }
-    });
-  }
-
-  /**
-   * @param operation
-   * @param strategy  The {@link BackpressureStrategy} to use
-   * @return
-   * @see RxRatpack#observe(Operation)
-   */
-  public static Flowable<Void> flow(Operation operation, BackpressureStrategy strategy) {
-    return Flowable.create(subscriber -> operation.onError(subscriber::onError).then(subscriber::onComplete), strategy);
-  }
-
-  /**
-   * @param promise
-   * @param strategy The {@link BackpressureStrategy} to use
-   * @param <T>
-   * @return
-   * @see RxRatpack#observe(Promise)
-   */
-  public static <T> Flowable<T> flow(Promise<T> promise, BackpressureStrategy strategy) {
-    return Flowable.create(subscriber ->
-        promise.onError(subscriber::onError).then(value -> {
-          subscriber.onNext(value);
-          subscriber.onComplete();
-        }),
-      strategy);
-  }
-
-  /**
-   * @param promise
-   * @param strategy The {@link BackpressureStrategy} to use
-   * @param <T>
-   * @param <I>
-   * @return
-   * @see RxRatpack#observeEach(Promise)
-   */
-  public static <T, I extends Iterable<T>> Flowable<T> flowEach(Promise<I> promise, BackpressureStrategy strategy) {
-    return Flowable.merge(flow(promise, strategy).map(Flowable::fromIterable));
-  }
-
-  /**
-   * @param flowable
-   * @param <T>
-   * @return
-   * @throws UnmanagedThreadException
-   * @see RxRatpack#promise(Observable)
-   */
-  public static <T> Promise<List<T>> promise(Flowable<T> flowable) throws UnmanagedThreadException {
-    return Promise.async(f -> flowable.toList().subscribe(f::success, f::error));
-  }
-
-  /**
-   * @param onSubscribe
-   * @param strategy    The {@link BackpressureStrategy} to use
-   * @param <T>
-   * @return
-   * @throws UnmanagedThreadException
-   * @see RxRatpack#promise(ObservableOnSubscribe)
-   */
-  public static <T> Promise<List<T>> promise(FlowableOnSubscribe<T> onSubscribe, BackpressureStrategy strategy) throws UnmanagedThreadException {
-    return promise(Flowable.create(onSubscribe, strategy));
-  }
-
-  /**
-   * @param flowable
-   * @param <T>
-   * @return
-   * @throws UnmanagedThreadException
-   * @see RxRatpack#promiseSingle(Observable)
-   */
-  public static <T> Promise<T> promiseSingle(Flowable<T> flowable) throws UnmanagedThreadException {
-    return Promise.async(f -> flowable.singleOrError().subscribe(f::success, f::error));
-  }
-
-  /**
-   * @param onSubscribe
-   * @param strategy    The {@link BackpressureStrategy} to use
-   * @param <T>
-   * @return
-   * @throws UnmanagedThreadException
-   * @see RxRatpack#promiseSingle(ObservableOnSubscribe)
-   */
-  public static <T> Promise<T> promiseSingle(FlowableOnSubscribe<T> onSubscribe, BackpressureStrategy strategy) throws UnmanagedThreadException {
-    return promiseSingle(Flowable.create(onSubscribe, strategy));
-  }
-
-  /**
-   * @param flowable
-   * @param <T>
-   * @return
-   * @see RxRatpack#publisher(Observable, BackpressureStrategy)
-   */
-  public static <T> TransformablePublisher<T> publisher(Flowable<T> flowable) {
-    return Streams.transformable(flowable);
-  }
-
-  /**
-   * @param onSubscribe
-   * @param strategy    The {@link BackpressureStrategy} to use
-   * @param <T>
-   * @return
-   * @see RxRatpack#publisher(ObservableOnSubscribe, BackpressureStrategy)
-   */
-  public static <T> TransformablePublisher<T> publisher(FlowableOnSubscribe<T> onSubscribe, BackpressureStrategy strategy) {
-    return publisher(Flowable.create(onSubscribe, strategy));
-  }
-
-  /**
-   * @param source
-   * @param strategy The {@link BackpressureStrategy} to use
-   * @param <T>
-   * @return
-   * @see RxRatpack#bindExec(Observable)
-   */
-  public static <T> Flowable<T> bindExec(Flowable<T> source, BackpressureStrategy strategy) {
-    return Exceptions.uncheck(() -> promise(source).to(p -> flowEach(p, strategy)));
-  }
-
-  /**
-   * @param flowable
-   * @param strategy The {@link BackpressureStrategy} to use
-   * @param <T>
-   * @return
-   * @see RxRatpack#fork(Observable)
-   */
-  public static <T> Flowable<T> fork(Flowable<T> flowable, BackpressureStrategy strategy) {
-    return flowEach(promise(flowable).fork(), strategy);
-  }
-
-  /**
-   * @param flowable
-   * @param strategy           The {@link BackpressureStrategy} to use
-   * @param doWithRegistrySpec
-   * @param <T>
-   * @return
-   * @throws Exception
-   * @see RxRatpack#fork(Observable, Action)
-   */
-  public static <T> Flowable<T> fork(Flowable<T> flowable, BackpressureStrategy strategy, Action<? super RegistrySpec> doWithRegistrySpec) throws Exception {
-    return flowEach(promise(flowable).fork(execSpec -> execSpec.register(doWithRegistrySpec)), strategy);
-  }
-
-  /**
-   * @param flowable
-   * @param <T>
-   * @return
-   * @see RxRatpack#forkEach(Observable)
-   */
-  public static <T> Flowable<T> forkEach(Flowable<T> flowable) {
-    return forkEach(flowable, Action.noop());
-  }
-
-  /**
-   * @param flowable
-   * @param doWithRegistrySpec
-   * @param <T>
-   * @return
-   * @see RxRatpack#forkEach(Observable, Action)
-   */
-  public static <T> Flowable<T> forkEach(Flowable<T> flowable, Action<? super RegistrySpec> doWithRegistrySpec) {
-    return flowable.lift(downstream -> new FlowableSubscriber<T>() {
-
-      private final AtomicInteger wip = new AtomicInteger(1);
-      private final AtomicBoolean closed = new AtomicBoolean();
-      private Subscription subscription;
-
-      @Override
-      public void onSubscribe(Subscription s) {
-        this.subscription = s;
-        s.request(1);
-        downstream.onSubscribe(s);
-      }
-
-      @Override
-      public void onComplete() {
-        maybeDone();
-      }
-
-      @Override
-      public void onError(final Throwable e) {
-        terminate(() -> downstream.onError(e));
-      }
-
-      private void maybeDone() {
-        if (wip.decrementAndGet() == 0) {
-          terminate(downstream::onComplete);
-        }
-      }
-
-      private void terminate(Runnable runnable) {
-        if (closed.compareAndSet(false, true)) {
-          subscription.cancel();
-          runnable.run();
-        }
-      }
-
-      @Override
-      public void onNext(final T t) {
-        // Avoid the overhead of creating executions if downstream is no longer interested
-        if (closed.get()) {
-          return;
-        }
-
-        wip.incrementAndGet();
-        Execution.fork()
-          .register(doWithRegistrySpec)
-          .onComplete(e -> this.maybeDone())
-          .onError(this::onError)
-          .start(e -> {
-            if (!closed.get()) {
-              subscription.request(1);
               downstream.onNext(t);
             }
           });

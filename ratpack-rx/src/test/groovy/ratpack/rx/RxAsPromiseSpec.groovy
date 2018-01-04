@@ -41,7 +41,9 @@ class RxAsPromiseSpec extends Specification {
     }
 
     public Observable<Void> increment() {
-      RxRatpack.observe(Operation.of { counter++ })
+      RxRatpack.observe(Operation.of {
+        counter++
+      })
     }
   }
 

@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 the original author or authors.
+ * Copyright 2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,17 +14,17 @@
  * limitations under the License.
  */
 
-package ratpack.rx2.observable
+package ratpack.rx2
 
 import io.reactivex.functions.Action
+import io.reactivex.functions.Consumer
 import ratpack.error.ServerErrorHandler
 import ratpack.exec.Blocking
-import ratpack.rx2.RxRatpack
 import ratpack.test.internal.RatpackGroovyDslSpec
 import ratpack.test.internal.SimpleErrorHandler
 
 import static ratpack.rx2.RxRatpack.observe
-import static ratpack.rx2.RxRatpack.observeEach
+import static ratpack.rx2.RxRatpack.single
 
 class RxBlockingSpec extends RatpackGroovyDslSpec {
 
@@ -36,15 +36,15 @@ class RxBlockingSpec extends RatpackGroovyDslSpec {
     when:
     handlers {
       get(":value") {
-        observe(Blocking.get {
+        single(Blocking.get {
           pathTokens.value
         }) map {
           it * 2
         } map {
           it.toUpperCase()
-        } subscribe {
+        } subscribe({
           render it
-        }
+        } as Consumer)
       }
     }
 
@@ -59,15 +59,15 @@ class RxBlockingSpec extends RatpackGroovyDslSpec {
     }
     handlers {
       get(":value") {
-        observe(Blocking.get {
+        single(Blocking.get {
           pathTokens.value
         }) map {
           it * 2
         } map {
           throw new Exception("!!!!")
-        } subscribe{
+        } subscribe({
           render "shouldn't happen"
-        }
+        } as Consumer)
       }
     }
 
@@ -83,7 +83,7 @@ class RxBlockingSpec extends RatpackGroovyDslSpec {
     }
     handlers {
       get(":value") {
-        observe(Blocking.get {
+        single(Blocking.get {
           pathTokens.value
         }) map {
           it * 2
@@ -105,7 +105,7 @@ class RxBlockingSpec extends RatpackGroovyDslSpec {
       get(":value") {
         def returnString = ""
 
-        observeEach(Blocking.get {
+        observe(Blocking.get {
           pathTokens.value.split(",") as List
         })
           .take(2)

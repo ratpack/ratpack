@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 the original author or authors.
+ * Copyright 2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,15 +14,15 @@
  * limitations under the License.
  */
 
-package ratpack.rx2.flowable
+package ratpack.rx2
 
+import io.reactivex.Observable
 import io.reactivex.BackpressureStrategy
-import io.reactivex.Flowable
 import org.reactivestreams.Publisher
 import org.reactivestreams.Subscriber
 import org.reactivestreams.Subscription
 import ratpack.exec.Blocking
-import ratpack.rx2.RxRatpack
+import ratpack.exec.Promise
 import ratpack.test.exec.ExecHarness
 import spock.lang.AutoCleanup
 import spock.lang.Specification
@@ -34,12 +34,12 @@ class RxPublisherSpec extends Specification {
   AsyncService service = new AsyncService()
 
   static class AsyncService {
-    public Flowable<Void> fail() {
-      RxRatpack.flow(Blocking.get { throw new RuntimeException("!!!") }, BackpressureStrategy.BUFFER)
+    public Observable<Void> fail() {
+      RxRatpack.observe((Promise<List<Void>>) Blocking.get { throw new RuntimeException("!!!") })
     }
 
-    public <T> Flowable<T> flow(T value) {
-      RxRatpack.flow(Blocking.get { value }, BackpressureStrategy.BUFFER)
+    public <T> Observable<T> observe(T... values) {
+      RxRatpack.observe(Blocking.get { values.toList() })
     }
   }
 
@@ -47,9 +47,9 @@ class RxPublisherSpec extends Specification {
     RxRatpack.initialize()
   }
 
-  def "convert RX Flowable to ReactiveStreams Publisher"() {
+  def "convert RX Observable to ReactiveStreams Publisher"() {
     given:
-    Publisher<String> pub = service.flow("foo").publisher()
+    Publisher<String> pub = service.observe("foo").publisher(BackpressureStrategy.BUFFER)
     def received = []
     Subscription subscription
     boolean complete = false

@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 the original author or authors.
+ * Copyright 2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,15 +14,11 @@
  * limitations under the License.
  */
 
-package ratpack.rx2.flowable
+package ratpack.rx2
 
-import io.reactivex.BackpressureStrategy
-import io.reactivex.Flowable
-import io.reactivex.functions.BiFunction
-import io.reactivex.functions.Function
+import io.reactivex.Observable
 import ratpack.exec.Execution
 import ratpack.registry.RegistrySpec
-import ratpack.rx2.RxRatpack
 import ratpack.test.exec.ExecHarness
 import spock.lang.AutoCleanup
 import spock.lang.Specification
@@ -40,7 +36,7 @@ class RxParallelSpec extends Specification {
 
   def "can use fork on next to fan out"() {
     given:
-    def sequence = Flowable.fromArray(1, 2, 3, 4, 5)
+    def sequence = Observable.fromArray(1, 2, 3, 4, 5)
     def barrier = new CyclicBarrier(6)
     def received = [].asSynchronized()
 
@@ -59,7 +55,7 @@ class RxParallelSpec extends Specification {
 
   def "can add to registry of each fork"() {
     given:
-    def sequence = Flowable.fromArray(0, 1, 2, 3, 4)
+    def sequence = Observable.fromArray(0, 1, 2, 3, 4)
     def barrier = new CyclicBarrier(6)
     def received = [].asSynchronized()
     Integer addMe = 1
@@ -80,7 +76,7 @@ class RxParallelSpec extends Specification {
 
   def "can use fork on next on observable"() {
     given:
-    def sequence = Flowable.fromArray("a", "b", "c", "d", "e")
+    def sequence = Observable.fromArray("a", "b", "c", "d", "e")
     def barrier = new CyclicBarrier(6)
     def received = [].asSynchronized()
 
@@ -99,7 +95,7 @@ class RxParallelSpec extends Specification {
 
   def "errors are collected when using fork on next"() {
     given:
-    def sequence = Flowable.fromArray(1, 2, 3, 4, 5)
+    def sequence = Observable.fromArray(1, 2, 3, 4, 5)
     def barrier = new CyclicBarrier(2)
     Throwable e = null
 
@@ -117,28 +113,28 @@ class RxParallelSpec extends Specification {
 
   def "can fork observable successfully to run on another compute thread"() {
     given:
-    Flowable<Integer> sequence = Flowable.just(1)
+    Observable<Integer> sequence = Observable.just(1)
     String harnessComputeThread = null
     String forkComputeThread = null
 
     when:
-    Integer result = harness.yieldSingle {
+    List<Integer> result = harness.yieldSingle {
       harnessComputeThread = Thread.currentThread().name
 
       sequence
         .doOnNext { forkComputeThread = Thread.currentThread().name }
-        .fork(BackpressureStrategy.BUFFER)
-        .promiseSingle()
+        .fork()
+        .promiseAll()
     }.valueOrThrow
 
     then:
     harnessComputeThread != forkComputeThread && harnessComputeThread && forkComputeThread
-    result == 1
+    result == [1]
   }
 
   def "all actions upstream from the fork run on the same compute thread, actions downstream are joined back to the original thread"() {
     given:
-    Flowable<Integer> flowable = Flowable.just(1)
+    Observable<Integer> observable = Observable.just(1)
     String harnessComputeThread = null
     String forkComputeThread = null
 
@@ -146,13 +142,14 @@ class RxParallelSpec extends Specification {
     Integer result = harness.yieldSingle {
       harnessComputeThread = Thread.currentThread().name
 
-      flowable
+      observable
         .doOnNext { forkComputeThread = Thread.currentThread().name }
-        .flatMap({ Flowable.just(2) } as Function)
+        .flatMap { Observable.just(2) }
         .doOnNext { assert forkComputeThread == Thread.currentThread().name }
-        .fork(BackpressureStrategy.BUFFER)
+        .fork()
         .doOnNext { assert harnessComputeThread == Thread.currentThread().name }
-        .promiseSingle()
+        .firstOrError()
+        .promise()
     }.valueOrThrow
 
     then:
@@ -165,18 +162,19 @@ class RxParallelSpec extends Specification {
     String harnessComputeThread = null
     String firstForkedThread = null
     String secondForkedThread = null
-    Flowable<Integer> flowable = Flowable.just(1)
+    Observable<Integer> observable = Observable.just(1)
 
     when:
     Integer result = harness.yieldSingle {
       harnessComputeThread = Thread.currentThread().name
 
-      flowable
+      observable
         .doOnNext { firstForkedThread = Thread.currentThread().name }
-        .fork(BackpressureStrategy.BUFFER)
+        .fork()
         .doOnNext { secondForkedThread = Thread.currentThread().name }
-        .fork(BackpressureStrategy.BUFFER)
-        .promiseSingle()
+        .fork()
+        .firstOrError()
+        .promise()
 
     }.valueOrThrow
 
@@ -190,16 +188,16 @@ class RxParallelSpec extends Specification {
     String harnessComputeThread = null
     String firstForkedThread = null
     String secondForkedThread = null
-    Flowable<Integer> first = Flowable.just(4).doOnNext { firstForkedThread = Thread.currentThread().name }
-    Flowable<String> second = Flowable.just("5").doOnNext { secondForkedThread = Thread.currentThread().name }
+    Observable<Integer> first = Observable.just(4).doOnNext { firstForkedThread = Thread.currentThread().name }
+    Observable<String> second = Observable.just("5").doOnNext { secondForkedThread = Thread.currentThread().name }
 
     when:
     Integer result = harness.yieldSingle {
       harnessComputeThread = Thread.currentThread().name
 
-      Flowable.zip(first.fork(BackpressureStrategy.BUFFER), second.fork(BackpressureStrategy.BUFFER), { Integer firstValue, String secondValue ->
+      Observable.zip(first.fork(), second.fork(), { Integer firstValue, String secondValue ->
         firstValue + secondValue.toInteger()
-      }).promiseSingle()
+      }).firstOrError().promise()
     }.valueOrThrow
 
     then:
@@ -209,7 +207,7 @@ class RxParallelSpec extends Specification {
 
   def "multiple items emitted from the observable all run on the same forked thread"() {
     given:
-    def sequence = Flowable.fromIterable([1, 2, 3])
+    def sequence = Observable.fromIterable([1, 2, 3])
     String harnessComputeThread = null
     String forkComputeThread = null
 
@@ -224,9 +222,10 @@ class RxParallelSpec extends Specification {
         }
         assert forkComputeThread == Thread.currentThread().name
       }
-      .fork(BackpressureStrategy.BUFFER)
-        .reduce(0, { acc, val -> acc + val } as BiFunction).promiseSingle()
-    }.value
+      .fork()
+        .reduce(0) { acc, val -> acc + val }
+        .promise()
+    }.valueOrThrow
 
     then:
     harnessComputeThread != forkComputeThread && harnessComputeThread && forkComputeThread
@@ -235,7 +234,7 @@ class RxParallelSpec extends Specification {
 
   def "an error on a forked observable is able to be seen on the original thread"() {
     given:
-    def sequence = Flowable.fromArray(1, 2, 3, 4, 5)
+    def sequence = Observable.fromArray(1, 2, 3, 4, 5)
     Throwable e = null
 
     when:
@@ -246,10 +245,11 @@ class RxParallelSpec extends Specification {
           throw new RuntimeException("3!")
         }
       }
-      .fork(BackpressureStrategy.BUFFER)
+      .fork()
         .doOnError { Throwable t -> e = t }
         .onErrorReturn({ -1 })
-        .promiseSingle()
+        .firstOrError()
+        .promise()
     }.valueOrThrow
 
     then:
@@ -260,7 +260,7 @@ class RxParallelSpec extends Specification {
 
   def "can make objects available to the forked execution's registry"() {
     given:
-    Flowable<Integer> sequence = Flowable.just(1)
+    Observable<Integer> sequence = Observable.just(1)
     String harnessComputeThread = null
     String forkComputeThread = null
     String forkedValue = null
@@ -274,8 +274,9 @@ class RxParallelSpec extends Specification {
       sequence
         .doOnNext { forkComputeThread = Thread.currentThread().name }
         .doOnNext { forkedValue = Execution.current().get(String) }
-        .fork(BackpressureStrategy.BUFFER) { RegistrySpec registrySpec -> registrySpec.add(originalValue + "bar") }
-        .promiseSingle()
+        .fork { RegistrySpec registrySpec -> registrySpec.add(originalValue + "bar") }
+        .firstOrError()
+        .promise()
     }.valueOrThrow
 
     then:
