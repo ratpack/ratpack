@@ -79,9 +79,12 @@ public class RatpackCallFactory implements okhttp3.Call.Factory {
     }
 
     Promise<ReceivedResponse> promise() {
-      HttpClient client = Execution.current()
-        .get(Context.class)
-        .get(HttpClient.class);
+      Execution exec = Execution.current();
+      HttpClient client = exec
+        .maybeGet(HttpClient.class)
+        .orElseGet(() ->
+          exec.get(Context.class).get(HttpClient.class)
+        );
       return client.request(request.url().uri(), this::configureRequest);
     }
 

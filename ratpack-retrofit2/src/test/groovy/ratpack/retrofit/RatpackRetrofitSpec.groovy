@@ -163,4 +163,16 @@ class RatpackRetrofitSpec extends Specification {
     thrown(ConnectException)
 
   }
+
+  def "get client from execution"() {
+    when:
+    def value = ExecHarness.yieldSingle { r ->
+      r.add(client())
+    } {
+      service.root()
+    }.valueOrThrow
+
+    then:
+    value == "OK"
+  }
 }
