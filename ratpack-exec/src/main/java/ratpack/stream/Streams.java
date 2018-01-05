@@ -371,7 +371,7 @@ public class Streams {
    * @return a publisher that applies the given transformation to each item from the input stream
    */
   public static <I, O> TransformablePublisher<O> flatMap(Publisher<I> input, Function<? super I, ? extends Promise<? extends O>> function) {
-    return new FlatMapPublisher<>(input, function);
+    return new BatchingPublisher<>(new FlatMapPublisher<>(input, function), 1, Action.noop());
   }
 
   /**
