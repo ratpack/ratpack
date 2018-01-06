@@ -30,6 +30,8 @@ import io.netty.buffer.UnpooledByteBufAllocator
 import org.junit.Rule
 import org.junit.rules.TemporaryFolder
 import org.slf4j.Logger
+import ratpack.dropwizard.metrics.internal.PooledByteBufAllocatorMetricSet
+import ratpack.dropwizard.metrics.internal.UnpooledByteBufAllocatorMetricSet
 import ratpack.exec.Blocking
 import ratpack.exec.Promise
 import ratpack.test.internal.RatpackGroovyDslSpec
@@ -439,13 +441,13 @@ class MetricsSpec extends RatpackGroovyDslSpec {
 
     then:
     (1.._) * reporter.onGaugeAdded(!null, {
-      it.class.name.startsWith("ratpack.dropwizard.metrics.${expected}ByteBufAllocatorMetricSet")
+      it.class.name.startsWith(expected.name)
     })
 
     where:
     allocator                        | expected
-    PooledByteBufAllocator.DEFAULT   | 'Pooled'
-    UnpooledByteBufAllocator.DEFAULT | 'Unpooled'
+    PooledByteBufAllocator.DEFAULT   | PooledByteBufAllocatorMetricSet
+    UnpooledByteBufAllocator.DEFAULT | UnpooledByteBufAllocatorMetricSet
   }
 
   def "can use metrics endpoint"() {
