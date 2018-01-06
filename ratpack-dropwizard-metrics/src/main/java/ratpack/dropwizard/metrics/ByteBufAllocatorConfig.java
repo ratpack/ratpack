@@ -16,41 +16,54 @@
 
 package ratpack.dropwizard.metrics;
 
+import io.netty.buffer.ByteBufAllocator;
+
+/**
+ * Configuration for collecting metrics about {@link ByteBufAllocator}.
+ *
+ * @since 1.6
+ */
 public class ByteBufAllocatorConfig {
   private boolean enabled = true;
   private boolean detailed = true;
 
-  /* The flag whether byte buf allocator metric set should be initialized.
-   * @return the flag
+  /**
+   * The state of the ByteBufAllocator metric collector
+   *
+   * @return the state of the {@link ByteBufAllocator} metric collector.
    */
   public boolean isEnabled() {
     return enabled;
   }
 
   /**
-   * Set the flag whether byte buf allocator metric set should be initialized.
+   * Set the state of the {@link ByteBufAllocator} metric collector.
    *
-   * @param enabled True if metrics set should be initialzed. False otherwise
-   * @return this
+   * @param enabled True if {@link ByteBufAllocator} metrics should be collected. False otherwise
+   * @return {@code this}
    */
-  public void setEnabled(boolean enabled) {
+  public ByteBufAllocatorConfig enable(boolean enabled) {
     this.enabled = enabled;
+    return this;
   }
 
-  /* The flag whether byte buf allocator metric set should be report detailed metrics.
-   * @return the flag
+  /**
+   * The state of detailed metric collection for the {@link ByteBufAllocator} metric collector.
+   *
+   * @return The state of detailed metric collection for the {@link ByteBufAllocator} metric collector.
    */
   public boolean isDetailed() {
     return detailed;
   }
 
   /**
-   * Set the flag whether byte buf allocator metric set should be report detailed metrics.
+   * Set the state of detailed metric collectrion for the {@link ByteBufAllocator} metric collector.
    *
-   * @param detailed True if metrics set should be report detailed metrics. False otherwise
-   * @return this
+   * @param detailed The state of detailed metric collection for the {@link ByteBufAllocator} metric collector.
+   * @return {@code this}
    */
-  public void setDetailed(boolean detailed) {
+  public ByteBufAllocatorConfig detail(boolean detailed) {
     this.detailed = detailed;
+    return this;
   }
 }

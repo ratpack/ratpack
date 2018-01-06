@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package ratpack.dropwizard.metrics;
+package ratpack.dropwizard.metrics.internal;
 
 import com.codahale.metrics.Gauge;
 import com.codahale.metrics.Metric;

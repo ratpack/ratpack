@@ -18,6 +18,7 @@ package ratpack.dropwizard.metrics
 
 import com.codahale.metrics.Gauge
 import io.netty.buffer.UnpooledByteBufAllocator
+import ratpack.dropwizard.metrics.internal.UnpooledByteBufAllocatorMetricSet
 import spock.lang.Specification
 
 class UnpooledByteBufAllocatorMetricSetSpec extends Specification {
