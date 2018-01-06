@@ -420,8 +420,8 @@ class MetricsSpec extends RatpackGroovyDslSpec {
       bindInstance ByteBufAllocator, allocator
       module new DropwizardMetricsModule(), {
         it.byteBufAllocator { c ->
-          c.setEnabled(true)
-          c.setDetailed(true)
+          c.enable(true)
+          c.detail(true)
         }
       }
     }
