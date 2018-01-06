@@ -24,6 +24,9 @@ import com.codahale.metrics.annotation.Metered
 import com.codahale.metrics.annotation.Timed
 import com.codahale.metrics.graphite.GraphiteSender
 import groovy.json.JsonSlurper
+import io.netty.buffer.ByteBufAllocator
+import io.netty.buffer.PooledByteBufAllocator
+import io.netty.buffer.UnpooledByteBufAllocator
 import org.junit.Rule
 import org.junit.rules.TemporaryFolder
 import org.slf4j.Logger
@@ -409,15 +412,17 @@ class MetricsSpec extends RatpackGroovyDslSpec {
     (1.._) * reporter.onGaugeAdded(!null, { it.class.name.startsWith("com.codahale.metrics.jvm.MemoryUsageGaugeSet") })
   }
 
-  def "can collect byte buf allocator metrics"() {
-
+  def "can collect #allocator metrics"() {
     def reporter = Mock(MetricRegistryListener)
 
     given:
     bindings {
+      bindInstance ByteBufAllocator, allocator
       module new DropwizardMetricsModule(), {
-        it.byteBufAllocatorMetrics(true)
-          .detailedByteBufAllocatorMetrics(true)
+        it.byteBufAllocator { c ->
+          c.setEnabled(true)
+          c.setDetailed(true)
+        }
       }
     }
 
@@ -434,8 +439,13 @@ class MetricsSpec extends RatpackGroovyDslSpec {
 
     then:
     (1.._) * reporter.onGaugeAdded(!null, {
-      it.class.name.startsWith("ratpack.dropwizard.metrics.PooledByteBufAllocatorMetricSet")
+      it.class.name.startsWith("ratpack.dropwizard.metrics.${expected}ByteBufAllocatorMetricSet")
     })
+
+    where:
+    allocator                        | expected
+    PooledByteBufAllocator.DEFAULT   | 'Pooled'
+    UnpooledByteBufAllocator.DEFAULT | 'Unpooled'
   }
 
   def "can use metrics endpoint"() {
