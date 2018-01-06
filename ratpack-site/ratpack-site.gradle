@@ -16,7 +16,7 @@
 import ratpack.gradle.WriteTestConfig
 
 import static org.apache.commons.io.FileUtils.copyURLToFile
-import static org.apache.commons.lang.SystemUtils.*
+import static org.apache.commons.lang3.SystemUtils.*
 
 buildscript {
   repositories {
