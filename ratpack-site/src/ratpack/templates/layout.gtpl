@@ -30,11 +30,11 @@ body {
 
     nav(class: 'social') {
       h2('Ratpack is on&hellip;')
-      a(href: 'http://github.com/ratpack/', title: 'ratpack on GitHub', rel: 'external', 'GitHub')
+      a(href: 'https://github.com/ratpack/', title: 'ratpack on GitHub', rel: 'external', 'GitHub')
       newLine()
       span(class: 'join', '&amp;')
       newLine()
-      a(href: 'http://twitter.com/ratpackweb', title: '@ratpackweb on Twitter', rel: 'external', 'Twitter')
+      a(href: 'https://twitter.com/ratpackweb', title: '@ratpackweb on Twitter', rel: 'external', 'Twitter')
     }
 
   }
