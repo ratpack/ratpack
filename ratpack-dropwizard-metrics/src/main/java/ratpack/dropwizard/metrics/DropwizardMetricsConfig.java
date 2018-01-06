@@ -42,6 +42,7 @@ public class DropwizardMetricsConfig {
   private Optional<CsvConfig> csv = Optional.empty();
   private Optional<Slf4jConfig> slf4j = Optional.empty();
   private Optional<GraphiteConfig> graphite = Optional.empty();
+  private Optional<ByteBufAllocatorConfig> byteBufAllocator = Optional.empty();
 
   /**
    * The state of jvm metrics collection.
@@ -60,6 +61,44 @@ public class DropwizardMetricsConfig {
   public DropwizardMetricsConfig jvmMetrics(boolean jvmMetrics) {
     this.jvmMetrics = jvmMetrics;
     return this;
+  }
+
+  /**
+   * Get the settings for the byte buf allocator metric set.
+   *
+   * @return the metric set settings
+   * @since 1.6
+   */
+  public Optional<ByteBufAllocatorConfig> getByteBufAllocator() {
+    return byteBufAllocator;
+  }
+
+  /**
+   * @return this
+   * @see #byteBufAllocator(ratpack.func.Action)
+   * @since 1.6
+   */
+  public DropwizardMetricsConfig byteBufAllocator() {
+    return byteBufAllocator(Action.noop());
+  }
+
+  /**
+   * Configure the byte buf allocator metric set.
+   *
+   * @param configure the configuration for the byte buf allocator metric set
+   * @return this
+   * @since 1.6
+   */
+  public DropwizardMetricsConfig byteBufAllocator(Action<? super ByteBufAllocatorConfig> configure) {
+    try {
+      configure.execute(byteBufAllocator.orElseGet(() -> {
+        byteBufAllocator = Optional.of(new ByteBufAllocatorConfig());
+        return byteBufAllocator.get();
+      }));
+      return this;
+    } catch (Exception e) {
+      throw uncheck(e);
+    }
   }
 
   /**
