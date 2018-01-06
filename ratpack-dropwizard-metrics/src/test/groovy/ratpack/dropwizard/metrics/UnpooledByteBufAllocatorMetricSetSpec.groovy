@@ -8,7 +8,7 @@ class UnpooledByteBufAllocatorMetricSetSpec extends Specification {
 
   def "initialize metric set"() {
     given:
-    def allocator = new UnpooledByteBufAllocator(false);
+    def allocator = new UnpooledByteBufAllocator(false)
 
     when:
     def metricSet = new UnpooledByteBufAllocatorMetricSet(allocator)
