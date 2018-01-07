@@ -157,19 +157,17 @@ public interface Promise<T> {
    * @since 1.5
    */
   static <T> Promise<T> flatten(Factory<? extends Promise<T>> factory) {
-    return new DefaultPromise<>(down ->
-      DefaultExecution.require().delimit(down::error, continuation -> {
-          Promise<T> promise;
-          try {
-            promise = factory.create();
-          } catch (Throwable e) {
-            continuation.resume(() -> down.error(e));
-            return;
-          }
-          continuation.resume(() -> promise.connect(down));
-        }
-      )
-    );
+    return new DefaultPromise<>(down -> {
+      Promise<T> promise;
+      try {
+        promise = factory.create();
+      } catch (Exception e) {
+        down.error(e);
+        return;
+      }
+
+      promise.connect(down);
+    });
   }
 
   /**
