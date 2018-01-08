@@ -13,7 +13,7 @@ section(id: "promo") {
     nav {
       def links = [
         [link: [href: '/manual/current'], title: 'Documentation'],
-        [link: [href: 'https://github.com/ratpack/ratpack/issues/new?labels=help&milestone=none'], title: 'Ask for help'],
+        [link: [href: 'https://stackoverflow.com/questions/ask?tags=ratpack'], title: 'Ask for help'],
         [link: [href: 'https://github.com/ratpack/ratpack/issues', rel: 'external'], title: 'Issues'],
         [link: [href: '/versions'], title: 'Releases']
       ]
@@ -57,7 +57,7 @@ section(id: "main") {
     }
     p {
       yield "Alternatively, you can ask for help "
-      a(href: "https://github.com/ratpack/ratpack/issues/new?labels=help&milestone=none", 'via GitHub')
+      a(href: "https://stackoverflow.com/questions/ask?tags=ratpack", 'Stack Overflow')
       yield '.'
     }
   }
