@@ -32,6 +32,10 @@ apply plugin: "maven"
 apply from: "$rootDir/gradle/projectLocalRepo.gradle"
 apply plugin: "uk.co.cacoethes.lazybones-templates"
 
+repositories {
+  maven { url "https://repo.gradle.org/gradle/repo" }
+}
+
 dependencies {
   compile commonDependencies.toolingApi
 
