@@ -29,7 +29,7 @@ The following people have provided significant contributions.
 * [Tomás Lin](https://github.com/tomaslin)
 * [Kevin Marquardsen](https://github.com/kmarquardsen)
 * [Stefano Gualdi](https://github.com/stefanogualdi)
-* [Ben Navetta](https://github.com/roguePanda)
+* Ben Navetta
 * [Bobby Warner](https://github.com/bobbywarner)
 * [Jim White](https://github.com/jimwhite)
 * [Dimitris Zavaliadis](https://github.com/dimzava)

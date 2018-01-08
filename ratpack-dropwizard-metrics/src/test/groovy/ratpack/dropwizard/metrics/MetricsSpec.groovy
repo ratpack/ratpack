@@ -24,9 +24,14 @@ import com.codahale.metrics.annotation.Metered
 import com.codahale.metrics.annotation.Timed
 import com.codahale.metrics.graphite.GraphiteSender
 import groovy.json.JsonSlurper
+import io.netty.buffer.ByteBufAllocator
+import io.netty.buffer.PooledByteBufAllocator
+import io.netty.buffer.UnpooledByteBufAllocator
 import org.junit.Rule
 import org.junit.rules.TemporaryFolder
 import org.slf4j.Logger
+import ratpack.dropwizard.metrics.internal.PooledByteBufAllocatorMetricSet
+import ratpack.dropwizard.metrics.internal.UnpooledByteBufAllocatorMetricSet
 import ratpack.exec.Blocking
 import ratpack.exec.Promise
 import ratpack.test.internal.RatpackGroovyDslSpec
@@ -285,7 +290,7 @@ class MetricsSpec extends RatpackGroovyDslSpec {
 
   }
 
-  def "can properly capture timing events" () {
+  def "can properly capture timing events"() {
     MetricRegistry registry
 
     given:
@@ -407,6 +412,42 @@ class MetricsSpec extends RatpackGroovyDslSpec {
     (1.._) * reporter.onGaugeAdded(!null, { it.class.name.startsWith("com.codahale.metrics.jvm.GarbageCollectorMetricSet") })
     (1.._) * reporter.onGaugeAdded(!null, { it.class.name.startsWith("com.codahale.metrics.jvm.ThreadStatesGaugeSet") })
     (1.._) * reporter.onGaugeAdded(!null, { it.class.name.startsWith("com.codahale.metrics.jvm.MemoryUsageGaugeSet") })
+  }
+
+  def "can collect #allocator metrics"() {
+    def reporter = Mock(MetricRegistryListener)
+
+    given:
+    bindings {
+      bindInstance ByteBufAllocator, allocator
+      module new DropwizardMetricsModule(), {
+        it.byteBufAllocator { c ->
+          c.enable(true)
+          c.detail(true)
+        }
+      }
+    }
+
+    handlers { MetricRegistry metrics ->
+      metrics.addListener(reporter)
+
+      all {
+        render ""
+      }
+    }
+
+    when:
+    get()
+
+    then:
+    (1.._) * reporter.onGaugeAdded(!null, {
+      it.class.name.startsWith(expected.name)
+    })
+
+    where:
+    allocator                        | expected
+    PooledByteBufAllocator.DEFAULT   | PooledByteBufAllocatorMetricSet
+    UnpooledByteBufAllocator.DEFAULT | UnpooledByteBufAllocatorMetricSet
   }
 
   def "can use metrics endpoint"() {

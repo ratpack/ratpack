@@ -60,6 +60,7 @@ import java.net.InetSocketAddress;
 import java.time.Instant;
 import java.util.Collections;
 import java.util.Map;
+import java.util.Optional;
 
 import static io.netty.buffer.Unpooled.buffer;
 import static io.netty.buffer.Unpooled.unreleasableBuffer;
@@ -232,7 +233,7 @@ public class DefaultRequestFixture implements RequestFixture {
 
   @Override
   public RequestFixture pathBinding(String boundTo, String pastBinding, Map<String, String> pathTokens, String description) {
-    pathBinding = new DefaultPathBinding(pastBinding, ImmutableMap.copyOf(pathTokens), new RootPathBinding(pastBinding), description);
+    pathBinding = new DefaultPathBinding(boundTo, ImmutableMap.copyOf(pathTokens), new RootPathBinding(boundTo + "/" + pastBinding), description);
     return this;
   }
 
@@ -347,6 +348,11 @@ public class DefaultRequestFixture implements RequestFixture {
 
     @Override
     public RatpackServer reload() throws Exception {
+      throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public Optional<Registry> getRegistry() {
       throw new UnsupportedOperationException();
     }
   }

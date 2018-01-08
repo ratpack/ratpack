@@ -298,15 +298,22 @@ public class DefaultExecution implements Execution {
     abstract void enqueue(Block segment);
 
     abstract void error(Throwable throwable);
+
+    abstract ExecStream asParent();
   }
 
   private abstract class BaseExecStream extends ExecStream {
     void delimit(Action<? super Throwable> onError, Action<? super Continuation> segment) {
-      enqueue(() -> execStream = new SingleEventExecStream(execStream, onError, segment));
+      enqueue(() -> execStream = new SingleEventExecStream(execStream.asParent(), onError, segment));
     }
 
     void delimitStream(Action<? super Throwable> onError, Action<? super ContinuationStream> segment) {
-      enqueue(() -> execStream = new MultiEventExecStream(execStream, onError, segment));
+      enqueue(() -> execStream = new MultiEventExecStream(execStream.asParent(), onError, segment));
+    }
+
+    @Override
+    ExecStream asParent() {
+      return this;
     }
 
   }
@@ -341,6 +348,11 @@ public class DefaultExecution implements Execution {
     @Override
     void error(Throwable throwable) {
       throw new ExecutionException("this execution has completed (you may be trying to use a promise in a cleanup method)");
+    }
+
+    @Override
+    ExecStream asParent() {
+      return this;
     }
   }
 
@@ -428,7 +440,7 @@ public class DefaultExecution implements Execution {
     boolean exec() throws Exception {
       if (initial == null) {
         if (next != null) {
-          execStream = new SingleEventExecStream(this, nextOnError, next);
+          execStream = new SingleEventExecStream(this.asParent(), nextOnError, next);
           next = null;
           return true;
         } else if (segments == null) {
@@ -471,6 +483,12 @@ public class DefaultExecution implements Execution {
         initial = null;
         return true;
       }
+    }
+
+    @Override
+    ExecStream asParent() {
+      // If this segment is done, avoiding holding a reference to it
+      return resumed && resumer == null && segments == null ? parent.asParent() : this;
     }
 
     @Override

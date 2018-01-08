@@ -19,7 +19,6 @@ package ratpack.exec;
 import ratpack.api.NonBlocking;
 import ratpack.exec.internal.CachingUpstream;
 import ratpack.exec.internal.DefaultExecution;
-import ratpack.exec.internal.DefaultOperation;
 import ratpack.exec.internal.DefaultPromise;
 import ratpack.exec.util.Promised;
 import ratpack.func.*;
@@ -158,19 +157,17 @@ public interface Promise<T> {
    * @since 1.5
    */
   static <T> Promise<T> flatten(Factory<? extends Promise<T>> factory) {
-    return new DefaultPromise<>(down ->
-      DefaultExecution.require().delimit(down::error, continuation -> {
-          Promise<T> promise;
-          try {
-            promise = factory.create();
-          } catch (Throwable e) {
-            continuation.resume(() -> down.error(e));
-            return;
-          }
-          continuation.resume(() -> promise.connect(down));
-        }
-      )
-    );
+    return new DefaultPromise<>(down -> {
+      Promise<T> promise;
+      try {
+        promise = factory.create();
+      } catch (Exception e) {
+        down.error(e);
+        return;
+      }
+
+      promise.connect(down);
+    });
   }
 
   /**
@@ -588,10 +585,11 @@ public interface Promise<T> {
    * @param predicate the condition to decide which transformation to apply
    * @param onTrue the transformation to apply when the predicate is true
    * @param onFalse the transformation to apply when the predicate is false
+   * @param <O> the type of the transformed object
    * @return a promise
    * @since 1.5
    */
-  default Promise<T> mapIf(Predicate<? super T> predicate, Function<? super T, ? extends T> onTrue, Function<? super T, ? extends T> onFalse) {
+  default <O> Promise<O> mapIf(Predicate<? super T> predicate, Function<? super T, ? extends O> onTrue, Function<? super T, ? extends O> onFalse) {
     return map(Function.when(predicate, onTrue, onFalse));
   }
 
@@ -736,14 +734,15 @@ public interface Promise<T> {
    * @since 1.1
    */
   default Promise<T> nextOp(Function<? super T, ? extends Operation> function) {
-    return transform(up -> down -> up.connect(
-      down.<T>onSuccess(value ->
-        function.apply(value)
-          .onError(down::error)
-          .then(() ->
-            down.success(value)
-          )
-      )
+    return transform(up -> down ->
+      up.connect(
+        down.<T>onSuccess(value ->
+          function.apply(value)
+            .onError(down::error)
+            .then(() ->
+              down.success(value)
+            )
+        )
       )
     );
   }
@@ -951,17 +950,34 @@ public interface Promise<T> {
     );
   }
 
+  /**
+   * Converts this promise to an operation, by effectively discarding the result.
+   *
+   * @return an operation
+   */
   default Operation operation() {
     return operation(Action.noop());
   }
 
-  default Operation operation(Action<? super T> action) {
-    return new DefaultOperation(
-      map(t -> {
-        action.execute(t);
-        return null;
-      })
-    );
+  /**
+   * Converts this promise to an operation which is effectively {@code action}.
+   *
+   * @param action an operation on the promised value
+   * @return an operation representing {@code action}
+   */
+  default Operation operation(@NonBlocking Action<? super T> action) {
+    return Operation.of(() -> then(action));
+  }
+
+  /**
+   * Converts this promise to an operation, which is the return of {@code function}.
+   *
+   * @param function a function that returns an operation for the promised value
+   * @return effectively the return of {@code function}
+   * @since 1.6
+   */
+  default Operation flatOp(Function<? super T, ? extends Operation> function) {
+    return operation(t -> function.apply(t).then());
   }
 
   /**
@@ -1343,7 +1359,7 @@ public interface Promise<T> {
    * @return a promise
    * @since 1.5
    */
-  default Promise<T> flatMapIf(Predicate<? super T> predicate, Function<? super T, ? extends Promise<T>> onTrue, Function<? super T, ? extends Promise<T>> onFalse) {
+  default <O> Promise<O> flatMapIf(Predicate<? super T> predicate, Function<? super T, ? extends Promise<O>> onTrue, Function<? super T, ? extends Promise<O>> onFalse) {
     return flatMap(Function.when(predicate, onTrue, onFalse));
   }
 

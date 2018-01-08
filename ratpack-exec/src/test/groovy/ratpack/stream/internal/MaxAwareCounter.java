@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 the original author or authors.
+ * Copyright 2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,19 +14,27 @@
  * limitations under the License.
  */
 
-package ratpack.http.client;
+package ratpack.stream.internal;
 
-import ratpack.http.Response;
-import ratpack.http.TypedData;
+import java.util.concurrent.atomic.AtomicInteger;
 
-public interface ReceivedResponse extends HttpResponse {
+public class MaxAwareCounter {
 
-  /**
-   *
-   * @return The {@link ratpack.http.TypedData} that represents the body.
-   */
-  TypedData getBody();
+  private final AtomicInteger counter = new AtomicInteger();
+  private final AtomicInteger max = new AtomicInteger();
 
-  void forwardTo(Response response);
+  public int inc() {
+    int i = counter.incrementAndGet();
+    max.updateAndGet(o -> Math.max(i, o));
+    return i;
+  }
+
+  public int dec() {
+    return counter.decrementAndGet();
+  }
+
+  public int max() {
+    return max.get();
+  }
 
 }

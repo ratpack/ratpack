@@ -251,7 +251,10 @@ public class NettyHandlerAdapter extends ChannelInboundHandlerAdapter {
 
   @Override
   public void channelWritabilityChanged(ChannelHandlerContext ctx) throws Exception {
-    ctx.channel().attr(DefaultResponseTransmitter.ATTRIBUTE_KEY).get().writabilityChanged();
+    DefaultResponseTransmitter responseTransmitter = ctx.channel().attr(DefaultResponseTransmitter.ATTRIBUTE_KEY).get();
+    if (responseTransmitter != null) {
+      responseTransmitter.writabilityChanged();
+    }
   }
 
   private static boolean isIgnorableException(Throwable throwable) {

@@ -29,6 +29,7 @@ import ratpack.stream.TransformablePublisher;
 import ratpack.stream.internal.BufferingPublisher;
 import ratpack.util.Types;
 
+import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -54,6 +55,10 @@ public class DefaultParallelBatch<T> implements ParallelBatch<T> {
   @Override
   public Promise<List<? extends ExecResult<T>>> yieldAll() {
     List<Promise<T>> promises = Lists.newArrayList(this.promises);
+    if (promises.isEmpty()) {
+      return Promise.value(Collections.emptyList());
+    }
+
     List<ExecResult<T>> results = Types.cast(promises);
     AtomicInteger counter = new AtomicInteger(promises.size());
 
@@ -81,6 +86,10 @@ public class DefaultParallelBatch<T> implements ParallelBatch<T> {
   @Override
   public Promise<List<T>> yield() {
     List<Promise<T>> promises = Lists.newArrayList(this.promises);
+    if (promises.isEmpty()) {
+      return Promise.value(Collections.emptyList());
+    }
+
     List<T> results = Types.cast(promises);
     return Promise.async(d -> forEach(results::set).onError(d::error).then(() -> d.success(results)));
   }
@@ -169,6 +178,9 @@ public class DefaultParallelBatch<T> implements ParallelBatch<T> {
                 })
                 .start(e -> promise.onError(write::error).then(write::item));
             } else {
+              if (started == 0) {
+                write.complete();
+              }
               return;
             }
           }

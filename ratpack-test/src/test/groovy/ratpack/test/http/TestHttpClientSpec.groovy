@@ -76,4 +76,47 @@ class TestHttpClientSpec extends RatpackGroovyDslSpec {
     getCookies("")[0].value() == "a"
   }
 
+  def "client supports post-redirect-get"() {
+    when:
+    handlers {
+      post("post") {
+        redirect "get"
+      }
+      get("get") {
+        render "ok"
+      }
+    }
+
+    requestSpec {
+      it.post()
+    }
+
+    then:
+    post("post").statusCode == 200
+    postText("post") == "ok"
+  }
+
+  def "doesn't modify verb for 303 and 307 supports post-redirect-get"() {
+    when:
+    handlers {
+      post("303") {
+        redirect 303, "ok"
+      }
+      post("307") {
+        redirect 307, "ok"
+      }
+      post("ok") {
+        render "ok"
+      }
+    }
+
+    requestSpec {
+      it.post()
+    }
+
+    then:
+    postText("303") == "ok"
+    postText("307") == "ok"
+  }
+
 }

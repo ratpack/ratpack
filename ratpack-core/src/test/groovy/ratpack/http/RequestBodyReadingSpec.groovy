@@ -55,7 +55,7 @@ class RequestBodyReadingSpec extends RatpackGroovyDslSpec {
     }
     handlers {
       post("redirect") {
-        redirect "read"
+        redirect 303, "read"
       }
       post("read") {
         request.body.then { body ->

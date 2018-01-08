@@ -20,7 +20,6 @@ package ratpack.test.http.internal;
 import com.google.common.collect.ImmutableMultimap;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
-import com.google.common.net.HostAndPort;
 import io.netty.handler.codec.http.cookie.ClientCookieDecoder;
 import io.netty.handler.codec.http.cookie.ClientCookieEncoder;
 import io.netty.handler.codec.http.cookie.Cookie;
@@ -242,8 +241,6 @@ public class DefaultTestHttpClient implements TestHttpClient {
           defaultRequestConfig.execute(decorated);
           request.execute(decorated);
           requestAction.execute(decorated);
-          int port = uri.getPort() > 0 ? uri.getPort() : 80;
-          requestSpec.getHeaders().add(HttpHeaderConstants.HOST, HostAndPort.fromParts(uri.getHost(), port).toString());
         });
       }
     } catch (Throwable throwable) {

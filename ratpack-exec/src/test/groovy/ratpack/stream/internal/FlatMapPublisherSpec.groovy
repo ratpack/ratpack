@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 the original author or authors.
+ * Copyright 2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,19 +14,26 @@
  * limitations under the License.
  */
 
-package ratpack.http.client;
+package ratpack.stream.internal
 
-import ratpack.http.Response;
-import ratpack.http.TypedData;
+import ratpack.exec.BaseExecutionSpec
+import ratpack.exec.Promise
+import ratpack.stream.Streams
 
-public interface ReceivedResponse extends HttpResponse {
+class FlatMapPublisherSpec extends BaseExecutionSpec {
 
-  /**
-   *
-   * @return The {@link ratpack.http.TypedData} that represents the body.
-   */
-  TypedData getBody();
+  def "does not excessively request from upstream"() {
+    expect:
+    def c = new MaxAwareCounter()
+    execHarness.yield {
+      Streams.yield { c.inc() }
+        .flatMap { Promise.value(2).next { c.dec() } }
+        .take(100)
+        .toList()
+    }.valueOrThrow.size() == 100
 
-  void forwardTo(Response response);
+    c.max() == 1
+  }
 
 }
+

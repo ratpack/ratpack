@@ -31,14 +31,16 @@ buildscript {
     // Force to newer version here.
     classpath 'com.google.guava:guava:18.0'
 
+    classpath 'org.apache.commons:commons-lang3:3.6'
+
     classpath "org.kt3k.gradle.plugin:coveralls-gradle-plugin:2.3.1"
     classpath "com.github.ben-manes:gradle-versions-plugin:0.8"
-    classpath "com.gradle:build-scan-plugin:1.8"
+    classpath "com.gradle:build-scan-plugin:1.9"
   }
 }
 
 allprojects {
-  version = "1.5.0-SNAPSHOT"
+  version = "1.6.0-SNAPSHOT"
 }
 
 ext {
@@ -140,6 +142,9 @@ allprojects {
     maven { url 'https://oss.jfrog.org/artifactory/repo' }
   }
 
+  configurations {
+    published
+  }
 }
 
 apply from: "gradle/idea/idea.gradle"
