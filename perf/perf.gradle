@@ -22,6 +22,9 @@ configurations {
   reports
 }
 
+repositories {
+  maven { url "https://repo.gradle.org/gradle/repo" }
+}
 dependencies {
   compile commonDependencies.groovy
   compile commonDependencies.toolingApi, {
