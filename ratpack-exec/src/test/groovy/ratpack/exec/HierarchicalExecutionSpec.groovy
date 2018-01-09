@@ -133,4 +133,19 @@ class HierarchicalExecutionSpec extends BaseExecutionSpec {
     then:
     events == ["true", "complete"]
   }
+
+  def "top level execution has no parent"() {
+    when:
+    exec {
+      try {
+        it.parent
+        events << "no"
+      } catch (IllegalStateException e) {
+        events << it.maybeParent().map { true }.orElse(false).toString()
+      }
+    }
+
+    then:
+    events == ["false", "complete"]
+  }
 }
