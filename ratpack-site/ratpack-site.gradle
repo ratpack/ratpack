@@ -152,6 +152,7 @@ shadowJar {
     exclude(dependency("com.bertramlabs.plugins:sass-asset-pipeline:.*"))
     exclude(dependency("org.jruby:jruby-complete:.*"))
   }
+  zip64 = true
 }
 
 task downloadChromeDriver {
