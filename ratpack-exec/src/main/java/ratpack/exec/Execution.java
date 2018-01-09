@@ -295,4 +295,15 @@ public interface Execution extends MutableRegistry {
     }
   }
 
+  /**
+   * Forks a new execution with this execution as the base registry.
+   * <p>
+   * The child execution is initialized with a copy of the current values in the parent's execution.
+   * Changes to the parent execution after forking are not propagated to the child.
+   *
+   * @throws UnmanagedThreadException if there is no thread bound execution controller (i.e. this was called on a thread that is not managed by the Ratpack application)
+   * @since 1.6
+   */
+  ExecStarter forkChild() throws UnmanagedThreadException;
+
 }

@@ -31,7 +31,9 @@ import ratpack.func.Action;
 import ratpack.func.Block;
 import ratpack.registry.MutableRegistry;
 import ratpack.registry.NotInRegistryException;
+import ratpack.registry.Registry;
 import ratpack.registry.RegistrySpec;
+import ratpack.registry.internal.HierarchicalMutableRegistry;
 import ratpack.registry.internal.SimpleMutableRegistry;
 import ratpack.stream.TransformablePublisher;
 
@@ -54,7 +56,7 @@ public class DefaultExecution implements Execution {
 
   private List<AutoCloseable> closeables;
 
-  private final MutableRegistry registry = new SimpleMutableRegistry();
+  private final MutableRegistry registry;
 
   private List<ExecInterceptor> adhocInterceptors;
   private Iterable<? extends ExecInterceptor> interceptors;
@@ -62,6 +64,7 @@ public class DefaultExecution implements Execution {
   public DefaultExecution(
     ExecControllerInternal controller,
     EventLoop eventLoop,
+    Registry baseRegistry,
     Action<? super RegistrySpec> registryInit,
     Action<? super Execution> action,
     Action<? super Throwable> onError,
@@ -73,7 +76,7 @@ public class DefaultExecution implements Execution {
     this.onError = onError;
     this.onComplete = onComplete;
 
-    registryInit.execute(registry);
+    this.registry = new HierarchicalMutableRegistry(baseRegistry, registryInit.with(new SimpleMutableRegistry()));
     onStart.execute(this);
 
     this.execStream = new InitialExecStream(() -> action.execute(this));
@@ -261,8 +264,18 @@ public class DefaultExecution implements Execution {
   }
 
   @Override
+  public ExecStarter forkChild() throws UnmanagedThreadException {
+    return Execution.fork().baseRegistry(registry.asImmutable());
+  }
+
+  @Override
   public <T> void remove(TypeToken<T> type) throws NotInRegistryException {
     registry.remove(type);
+  }
+
+  @Override
+  public Registry asImmutable() {
+    return registry.asImmutable();
   }
 
   @Override

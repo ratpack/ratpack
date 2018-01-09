@@ -44,4 +44,12 @@ public interface MutableRegistry extends Registry, RegistrySpec {
    */
   <T> void remove(TypeToken<T> type) throws NotInRegistryException;
 
+  /**
+   * Returns an immutable copy of the current contents of this registry.
+   *
+   * @return a registry
+   * @since 1.6
+   */
+  Registry asImmutable();
+
 }

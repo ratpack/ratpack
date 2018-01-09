@@ -25,6 +25,7 @@ import org.slf4j.LoggerFactory;
 import ratpack.exec.*;
 import ratpack.func.Action;
 import ratpack.func.Block;
+import ratpack.registry.Registry;
 import ratpack.registry.RegistrySpec;
 import ratpack.util.internal.ChannelImplDetector;
 
@@ -151,6 +152,7 @@ public class DefaultExecController implements ExecControllerInternal {
       private Action<? super Execution> onStart = noop();
       private Action<? super RegistrySpec> registry = noop();
       private EventLoop eventLoop = getEventLoopGroup().next();
+      private Registry baseRegistry = Registry.empty();
 
       @Override
       public ExecStarter eventLoop(EventLoop eventLoop) {
@@ -183,16 +185,22 @@ public class DefaultExecController implements ExecControllerInternal {
       }
 
       @Override
+      public ExecStarter baseRegistry(Registry registry) {
+        this.baseRegistry = registry;
+        return this;
+      }
+
+      @Override
       public void start(Action<? super Execution> initialExecutionSegment) {
         if (eventLoop.inEventLoop() && DefaultExecution.get() == null) {
           try {
-            new DefaultExecution(DefaultExecController.this, eventLoop, registry, initialExecutionSegment, onError, onStart, onComplete);
+            new DefaultExecution(DefaultExecController.this, eventLoop, baseRegistry, registry, initialExecutionSegment, onError, onStart, onComplete);
           } catch (Throwable e) {
             throw new InternalError("could not start execution", e);
           }
         } else {
           eventLoop.submit(() ->
-            new DefaultExecution(DefaultExecController.this, eventLoop, registry, initialExecutionSegment, onError, onStart, onComplete)
+            new DefaultExecution(DefaultExecController.this, eventLoop, baseRegistry, registry, initialExecutionSegment, onError, onStart, onComplete)
           );
         }
       }

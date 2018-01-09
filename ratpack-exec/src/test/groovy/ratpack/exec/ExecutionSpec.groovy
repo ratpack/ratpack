@@ -21,6 +21,7 @@ import org.reactivestreams.Publisher
 import org.reactivestreams.Subscriber
 import org.reactivestreams.Subscription
 import ratpack.func.Action
+import ratpack.registry.Registry
 import ratpack.stream.Streams
 import ratpack.test.exec.ExecHarness
 import spock.lang.AutoCleanup
@@ -44,8 +45,16 @@ class ExecutionSpec extends Specification {
     exec(action, Action.noop())
   }
 
+  def exec(Registry registry, Action<? super Execution> action) {
+    exec(registry, action, Action.noop())
+  }
+
   def exec(Action<? super Execution> action, Action<? super Throwable> onError) {
-    harness.controller.fork().onError(onError).onComplete {
+    exec(Registry.empty(), action, onError)
+  }
+
+  def exec(Registry registry, Action<? super Execution> action, Action<? super Throwable> onError) {
+    harness.controller.fork().baseRegistry(registry).onError(onError).onComplete {
       events << "complete"
       latch.countDown()
     } start {
@@ -414,5 +423,54 @@ class ExecutionSpec extends Specification {
     then:
     l.await()
     i.get() == 0
+  }
+
+  def "can supply parent registry"() {
+    when:
+    exec(Registry.single(String, "foo")) { e ->
+      Promise.sync {
+        e.get(String)
+      } then {
+        events << it
+      }
+    }
+
+    then:
+    events == ["foo", "complete"]
+  }
+
+  def "can fork child execution"() {
+    when:
+    exec({ e ->
+      e.add(String, "foo")
+      e.add(Integer, 100)
+      def latch = new CountDownLatch(1)
+      def latch2 = new CountDownLatch(1)
+
+      e.forkChild().register { r ->
+        r.add(Integer, 500)
+      } onComplete {
+        events << "complete2"
+        latch.countDown()
+      } start { e2 ->
+        latch2.await()
+        Promise.sync {
+          Promise.sync {
+            e2.get(Integer)
+          } then {
+            events << it
+          }
+          e2.get(String)
+        } then {
+          events << it
+        }
+      }
+      e.add(String, "parent-foo")
+      latch2.countDown()
+      latch.await()
+    })
+
+    then:
+    events == [500, "foo", "complete2", "complete"]
   }
 }

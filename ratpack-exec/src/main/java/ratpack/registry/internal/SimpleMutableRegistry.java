@@ -60,6 +60,11 @@ public class SimpleMutableRegistry implements MutableRegistry {
   }
 
   @Override
+  public Registry asImmutable() {
+    return new MultiEntryRegistry(Lists.newArrayList(Lists.reverse(entries)));
+  }
+
+  @Override
   @Nullable
   public <T> Optional<T> maybeGet(TypeToken<T> type) {
     return registry.maybeGet(type);

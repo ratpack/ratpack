@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 the original author or authors.
+ * Copyright 2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,18 +18,43 @@ package ratpack.registry.internal
 
 import ratpack.func.Action
 import ratpack.registry.MutableRegistry
+import ratpack.registry.Registry
 import ratpack.registry.RegistrySpec
 import ratpack.test.internal.registry.MutableRegistryContractSpec
 
-class SimpleMutableRegistrySpec extends MutableRegistryContractSpec {
+class HierarchicalMutableRegistrySpec extends MutableRegistryContractSpec {
 
-  def r = new SimpleMutableRegistry()
+  def parent = EmptyRegistry.INSTANCE
+  def child = new SimpleMutableRegistry()
 
   @Override
   MutableRegistry build(Action<? super RegistrySpec> spec) {
-    def r = new SimpleMutableRegistry()
+    def r = new HierarchicalMutableRegistry(parent, child)
     spec.execute(r)
     r
   }
 
+
+  def "parent values are available from registry"() {
+    given:
+    parent = Registry.builder().add(String, "foo").add(Integer, 100).build()
+
+    def r = build { spec ->
+      spec.add(String, "bar")
+      spec.add(Long, new Long(250))
+    }
+
+    expect:
+    r.get(String) == "bar"
+    r.getAll(String).toList() == ["bar", "foo"]
+    r.get(Integer).intValue() == 100
+    r.get(Long).longValue() == 250L
+
+    when:
+    r.add(Integer, 500)
+
+    then:
+    r.get(Integer).intValue() == 500
+    parent.get(Integer).intValue() == 100
+  }
 }
