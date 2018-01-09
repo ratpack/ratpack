@@ -181,6 +181,7 @@ public interface Execution extends MutableRegistry {
    * @throws IllegalStateException if this is a top level exception with no parent
    * @return a ref to the execution that forked this execution
    * @see #maybeParent()
+   * @since 1.6
    */
   default ExecutionRef getParent() {
     return getRef().getParent();
@@ -190,6 +191,7 @@ public interface Execution extends MutableRegistry {
    * A ref to the execution that forked this execution, if it has a parent.
    *
    * @return a ref to the execution that forked this execution
+   * @since 1.6
    */
   default Optional<ExecutionRef> maybeParent() {
     return getRef().maybeParent();
