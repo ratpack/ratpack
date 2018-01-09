@@ -18,6 +18,7 @@ package ratpack.exec
 
 import ratpack.exec.util.Promised
 import ratpack.func.Action
+import spock.util.concurrent.PollingConditions
 
 class HierarchicalExecutionSpec extends BaseExecutionSpec {
 
@@ -50,7 +51,7 @@ class HierarchicalExecutionSpec extends BaseExecutionSpec {
 
     then:
     events == ["foo", "complete"]
-    ref.getAll(Object).toList().empty
+    new PollingConditions().eventually { ref.getAll(Object).toList().empty }
   }
 
   def "parent is available during child execution"() {
