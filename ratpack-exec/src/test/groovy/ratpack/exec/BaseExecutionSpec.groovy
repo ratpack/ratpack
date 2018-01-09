@@ -28,7 +28,7 @@ class BaseExecutionSpec extends Specification {
   @AutoCleanup
   ExecHarness execHarness = ExecHarness.harness()
 
-  List<Object> events = []
+  List<Object> events = [].asSynchronized()
   def latch = new CountDownLatch(1)
 
   def exec(Action<? super Execution> action, Action<? super Throwable> onError = { events << it }) {
@@ -38,11 +38,17 @@ class BaseExecutionSpec extends Specification {
   def execStarter(Action<? super ExecStarter> exec) {
     def spec = execHarness.controller.fork()
       .onError { events << it }
-      .onComplete { events << "complete"; latch.countDown() }
+      .onComplete {
+      events << "complete"; latch.countDown()
+    }
 
     exec.execute(spec)
 
     latch.await()
+  }
+
+  void counts(int counts) {
+    this.latch = new CountDownLatch(counts)
   }
 
 }

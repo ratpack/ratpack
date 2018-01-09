@@ -16,7 +16,6 @@
 
 package ratpack.registry.internal;
 
-import com.google.common.collect.Lists;
 import com.google.common.reflect.TypeToken;
 import ratpack.api.Nullable;
 import ratpack.func.Function;
@@ -25,26 +24,26 @@ import ratpack.registry.NotInRegistryException;
 import ratpack.registry.Registry;
 import ratpack.registry.RegistrySpec;
 
-import java.util.ArrayList;
+import java.util.Deque;
 import java.util.Iterator;
-import java.util.List;
 import java.util.Optional;
+import java.util.concurrent.ConcurrentLinkedDeque;
 import java.util.function.Supplier;
 
-public class SimpleMutableRegistry implements MutableRegistry {
+public class DefaultMutableRegistry implements MutableRegistry {
 
-  private final List<RegistryEntry<?>> entries = new ArrayList<>();
-  private final Registry registry = new MultiEntryRegistry(Lists.reverse(entries));
+  private final Deque<RegistryEntry<?>> entries = new ConcurrentLinkedDeque<>();
+  private final Registry registry = new MultiEntryRegistry(entries);
 
   @Override
   public <O> RegistrySpec addLazy(TypeToken<O> type, Supplier<? extends O> supplier) {
-    entries.add(new LazyRegistryEntry<>(type, supplier));
+    entries.push(new LazyRegistryEntry<>(type, supplier));
     return this;
   }
 
   @Override
   public <O> RegistrySpec add(TypeToken<O> type, O object) {
-    entries.add(new DefaultRegistryEntry<>(type, object));
+    entries.push(new DefaultRegistryEntry<>(type, object));
     return this;
   }
 

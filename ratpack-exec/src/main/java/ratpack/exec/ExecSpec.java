@@ -86,6 +86,9 @@ public interface ExecSpec {
    * <p>
    * The action will be invoked after the execution registry has been populated.
    * <p>
+   * When forking from another execution, the current execution for the callback is <i>that</i> execution
+   * and not the execution being created. That is, it is the parent execution of the new execution.
+   * <p>
    * This method is not additive.
    * That is, any subsequent calls replace the previous value.
 
@@ -96,6 +99,9 @@ public interface ExecSpec {
 
   /**
    * Populates the execution's registry.
+   * <p>
+   * When forking from another execution, the current execution for the callback is <i>that</i> execution
+   * and not the execution being created. That is, it is the parent execution of the new execution.
    * <p>
    * This method is not additive.
    * That is, any subsequent calls replace the previous value.

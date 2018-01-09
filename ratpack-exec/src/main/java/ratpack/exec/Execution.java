@@ -168,6 +168,34 @@ public interface Execution extends MutableRegistry {
   EventLoop getEventLoop();
 
   /**
+   * A reference to this execution.
+   *
+   * @return a reference to this execution
+   * @since 1.6
+   */
+  ExecutionRef getRef();
+
+  /**
+   * A ref to the execution that forked this execution.
+   *
+   * @throws IllegalStateException if this is a top level exception with no parent
+   * @return a ref to the execution that forked this execution
+   * @see #maybeParent()
+   */
+  default ExecutionRef getParent() {
+    return getRef().getParent();
+  }
+
+  /**
+   * A ref to the execution that forked this execution, if it has a parent.
+   *
+   * @return a ref to the execution that forked this execution
+   */
+  default Optional<ExecutionRef> maybeParent() {
+    return getRef().maybeParent();
+  }
+
+  /**
    * Registers a closeable that will be closed when the execution completes.
    * <p>
    * Where possible, care should be taken to have the given closeable not throw exceptions.

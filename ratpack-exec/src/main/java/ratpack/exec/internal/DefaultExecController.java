@@ -27,6 +27,7 @@ import ratpack.func.Action;
 import ratpack.func.Block;
 import ratpack.registry.RegistrySpec;
 import ratpack.util.internal.ChannelImplDetector;
+import ratpack.util.internal.InternalRatpackError;
 
 import java.util.Queue;
 import java.util.concurrent.*;
@@ -184,16 +185,29 @@ public class DefaultExecController implements ExecControllerInternal {
 
       @Override
       public void start(Action<? super Execution> initialExecutionSegment) {
-        if (eventLoop.inEventLoop() && DefaultExecution.get() == null) {
-          try {
-            new DefaultExecution(DefaultExecController.this, eventLoop, registry, initialExecutionSegment, onError, onStart, onComplete);
-          } catch (Throwable e) {
-            throw new InternalError("could not start execution", e);
-          }
+        DefaultExecution current = DefaultExecution.get();
+        DefaultExecution execution = createExecution(initialExecutionSegment, current == null ? null : current.getRef());
+        if (eventLoop.inEventLoop() && current == null) {
+          execution.drain();
         } else {
-          eventLoop.submit(() ->
-            new DefaultExecution(DefaultExecController.this, eventLoop, registry, initialExecutionSegment, onError, onStart, onComplete)
+          eventLoop.submit(execution::drain);
+        }
+      }
+
+      private DefaultExecution createExecution(Action<? super Execution> initialExecutionSegment, ExecutionRef parentRef) {
+        try {
+          return new DefaultExecution(
+            DefaultExecController.this,
+            parentRef,
+            eventLoop,
+            registry,
+            initialExecutionSegment,
+            onError,
+            onStart,
+            onComplete
           );
+        } catch (Throwable e) {
+          throw new InternalRatpackError("could not start execution", e);
         }
       }
     };

@@ -22,13 +22,13 @@ import ratpack.registry.Registry
 import ratpack.registry.RegistrySpec
 import ratpack.test.internal.registry.RegistryContractSpec
 
-class SimpleMutableRegistrySpec extends RegistryContractSpec {
+class DefaultMutableRegistrySpec extends RegistryContractSpec {
 
-  def r = new SimpleMutableRegistry()
+  def r = Registry.mutable()
 
   @Override
   Registry build(Action<? super RegistrySpec> spec) {
-    def r = new SimpleMutableRegistry()
+    def r = new DefaultMutableRegistry()
     spec.execute(r)
     r
   }
