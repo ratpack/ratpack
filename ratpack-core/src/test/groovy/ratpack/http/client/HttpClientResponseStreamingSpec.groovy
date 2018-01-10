@@ -98,9 +98,9 @@ class HttpClientResponseStreamingSpec extends BaseHttpClientSpec {
         http.requestStream(otherAppUrl()) { it.readTimeout(Duration.ofMillis(500)) }.
           onError { render "requestStream: ${it.class.name}" }.
           then {
-            it.body.toList().
+            it.body.reduce(0, { a, b -> b.release(); a }).
               onError { render "body: ${it.class.name}" }.
-              then { it*.release(); render "ok" }
+              then { render "ok" }
           }
       }
     }
