@@ -16,12 +16,16 @@
 
 package ratpack.dropwizard.metrics;
 
+import io.netty.buffer.ByteBuf;
+import io.netty.buffer.ByteBufAllocator;
+import io.netty.buffer.ByteBufOutputStream;
 import io.prometheus.client.CollectorRegistry;
 import io.prometheus.client.exporter.common.TextFormat;
 import ratpack.handling.Context;
 import ratpack.handling.Handler;
 
-import java.io.StringWriter;
+import java.io.OutputStreamWriter;
+import java.io.Writer;
 
 /**
  * A Handler that exposes metric reports in Prometheus format.
@@ -41,10 +45,14 @@ public class MetricsPrometheusHandler implements Handler {
 
   @Override
   public void handle(Context ctx) throws Exception {
+    final ByteBufAllocator byteBufAllocator = ctx.get(ByteBufAllocator.class);
+
     ctx.getResponse().contentType(TextFormat.CONTENT_TYPE_004);
     ctx.getResponse().status(200);
-    StringWriter sw = new StringWriter();
-    TextFormat.write004(sw, ctx.get(CollectorRegistry.class).metricFamilySamples());
-    ctx.render(sw.toString());
+    ByteBuf buf = byteBufAllocator.ioBuffer();
+    Writer w = new OutputStreamWriter(new ByteBufOutputStream(buf));
+    TextFormat.write004(w, ctx.get(CollectorRegistry.class).metricFamilySamples());
+    w.flush();
+    ctx.getResponse().send(buf);
   }
 }

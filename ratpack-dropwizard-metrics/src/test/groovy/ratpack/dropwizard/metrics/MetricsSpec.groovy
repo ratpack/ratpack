@@ -771,7 +771,7 @@ class MetricsSpec extends RatpackGroovyDslSpec {
 
       metrics.register("fooGauge", new com.codahale.metrics.Gauge<Integer>() {
         @Override
-        public Integer getValue() {
+        Integer getValue() {
           2
         }
       })
