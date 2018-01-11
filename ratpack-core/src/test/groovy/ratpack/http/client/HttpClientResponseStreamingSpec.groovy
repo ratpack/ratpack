@@ -21,6 +21,8 @@ import io.netty.channel.Channel
 import org.reactivestreams.Subscriber
 import org.reactivestreams.Subscription
 import ratpack.exec.Blocking
+import ratpack.exec.Execution
+import ratpack.exec.Promise
 import ratpack.exec.util.ParallelBatch
 import ratpack.http.ResponseChunks
 import ratpack.stream.Streams
@@ -51,6 +53,60 @@ class HttpClientResponseStreamingSpec extends BaseHttpClientSpec {
 
     then:
     text == "ok"
+  }
+
+  def "timeout before headers are received causes promise for streamed response to error"() {
+    when:
+    otherApp {
+      get {
+        Execution.sleep(Duration.ofSeconds(2)).then { render "ok" }
+      }
+    }
+
+    handlers {
+      get { HttpClient http ->
+        http.requestStream(otherAppUrl()) { it.readTimeout(Duration.ofMillis(500)) }.
+          onError { render "requestStream: ${it.class.name}" }.
+          then {
+            it.body.toList().
+              onError { render "body: $it.message" }.
+              then { it*.release(); render "ok" }
+          }
+      }
+    }
+
+    then:
+    text == "requestStream: $HttpClientReadTimeoutException.name"
+  }
+
+  def "timeout after headers are received causes error in body stream"() {
+    when:
+    otherApp {
+      get {
+        render ResponseChunks.stringChunks(Streams.flatYield {
+          if (it.requestNum < 100) {
+            Promise.value("a")
+          } else {
+            Execution.sleep(Duration.ofSeconds(2)).map { null }
+          }
+        })
+      }
+    }
+
+    handlers {
+      get { HttpClient http ->
+        http.requestStream(otherAppUrl()) { it.readTimeout(Duration.ofMillis(500)) }.
+          onError { render "requestStream: ${it.class.name}" }.
+          then {
+            it.body.reduce(0, { a, b -> b.release(); a }).
+              onError { render "body: ${it.class.name}" }.
+              then { render "ok" }
+          }
+      }
+    }
+
+    then:
+    text == "body: $HttpClientReadTimeoutException.name"
   }
 
   def "can cancel subscription in complete signal"() {
@@ -298,7 +354,11 @@ class HttpClientResponseStreamingSpec extends BaseHttpClientSpec {
       }
 
       get {
-        http.requestStream(otherAppUrl(), { if (r) { it.responseMaxChunkSize(r) } }).then {
+        http.requestStream(otherAppUrl(), {
+          if (r) {
+            it.responseMaxChunkSize(r)
+          }
+        }).then {
           render ResponseChunks.bufferChunks("text/plain", it.getBody().wiretap {
             if (it.data) {
               max = Math.max(max, it.item.readableBytes())
