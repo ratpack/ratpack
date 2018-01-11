@@ -84,10 +84,12 @@ public interface ExecSpec {
   /**
    * Specifies an action to be taken just before the execution starts.
    * <p>
-   * The action will be invoked after the execution registry has been populated.
+   * The action will be invoked after {@link #register(Action)} and any {@link ExecInitializer}'s.
    * <p>
-   * When forking from another execution, the current execution for the callback is <i>that</i> execution
-   * and not the execution being created. That is, it is the parent execution of the new execution.
+   * The {@link Execution#current() current execution} during the given callback is the
+   * parent execution of the new execution being started.
+   * If the execution is being created from outside of an execution,
+   * there will be no current execution during the callback.
    * <p>
    * This method is not additive.
    * That is, any subsequent calls replace the previous value.
@@ -100,8 +102,10 @@ public interface ExecSpec {
   /**
    * Populates the execution's registry.
    * <p>
-   * When forking from another execution, the current execution for the callback is <i>that</i> execution
-   * and not the execution being created. That is, it is the parent execution of the new execution.
+   * The {@link Execution#current() current execution} during the given callback is the
+   * parent execution of the new execution being started.
+   * If the execution is being created from outside of an execution,
+   * there will be no current execution during the callback.
    * <p>
    * This method is not additive.
    * That is, any subsequent calls replace the previous value.
