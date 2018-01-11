@@ -792,7 +792,7 @@ class MetricsSpec extends RatpackGroovyDslSpec {
 
     then:
     metrics.contains("fooGauge 2.0")
-    metrics.contains("2xx_responses 1.0")
+    metrics.contains("_2xx_responses 1.0")
     metrics.contains("fooCounter 1.0")
     metrics.contains("fooHistogram{quantile=\"0.5\",} 1.0")
     metrics.contains("fooHistogram{quantile=\"0.75\",} 1.0")
