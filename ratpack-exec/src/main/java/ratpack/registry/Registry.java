@@ -383,7 +383,7 @@ public interface Registry {
    * @since 1.4
    */
   static MutableRegistry mutable() {
-    return new SimpleMutableRegistry();
+    return new DefaultMutableRegistry();
   }
 
 }

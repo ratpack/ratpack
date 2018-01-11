@@ -26,13 +26,15 @@ import io.netty.util.internal.PlatformDependent;
 import org.reactivestreams.Publisher;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import ratpack.api.Nullable;
 import ratpack.exec.*;
 import ratpack.func.Action;
 import ratpack.func.Block;
 import ratpack.registry.MutableRegistry;
 import ratpack.registry.NotInRegistryException;
+import ratpack.registry.Registry;
 import ratpack.registry.RegistrySpec;
-import ratpack.registry.internal.SimpleMutableRegistry;
+import ratpack.registry.internal.DefaultMutableRegistry;
 import ratpack.stream.TransformablePublisher;
 
 import java.util.*;
@@ -47,6 +49,7 @@ public class DefaultExecution implements Execution {
 
   private ExecStream execStream;
 
+  private final Ref ref;
   private final ExecControllerInternal controller;
   private final EventLoop eventLoop;
   private final Action<? super Throwable> onError;
@@ -54,13 +57,13 @@ public class DefaultExecution implements Execution {
 
   private List<AutoCloseable> closeables;
 
-  private final MutableRegistry registry = new SimpleMutableRegistry();
+  private final MutableRegistry registry = new DefaultMutableRegistry();
 
   private List<ExecInterceptor> adhocInterceptors;
   private Iterable<? extends ExecInterceptor> interceptors;
 
   public DefaultExecution(
-    ExecControllerInternal controller,
+    ExecControllerInternal controller, @Nullable ExecutionRef parent,
     EventLoop eventLoop,
     Action<? super RegistrySpec> registryInit,
     Action<? super Execution> action,
@@ -68,6 +71,7 @@ public class DefaultExecution implements Execution {
     Action<? super Execution> onStart,
     Action<? super Execution> onComplete
   ) throws Exception {
+    this.ref = new Ref(this, parent);
     this.controller = controller;
     this.eventLoop = eventLoop;
     this.onError = onError;
@@ -89,8 +93,6 @@ public class DefaultExecution implements Execution {
     for (ExecInitializer initializer : registry.getAll(ExecInitializer.class)) {
       initializer.init(this);
     }
-
-    drain();
   }
 
   public static DefaultExecution get() throws UnmanagedThreadException {
@@ -127,6 +129,12 @@ public class DefaultExecution implements Execution {
       );
   }
 
+  @Override
+  public ExecutionRef getRef() {
+    return ref;
+  }
+
+  @Override
   public EventLoop getEventLoop() {
     return eventLoop;
   }
@@ -149,7 +157,7 @@ public class DefaultExecution implements Execution {
     return THREAD_BINDING.get() == this;
   }
 
-  private void drain() {
+  public void drain() {
     if (execStream == TerminalExecStream.INSTANCE) {
       return;
     }
@@ -217,6 +225,8 @@ public class DefaultExecution implements Execution {
           }
         }
       }
+
+      ref.execution = null;
     }
   }
 
@@ -600,4 +610,54 @@ public class DefaultExecution implements Execution {
       }
     }
   }
+
+  private static final class Ref implements ExecutionRef {
+
+    private Execution execution;
+    private final ExecutionRef parent;
+
+    private Ref(Execution execution, ExecutionRef parent) {
+      this.execution = execution;
+      this.parent = parent;
+    }
+
+    private Registry getRegistry() {
+      Execution execution = this.execution;
+      if (execution == null) {
+        return Registry.empty();
+      } else {
+        return execution;
+      }
+    }
+
+    @Override
+    public ExecutionRef getParent() {
+      if (parent == null) {
+        throw new IllegalStateException("execution does not have a parent");
+      }
+      return parent;
+    }
+
+    @Override
+    public Optional<ExecutionRef> maybeParent() {
+      return Optional.ofNullable(parent);
+    }
+
+    @Override
+    public boolean isComplete() {
+      Execution execution = this.execution;
+      return execution == null || execution.isComplete();
+    }
+
+    @Override
+    public <O> Optional<O> maybeGet(TypeToken<O> type) {
+      return getRegistry().maybeGet(type);
+    }
+
+    @Override
+    public <O> Iterable<? extends O> getAll(TypeToken<O> type) {
+      return getRegistry().getAll(type);
+    }
+  }
+
 }
