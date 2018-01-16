@@ -24,6 +24,7 @@ import io.prometheus.client.exporter.common.TextFormat;
 import ratpack.handling.Context;
 import ratpack.handling.Handler;
 
+import java.io.IOException;
 import java.io.OutputStreamWriter;
 import java.io.Writer;
 
@@ -48,11 +49,18 @@ public class MetricsPrometheusHandler implements Handler {
     final ByteBufAllocator byteBufAllocator = ctx.get(ByteBufAllocator.class);
 
     ctx.getResponse().contentType(TextFormat.CONTENT_TYPE_004);
-    ctx.getResponse().status(200);
     ByteBuf buf = byteBufAllocator.ioBuffer();
-    Writer w = new OutputStreamWriter(new ByteBufOutputStream(buf));
-    TextFormat.write004(w, ctx.get(CollectorRegistry.class).metricFamilySamples());
-    w.flush();
-    ctx.getResponse().send(buf);
+    try (Writer w = new OutputStreamWriter(new ByteBufOutputStream(buf))) {
+      TextFormat.write004(w, ctx.get(CollectorRegistry.class).metricFamilySamples());
+      w.flush();
+      ctx.getResponse().send(buf);
+      ctx.getResponse().status(200);
+    } catch (IOException e) {
+      buf.release();
+      ctx.getResponse().status(500);
+      ctx.getResponse().send();
+      throw e;
+    }
+
   }
 }
