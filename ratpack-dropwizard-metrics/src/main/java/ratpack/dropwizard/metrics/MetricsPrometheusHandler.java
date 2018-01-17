@@ -48,19 +48,14 @@ public class MetricsPrometheusHandler implements Handler {
   public void handle(Context ctx) throws Exception {
     final ByteBufAllocator byteBufAllocator = ctx.get(ByteBufAllocator.class);
 
-    ctx.getResponse().contentType(TextFormat.CONTENT_TYPE_004);
     ByteBuf buf = byteBufAllocator.ioBuffer();
     try (Writer w = new OutputStreamWriter(new ByteBufOutputStream(buf))) {
       TextFormat.write004(w, ctx.get(CollectorRegistry.class).metricFamilySamples());
-      w.flush();
-      ctx.getResponse().send(buf);
-      ctx.getResponse().status(200);
+
     } catch (IOException e) {
       buf.release();
-      ctx.getResponse().status(500);
-      ctx.getResponse().send();
       throw e;
     }
-
+    ctx.getResponse().contentType(TextFormat.CONTENT_TYPE_004).status(200).send(buf);
   }
 }
