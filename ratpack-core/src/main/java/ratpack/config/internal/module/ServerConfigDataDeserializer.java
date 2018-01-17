@@ -79,6 +79,9 @@ public class ServerConfigDataDeserializer extends JsonDeserializer<ServerConfigD
     if (serverNode.hasNonNull("threads")) {
       data.setThreads(serverNode.get("threads").asInt(ServerConfig.DEFAULT_THREADS));
     }
+    if (serverNode.hasNonNull("registerShutdownHook")) {
+      data.setRegisterShutdownHook(serverNode.get("registerShutdownHook").asBoolean(true));
+    }
     if (serverNode.hasNonNull("publicAddress")) {
       data.setPublicAddress(toValue(codec, serverNode.get("publicAddress"), URI.class));
     }

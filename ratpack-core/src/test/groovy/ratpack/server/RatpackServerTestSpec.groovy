@@ -85,6 +85,23 @@ class RatpackServerTestSpec extends Specification {
     http.text == "bar"
   }
 
+  def "access Registry via RatpackServer"() {
+    given:
+    def value = "foo"
+    server = RatpackServer.of {
+      it
+        .serverConfig(ServerConfig.embedded())
+        .registryOf { it.add(String, value) }
+        .handler { return { it.render it.get(String) } as Handler }
+    }
+
+    when:
+    server.start()
+
+    then:
+    server.registry.get().get(String) == "foo"
+  }
+
   def "configuration changes are applied up on reload"() {
     given:
     def config = ServerConfig.embedded().development(true).build()

@@ -48,6 +48,7 @@ public class ServerConfigData {
   private int maxHeaderSize = ServerConfig.DEFAULT_MAX_HEADER_SIZE;
 
   private Duration idleTimeout = Duration.ZERO;
+  private boolean registerShutdownHook = true;
 
   public ServerConfigData(FileSystemBinding baseDir, InetAddress address, int port, boolean development, URI publicAddress) {
     this.baseDir = baseDir;
@@ -209,5 +210,13 @@ public class ServerConfigData {
 
   public Optional<Integer> getConnectQueueSize() {
     return connectQueueSize;
+  }
+
+  public boolean isRegisterShutdownHook() {
+    return registerShutdownHook;
+  }
+
+  public void setRegisterShutdownHook(boolean registerShutdownHook) {
+    this.registerShutdownHook = registerShutdownHook;
   }
 }
