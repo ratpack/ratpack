@@ -87,6 +87,19 @@ public interface ByContentSpec {
    * This only supports fully-specified content types (no "*" wildcards).
    *
    * @param mimeType the MIME type to register for
+   * @param block the code to invoke if the content type matches
+   * @return this
+   * @since 1.6
+   */
+  default ByContentSpec type(CharSequence mimeType, Block block) {
+    return type(mimeType, Handlers.of(block));
+  }
+
+  /**
+   * Specifies that the given handler should be used if the client wants content of the given MIME type.
+   * This only supports fully-specified content types (no "*" wildcards).
+   *
+   * @param mimeType the MIME type to register for
    * @param handler the handler to invoke if the content type matches
    * @return this
    * @since 1.5
@@ -98,11 +111,33 @@ public interface ByContentSpec {
    * This only supports fully-specified content types (no "*" wildcards).
    *
    * @param mimeType the MIME type to register for
+   * @param handler the handler to invoke if the content type matches
+   * @return this
+   * @since 1.6
+   */
+  ByContentSpec type(CharSequence mimeType, Handler handler);
+
+  /**
+   * Specifies that the given handler should be used if the client wants content of the given MIME type.
+   * This only supports fully-specified content types (no "*" wildcards).
+   *
+   * @param mimeType the MIME type to register for
    * @param handlerType the type of handler to retrieve from the registry and use
    * @return this
    * @since 1.5
    */
   ByContentSpec type(String mimeType, Class<? extends Handler> handlerType);
+
+  /**
+   * Specifies that the given handler should be used if the client wants content of the given MIME type.
+   * This only supports fully-specified content types (no "*" wildcards).
+   *
+   * @param mimeType the MIME type to register for
+   * @param handlerType the type of handler to retrieve from the registry and use
+   * @return this
+   * @since 1.6
+   */
+  ByContentSpec type(CharSequence mimeType, Class<? extends Handler> handlerType);
 
   /**
    * Specifies that the given handler should be used if the client wants content of type "text/plain".

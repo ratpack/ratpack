@@ -19,6 +19,7 @@ package ratpack.handling.internal;
 import com.google.common.base.Strings;
 import com.google.common.collect.Iterables;
 import io.netty.handler.codec.http.HttpHeaderNames;
+import io.netty.handler.codec.http.HttpHeaderValues;
 import ratpack.func.Action;
 import ratpack.handling.ByContentSpec;
 import ratpack.handling.Context;
@@ -69,9 +70,7 @@ public class ContentNegotiationHandler implements Handler {
 
   public static class DefaultByContentSpec implements ByContentSpec {
 
-    private static final String TYPE_PLAIN_TEXT = "text/plain";
     private static final String TYPE_HTML = "text/html";
-    private static final String TYPE_JSON = "application/json";
     private static final String TYPE_XML = "application/xml";
 
     private final Map<String, Handler> handlers;
@@ -96,11 +95,16 @@ public class ContentNegotiationHandler implements Handler {
 
     @Override
     public ByContentSpec type(String mimeType, Handler handler) {
+      return type((CharSequence) mimeType, handler);
+    }
+
+    @Override
+    public ByContentSpec type(CharSequence mimeType, Handler handler) {
       if (mimeType == null) {
         throw new IllegalArgumentException("mimeType cannot be null");
       }
 
-      String trimmed = mimeType.trim();
+      String trimmed = mimeType.toString().trim();
       if (trimmed.isEmpty()) {
         throw new IllegalArgumentException("mimeType cannot be a blank string");
       }
@@ -109,13 +113,13 @@ public class ContentNegotiationHandler implements Handler {
         throw new IllegalArgumentException("mimeType cannot include wildcards");
       }
 
-      handlers.put(mimeType, handler);
+      handlers.put(trimmed, handler);
       return this;
     }
 
     @Override
     public ByContentSpec plainText(Handler handler) {
-      return type(TYPE_PLAIN_TEXT, handler);
+      return type(HttpHeaderValues.TEXT_PLAIN, handler);
     }
 
     @Override
@@ -125,7 +129,7 @@ public class ContentNegotiationHandler implements Handler {
 
     @Override
     public ByContentSpec json(Handler handler) {
-      return type(TYPE_JSON, handler);
+      return type(HttpHeaderValues.APPLICATION_JSON, handler);
     }
 
     @Override
@@ -171,6 +175,11 @@ public class ContentNegotiationHandler implements Handler {
 
     @Override
     public ByContentSpec type(String mimeType, Class<? extends Handler> handlerType) {
+      return type(mimeType, registry.get(handlerType));
+    }
+
+    @Override
+    public ByContentSpec type(CharSequence mimeType, Class<? extends Handler> handlerType) {
       return type(mimeType, registry.get(handlerType));
     }
 

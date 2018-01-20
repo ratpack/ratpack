@@ -46,6 +46,19 @@ public interface GroovyByContentSpec extends ByContentSpec {
   }
 
   /**
+   * Specifies that the given handler should be used if the client wants content of the given MIME type.
+   * This only supports fully-specified content types (no "*" wildcards).
+   *
+   * @param mimeType the MIME type to register for
+   * @param handler the handler to invoke if the content type matches
+   * @return this
+   * @since 1.6
+   */
+  default GroovyByContentSpec type(CharSequence mimeType, @DelegatesTo(value = GroovyContext.class, strategy = Closure.DELEGATE_FIRST) Closure<?> handler) {
+    return type(mimeType, Groovy.groovyHandler(handler));
+  }
+
+  /**
    * Specifies that the given handler should be used if the client wants content of type "text/plain".
    *
    * @param handler the handler to invoke if the content type matches
@@ -115,13 +128,31 @@ public interface GroovyByContentSpec extends ByContentSpec {
    * {@inheritDoc}
    */
   @Override
+  GroovyByContentSpec type(CharSequence mimeType, Block block);
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
   GroovyByContentSpec type(String mimeType, Handler handler);
 
   /**
    * {@inheritDoc}
    */
   @Override
+  GroovyByContentSpec type(CharSequence mimeType, Handler handler);
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
   GroovyByContentSpec type(String mimeType, Class<? extends Handler> handlerType);
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  GroovyByContentSpec type(CharSequence mimeType, Class<? extends Handler> handlerType);
 
   /**
    * {@inheritDoc}
