@@ -38,12 +38,27 @@ public class DefaultGroovyByContentSpec implements GroovyByContentSpec {
   }
 
   @Override
+  public GroovyByContentSpec type(CharSequence mimeType, Block block) {
+    return r(delegate.type(mimeType, block));
+  }
+
+  @Override
   public GroovyByContentSpec type(String mimeType, Handler handler) {
     return r(delegate.type(mimeType, handler));
   }
 
   @Override
+  public GroovyByContentSpec type(CharSequence mimeType, Handler handler) {
+    return r(delegate.type(mimeType, handler));
+  }
+
+  @Override
   public GroovyByContentSpec type(String mimeType, Class<? extends Handler> handlerType) {
+    return r(delegate.type(mimeType, handlerType));
+  }
+
+  @Override
+  public GroovyByContentSpec type(CharSequence mimeType, Class<? extends Handler> handlerType) {
     return r(delegate.type(mimeType, handlerType));
   }
 

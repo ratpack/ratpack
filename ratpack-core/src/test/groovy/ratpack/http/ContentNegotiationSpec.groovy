@@ -16,6 +16,7 @@
 
 package ratpack.http
 
+import io.netty.handler.codec.http.HttpHeaderValues
 import ratpack.error.ServerErrorHandler
 import ratpack.http.client.RequestSpec
 import ratpack.test.internal.RatpackGroovyDslSpec
@@ -100,6 +101,33 @@ class ContentNegotiationSpec extends RatpackGroovyDslSpec {
     withAcceptHeader("text/html")
     then:
     text == "html"
+  }
+
+  def "Accepts valid custom mime types (#mimeType"(CharSequence mimeType, String expectedOutput) {
+    given:
+    handlers {
+        get {
+            byContent {
+                type(HttpHeaderValues.APPLICATION_OCTET_STREAM) {
+                    render "octect-stream"
+                  }
+                type("application/x-protobuf") {
+                    render "x-protobuf"
+                  }
+              }
+          }
+      }
+
+      when:
+    withAcceptHeader(mimeType.toString())
+
+      then:
+    text == expectedOutput
+
+      where:
+    mimeType                                  || expectedOutput
+    HttpHeaderValues.APPLICATION_OCTET_STREAM || "octect-stream"
+    "application/x-protobuf"                  || "x-protobuf"
   }
 
   def "refuses invalid custom mime types (#mimeType)"(String mimeType, String message) {
