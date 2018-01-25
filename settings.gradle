@@ -33,6 +33,7 @@ include \
     "ratpack-dropwizard-metrics",
     "ratpack-h2",
     "ratpack-thymeleaf",
+    "ratpack-thymeleaf3",
     "ratpack-lazybones",
     "ratpack-hikari",
     "ratpack-newrelic",
