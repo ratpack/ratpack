@@ -265,7 +265,7 @@ public class DropwizardMetricsModule extends ConfigurableModule<DropwizardMetric
           metricRegistry.registerAll(metricSet);
         }
       });
-	  
+
       if (config.isPrometheusCollection()) {
         final CollectorRegistry collectorRegistry = injector.getInstance(CollectorRegistry.class);
         final MetricRegistry metricRegistry = injector.getInstance(MetricRegistry.class);
