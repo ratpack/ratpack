@@ -380,6 +380,10 @@ task manualZip(type: Zip) {
   from packageManual
 }
 
+configurations {
+  published.extendsFrom zip
+}
+
 artifacts {
-  published manualZip
+  zip manualZip
 }
