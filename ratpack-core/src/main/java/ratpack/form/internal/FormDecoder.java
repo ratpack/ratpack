@@ -73,15 +73,9 @@ public abstract class FormDecoder {
             values.add(((Attribute) data).getValue());
           } catch (IOException e) {
             throw uncheck(e);
-          } finally {
-            data.release();
           }
         } else if (data.getHttpDataType().equals(InterfaceHttpData.HttpDataType.FileUpload)) {
-          List<UploadedFile> values = files.get(data.getName());
-          if (values == null) {
-            values = new ArrayList<>(1);
-            files.put(data.getName(), values);
-          }
+          List<UploadedFile> values = files.computeIfAbsent(data.getName(), k -> new ArrayList<>(1));
           try {
             FileUpload nettyFileUpload = (FileUpload) data;
             final ByteBuf byteBuf = nettyFileUpload.getByteBuf();
@@ -106,8 +100,6 @@ public abstract class FormDecoder {
             values.add(fileUpload);
           } catch (IOException e) {
             throw uncheck(e);
-          } finally {
-            data.release();
           }
         }
         data = decoder.next();
