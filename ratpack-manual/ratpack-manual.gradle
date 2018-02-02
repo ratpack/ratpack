@@ -380,9 +380,6 @@ task manualZip(type: Zip) {
   from packageManual
 }
 
-configurations {
-  zip
-}
 artifacts {
-  zip manualZip
+  published manualZip
 }
