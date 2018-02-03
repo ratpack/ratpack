@@ -64,7 +64,7 @@ public abstract class Blocking {
               @Override
               public Result<T> get() {
                 try {
-                  DefaultExecution.THREAD_BINDING.set(execution);
+                  execution.bindToThread();
                   intercept(execution, execution.getAllInterceptors().iterator(), () -> {
                     try {
                       result = Result.success(factory.create());
@@ -77,7 +77,7 @@ public abstract class Blocking {
                   DefaultExecution.interceptorError(e);
                   return result;
                 } finally {
-                  DefaultExecution.THREAD_BINDING.remove();
+                  execution.unbindFromThread();
                 }
               }
             }, execution.getController().getBlockingExecutor()

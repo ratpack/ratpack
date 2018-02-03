@@ -59,6 +59,8 @@ public class DefaultExecution implements Execution {
   private List<ExecInterceptor> adhocInterceptors;
   private Iterable<? extends ExecInterceptor> interceptors;
 
+  private Thread thread;
+
   public DefaultExecution(
     ExecControllerInternal controller,
     EventLoop eventLoop,
@@ -146,32 +148,41 @@ public class DefaultExecution implements Execution {
   }
 
   public boolean isBound() {
-    return THREAD_BINDING.get() == this;
+    return thread == Thread.currentThread();
   }
 
   private void drain() {
+    if (thread == Thread.currentThread()) {
+      return; // already draining
+    }
+
     if (execStream == TerminalExecStream.INSTANCE) {
       return;
     }
 
-    DefaultExecution currentExecution = THREAD_BINDING.get();
-    if (this == currentExecution) {
-      return;
-    }
-
-    if (!eventLoop.inEventLoop() || currentExecution != null) {
+    if (!eventLoop.inEventLoop()) {
       eventLoopDrain();
       return;
     }
 
     try {
-      THREAD_BINDING.set(this);
-      intercept(interceptors.iterator());
+      bindToThread();
+      exec(interceptors.iterator());
     } catch (Throwable e) {
       interceptorError(e);
     } finally {
-      THREAD_BINDING.remove();
+      unbindFromThread();
     }
+  }
+
+  public void unbindFromThread() {
+    THREAD_BINDING.remove();
+    thread = null;
+  }
+
+  public void bindToThread() {
+    THREAD_BINDING.set(this);
+    thread = Thread.currentThread();
   }
 
   public static void interceptorError(Throwable e) {
@@ -182,9 +193,9 @@ public class DefaultExecution implements Execution {
     return interceptors;
   }
 
-  private void intercept(final Iterator<? extends ExecInterceptor> interceptors) throws Exception {
+  private void exec(final Iterator<? extends ExecInterceptor> interceptors) throws Exception {
     if (interceptors.hasNext()) {
-      interceptors.next().intercept(this, ExecInterceptor.ExecType.COMPUTE, () -> intercept(interceptors));
+      interceptors.next().intercept(this, ExecInterceptor.ExecType.COMPUTE, () -> exec(interceptors));
     } else {
       exec();
     }
