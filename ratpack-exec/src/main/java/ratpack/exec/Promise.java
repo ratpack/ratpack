@@ -959,25 +959,8 @@ public interface Promise<T> {
     return operation(Action.noop());
   }
 
-  /**
-   * Converts this promise to an operation which is effectively {@code action}.
-   *
-   * @param action an operation on the promised value
-   * @return an operation representing {@code action}
-   */
   default Operation operation(@NonBlocking Action<? super T> action) {
     return Operation.of(() -> then(action));
-  }
-
-  /**
-   * Converts this promise to an operation, which is the return of {@code function}.
-   *
-   * @param function a function that returns an operation for the promised value
-   * @return effectively the return of {@code function}
-   * @since 1.6
-   */
-  default Operation flatOp(Function<? super T, ? extends Operation> function) {
-    return operation(t -> function.apply(t).then());
   }
 
   /**

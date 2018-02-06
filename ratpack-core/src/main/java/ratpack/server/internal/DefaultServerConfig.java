@@ -73,11 +73,6 @@ public class DefaultServerConfig extends DelegatingConfigData implements ServerC
   }
 
   @Override
-  public boolean isRegisterShutdownHook() {
-    return serverConfigData.isRegisterShutdownHook();
-  }
-
-  @Override
   public URI getPublicAddress() {
     return serverConfigData.getPublicAddress();
   }

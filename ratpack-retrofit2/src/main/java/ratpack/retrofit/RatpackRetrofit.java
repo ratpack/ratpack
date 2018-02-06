@@ -17,10 +17,7 @@
 package ratpack.retrofit;
 
 import com.google.common.base.Preconditions;
-import ratpack.exec.Execution;
 import ratpack.func.Action;
-import ratpack.func.Factory;
-import ratpack.handling.Context;
 import ratpack.http.client.HttpClient;
 import ratpack.retrofit.internal.RatpackCallAdapterFactory;
 import ratpack.retrofit.internal.RatpackCallFactory;
@@ -107,14 +104,6 @@ public abstract class RatpackRetrofit {
 
     private final URI uri;
     private Action<? super Retrofit.Builder> builderAction = Action.noop();
-    private Factory<? extends HttpClient> clientFactory = () -> {
-      Execution exec = Execution.current();
-      return exec
-        .maybeGet(HttpClient.class)
-        .orElseGet(() ->
-          exec.get(Context.class).get(HttpClient.class)
-        );
-    };
 
     private Builder(URI uri) {
       Preconditions.checkNotNull(uri, "Must provide the base uri.");
@@ -127,7 +116,7 @@ public abstract class RatpackRetrofit {
      * This is used to customize the behavior of Retrofit.
      *
      * @param builderAction the actions to apply to the Retrofit builder
-     * @return {@code this}
+     * @return this
      * @see retrofit2.Converter.Factory
      * @see retrofit2.CallAdapter.Factory
      */
@@ -136,40 +125,17 @@ public abstract class RatpackRetrofit {
       return this;
     }
 
-    /**
-     * Configures a {@link Factory} that supplies the underlying {@link HttpClient} to back
-     * client interfaces generated from the return of {@link #retrofit()}
-     * <p>
-     * By default, the following locations are searched in order, with the first {@link HttpClient} found used to back
-     * the client interfaces.
-     * <ul>
-     *   <li>Current {@link Execution}</li>
-     *   <li>{@link Context} in the current {@link Execution}</li>
-     * </ul>
-     * <p>
-     * If no {@link HttpClient} is found, a {@link ratpack.registry.NotInRegistryException} is thrown.
-     *
-     * @param clientFactory a factory that generates a HttpClient to be used
-     * @return {@code this}
-     * @since 1.6
-     */
-    public Builder httpClient(Factory<? extends HttpClient> clientFactory) {
-      this.clientFactory = clientFactory;
-      return this;
-    }
-
 
     /**
      * Creates the underlying {@link Retrofit} instance and configures it to interface with {@link HttpClient} and {@link ratpack.exec.Promise}.
      * <p>
      * The resulting Retrofit instance can be re-used to generate multiple client interfaces which share the same base URI.
-     *
      * @return the Retrofit instance to create client interfaces
      */
     public Retrofit retrofit() {
       Retrofit.Builder builder = new Retrofit.Builder()
-        .callFactory(RatpackCallFactory.with(clientFactory))
-        .addCallAdapterFactory(RatpackCallAdapterFactory.with(clientFactory))
+        .callFactory(RatpackCallFactory.INSTANCE)
+        .addCallAdapterFactory(RatpackCallAdapterFactory.INSTANCE)
         .addConverterFactory(ScalarsConverterFactory.create())
         .addConverterFactory(ReceivedResponseConverterFactory.INSTANCE);
       builder.baseUrl(uri.toString());
@@ -180,7 +146,7 @@ public abstract class RatpackRetrofit {
     /**
      * Uses this builder to create a Retrofit client implementation.
      * <p>
-     * This is the short form of calling {@code builder.retrofit().create(service)}.
+     * This is the short form of calling {@code client.retrofit().build(service)}.
      *
      * @param service the client interface to generate.
      * @param <T> the type of the client interface.

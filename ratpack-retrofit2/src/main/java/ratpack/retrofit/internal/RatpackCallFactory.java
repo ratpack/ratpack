@@ -21,8 +21,9 @@ import okhttp3.Call;
 import okhttp3.Response;
 import okio.Buffer;
 import okio.BufferedSource;
+import ratpack.exec.Execution;
 import ratpack.exec.Promise;
-import ratpack.func.Factory;
+import ratpack.handling.Context;
 import ratpack.http.MutableHeaders;
 import ratpack.http.client.HttpClient;
 import ratpack.http.client.ReceivedResponse;
@@ -33,33 +34,24 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 
-import static ratpack.util.Exceptions.uncheck;
-
 public class RatpackCallFactory implements okhttp3.Call.Factory {
 
-  private final Factory<? extends HttpClient> factory;
+  public static final RatpackCallFactory INSTANCE = new RatpackCallFactory();
 
-  private RatpackCallFactory(Factory<? extends HttpClient> factory) {
-    this.factory = factory;
-  }
-
-  public static RatpackCallFactory with(Factory<? extends HttpClient> factory) {
-    return new RatpackCallFactory(factory);
+  private RatpackCallFactory() {
   }
 
   @Override
   public Call newCall(Request request) {
-    return new RatpackCall(request, factory);
+    return new RatpackCall(request);
   }
 
   static class RatpackCall implements Call {
 
     private final Request request;
-    private final ratpack.func.Factory<? extends HttpClient> clientFactory;
 
-    public RatpackCall(Request request, ratpack.func.Factory<? extends HttpClient> clientFactory) {
+    public RatpackCall(Request request) {
       this.request = request;
-      this.clientFactory = clientFactory;
     }
 
     @Override
@@ -87,7 +79,9 @@ public class RatpackCallFactory implements okhttp3.Call.Factory {
     }
 
     Promise<ReceivedResponse> promise() {
-      HttpClient client = uncheck(clientFactory);
+      HttpClient client = Execution.current()
+        .get(Context.class)
+        .get(HttpClient.class);
       return client.request(request.url().uri(), this::configureRequest);
     }
 

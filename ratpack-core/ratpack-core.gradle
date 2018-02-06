@@ -25,10 +25,10 @@ ext.apiLinks = [
     "http://docs.oracle.com/javase/8/docs/api/",
     "http://google.github.io/guava/releases/${commonVersions.guava}/api/docs",
     "http://www.reactive-streams.org/reactive-streams-${commonVersions.reactiveStreams - '.final'}-javadoc/",
-    "https://fasterxml.github.io/jackson-databind/javadoc/2.9/",
-    "https://fasterxml.github.io/jackson-modules-java8/javadoc/datatypes/2.9/",
-    "https://fasterxml.github.io/jackson-modules-java8/javadoc/datetime/2.9/",
-    "https://fasterxml.github.io/jackson-datatypes-collections/javadoc/guava/2.9/"
+    "http://fasterxml.github.io/jackson-databind/javadoc/2.7/",
+    "http://fasterxml.github.io/jackson-datatype-jdk8/javadoc/2.7",
+    "http://fasterxml.github.io/jackson-datatype-guava/javadoc/2.7",
+    "http://fasterxml.github.io/jackson-datatype-jsr310/javadoc/2.7"
 ]
 
 dependencies {

@@ -121,13 +121,6 @@ public interface HttpClient extends AutoCloseable {
   int getPoolSize();
 
   /**
-   * The number of connections that the client will queue if pool was depleted for any given server.
-   *
-   * @since 1.6
-   */
-  int getPoolQueueSize();
-
-  /**
    * The default read timeout value.
    *
    * @since 1.4
@@ -164,16 +157,6 @@ public interface HttpClient extends AutoCloseable {
    */
   @Override
   void close();
-
-  /**
-   * Create a new HttpClient by appending the provided configuration to this client.
-   *
-   * @param action The additional configuration to apply to the new client
-   * @return a http client
-   * @throws Exception any thrown by {@code action}
-   * @since 1.6
-   */
-  HttpClient copyWith(Action<? super HttpClientSpec> action) throws Exception;
 
   /**
    * An asynchronous method to do a POST HTTP request, the URL and all details of the request are configured by the Action acting on the RequestSpec, but the method will be defaulted to a POST.

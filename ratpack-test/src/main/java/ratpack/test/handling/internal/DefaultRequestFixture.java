@@ -60,7 +60,6 @@ import java.net.InetSocketAddress;
 import java.time.Instant;
 import java.util.Collections;
 import java.util.Map;
-import java.util.Optional;
 
 import static io.netty.buffer.Unpooled.buffer;
 import static io.netty.buffer.Unpooled.unreleasableBuffer;
@@ -348,11 +347,6 @@ public class DefaultRequestFixture implements RequestFixture {
 
     @Override
     public RatpackServer reload() throws Exception {
-      throw new UnsupportedOperationException();
-    }
-
-    @Override
-    public Optional<Registry> getRegistry() {
       throw new UnsupportedOperationException();
     }
   }

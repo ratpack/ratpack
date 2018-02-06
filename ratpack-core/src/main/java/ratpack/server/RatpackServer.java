@@ -19,10 +19,7 @@ package ratpack.server;
 import ratpack.api.Nullable;
 import ratpack.func.Action;
 import ratpack.impose.Impositions;
-import ratpack.registry.Registry;
 import ratpack.server.internal.DefaultRatpackServer;
-
-import java.util.Optional;
 
 /**
  * The entry point for creating and starting a Ratpack application.
@@ -193,11 +190,4 @@ public interface RatpackServer {
    */
   RatpackServer reload() throws Exception;
 
-  /**
-   * Convenience method to provide easy access to the application registry via a server reference
-   *
-   * @return a Ratpack registry
-   * @since 1.6
-   */
-  Optional<Registry> getRegistry();
 }

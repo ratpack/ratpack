@@ -18,8 +18,6 @@ package ratpack.retrofit.internal;
 
 import com.google.common.reflect.TypeToken;
 import ratpack.exec.Promise;
-import ratpack.func.Factory;
-import ratpack.http.client.HttpClient;
 import ratpack.http.client.ReceivedResponse;
 import ratpack.retrofit.RatpackRetrofitCallException;
 import ratpack.util.Exceptions;
@@ -31,14 +29,10 @@ import java.lang.reflect.Type;
 
 public class RatpackCallAdapterFactory extends CallAdapter.Factory {
 
-  private final Factory<? extends HttpClient> factory;
+  public static final RatpackCallAdapterFactory INSTANCE = new RatpackCallAdapterFactory();
 
-  private RatpackCallAdapterFactory(Factory<? extends HttpClient> factory) {
-    this.factory = factory;
-  }
+  private RatpackCallAdapterFactory() {
 
-  public static RatpackCallAdapterFactory with(Factory<? extends HttpClient> factory) {
-    return new RatpackCallAdapterFactory(factory);
   }
 
   @Override
@@ -67,7 +61,7 @@ public class RatpackCallAdapterFactory extends CallAdapter.Factory {
       Type responseType = Utils.getSingleParameterUpperBound((ParameterizedType) parameterType);
       return new ResponseCallAdapter(responseType);
     } else if (parameterTypeToken.getRawType() == ReceivedResponse.class) {
-      return new ReceivedResponseCallAdapter(parameterType, factory);
+      return new ReceivedResponseCallAdapter(parameterType);
     }
     //Else we're just promising a value
     return new SimpleCallAdapter(parameterType);
@@ -76,11 +70,9 @@ public class RatpackCallAdapterFactory extends CallAdapter.Factory {
   static final class ReceivedResponseCallAdapter implements CallAdapter<Promise<?>> {
 
     private final Type responseType;
-    private final ratpack.func.Factory<? extends HttpClient> factory;
 
-    ReceivedResponseCallAdapter(Type responseType, ratpack.func.Factory<? extends HttpClient> factory) {
+    ReceivedResponseCallAdapter(Type responseType) {
       this.responseType = responseType;
-      this.factory = factory;
     }
 
     @Override
@@ -90,7 +82,7 @@ public class RatpackCallAdapterFactory extends CallAdapter.Factory {
 
     @Override
     public <R> Promise<ReceivedResponse> adapt(Call<R> call) {
-      return ((RatpackCallFactory.RatpackCall) RatpackCallFactory.with(factory).newCall(call.request())).promise();
+      return new RatpackCallFactory.RatpackCall(call.request()).promise();
     }
   }
 

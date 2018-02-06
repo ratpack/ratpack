@@ -142,18 +142,6 @@ public interface ServerConfigBuilder extends ConfigDataBuilder {
   ServerConfigBuilder threads(int threads);
 
   /**
-   * Whether or not to register a JVM shutdown hook to gracefully stop the server.
-   * <p>
-   * Default value is {@code true}.
-   *
-   * @param registerShutdownHook whether to register or not
-   * @return {@code this}
-   * @since 1.6
-   * @see ServerConfig#isRegisterShutdownHook()
-   */
-  ServerConfigBuilder registerShutdownHook(boolean registerShutdownHook);
-
-  /**
    * The public address of the application.
    * <p>
    * Default value is {@code null}.

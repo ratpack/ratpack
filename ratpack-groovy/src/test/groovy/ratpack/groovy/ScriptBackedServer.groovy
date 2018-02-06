@@ -18,7 +18,6 @@ package ratpack.groovy
 
 import ratpack.impose.ForceServerListenPortImposition
 import ratpack.impose.Impositions
-import ratpack.registry.Registry
 import ratpack.server.RatpackServer
 import ratpack.server.StartupFailureException
 import ratpack.server.internal.ServerCapturer
@@ -58,11 +57,6 @@ class ScriptBackedServer implements RatpackServer {
   @Override
   RatpackServer reload() throws Exception {
     return nestedServer?.reload()
-  }
-
-  @Override
-  Optional<Registry> getRegistry() {
-    return nestedServer.registry
   }
 
   @Override

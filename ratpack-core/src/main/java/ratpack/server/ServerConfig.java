@@ -175,19 +175,6 @@ public interface ServerConfig extends ConfigData {
   int getThreads();
 
   /**
-   * Whether a JVM shutdown hook was registered for the application in order to shut it down gracefully.
-   * <p>
-   * When {@code true}, the application will be {@link RatpackServer#stop() stopped} when the JVM starts shutting down.
-   * This allows graceful shutdown of the application when the process is terminated.
-   *
-   * Defaults to {@code true}.
-   *
-   * @since 1.6
-   * @return whether the shutdown hook was registered
-   */
-  boolean isRegisterShutdownHook();
-
-  /**
    * The public address of the site used for redirects.
    *
    * @return The url of the public address

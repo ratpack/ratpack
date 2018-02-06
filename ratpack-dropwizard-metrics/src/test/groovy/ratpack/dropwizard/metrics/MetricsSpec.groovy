@@ -24,28 +24,13 @@ import com.codahale.metrics.annotation.Metered
 import com.codahale.metrics.annotation.Timed
 import com.codahale.metrics.graphite.GraphiteSender
 import groovy.json.JsonSlurper
-import io.netty.buffer.ByteBufAllocator
-import io.netty.buffer.PooledByteBufAllocator
-import io.netty.buffer.UnpooledByteBufAllocator
 import org.junit.Rule
 import org.junit.rules.TemporaryFolder
 import org.slf4j.Logger
-import ratpack.error.ServerErrorHandler
-import ratpack.error.internal.DefaultDevelopmentErrorHandler
-import ratpack.dropwizard.metrics.internal.PooledByteBufAllocatorMetricSet
-import ratpack.dropwizard.metrics.internal.UnpooledByteBufAllocatorMetricSet
 import ratpack.exec.Blocking
-import ratpack.exec.ExecController
 import ratpack.exec.Promise
-import ratpack.groovy.handling.GroovyChain
-import ratpack.groovy.test.embed.GroovyEmbeddedApp
-import ratpack.http.client.HttpClient
-import ratpack.http.client.internal.DefaultHttpClient
-import ratpack.test.embed.EmbeddedApp
 import ratpack.test.internal.RatpackGroovyDslSpec
 import ratpack.websocket.RecordingWebSocketClient
-import spock.lang.AutoCleanup
-import spock.util.concurrent.BlockingVariable
 import spock.util.concurrent.PollingConditions
 
 import java.time.Duration
@@ -59,20 +44,6 @@ class MetricsSpec extends RatpackGroovyDslSpec {
 
   @Rule
   TemporaryFolder reportDirectory
-
-  @AutoCleanup
-  EmbeddedApp otherApp
-
-  EmbeddedApp otherApp(@DelegatesTo(value = GroovyChain, strategy = Closure.DELEGATE_FIRST) Closure<?> closure) {
-    otherApp = GroovyEmbeddedApp.of {
-      registryOf { add ServerErrorHandler, new DefaultDevelopmentErrorHandler() }
-      handlers(closure)
-    }
-  }
-
-  URI otherAppUrl(String path = "") {
-    new URI("$otherApp.address$path")
-  }
 
   def setup() {
     SharedMetricRegistries.clear()
@@ -314,7 +285,7 @@ class MetricsSpec extends RatpackGroovyDslSpec {
 
   }
 
-  def "can properly capture timing events"() {
+  def "can properly capture timing events" () {
     MetricRegistry registry
 
     given:
@@ -436,42 +407,6 @@ class MetricsSpec extends RatpackGroovyDslSpec {
     (1.._) * reporter.onGaugeAdded(!null, { it.class.name.startsWith("com.codahale.metrics.jvm.GarbageCollectorMetricSet") })
     (1.._) * reporter.onGaugeAdded(!null, { it.class.name.startsWith("com.codahale.metrics.jvm.ThreadStatesGaugeSet") })
     (1.._) * reporter.onGaugeAdded(!null, { it.class.name.startsWith("com.codahale.metrics.jvm.MemoryUsageGaugeSet") })
-  }
-
-  def "can collect #allocator metrics"() {
-    def reporter = Mock(MetricRegistryListener)
-
-    given:
-    bindings {
-      bindInstance ByteBufAllocator, allocator
-      module new DropwizardMetricsModule(), {
-        it.byteBufAllocator { c ->
-          c.enable(true)
-          c.detail(true)
-        }
-      }
-    }
-
-    handlers { MetricRegistry metrics ->
-      metrics.addListener(reporter)
-
-      all {
-        render ""
-      }
-    }
-
-    when:
-    get()
-
-    then:
-    (1.._) * reporter.onGaugeAdded(!null, {
-      it.class.name.startsWith(expected.name)
-    })
-
-    where:
-    allocator                        | expected
-    PooledByteBufAllocator.DEFAULT   | PooledByteBufAllocatorMetricSet
-    UnpooledByteBufAllocator.DEFAULT | UnpooledByteBufAllocatorMetricSet
   }
 
   def "can use metrics endpoint"() {
@@ -786,78 +721,4 @@ class MetricsSpec extends RatpackGroovyDslSpec {
     0 * reporter.onTimerAdded("foo.get-requests", !null)
   }
 
-  def "it should report http client metrics"() {
-    given:
-    System.setProperty("ratpack.metrics.httpclient.enabled", "true")
-    System.setProperty("ratpack.metrics.httpclient.pollingFrequency", "1")
-
-    MetricRegistry registry
-    String ok = 'ok'
-    def result = new BlockingVariable<String>()
-    def httpClient = HttpClient.of { DefaultHttpClient.Spec spec ->
-      spec.poolSize(0)
-      spec.enableMetricsCollection(true)
-    }
-
-    bindings {
-      bindInstance(HttpClient, httpClient)
-      module new DropwizardMetricsModule()
-    }
-
-    otherApp {
-      get {
-        Blocking.get({
-          return result.get()
-        })
-          .onError(it.&error)
-          .then(it.&render)
-      }
-    }
-
-    handlers { MetricRegistry metrics ->
-      registry = metrics
-      get {
-        ExecController execController = it.get(ExecController)
-        execController.fork().start({
-          httpClient.get(otherAppUrl())
-            .then({ val ->
-            assert val.body.text == ok
-          })
-        })
-        render ok
-      }
-    }
-
-    when:
-    text == ok
-
-    then:
-    polling.within(2) {
-      assert registry.getGauges().get('httpclient.total.active.connections').value == 1
-      assert registry.getGauges().get('httpclient.total.idle.connections').value == 0
-      assert registry.getGauges().get('httpclient.total.connections').value == 1
-      assert registry.getGauges().get("httpclient.${otherAppUrl().host}.total.active.connections").value == 1
-      assert registry.getGauges().get("httpclient.${otherAppUrl().host}.total.idle.connections").value == 0
-      assert registry.getGauges().get("httpclient.${otherAppUrl().host}.total.connections").value == 1
-
-
-    }
-
-    when:
-    result.set(ok)
-
-    then:
-    polling.within(2) {
-      assert registry.getGauges().get('httpclient.total.active.connections').value == 0
-      assert registry.getGauges().get('httpclient.total.idle.connections').value == 0
-      assert registry.getGauges().get('httpclient.total.connections').value == 0
-      assert registry.getGauges().get("httpclient.${otherAppUrl().host}.total.active.connections").value == 0
-      assert registry.getGauges().get("httpclient.${otherAppUrl().host}.total.idle.connections").value == 0
-      assert registry.getGauges().get("httpclient.${otherAppUrl().host}.total.connections").value == 0
-    }
-
-    cleanup:
-    System.setProperty("ratpack.metrics.httpclient.enabled", "false")
-    System.setProperty("ratpack.metrics.httpclient.pollingFrequency", "30")
-  }
 }

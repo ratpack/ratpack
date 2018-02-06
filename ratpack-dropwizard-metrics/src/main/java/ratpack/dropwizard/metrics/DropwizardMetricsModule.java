@@ -27,9 +27,6 @@ import com.google.inject.Injector;
 import com.google.inject.Provider;
 import com.google.inject.matcher.Matchers;
 import com.google.inject.multibindings.Multibinder;
-import io.netty.buffer.ByteBufAllocator;
-import io.netty.buffer.PooledByteBufAllocator;
-import io.netty.buffer.UnpooledByteBufAllocator;
 import ratpack.dropwizard.metrics.internal.*;
 import ratpack.guice.ConfigurableModule;
 import ratpack.handling.HandlerDecorator;
@@ -181,7 +178,6 @@ public class DropwizardMetricsModule extends ConfigurableModule<DropwizardMetric
     bind(GraphiteReporter.class).toProvider(GraphiteReporterProvider.class).in(SINGLETON);
     bind(MetricRegistryPeriodicPublisher.class).in(SINGLETON);
     bind(MetricsBroadcaster.class).in(SINGLETON);
-    bind(HttpClientMetrics.class).in(SINGLETON);
     bind(Startup.class);
 
     bind(BlockingExecTimingInterceptor.class).toProvider(BlockingExecTimingInterceptorProvider.class).in(SINGLETON);
@@ -244,24 +240,6 @@ public class DropwizardMetricsModule extends ConfigurableModule<DropwizardMetric
         metricRegistry.registerAll(new ThreadStatesGaugeSet());
         metricRegistry.registerAll(new MemoryUsageGaugeSet());
       }
-
-      config.getByteBufAllocator().ifPresent(byteBufAllocatorConfig -> {
-        if (byteBufAllocatorConfig.isEnabled()) {
-          final MetricRegistry metricRegistry = injector.getInstance(MetricRegistry.class);
-          final ByteBufAllocator byteBufAllocator = event.getRegistry().get(ByteBufAllocator.class);
-
-          final MetricSet metricSet;
-          if (byteBufAllocator instanceof PooledByteBufAllocator) {
-            metricSet = new PooledByteBufAllocatorMetricSet((PooledByteBufAllocator) byteBufAllocator, byteBufAllocatorConfig.isDetailed());
-          } else if (byteBufAllocator instanceof UnpooledByteBufAllocator) {
-            metricSet = new UnpooledByteBufAllocatorMetricSet((UnpooledByteBufAllocator) byteBufAllocator);
-          } else {
-            throw new UnsupportedOperationException(String.format("Unknown type of byte buf allocator (%s)", byteBufAllocator.getClass()));
-          }
-
-          metricRegistry.registerAll(metricSet);
-        }
-      });
     }
 
     @Override
