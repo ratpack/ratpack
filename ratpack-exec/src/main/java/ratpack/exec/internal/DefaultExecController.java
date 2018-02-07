@@ -131,7 +131,7 @@ public class DefaultExecController implements ExecControllerInternal {
     @Override
     public Thread newThread(final Runnable r) {
       return super.newThread(() -> {
-        ThreadBinding.bind(compute, DefaultExecController.this);
+        ExecThreadBinding.bind(compute, DefaultExecController.this);
         Thread.currentThread().setContextClassLoader(contextClassLoader);
         r.run();
       });

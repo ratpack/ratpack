@@ -19,7 +19,7 @@ package ratpack.exec;
 import com.google.common.reflect.TypeToken;
 import io.netty.channel.EventLoop;
 import ratpack.exec.internal.DefaultExecution;
-import ratpack.exec.internal.ThreadBinding;
+import ratpack.exec.internal.ExecThreadBinding;
 import ratpack.func.Action;
 import ratpack.func.Block;
 import ratpack.registry.MutableRegistry;
@@ -129,7 +129,7 @@ public interface Execution extends MutableRegistry {
    * @return whether the current thread is a thread that is managed by Ratpack
    */
   static boolean isManagedThread() {
-    return ThreadBinding.get().isPresent();
+    return ExecThreadBinding.get() != null;
   }
 
   /**
@@ -138,7 +138,7 @@ public interface Execution extends MutableRegistry {
    * @return whether the current thread is a Ratpack compute thread
    */
   static boolean isComputeThread() {
-    return ThreadBinding.get().map(ThreadBinding::isCompute).orElse(false);
+    return ExecThreadBinding.maybeGet().map(ExecThreadBinding::isCompute).orElse(false);
   }
 
   /**
@@ -147,7 +147,7 @@ public interface Execution extends MutableRegistry {
    * @return whether the current thread is a Ratpack blocking thread
    */
   static boolean isBlockingThread() {
-    return ThreadBinding.get().map(threadBinding -> !threadBinding.isCompute()).orElse(false);
+    return ExecThreadBinding.maybeGet().map(threadBinding -> !threadBinding.isCompute()).orElse(false);
   }
 
   /**

@@ -21,7 +21,6 @@ import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
 import com.google.common.reflect.TypeToken;
 import io.netty.channel.EventLoop;
-import io.netty.util.concurrent.FastThreadLocal;
 import io.netty.util.internal.PlatformDependent;
 import org.reactivestreams.Publisher;
 import org.slf4j.Logger;
@@ -42,8 +41,6 @@ import java.util.function.Supplier;
 public class DefaultExecution implements Execution {
 
   public final static Logger LOGGER = LoggerFactory.getLogger(Execution.class);
-
-  public final static FastThreadLocal<DefaultExecution> THREAD_BINDING = new FastThreadLocal<>();
 
   private ExecStream execStream;
 
@@ -95,16 +92,21 @@ public class DefaultExecution implements Execution {
     drain();
   }
 
-  public static DefaultExecution get() throws UnmanagedThreadException {
-    return THREAD_BINDING.get();
+  public static DefaultExecution get() {
+    ExecThreadBinding execThreadBinding = ExecThreadBinding.get();
+    if (execThreadBinding == null) {
+      return null;
+    } else {
+      return execThreadBinding.getExecution();
+    }
   }
 
   public static DefaultExecution require() throws UnmanagedThreadException {
-    DefaultExecution executionBacking = get();
-    if (executionBacking == null) {
-      throw new UnmanagedThreadException();
+    DefaultExecution execution = ExecThreadBinding.require().getExecution();
+    if (execution == null) {
+      throw new IllegalStateException("No execution bound for thread " + Thread.currentThread().getName());
     } else {
-      return executionBacking;
+      return execution;
     }
   }
 
@@ -152,7 +154,7 @@ public class DefaultExecution implements Execution {
   }
 
   private void drain() {
-    if (thread == Thread.currentThread()) {
+    if (isBound()) {
       return; // already draining
     }
 
@@ -160,7 +162,14 @@ public class DefaultExecution implements Execution {
       return;
     }
 
+    // Move to the right thread if necessary
     if (!eventLoop.inEventLoop()) {
+      eventLoopDrain();
+      return;
+    }
+
+    // Queue if our thread is busy with another execution
+    if (get() != null) {
       eventLoopDrain();
       return;
     }
@@ -176,13 +185,13 @@ public class DefaultExecution implements Execution {
   }
 
   public void unbindFromThread() {
-    THREAD_BINDING.remove();
     thread = null;
+    ExecThreadBinding.require().setExecution(null);
   }
 
   public void bindToThread() {
-    THREAD_BINDING.set(this);
     thread = Thread.currentThread();
+    ExecThreadBinding.require().setExecution(this);
   }
 
   public static void interceptorError(Throwable e) {
