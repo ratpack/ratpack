@@ -33,7 +33,7 @@ ext {
     reactiveStreams: "1.0.0.final",
     guice: "4.1.0",
     springBoot: "1.3.0.RELEASE",
-    caffeine: "2.4.0",
+    caffeine: "2.6.1",
     retrofit: "2.1.0",
     commonsLogging: "1.2",
     commonsCodec: "1.10",
