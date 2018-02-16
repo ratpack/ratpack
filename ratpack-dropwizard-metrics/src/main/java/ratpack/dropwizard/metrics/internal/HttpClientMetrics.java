@@ -26,6 +26,7 @@ import ratpack.http.client.internal.DefaultHttpClient;
 import ratpack.http.client.internal.HttpClientStats;
 import ratpack.service.Service;
 import ratpack.service.StartEvent;
+
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.TimeUnit;

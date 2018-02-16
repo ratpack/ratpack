@@ -165,7 +165,7 @@ public class DefaultExecution implements Execution {
     if (isBound()) {
       return; // already draining
     }
-    
+
     if (execStream == TerminalExecStream.INSTANCE) {
       return;
     }

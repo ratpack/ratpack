@@ -19,6 +19,7 @@ package ratpack.http.client.internal
 import io.netty.channel.Channel
 import ratpack.exec.Execution
 import spock.lang.Specification
+
 import java.time.Duration
 
 class InstrumentedSimpleChannelPoolHandlerSpec extends Specification {

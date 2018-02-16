@@ -30,10 +30,10 @@ import io.netty.buffer.UnpooledByteBufAllocator
 import org.junit.Rule
 import org.junit.rules.TemporaryFolder
 import org.slf4j.Logger
-import ratpack.error.ServerErrorHandler
-import ratpack.error.internal.DefaultDevelopmentErrorHandler
 import ratpack.dropwizard.metrics.internal.PooledByteBufAllocatorMetricSet
 import ratpack.dropwizard.metrics.internal.UnpooledByteBufAllocatorMetricSet
+import ratpack.error.ServerErrorHandler
+import ratpack.error.internal.DefaultDevelopmentErrorHandler
 import ratpack.exec.Blocking
 import ratpack.exec.ExecController
 import ratpack.exec.Promise

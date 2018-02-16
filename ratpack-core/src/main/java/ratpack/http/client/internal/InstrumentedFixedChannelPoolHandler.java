@@ -17,6 +17,7 @@
 package ratpack.http.client.internal;
 
 import io.netty.channel.Channel;
+
 import java.util.concurrent.atomic.LongAdder;
 
 public class InstrumentedFixedChannelPoolHandler extends NoopFixedChannelPoolHandler {

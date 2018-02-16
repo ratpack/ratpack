@@ -21,6 +21,7 @@ import io.netty.channel.ChannelConfig
 import io.netty.channel.ChannelPipeline
 import ratpack.exec.Execution
 import spock.lang.Specification
+
 import java.time.Duration
 
 class NoopFixedChannelPoolHandlerSpec extends Specification {
