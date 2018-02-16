@@ -38,7 +38,7 @@ buildscript {
 }
 
 allprojects {
-  version = "1.5.2"
+  version = "1.5.3-SNAPSHOT"
 }
 
 ext {
@@ -100,8 +100,12 @@ artifactoryPublish { task ->
 
 task bintrayPublish() {
   doLast {
-    if (!project.hasProperty("ratpackOssJfrogApiKey")) {
-      throw new InvalidUserDataException("You must provide ratpackOssJfrogApiKey")
+    if (!project.hasProperty("ratpackBintrayUser")) {
+      throw new InvalidUserDataException("You must provide ratpackBintrayUser")
+    }
+
+    if (!project.hasProperty("ratpackBintrayApiKey")) {
+      throw new InvalidUserDataException("You must provide ratpackBintrayApiKey")
     }
 
     if (!project.hasProperty('buildNumber')) {
@@ -110,20 +114,10 @@ task bintrayPublish() {
 
     def curl = ['curl',
                 '-X', 'POST',
-                "-H", "X-JFrog-Art-Api: ${ratpackOssJfrogApiKey}",
-                "-H", "Content-Type: application/json",
-                "-d", """{
-    "subject": "ratpack",
-    "repoName": "maven",
-    "packageName": "ratpack",
-    "versionName": "${project.version}",
-    "licenses": ["Apache-2.0"],
-    "vcs_url": "https://github.com/ratpack/ratpack"
-}
-""",
-                "https://oss.jfrog.org/api/build/pushToBintray/ratpack/$project.buildNumber"
+                "-u", "${ratpackBintrayUser}:${ratpackBintrayApiKey}",
+                "https://oss.jfrog.org/api/plugins/build/promote/releaseToBintray/ratpack/$buildNumber?params=org=ratpack;repo=maven;package=ratpack"
     ].execute()
-    logger.info("Received response: ${curl.text}")
+    println "Received response: ${curl.text}"
   }
 }
 
