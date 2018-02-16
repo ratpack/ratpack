@@ -142,6 +142,11 @@ class RequestConfig {
     }
 
     @Override
+    public int getRedirects() {
+      return this.maxRedirects;
+    }
+
+    @Override
     @SuppressWarnings("deprecation")
     public RequestSpec sslContext(SSLContext sslContext) {
       this.sslContext = new JdkSslContext(sslContext, true, ClientAuth.NONE);
@@ -152,6 +157,11 @@ class RequestConfig {
     public RequestSpec sslContext(SslContext sslContext) {
       this.sslContext = sslContext;
       return this;
+    }
+
+    @Override
+    public SslContext getSslContext() {
+      return this.sslContext;
     }
 
     @Override
@@ -175,6 +185,11 @@ class RequestConfig {
     }
 
     @Override
+    public int getMaxContentLength() {
+      return this.maxContentLength;
+    }
+
+    @Override
     public RequestSpec headers(Action<? super MutableHeaders> action) throws Exception {
       action.execute(getHeaders());
       return this;
@@ -184,6 +199,11 @@ class RequestConfig {
     public RequestSpec method(HttpMethod method) {
       this.method = method;
       return this;
+    }
+
+    @Override
+    public HttpMethod getMethod() {
+      return this.method;
     }
 
     @Override
@@ -198,15 +218,30 @@ class RequestConfig {
     }
 
     @Override
+    public boolean getDecompressResponse() {
+      return this.decompressResponse;
+    }
+
+    @Override
     public RequestSpec connectTimeout(Duration duration) {
       this.connectTimeout = duration;
       return this;
     }
 
     @Override
+    public Duration getConnectTimeout() {
+      return this.connectTimeout;
+    }
+
+    @Override
     public RequestSpec readTimeout(Duration duration) {
       this.readTimeout = duration;
       return this;
+    }
+
+    @Override
+    public Duration getReadTimeout() {
+      return this.readTimeout;
     }
 
     private void setBodyByteBuf(ByteBuf byteBuf) {

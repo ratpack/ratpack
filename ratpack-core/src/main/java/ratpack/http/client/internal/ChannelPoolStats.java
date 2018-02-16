@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 the original author or authors.
+ * Copyright 2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,19 +14,18 @@
  * limitations under the License.
  */
 
-package ratpack.http.client;
+package ratpack.http.client.internal;
 
-import ratpack.http.Response;
-import ratpack.http.TypedData;
+public interface ChannelPoolStats {
 
-public interface ReceivedResponse extends HttpResponse {
+  String getHost();
 
-  /**
-   *
-   * @return The {@link ratpack.http.TypedData} that represents the body.
-   */
-  TypedData getBody();
+  int getActiveConnectionCount();
 
-  void forwardTo(Response response);
+  int getIdleConnectionCount();
+
+  default HostStats getHostStats() {
+    return new HostStats(getActiveConnectionCount(), getIdleConnectionCount());
+  }
 
 }

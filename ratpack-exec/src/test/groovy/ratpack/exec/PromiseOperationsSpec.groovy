@@ -307,6 +307,18 @@ class PromiseOperationsSpec extends Specification {
     events == ["one", "foo", "two", "three", "oof", "four", "five", "complete"]
   }
 
+  def "can use flatOp"() {
+    when:
+    exec {
+      Promise.value(1)
+      .flatOp { i -> Operation.of { events << "op:$i" } }
+      .then()
+    }
+
+    then:
+    events == ["op:1", "complete"]
+  }
+
   def "can apply operation conditionally"() {
     when:
     exec {
