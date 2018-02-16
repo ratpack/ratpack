@@ -381,8 +381,9 @@ task manualZip(type: Zip) {
 }
 
 configurations {
-  zip
+  published.extendsFrom zip
 }
+
 artifacts {
   zip manualZip
 }

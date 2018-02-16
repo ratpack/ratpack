@@ -183,6 +183,7 @@ public class DropwizardMetricsModule extends ConfigurableModule<DropwizardMetric
     bind(GraphiteReporter.class).toProvider(GraphiteReporterProvider.class).in(SINGLETON);
     bind(MetricRegistryPeriodicPublisher.class).in(SINGLETON);
     bind(MetricsBroadcaster.class).in(SINGLETON);
+    bind(HttpClientMetrics.class).in(SINGLETON);
     bind(Startup.class);
 
     bind(BlockingExecTimingInterceptor.class).toProvider(BlockingExecTimingInterceptorProvider.class).in(SINGLETON);
