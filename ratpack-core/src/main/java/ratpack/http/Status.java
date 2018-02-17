@@ -25,16 +25,86 @@ import ratpack.http.internal.DefaultStatus;
 public interface Status {
 
   /**
-   * The 200 status code.
+   * The 1xx status codes.
    */
-  Status OK = Status.of(200);
+
+  Status CONTINUE = Status.of(100);
+  Status SWITCHING_PROTOCOLS = Status.of(101);
+  Status PROCESSING = Status.of(102);
+  Status EARLY_HINTS = Status.of(103);
 
   /**
-   * The 304 status code.
-   *
-   * @since 1.4
+   * The 2xx status codes.
    */
+  Status OK = Status.of(200);
+  Status CREATED = Status.of(201);
+  Status ACCEPTED = Status.of(202);
+  Status NON_AUTHORITATIVE_INFO = Status.of(203);
+  Status NO_CONTENT = Status.of(204);
+  Status RESET_CONTENT = Status.of(205);
+  Status PARTIAL_CONTENT = Status.of(206);
+  Status MULTI_STATUS = Status.of(207);
+  Status ALREADY_REPORTED = Status.of(208);
+  Status IM_USED = Status.of(226);
+
+  /**
+   * The 3xx status codes.
+   */
+  Status MULTIPLE_CHOICES = Status.of(300);
+  Status MOVED_PERMANENTLY = Status.of(301);
+  Status FOUND = Status.of(302);
+  Status SEE_OTHER = Status.of(303);
   Status NOT_MODIFIED = Status.of(304);
+  Status USE_PROXY = Status.of(305);
+  Status TEMPORARY_REDIRECT = Status.of(307);
+  Status PERMANENT_REDIRECT = Status.of(308);
+
+  /**
+   * The 4xx status codes.
+   */
+  Status BAD_REQUEST = Status.of(400);
+  Status UNAUTHORIZED = Status.of(401);
+  Status PAYMENT_REQUIRED = Status.of(402);
+  Status FORBIDDEN = Status.of(403);
+  Status NOT_FOUND = Status.of(404);
+  Status METHOD_NOT_ALLOWED = Status.of(405);
+  Status NOT_ACCEPTABLE = Status.of(406);
+  Status PROXY_AUTH_REQUIRED = Status.of(407);
+  Status REQUEST_TIMEOUT = Status.of(408);
+  Status CONFLICT = Status.of(409);
+  Status GONE = Status.of(410);
+  Status LENGTH_REQUIRED = Status.of(411);
+  Status PRECONDITION_FAILED = Status.of(412);
+  Status PAYLOAD_TOO_LARGE = Status.of(413);
+  Status URI_TOO_LONG = Status.of(414);
+  Status UNSUPPORTED_MEDIA_TYPE = Status.of(415);
+  Status RANGE_NOT_SATISFIABLE = Status.of(416);
+  Status EXPECTATION_FAILED = Status.of(417);
+  Status IM_A_TEAPOT= Status.of(418);
+  Status MISDIRECTED_REQUEST = Status.of(421);
+  Status UNPROCESSABLE_ENTITY = Status.of(422);
+  Status LOCKED = Status.of(423);
+  Status FAILED_DEPENDENCY = Status.of(424);
+  Status UPGRADE_REQUIRED = Status.of(426);
+  Status PRECONDITION_REQUIRED = Status.of(428);
+  Status TOO_MANY_REQUESTS = Status.of(429);
+  Status HEADER_FIELDS_TOO_LARGE = Status.of(431);
+  Status UNAVAILBLE_FOR_LEGAL_REASONS = Status.of(451);
+
+  /**
+   * The 5xx status codes.
+   */
+  Status INTERNAL_SERVER_ERROR = Status.of(500);
+  Status NOT_IMPLEMENTED = Status.of(501);
+  Status BAD_GATEWAY = Status.of(502);
+  Status SERVICE_UNAVAILABLE = Status.of(503);
+  Status GATEWAY_TIMEOUT = Status.of(504);
+  Status HTTP_VER_NOT_SUPPORTED = Status.of(505);
+  Status VARIANT_ALSO_NEGOTIATES = Status.of(506);
+  Status INSUFFICIENT_STORAGE = Status.of(507);
+  Status LOOP_DETECTED = Status.of(508);
+  Status NOT_EXTENDED = Status.of(510);
+  Status NETWORK_AUTH_REQUIRED = Status.of(511);
 
   /**
    * Creates a new status object.
