@@ -114,7 +114,7 @@ public class DefaultResponseTransmitter implements ResponseTransmitter {
     }
   }
 
-  private ChannelFuture pre(HttpResponseStatus responseStatus) {
+  private ChannelFuture pre(HttpResponseStatus responseStatus, boolean flushHeaders) {
     if (transmitted.compareAndSet(false, true)) {
       stopTime = Instant.now();
       try {
@@ -130,7 +130,11 @@ public class DefaultResponseTransmitter implements ResponseTransmitter {
         }
 
         if (channel.isOpen()) {
-          return channel.writeAndFlush(headersResponse);
+          if (flushHeaders) {
+            return channel.writeAndFlush(headersResponse);
+          } else {
+            return channel.write(headersResponse);
+          }
         } else {
           return null;
         }
@@ -161,7 +165,7 @@ public class DefaultResponseTransmitter implements ResponseTransmitter {
   }
 
   private void transmit(final HttpResponseStatus responseStatus, Object body, boolean sendLastHttpContent) {
-    ChannelFuture channelFuture = pre(responseStatus);
+    ChannelFuture channelFuture = pre(responseStatus, false);
     if (channelFuture == null) {
       ReferenceCountUtil.release(body);
       isKeepAlive = false;
@@ -169,20 +173,12 @@ public class DefaultResponseTransmitter implements ResponseTransmitter {
       return;
     }
 
-    channelFuture.addListener(future -> {
-      if (future.isSuccess() && channel.isOpen()) {
-        if (sendLastHttpContent) {
-          channel.write(body);
-          post(responseStatus);
-        } else {
-          post(responseStatus, channel.writeAndFlush(body));
-        }
-      } else {
-        ReferenceCountUtil.release(body);
-        isKeepAlive = false;
-        post(responseStatus);
-      }
-    });
+    if (sendLastHttpContent) {
+      channel.write(body);
+      post(responseStatus);
+    } else {
+      post(responseStatus, channel.writeAndFlush(body));
+    }
   }
 
   @Override
@@ -239,7 +235,7 @@ public class DefaultResponseTransmitter implements ResponseTransmitter {
 
         this.subscription = subscription;
 
-        ChannelFuture channelFuture = pre(responseStatus);
+        ChannelFuture channelFuture = pre(responseStatus, true);
         if (channelFuture == null) {
           subscription.cancel();
           isKeepAlive = false;
