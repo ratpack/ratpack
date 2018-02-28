@@ -317,6 +317,8 @@ public class RequestBody implements RequestBodyReader, RequestBodyAccumulator {
   private ByteBuf composeReceived() {
     if (received.isEmpty()) {
       return Unpooled.EMPTY_BUFFER;
+    } else if (received.size() == 1) {
+      return received.remove(0);
     } else {
       ByteBuf[] byteBufsArray = this.received.toArray(new ByteBuf[this.received.size()]);
       received.clear();

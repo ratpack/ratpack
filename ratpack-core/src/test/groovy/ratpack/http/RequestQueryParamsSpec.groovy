@@ -18,9 +18,9 @@ package ratpack.http
 
 import ratpack.test.internal.RatpackGroovyDslSpec
 
-class RequestMethodsSpec extends RatpackGroovyDslSpec {
+class RequestQueryParamsSpec extends RatpackGroovyDslSpec {
 
-  def "can get query params"() {
+  def "query params are decoded correctly"() {
     when:
     handlers {
       get {
@@ -48,6 +48,12 @@ class RequestMethodsSpec extends RatpackGroovyDslSpec {
     params { it.put("abc", "") }
     getText("/") == "[abc:[]]"
     resetRequest()
+
+    then:
+    params { it.put("q", "https://tc.test?a=1&b=2") }
+    getText("/") == "[q:[https://tc.test?a=1&b=2]]"
+    resetRequest()
+
   }
 
 }
