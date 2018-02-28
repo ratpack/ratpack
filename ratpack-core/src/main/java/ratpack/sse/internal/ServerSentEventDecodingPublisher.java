@@ -25,9 +25,9 @@ import ratpack.func.Action;
 import ratpack.sse.Event;
 import ratpack.stream.internal.BufferingPublisher;
 
-class ServerSentEventDecodingPublisher extends BufferingPublisher<Event<?>> {
+public class ServerSentEventDecodingPublisher extends BufferingPublisher<Event<?>> {
 
-  ServerSentEventDecodingPublisher(Publisher<? extends ByteBuf> publisher, ByteBufAllocator allocator) {
+  public ServerSentEventDecodingPublisher(Publisher<? extends ByteBuf> publisher, ByteBufAllocator allocator) {
     super(Action.noop(), write -> {
       return new Subscription() {
 
