@@ -104,7 +104,7 @@ public class DefaultRequest implements Request {
 
   public MultiValueMap<String, String> getQueryParams() {
     if (queryParams == null) {
-      QueryStringDecoder queryStringDecoder = new QueryStringDecoder(getUri());
+      QueryStringDecoder queryStringDecoder = new QueryStringDecoder(getRawUri());
       queryParams = new ImmutableDelegatingMultiValueMap<>(queryStringDecoder.parameters());
     }
     return queryParams;
