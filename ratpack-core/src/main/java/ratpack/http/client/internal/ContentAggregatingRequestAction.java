@@ -21,6 +21,7 @@ import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelPipeline;
 import io.netty.channel.SimpleChannelInboundHandler;
 import io.netty.handler.codec.http.FullHttpResponse;
+import ratpack.bytebuf.ByteBufRef;
 import ratpack.exec.Downstream;
 import ratpack.exec.Execution;
 import ratpack.exec.Upstream;
@@ -62,7 +63,7 @@ class ContentAggregatingRequestAction extends RequestActionSupport<ReceivedRespo
         response.touch();
         dispose(ctx.pipeline(), response);
 
-        ByteBuf content = response.content();
+        ByteBuf content = new ByteBufRef(response.content());
         execution.onComplete(() -> {
           if (content.refCnt() > 0) {
             content.release();
