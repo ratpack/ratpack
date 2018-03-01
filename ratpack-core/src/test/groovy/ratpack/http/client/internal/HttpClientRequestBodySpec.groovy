@@ -47,6 +47,25 @@ class HttpClientRequestBodySpec extends BaseHttpClientSpec {
     tmp << (1..30)
   }
 
+  def "using incoming request body as outgoing request body"() {
+    when:
+    handlers {
+      post { HttpClient http ->
+        request.body.then { b ->
+          render http.post(otherAppUrl()) {
+            it.body.buffer(b.buffer)
+          }.map { it.body.text }
+        }
+      }
+    }
+
+    then:
+    request { it.post().body.text("foobar") }.body.text == "foobar"
+
+    where:
+    tmp << (1..30)
+  }
+
   def "using buffer as request body"() {
     when:
     handlers {
