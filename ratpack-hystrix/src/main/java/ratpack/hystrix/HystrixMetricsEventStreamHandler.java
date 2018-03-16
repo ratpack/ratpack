@@ -40,7 +40,7 @@ import static ratpack.stream.Streams.merge;
  * </pre>
  * <p>
  * This handler can be used in conjunction with Server Sent Event based clients such as the
- * <a href="https://github.com/Netflix/Hystrix/wiki/Dashboard">Hystrix Dashboard</a> and
+ * <a href="https://github.com/Netflix-Skunkworks/hystrix-dashboard/wiki">Hystrix Dashboard</a> and
  * <a href="https://github.com/Netflix/Turbine/wiki">Turbine</a> to consume the metrics being reported by your
  * application in realtime.
  *
