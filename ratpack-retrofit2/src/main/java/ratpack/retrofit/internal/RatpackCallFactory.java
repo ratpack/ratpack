@@ -109,7 +109,9 @@ public class RatpackCallFactory implements okhttp3.Call.Factory {
       Buffer buffer = new Buffer();
       request.body().writeTo(buffer);
       b.stream(buffer::writeTo);
-      b.type(request.body().contentType().toString());
+      if(request.body().contentType() != null) {
+        b.type(request.body().contentType().toString());
+      }
     }
 
     private Response mapReceivedResponse(ReceivedResponse r) {
