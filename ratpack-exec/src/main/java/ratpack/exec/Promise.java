@@ -1071,6 +1071,36 @@ public interface Promise<T> {
   /**
    * Transforms a failure of the given type (potentially into a value) by applying the given function to it.
    * <p>
+   * This method is similar to {@link #mapError(Function)}, except that it will only apply depending if it satisfies the predicate.
+   * If the error is not of the given type, it will not be transformed and will propagate as normal.
+   *
+   * @param predicate the predicate to test against the error
+   * @param function the transformation to apply to the promise failure
+   * @return a promise
+   * @since 1.5.5
+   */
+  default Promise<T> mapError(Predicate<? super Throwable> predicate, Function<? super Throwable, ? extends T> function) {
+    return transform(up -> down ->
+      up.connect(down.onError(throwable -> {
+        if (predicate.apply(throwable)) {
+          T transformed;
+          try {
+            transformed = function.apply(throwable);
+          } catch (Throwable t) {
+            down.error(t);
+            return;
+          }
+          down.success(transformed);
+        } else {
+          down.error(throwable);
+        }
+      }))
+    );
+  }
+
+  /**
+   * Transforms a failure of the given type (potentially into a value) by applying the given function to it.
+   * <p>
    * This method is similar to {@link #mapError(Function)}, except that it allows async transformation.
    *
    * @param function the transformation to apply to the promise failure
