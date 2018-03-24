@@ -1151,6 +1151,35 @@ public interface Promise<T> {
   }
 
   /**
+   * Transforms a failure of the given type (potentially into a value) by applying the given function to it.
+   * <p>
+   * This method is similar to {@link #mapError(Predicate, Function)}, except that it allows async transformation.
+   *
+   * @param predicate the predicate to test against the error
+   * @param function the transformation to apply to the promise failure
+   * @return a promise
+   * @since 1.5.5
+   */
+  default Promise<T> flatMapError(Predicate<? super Throwable> predicate, Function<? super Throwable, ? extends Promise<T>> function) {
+    return transform(up -> down ->
+      up.connect(down.onError(throwable -> {
+        if (predicate.apply(throwable)) {
+          Promise<T> transformed;
+          try {
+            transformed = function.apply(throwable);
+          } catch (Throwable t) {
+            down.error(t);
+            return;
+          }
+          transformed.connect(down);
+        } else {
+          down.error(throwable);
+        }
+      }))
+    );
+  }
+
+  /**
    * Applies the custom operation function to this promise.
    * <p>
    * This method can be used to apply custom operations without breaking the “code flow”.
