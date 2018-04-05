@@ -121,7 +121,7 @@ class TypeCoercingPropertiesSpec extends Specification {
 
   def "asInetAddress throws an exception if the property value cannot be resolved as a host"() {
     given:
-    delegateProperties.setProperty("key", "null.ratpackframework.org")
+    delegateProperties.setProperty("key", "dev.null.host.com")
 
     when:
     properties.asInetAddress("key")

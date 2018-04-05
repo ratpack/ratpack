@@ -130,8 +130,9 @@ dependencies {
   testCompile 'org.jsoup:jsoup:1.8.1'
   latestManual isHeroku ? "io.ratpack:ratpack-manual:$version" : project(path: ":ratpack-manual", configuration: "zip")
 
-  browserTestCompile("org.gebish:geb-spock:0.10.0") {
+  browserTestCompile("org.gebish:geb-spock:2.1") {
     exclude group: "org.codehaus.groovy", module: "groovy-all"
+    exclude group: "junit", module: "junit"
   }
   browserTestCompile "org.seleniumhq.selenium:selenium-chrome-driver:2.45.0", {
     exclude module: 'guava'
