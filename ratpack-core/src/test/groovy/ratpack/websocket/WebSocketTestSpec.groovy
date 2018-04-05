@@ -254,12 +254,10 @@ class WebSocketTestSpec extends RatpackGroovyDslSpec {
     setup:
     def closed = new BlockingVariable<Boolean>(2)
     def connected = new BlockingVariable<Boolean>(2)
-    WebSocket ws
 
     handlers {
       get {
         context.websocket {
-          ws = it
           connected.set(true)
           null
         } connect {

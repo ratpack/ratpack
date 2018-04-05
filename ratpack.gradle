@@ -34,7 +34,7 @@ buildscript {
     classpath 'org.apache.commons:commons-lang3:3.6'
 
     classpath "org.kt3k.gradle.plugin:coveralls-gradle-plugin:2.3.1"
-    classpath "com.github.ben-manes:gradle-versions-plugin:0.8"
+    classpath "com.github.ben-manes:gradle-versions-plugin:0.17.0"
     classpath "com.gradle:build-scan-plugin:1.11"
   }
 }
@@ -130,6 +130,7 @@ allprojects {
   apply plugin: "idea"
   apply plugin: "eclipse"
   apply from: "$rootDir/gradle/dependencyRules.gradle"
+  apply plugin: "com.github.ben-manes.versions"
 
   repositories {
     jcenter()

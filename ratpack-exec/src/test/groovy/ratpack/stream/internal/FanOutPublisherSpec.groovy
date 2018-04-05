@@ -16,6 +16,7 @@
 
 package ratpack.stream.internal
 
+import groovy.util.logging.Slf4j
 import org.reactivestreams.Subscription
 import ratpack.exec.BaseExecutionSpec
 import ratpack.exec.Execution
@@ -25,13 +26,15 @@ import ratpack.stream.Streams
 
 import java.time.Duration
 
+@Slf4j
 class FanOutPublisherSpec extends BaseExecutionSpec {
+
 
   def "only sends requested amount"() {
     when:
     def p = Streams.fanOut(Streams.publish([[1, 2], [3, 4]]))
-    List r
-    def s = new CollectingSubscriber({ r = it.value }, { it.request(3) })
+
+    def s = new CollectingSubscriber({ log.info it.value }, { it.request(3) })
     p.subscribe(s)
 
     then:
@@ -42,8 +45,8 @@ class FanOutPublisherSpec extends BaseExecutionSpec {
   def "empty collections don't count towards subscriber demand"() {
     when:
     def p = Streams.fanOut(Streams.publish([[1, 2], [], [], [3, 4]]))
-    List r
-    def s = new CollectingSubscriber({ r = it.value }, { it.request(3) })
+
+    def s = new CollectingSubscriber({ log.info it.value }, { it.request(3) })
     p.subscribe(s)
 
     then:

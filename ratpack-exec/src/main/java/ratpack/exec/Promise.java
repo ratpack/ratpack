@@ -1077,7 +1077,7 @@ public interface Promise<T> {
    * @param predicate the predicate to test against the error
    * @param function the transformation to apply to the promise failure
    * @return a promise
-   * @since 1.5.5
+   * @since 1.6.0
    */
   default Promise<T> mapError(Predicate<? super Throwable> predicate, Function<? super Throwable, ? extends T> function) {
     return transform(up -> down ->
@@ -1158,7 +1158,7 @@ public interface Promise<T> {
    * @param predicate the predicate to test against the error
    * @param function the transformation to apply to the promise failure
    * @return a promise
-   * @since 1.5.5
+   * @since 1.6.0
    */
   default Promise<T> flatMapError(Predicate<? super Throwable> predicate, Function<? super Throwable, ? extends Promise<T>> function) {
     return transform(up -> down ->
