@@ -48,7 +48,10 @@ class RxErrorHandlingSpec extends RatpackGroovyDslSpec {
   }
 
   def errorHandler = new MessagePrintingErrorHandler()
-  def error = new RuntimeException("!")
+
+  static Throwable runTimeError = new RuntimeException("!")
+  static Throwable notImplRuntime = new RuntimeException("NoImpl")
+  static Throwable notImplError = new OnErrorNotImplementedException(notImplRuntime)
 
   def setup() {
     RxRatpack.initialize()
@@ -66,14 +69,14 @@ class RxErrorHandlingSpec extends RatpackGroovyDslSpec {
     when:
     handlers {
       get {
-        Promise.error(error).observe().subscribe {
+        Promise.error(runTimeError).observe().subscribe {
           render "got to end"
         }
       }
     }
 
     then:
-    thrownException == error
+    thrownException == runTimeError
   }
 
   def "observable sequence without error handler fulfills with Error subclass"() {
@@ -96,13 +99,13 @@ class RxErrorHandlingSpec extends RatpackGroovyDslSpec {
     handlers {
       get {
         Promise.value("").single().subscribe({
-          throw error
+          throw runTimeError
         } as Consumer)
       }
     }
 
     then:
-    thrownException == error
+    thrownException == runTimeError
   }
 
   def "no error handler for successful promise that has nested failing promise"() {
@@ -110,7 +113,7 @@ class RxErrorHandlingSpec extends RatpackGroovyDslSpec {
     handlers {
       get {
         Promise.value("").single().subscribe({
-          Promise.error(error).single().subscribe({
+          Promise.error(runTimeError).single().subscribe({
             render "got to end"
           } as Consumer)
         } as Consumer)
@@ -118,7 +121,7 @@ class RxErrorHandlingSpec extends RatpackGroovyDslSpec {
     }
 
     then:
-    thrownException == error
+    thrownException == runTimeError
   }
 
   def "no error handler for successful promise that has nested successful promise that throws"() {
@@ -127,14 +130,14 @@ class RxErrorHandlingSpec extends RatpackGroovyDslSpec {
       get {
         Promise.value("").single().subscribe({
           Promise.value("").single().subscribe({
-            throw error
+            throw runTimeError
           } as Consumer)
         } as Consumer)
       }
     }
 
     then:
-    thrownException == error
+    thrownException == runTimeError
   }
 
   def "error handler receives promise error"() {
@@ -142,7 +145,7 @@ class RxErrorHandlingSpec extends RatpackGroovyDslSpec {
     def otherError = new RuntimeException("other")
     handlers {
       get {
-        Promise.error(error).observe().subscribe {
+        Promise.error(runTimeError).observe().subscribe {
           render "success"
         } {
           throw otherError
@@ -280,7 +283,7 @@ class RxErrorHandlingSpec extends RatpackGroovyDslSpec {
       get { ExecController execController ->
         Promise.async { f ->
           execController.executor.execute {
-            Observable.error(error).subscribe(new Observer<Object>() {
+            Observable.error(runTimeError).subscribe(new Observer<Object>() {
               @Override
               void onSubscribe(Disposable d) {
 
@@ -313,7 +316,7 @@ class RxErrorHandlingSpec extends RatpackGroovyDslSpec {
     get()
 
     then:
-    errorHandler.errors == [error]
+    errorHandler.errors == [runTimeError]
   }
 
   def "composed observable errors"() {
@@ -346,7 +349,7 @@ class RxErrorHandlingSpec extends RatpackGroovyDslSpec {
 
             @Override
             void onComplete() {
-              throw error
+              throw runTimeError
             }
 
             @Override
@@ -366,7 +369,44 @@ class RxErrorHandlingSpec extends RatpackGroovyDslSpec {
     get()
     def e = errorHandler.errors.first()
     e instanceof UndeliverableException
-    e.cause == error
+    e.cause == runTimeError
+  }
+
+  def "exception thrown by onSubscribe is propagated"() {
+    given:
+    handlers {
+      get {
+        Observable.just(1).
+          subscribe(new Observer<Integer>() {
+            @Override
+            void onSubscribe(Disposable d) {
+              throw runTimeError
+            }
+
+            @Override
+            void onComplete() {
+
+            }
+
+            @Override
+            void onError(Throwable t) {
+            }
+
+            @Override
+            void onNext(Integer integer) {
+
+            }
+          })
+      }
+    }
+
+    when:
+    get()
+
+    then:
+    def e = errorHandler.errors.first()
+    e instanceof UndeliverableException
+    e.cause == runTimeError
   }
 
   def "exception thrown by onerror are propagated"() {
@@ -387,7 +427,7 @@ class RxErrorHandlingSpec extends RatpackGroovyDslSpec {
 
             @Override
             void onError(Throwable t) {
-              throw error
+              throw runTimeError
             }
 
             @Override
@@ -403,20 +443,208 @@ class RxErrorHandlingSpec extends RatpackGroovyDslSpec {
     def e = errorHandler.errors.first()
     e instanceof CompositeException
     (e as CompositeException).exceptions.first().message == "1"
-    (e as CompositeException).exceptions[1] == error
+    (e as CompositeException).exceptions[1] == runTimeError
   }
+
+  def "exception thrown by onNext are propagated"() {
+    given:
+    handlers {
+      get {
+        Observable.just(1).
+          subscribe(new Observer<Integer>() {
+            @Override
+            void onSubscribe(Disposable d) {
+
+            }
+
+            @Override
+            void onComplete() {
+            }
+
+            @Override
+            void onError(Throwable t) {
+
+            }
+
+            @Override
+            void onNext(Integer integer) {
+              throw runTimeError
+            }
+          })
+      }
+    }
+
+    when:
+    get()
+
+    then:
+    def e = errorHandler.errors.first()
+    e instanceof UndeliverableException
+    e.cause == runTimeError
+  }
+
+
+  def "notImpl exception thrown by oncomplete is propagated"() {
+    given:
+    handlers {
+      get {
+        Observable.just(1).
+          subscribe(new Observer<Integer>() {
+            @Override
+            void onSubscribe(Disposable d) {
+
+            }
+
+            @Override
+            void onComplete() {
+              throw notImplError
+            }
+
+            @Override
+            void onError(Throwable t) {
+              throw new OnErrorNotImplementedException(t)
+            }
+
+            @Override
+            void onNext(Integer integer) {
+
+            }
+          })
+      }
+    }
+
+    when:
+    get()
+
+    then:
+    def e = errorHandler.errors.first()
+    notImplRuntime.isCase(e)
+    e == notImplRuntime
+
+  }
+
+  def "notImpl exception thrown by onSubscribe is propagated"() {
+    given:
+    handlers {
+      get {
+        Observable.just(1).
+          subscribe(new Observer<Integer>() {
+            @Override
+            void onSubscribe(Disposable d) {
+              throw notImplError
+            }
+
+            @Override
+            void onComplete() {
+
+            }
+
+            @Override
+            void onError(Throwable t) {
+            }
+
+            @Override
+            void onNext(Integer integer) {
+
+            }
+          })
+      }
+    }
+
+    when:
+    get()
+
+    then:
+    def e = errorHandler.errors.first()
+    notImplRuntime.isCase(e)
+    e == notImplRuntime
+  }
+
+  def "notImpl exception thrown by onerror are propagated"() {
+    when:
+    handlers {
+      get {
+        Observable.error(new RuntimeException("1")).
+          subscribe(new Observer<Integer>() {
+            @Override
+            void onSubscribe(Disposable d) {
+
+            }
+
+            @Override
+            void onComplete() {
+              throw new UnsupportedOperationException()
+            }
+
+            @Override
+            void onError(Throwable t) {
+              throw notImplError
+            }
+
+            @Override
+            void onNext(Integer integer) {
+
+            }
+          })
+      }
+    }
+
+    then:
+    get()
+    def e = errorHandler.errors.first()
+    notImplRuntime.isCase(e)
+    e == notImplRuntime
+  }
+
+  def "notImpl exception thrown by onNext are propagated"() {
+    given:
+    handlers {
+      get {
+        Observable.just(1).
+          subscribe(new Observer<Integer>() {
+            @Override
+            void onSubscribe(Disposable d) {
+
+            }
+
+            @Override
+            void onComplete() {
+            }
+
+            @Override
+            void onError(Throwable t) {
+
+            }
+
+            @Override
+            void onNext(Integer integer) {
+              throw notImplError
+            }
+          })
+      }
+    }
+
+    when:
+    get()
+
+    then:
+    def e = errorHandler.errors.first()
+    notImplRuntime.isCase(e)
+    e == notImplRuntime
+  }
+
 
   def "exceptions from bound observable are propagated"() {
     when:
     handlers {
       get {
-        Observable.error(error).subscribeOn(Schedulers.from(Executors.newSingleThreadExecutor())).bindExec().promiseAll()
+        Observable.error(runTimeError).subscribeOn(Schedulers.from(Executors.newSingleThreadExecutor())).bindExec().promiseAll()
           .onError { render it.toString() }
-          .then { render "no error" }
+          .then { render "no runTimeError" }
       }
     }
 
     then:
-    text == error.toString()
+    text == runTimeError.toString()
   }
 }

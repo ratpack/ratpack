@@ -18,7 +18,12 @@ package ratpack.rx2
 
 import io.reactivex.Completable
 import io.reactivex.Observable
+import io.reactivex.ObservableEmitter
+import io.reactivex.ObservableOnSubscribe
 import io.reactivex.Single
+import io.reactivex.SingleEmitter
+import io.reactivex.SingleOnSubscribe
+import io.reactivex.annotations.NonNull
 import ratpack.exec.Blocking
 import ratpack.exec.Operation
 import ratpack.test.exec.ExecHarness
@@ -42,8 +47,28 @@ class RxAsPromiseSpec extends Specification {
       RxRatpack.single(Blocking.get { value })
     }
 
+    public SingleOnSubscribe<String> singleOnSubscribe(String value) {
+      new SingleOnSubscribe<String>() {
+        @Override
+        void subscribe(@NonNull SingleEmitter<String> emitter) throws Exception {
+          emitter.onSuccess(value)
+        }
+      }
+    }
+
+
     public <T> Observable<T> observe(T... values) {
       RxRatpack.observe(Blocking.get { values.toList() })
+    }
+
+    public ObservableOnSubscribe<String> observableOnSubscribe(String value) {
+      new ObservableOnSubscribe<String>() {
+        @Override
+        public void subscribe(ObservableEmitter<String> subscriber) throws Exception {
+          subscriber.onNext(value)
+          subscriber.onComplete()
+        }
+      }
     }
 
     public Completable increment() {
@@ -63,12 +88,28 @@ class RxAsPromiseSpec extends Specification {
     result.valueOrThrow == "foo"
   }
 
+  def "can unpack singleOnSubscribe"() {
+    when:
+    def result = harness.yield { service.singleOnSubscribe("foo").promise() }
+
+    then:
+    result.valueOrThrow == "foo"
+  }
+
   def "can unpack observable"() {
     when:
     def result = harness.yield { service.observe("foo", "bar").promiseAll() }
 
     then:
     result.valueOrThrow == ["foo", "bar"]
+  }
+
+  def "can unpack observableOnSubscribe"() {
+    when:
+    def result = harness.yield { service.observableOnSubscribe("foo").promiseAll() }
+
+    then:
+    result.valueOrThrow == ["foo"]
   }
 
   def "failed observable causes exception to be thrown"() {
