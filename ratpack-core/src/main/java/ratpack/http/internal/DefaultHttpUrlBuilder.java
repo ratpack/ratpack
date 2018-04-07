@@ -51,6 +51,7 @@ public class DefaultHttpUrlBuilder implements HttpUrlBuilder {
   private final List<String> pathSegments = new ArrayList<>();
   private final Multimap<String, Object> params = MultimapBuilder.linkedHashKeys().linkedListValues().build();
   private boolean hasTrailingSlash;
+  private String fragment;
 
   public DefaultHttpUrlBuilder() {
   }
@@ -86,6 +87,9 @@ public class DefaultHttpUrlBuilder implements HttpUrlBuilder {
     if (uri.getRawQuery() != null) {
       new QueryStringDecoder(uri).parameters().forEach(params::putAll);
     }
+
+    fragment = uri.getFragment();
+
   }
 
   @Override
@@ -176,6 +180,13 @@ public class DefaultHttpUrlBuilder implements HttpUrlBuilder {
     return this;
   }
 
+  @Override
+  public HttpUrlBuilder fragment(String fragment) {
+    this.fragment = fragment;
+    return this;
+  }
+
+  @Override
   public URI build() {
     String string = toString();
 
@@ -231,6 +242,10 @@ public class DefaultHttpUrlBuilder implements HttpUrlBuilder {
       uri.append("/");
     }
     appendQueryString(uri);
+
+    if (fragment != null) {
+      uri.append("#").append(fragment);
+    }
 
     return uri.toString();
   }
