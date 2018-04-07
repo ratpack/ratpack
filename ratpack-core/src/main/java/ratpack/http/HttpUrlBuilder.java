@@ -251,6 +251,14 @@ public interface HttpUrlBuilder {
   HttpUrlBuilder params(MultiValueMap<String, ?> params);
 
   /**
+   * Add a fragment to the URL
+   * @param fragment string of the fragment
+   * @return {@code this}
+   * @since 1.6
+   */
+  HttpUrlBuilder fragment(String fragment);
+
+  /**
    * Builds the URI based on this builder's current state.
    *
    * @return a new HTTP/HTTPS URI

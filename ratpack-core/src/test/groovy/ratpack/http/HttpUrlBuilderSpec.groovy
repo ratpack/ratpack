@@ -20,6 +20,7 @@ import com.google.common.collect.ImmutableMultimap
 import ratpack.groovy.internal.ClosureUtil
 import ratpack.util.internal.ImmutableDelegatingMultiValueMap
 import spock.lang.Specification
+import spock.lang.Unroll
 
 class HttpUrlBuilderSpec extends Specification {
 
@@ -122,6 +123,12 @@ class HttpUrlBuilderSpec extends Specification {
     build { encodedPath "foo%2Fbar" } == "http://localhost/foo%2Fbar"
   }
 
+  def "custom fragment"() {
+    expect:
+    build { fragment("a4") } == "http://localhost#a4"
+  }
+
+  @Unroll
   def "round trip - #string"() {
     expect:
     build(string) == string
@@ -139,7 +146,11 @@ class HttpUrlBuilderSpec extends Specification {
       "http://foo.bar/a?a",
       "http://foo.bar/a?a=b&a=c",
       "http://foo.bar/a?a%3F1=b%3F1&a%3F1=c",
-      "http://foo.bar/a/"
+      "http://foo.bar/a/",
+      "http://foo.com#a1",
+      "http://foo.bar/a?a%3F1=b%3F1&a%3F1=c#a1",
+      "http://foo.bar/a+b#a1"
+
     ]
   }
 
