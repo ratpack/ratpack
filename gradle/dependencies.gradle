@@ -23,6 +23,7 @@ ext {
     groovy: "2.4.12",
     pac4j: "1.8.8",
     rxjava: "1.1.2",
+    rxjava2: "2.1.8",
     hystrix: "1.5.13",
     jackson: "2.9.5",
     dropwizardMetrics: "3.1.1",
@@ -30,7 +31,7 @@ ext {
     spock: "1.1-groovy-2.4",
     log4j: "2.6.2",
     newrelic: "3.15.0",
-    reactiveStreams: "1.0.0.final",
+    reactiveStreams: "1.0.2",
     guice: "4.1.0",
     springBoot: "1.3.0.RELEASE",
     caffeine: "2.6.2",
@@ -75,6 +76,7 @@ ext {
       exclude group: "com.google.guava", module: "guava"
     }),
     rxjava: "io.reactivex:rxjava:$commonVersions.rxjava",
+    rxjava2: "io.reactivex.rxjava2:rxjava:${commonVersions.rxjava2}",
     remote: dependencies.create("io.remotecontrol:remote-core:${commonVersions.remote}", {
       exclude group: "org.codehaus.groovy", module: "groovy-all"
     }),

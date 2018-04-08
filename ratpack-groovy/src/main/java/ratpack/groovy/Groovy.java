@@ -76,13 +76,13 @@ public abstract class Groovy {
    * <p>
    * This method is used in Ratpack scripts as the entry point.
    * <pre class="groovy-ratpack-dsl">
-   * import ratpack.session.SessionModule
+   * import ratpack.groovy.sql.SqlModule
    * import static ratpack.groovy.Groovy.*
    *
    * ratpack {
    *   bindings {
    *     // example of registering a module
-   *     add(new SessionModule())
+   *     add(new SqlModule())
    *   }
    *   handlers {
    *     // define the application handlers

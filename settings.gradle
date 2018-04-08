@@ -30,6 +30,7 @@ include \
     "ratpack-remote",
     "ratpack-remote-test",
     "ratpack-rx",
+    "ratpack-rx2",
     "ratpack-dropwizard-metrics",
     "ratpack-h2",
     "ratpack-thymeleaf",
