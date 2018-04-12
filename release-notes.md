@@ -18,3 +18,4 @@ It should not be considered the final announcement for any release at any time.
 * Configure `HttpClient` for Retrofit builders
 * Check for null content-type in retrofit request
 * `ByteBuf` metrics in `DropwizardMetricsMetrics`
+* Added rx2 Module

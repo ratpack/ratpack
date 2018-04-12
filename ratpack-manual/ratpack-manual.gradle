@@ -49,6 +49,7 @@ dependencies {
     exclude group: "org.slf4j", module: "slf4j-api"
     exclude group: "com.google.inject", module: "guice"
     exclude group: "org.apache.httpcomponents", module: "httpclient"
+    exclude group: "org.apache.commons", module: "commons-lang3"
     exclude group: "com.fasterxml.jackson.core", module: "jackson-databind"
   }
   testCompile gradleTestKit()
@@ -67,6 +68,14 @@ projectDependencies.findAll {
   it.dependencyProject.path in [":ratpack-groovy-test", ":ratpack-test-internal"]
 }.each {
   it.exclude group: "commons-logging", module: "commons-logging"
+}
+
+configurations.all {
+  if (it.name in ["testCompile", "testRuntime", "testCompileClasspath", "testRuntimeClasspath"]) {
+    resolutionStrategy {
+      force "org.reactivestreams:reactive-streams:1.0.0.final"
+    }
+  }
 }
 
 apply from: "$rootDir/gradle/markdown2book.gradle"
