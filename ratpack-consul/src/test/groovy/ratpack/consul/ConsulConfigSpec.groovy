@@ -61,6 +61,7 @@ class ConsulConfigSpec extends Specification {
     given:
     EmbeddedApp app = GroovyEmbeddedApp.of {
         serverConfig {
+          port 0
           yaml RatpackConsulConfig.value("yaml") { builder -> builder
             builder.withHostAndPort(HostAndPort.fromParts("localhost", consul.address.port))
           }
@@ -87,6 +88,7 @@ class ConsulConfigSpec extends Specification {
     given:
     EmbeddedApp app = GroovyEmbeddedApp.of {
       serverConfig {
+        port 0
         it.json RatpackConsulConfig.value("json") { builder ->
           builder.withHostAndPort(HostAndPort.fromParts("localhost", consul.address.port))
         }
@@ -113,6 +115,7 @@ class ConsulConfigSpec extends Specification {
     given:
     EmbeddedApp app = GroovyEmbeddedApp.of {
       serverConfig {
+        port 0
         props RatpackConsulConfig.value("props") { builder ->
           builder.withHostAndPort(HostAndPort.fromParts("localhost", consul.address.port))
         }

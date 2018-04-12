@@ -26,8 +26,8 @@ import java.util.function.BiConsumer;
  * This type serves the same purpose as the JDK's {@link BiConsumer}, but allows throwing checked exceptions.
  * It contains methods for bridging to and from the JDK type.
  *
- * @param <T> The type of the first thing.
- * @param <U> The type of the second thing.
+ * @param <T> the type of the first thing
+ * @param <U> The type of the second thing
  */
 @FunctionalInterface
 public interface BiAction<T, U> {
@@ -45,9 +45,11 @@ public interface BiAction<T, U> {
    * Returns a bi-action that does precisely nothing.
    *
    * @return a bi-action that does precisely nothing
+   * @param <T> the type of the first thing
+   * @param <U> The type of the second thing
    * @since 1.5
    */
-  static BiAction<Object, Object> noop() {
+  static <T, U> BiAction<T, U> noop() {
     return (a, b) -> {
     };
   }

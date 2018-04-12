@@ -19,7 +19,7 @@ package ratpack.exec;
 import io.netty.channel.EventLoop;
 import ratpack.exec.internal.DefaultExecution;
 import ratpack.exec.internal.DefaultPromise;
-import ratpack.exec.internal.ThreadBinding;
+import ratpack.exec.internal.ExecThreadBinding;
 import ratpack.func.Block;
 import ratpack.func.Factory;
 
@@ -64,7 +64,7 @@ public abstract class Blocking {
               @Override
               public Result<T> get() {
                 try {
-                  DefaultExecution.THREAD_BINDING.set(execution);
+                  execution.bindToThread();
                   intercept(execution, execution.getAllInterceptors().iterator(), () -> {
                     try {
                       result = Result.success(factory.create());
@@ -77,7 +77,7 @@ public abstract class Blocking {
                   DefaultExecution.interceptorError(e);
                   return result;
                 } finally {
-                  DefaultExecution.THREAD_BINDING.remove();
+                  execution.unbindFromThread();
                 }
               }
             }, execution.getController().getBlockingExecutor()
@@ -185,7 +185,7 @@ public abstract class Blocking {
    * @throws Exception any thrown while producing the value
    */
   public static <T> T on(Promise<T> promise) throws Exception {
-    ThreadBinding.requireBlockingThread("Blocking.on() can only be used while blocking (i.e. use Blocking.get() first)");
+    ExecThreadBinding.requireBlockingThread("Blocking.on() can only be used while blocking (i.e. use Blocking.get() first)");
     DefaultExecution execution = DefaultExecution.require();
     CountDownLatch latch = new CountDownLatch(1);
     AtomicReference<Result<T>> resultReference = new AtomicReference<>();

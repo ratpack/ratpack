@@ -289,7 +289,14 @@ public class DefaultContext implements Context {
 
   @Override
   public <T, O> Promise<T> parse(Parse<T, O> parse) {
-    return getRequest().getBody().map(b -> parse(b, parse));
+    return getRequest().getBody()
+      .map(b -> {
+        try {
+          return parse(b, parse);
+        } finally {
+          b.getBuffer().release();
+        }
+      });
   }
 
   @Override

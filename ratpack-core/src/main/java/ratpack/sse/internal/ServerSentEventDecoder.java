@@ -28,7 +28,7 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 
-class ServerSentEventDecoder implements AutoCloseable {
+public class ServerSentEventDecoder implements AutoCloseable {
 
   private static final ByteBuf NEWLINE_BYTEBUF = Unpooled.wrappedBuffer(new byte[]{'\n'});
   private static final char[] EVENT_ID_FIELD_NAME = "event".toCharArray();
@@ -75,7 +75,7 @@ class ServerSentEventDecoder implements AutoCloseable {
   private final ByteBufAllocator allocator;
   private final Action<? super Event<?>> emitter;
 
-  ServerSentEventDecoder(ByteBufAllocator allocator, Action<? super Event<?>> emitter) {
+  public ServerSentEventDecoder(ByteBufAllocator allocator, Action<? super Event<?>> emitter) {
     this.allocator = allocator;
     this.emitter = emitter;
   }

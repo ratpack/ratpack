@@ -37,7 +37,7 @@ import ratpack.exec.Blocking;
 import ratpack.exec.Promise;
 import ratpack.exec.Throttle;
 import ratpack.exec.internal.DefaultExecController;
-import ratpack.exec.internal.ThreadBinding;
+import ratpack.exec.internal.ExecThreadBinding;
 import ratpack.func.Action;
 import ratpack.func.Function;
 import ratpack.handling.Handler;
@@ -124,7 +124,7 @@ public class DefaultRatpackServer implements RatpackServer {
 
       serverConfig = definitionBuild.getServerConfig();
       execController = new DefaultExecController(serverConfig.getThreads());
-      ChannelHandler channelHandler = ThreadBinding.bindFor(true, execController, () -> buildHandler(definitionBuild));
+      ChannelHandler channelHandler = ExecThreadBinding.bindFor(true, execController, () -> buildHandler(definitionBuild));
       channel = buildChannel(serverConfig, channelHandler);
 
       boundAddress = (InetSocketAddress) channel.localAddress();

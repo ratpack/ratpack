@@ -30,6 +30,7 @@ import ratpack.test.embed.EmbeddedApp
 import ratpack.test.exec.ExecHarness
 import retrofit2.Response
 import retrofit2.http.GET
+import retrofit2.http.POST
 import spock.lang.AutoCleanup
 import spock.lang.Specification
 import spock.lang.Unroll
@@ -50,6 +51,9 @@ class RatpackRetrofitSpec extends Specification {
 
     @GET("/foo")
     Promise<Response<String>> fooResponse()
+
+    @POST("/bar")
+    Promise<Response<String>> barResponse()
 
     @GET("/error")
     Promise<String> error()
@@ -90,6 +94,9 @@ class RatpackRetrofitSpec extends Specification {
         get("error") {
           response.status(500).send()
         }
+        post("bar") {
+          response.status(200).send()
+        }
       }
     }
     service = RatpackRetrofit
@@ -117,6 +124,17 @@ class RatpackRetrofitSpec extends Specification {
     then:
     value.code() == 200
     value.body() == "foo"
+  }
+
+  def "successful empty body post request response"() {
+    when:
+    Response<String> value = ExecHarness.yieldSingle(setup) {
+      service.barResponse()
+    }.valueOrThrow
+
+    then:
+    value.code() == 200
+    value.body() == ""
   }
 
   def "simple type adapter throws exception on non successful response"() {

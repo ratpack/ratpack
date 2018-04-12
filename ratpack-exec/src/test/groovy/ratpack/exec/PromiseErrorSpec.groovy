@@ -201,6 +201,19 @@ class PromiseErrorSpec extends Specification {
     events == [e, "complete"]
   }
 
+  def "can map error based on predicate"() {
+    when:
+    def e = new IllegalStateException()
+    exec({
+      Promise.error(new IllegalArgumentException("!")).mapError { it.message == "!" } {
+        throw e
+      }.then(events.&add)
+    }, events.&add)
+
+    then:
+    events == [e, "complete"]
+  }
+
   def "error map does not apply when error is of different type"() {
     when:
     def e1 = new IllegalArgumentException()
@@ -238,11 +251,24 @@ class PromiseErrorSpec extends Specification {
     events == [e, "complete"]
   }
 
-  def "can flatmapmap error of type"() {
+  def "can flatmap error of type"() {
     when:
     def e = new IllegalStateException()
     exec({
       Promise.error(new IllegalArgumentException()).flatMapError(IllegalArgumentException) {
+        Promise.error(e)
+      }.then(events.&add)
+    }, events.&add)
+
+    then:
+    events == [e, "complete"]
+  }
+
+  def "can flatmap error based on predicate"() {
+    when:
+    def e = new IllegalStateException()
+    exec({
+      Promise.error(new IllegalArgumentException('!')).flatMapError { it.message == '!' } {
         Promise.error(e)
       }.then(events.&add)
     }, events.&add)

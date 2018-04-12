@@ -17,6 +17,7 @@
 package ratpack.exec.internal;
 
 import io.netty.util.concurrent.FastThreadLocal;
+import ratpack.api.Nullable;
 import ratpack.exec.ExecController;
 import ratpack.exec.ExecutionException;
 import ratpack.exec.UnmanagedThreadException;
@@ -24,24 +25,31 @@ import ratpack.func.Factory;
 
 import java.util.Optional;
 
-public class ThreadBinding {
+public class ExecThreadBinding {
 
+  private final Thread thread;
   private final boolean compute;
   private final ExecController execController;
+  private DefaultExecution execution;
 
-  public ThreadBinding(boolean compute, ExecController execController) {
+  public ExecThreadBinding(Thread thread, boolean compute, ExecController execController) {
+    this.thread = thread;
     this.compute = compute;
     this.execController = execController;
   }
 
-  private static final FastThreadLocal<ThreadBinding> STORAGE = new FastThreadLocal<>();
+  private static final FastThreadLocal<ExecThreadBinding> STORAGE = new FastThreadLocal<>();
 
-  static void bind(boolean compute, ExecController execController) {
-    STORAGE.set(new ThreadBinding(compute, execController));
+  public static void bind(boolean compute, ExecController execController) {
+    STORAGE.set(new ExecThreadBinding(Thread.currentThread(), compute, execController));
+  }
+
+  public static void unbind() {
+    STORAGE.remove();
   }
 
   public static <T> T bindFor(boolean compute, ExecController execController, Factory<T> function) throws Exception {
-    ThreadBinding current = STORAGE.get();
+    ExecThreadBinding current = STORAGE.get();
     if (current != null && current.getExecController() == execController) {
       return function.create();
     }
@@ -50,15 +58,41 @@ public class ThreadBinding {
     try {
       return function.create();
     } finally {
-      STORAGE.remove();
+      unbind();
       if (current != null) {
         STORAGE.set(current);
       }
     }
   }
 
-  public static Optional<ThreadBinding> get() {
+  public boolean isCurrentThread() {
+    return thread == Thread.currentThread();
+  }
+
+  @Nullable
+  public static ExecThreadBinding get() {
+    return STORAGE.get();
+  }
+
+  public static Optional<ExecThreadBinding> maybeGet() {
     return Optional.ofNullable(STORAGE.get());
+  }
+
+  public static ExecThreadBinding require() {
+    ExecThreadBinding execThreadBinding = STORAGE.get();
+    if (execThreadBinding == null) {
+      throw new UnmanagedThreadException();
+    } else {
+      return execThreadBinding;
+    }
+  }
+
+  public DefaultExecution getExecution() {
+    return execution;
+  }
+
+  public void setExecution(DefaultExecution execution) {
+    this.execution = execution;
   }
 
   public boolean isCompute() {
@@ -70,13 +104,13 @@ public class ThreadBinding {
   }
 
   public static void requireComputeThread(String message) {
-    if (!get().orElseThrow(UnmanagedThreadException::new).isCompute()) {
+    if (!require().isCompute()) {
       throw new ExecutionException(toMessage(message));
     }
   }
 
   public static void requireBlockingThread(String message) {
-    if (get().orElseThrow(UnmanagedThreadException::new).isCompute()) {
+    if (require().isCompute()) {
       throw new ExecutionException(toMessage(message));
     }
   }

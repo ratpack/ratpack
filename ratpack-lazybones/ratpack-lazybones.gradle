@@ -29,7 +29,6 @@ buildscript {
 
 apply from: "$rootDir/gradle/javaModule.gradle"
 apply plugin: "maven"
-apply from: "$rootDir/gradle/projectLocalRepo.gradle"
 apply plugin: "uk.co.cacoethes.lazybones-templates"
 
 repositories {

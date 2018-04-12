@@ -21,7 +21,6 @@ import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
 import com.google.common.reflect.TypeToken;
 import io.netty.channel.EventLoop;
-import io.netty.util.concurrent.FastThreadLocal;
 import io.netty.util.internal.PlatformDependent;
 import org.reactivestreams.Publisher;
 import org.slf4j.Logger;
@@ -45,8 +44,6 @@ public class DefaultExecution implements Execution {
 
   public final static Logger LOGGER = LoggerFactory.getLogger(Execution.class);
 
-  public final static FastThreadLocal<DefaultExecution> THREAD_BINDING = new FastThreadLocal<>();
-
   private ExecStream execStream;
 
   private final Ref ref;
@@ -61,6 +58,8 @@ public class DefaultExecution implements Execution {
 
   private List<ExecInterceptor> adhocInterceptors;
   private Iterable<? extends ExecInterceptor> interceptors;
+
+  private Thread thread;
 
   public DefaultExecution(
     ExecControllerInternal controller, @Nullable ExecutionRef parent,
@@ -95,16 +94,21 @@ public class DefaultExecution implements Execution {
     }
   }
 
-  public static DefaultExecution get() throws UnmanagedThreadException {
-    return THREAD_BINDING.get();
+  public static DefaultExecution get() {
+    ExecThreadBinding execThreadBinding = ExecThreadBinding.get();
+    if (execThreadBinding == null) {
+      return null;
+    } else {
+      return execThreadBinding.getExecution();
+    }
   }
 
   public static DefaultExecution require() throws UnmanagedThreadException {
-    DefaultExecution executionBacking = get();
-    if (executionBacking == null) {
-      throw new UnmanagedThreadException();
+    DefaultExecution execution = ExecThreadBinding.require().getExecution();
+    if (execution == null) {
+      throw new IllegalStateException("No execution bound for thread " + Thread.currentThread().getName());
     } else {
-      return executionBacking;
+      return execution;
     }
   }
 
@@ -154,32 +158,48 @@ public class DefaultExecution implements Execution {
   }
 
   public boolean isBound() {
-    return THREAD_BINDING.get() == this;
+    return thread == Thread.currentThread();
   }
 
   public void drain() {
+    if (isBound()) {
+      return; // already draining
+    }
+
     if (execStream == TerminalExecStream.INSTANCE) {
       return;
     }
 
-    DefaultExecution currentExecution = THREAD_BINDING.get();
-    if (this == currentExecution) {
+    // Move to the right thread if necessary
+    if (!eventLoop.inEventLoop()) {
+      eventLoopDrain();
       return;
     }
 
-    if (!eventLoop.inEventLoop() || currentExecution != null) {
+    // Queue if our thread is busy with another execution
+    if (get() != null) {
       eventLoopDrain();
       return;
     }
 
     try {
-      THREAD_BINDING.set(this);
-      intercept(interceptors.iterator());
+      bindToThread();
+      exec(interceptors.iterator());
     } catch (Throwable e) {
       interceptorError(e);
     } finally {
-      THREAD_BINDING.remove();
+      unbindFromThread();
     }
+  }
+
+  public void unbindFromThread() {
+    thread = null;
+    ExecThreadBinding.require().setExecution(null);
+  }
+
+  public void bindToThread() {
+    thread = Thread.currentThread();
+    ExecThreadBinding.require().setExecution(this);
   }
 
   public static void interceptorError(Throwable e) {
@@ -190,9 +210,9 @@ public class DefaultExecution implements Execution {
     return interceptors;
   }
 
-  private void intercept(final Iterator<? extends ExecInterceptor> interceptors) throws Exception {
+  private void exec(final Iterator<? extends ExecInterceptor> interceptors) throws Exception {
     if (interceptors.hasNext()) {
-      interceptors.next().intercept(this, ExecInterceptor.ExecType.COMPUTE, () -> intercept(interceptors));
+      interceptors.next().intercept(this, ExecInterceptor.ExecType.COMPUTE, () -> exec(interceptors));
     } else {
       exec();
     }

@@ -37,7 +37,7 @@ public class DefaultPromise<T> implements Promise<T> {
 
   @Override
   public void then(final Action<? super T> then) {
-    ThreadBinding.requireComputeThread("Promise.then() can only be called on a compute thread (use Blocking.on() to use a promise on a blocking thread)");
+    ExecThreadBinding.requireComputeThread("Promise.then() can only be called on a compute thread (use Blocking.on() to use a promise on a blocking thread)");
     doConnect(new Downstream<T>() {
       @Override
       public void success(T value) {
@@ -62,7 +62,7 @@ public class DefaultPromise<T> implements Promise<T> {
 
   @Override
   public void connect(Downstream<? super T> downstream) {
-    ThreadBinding.requireComputeThread("Promise.connect() can only be called on a compute thread (use Blocking.on() to use a promise on a blocking thread)");
+    ExecThreadBinding.requireComputeThread("Promise.connect() can only be called on a compute thread (use Blocking.on() to use a promise on a blocking thread)");
     doConnect(downstream);
   }
 

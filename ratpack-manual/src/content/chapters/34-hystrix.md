@@ -9,7 +9,7 @@ a [Hystrix Concurrency Strategy](http://netflix.github.io/Hystrix/javadoc/index.
 to be used for managing the [Hystrix Request Context](http://netflix.github.io/Hystrix/javadoc/index.html?com/netflix/hystrix/strategy/concurrent/HystrixRequestContext.html).  What all that means is that you **do not** need to initialise a Hystrix Request Context
 (`HystrixRequestContext context = HystrixRequestContext.initializeContext();`) before a request begins as detailed in the [Hystrix wiki](https://github.com/Netflix/Hystrix/wiki/How-To-Use#RequestContextSetup).
 
-One of the best features of Hystrix is the metrics that are captured and the [dashboard](https://github.com/Netflix/Hystrix/wiki/Dashboard) provided for viewing them real-time.  This is achieved by streaming metrics out of your application over SSE and 
+One of the best features of Hystrix is the metrics that are captured and the [dashboard](https://github.com/Netflix-Skunkworks/hystrix-dashboard/wiki) provided for viewing them real-time.  This is achieved by streaming metrics out of your application over SSE and 
 the `ratpack-hystrix` JAR provides a [handler](api/ratpack/hystrix/HystrixMetricsEventStreamHandler.html) that will do this for you.
     
 The `ratpack-hystrix` module as of @ratpack-version@ is built against (and depends on) RxJava @versions-hystrix@.

@@ -16,7 +16,7 @@
 
 package ratpack.exec
 
-import ratpack.exec.internal.ThreadBinding
+import ratpack.exec.internal.ExecThreadBinding
 import ratpack.func.Action
 import ratpack.test.exec.ExecHarness
 import spock.lang.AutoCleanup
@@ -179,7 +179,7 @@ class PromiseOperationsSpec extends Specification {
     when:
     exec {
       Promise.value("foo").blockingMap {
-        events << ThreadBinding.get().get().isCompute()
+        events << ExecThreadBinding.require().isCompute()
         "bar"
       } then {
         events << it
@@ -210,7 +210,7 @@ class PromiseOperationsSpec extends Specification {
     when:
     exec {
       Promise.value("foo").blockingOp {
-        events << ThreadBinding.get().get().isCompute()
+        events << ExecThreadBinding.require().isCompute()
       } then {
         events << it
       }
