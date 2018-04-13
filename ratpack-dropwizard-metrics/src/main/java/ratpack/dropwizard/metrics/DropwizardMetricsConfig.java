@@ -44,6 +44,7 @@ public class DropwizardMetricsConfig {
   private Optional<Slf4jConfig> slf4j = Optional.empty();
   private Optional<GraphiteConfig> graphite = Optional.empty();
   private Optional<ByteBufAllocatorConfig> byteBufAllocator = Optional.empty();
+  private Optional<HttpClientConfig> httpClient = Optional.empty();
 
   /**
    * The state of jvm metrics collection.
@@ -378,6 +379,44 @@ public class DropwizardMetricsConfig {
       configure.execute(graphite.orElseGet(() -> {
         graphite = Optional.of(new GraphiteConfig());
         return graphite.get();
+      }));
+      return this;
+    } catch (Exception e) {
+      throw uncheck(e);
+    }
+  }
+
+  /**
+   * Get the settings for the http client metric set.
+   *
+   * @return the metric set settings.
+   * @since 1.6
+   */
+  public Optional<HttpClientConfig> getHttpClient() {
+    return httpClient;
+  }
+
+  /**
+   * @return this
+   * @see #httpClient(ratpack.func.Action)
+   * @since 1.6
+   */
+  public DropwizardMetricsConfig httpClient() {
+    return httpClient(Action.noop());
+  }
+
+  /**
+   * Configure the http client metric set.
+   *
+   * @param configure the configuration for the http client metric set.
+   * @return this
+   * @since 1.6
+   */
+  public DropwizardMetricsConfig httpClient(Action<? super HttpClientConfig> configure) {
+    try {
+      configure.execute(httpClient.orElseGet(() -> {
+        httpClient = Optional.of(new HttpClientConfig());
+        return httpClient.get();
       }));
       return this;
     } catch (Exception e) {
