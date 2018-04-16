@@ -114,6 +114,7 @@ public class NettyHandlerAdapter extends ChannelInboundHandlerAdapter {
 
   private void newRequest(ChannelHandlerContext ctx, HttpRequest nettyRequest) throws Exception {
     if (!nettyRequest.decoderResult().isSuccess()) {
+      LOGGER.warn("Failed to decode HTTP request.", nettyRequest.decoderResult().cause());
       sendError(ctx, HttpResponseStatus.BAD_REQUEST);
       return;
     }
