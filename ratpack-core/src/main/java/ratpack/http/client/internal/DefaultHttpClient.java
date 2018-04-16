@@ -258,6 +258,7 @@ public class DefaultHttpClient implements HttpClientInternal {
       return this;
     }
 
+    @Override
     public HttpClientSpec enableMetricsCollection(boolean enableMetricsCollection) {
       this.enableMetricsCollection = enableMetricsCollection;
       return this;

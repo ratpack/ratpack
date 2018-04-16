@@ -20,6 +20,7 @@ import com.codahale.metrics.Gauge;
 import com.codahale.metrics.MetricRegistry;
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
+import ratpack.dropwizard.metrics.DropwizardMetricsConfig;
 import ratpack.exec.ExecController;
 import ratpack.http.client.HttpClient;
 import ratpack.http.client.internal.DefaultHttpClient;
@@ -42,31 +43,32 @@ public class HttpClientMetrics implements Service, Runnable {
 
   private final HttpClient httpClient;
   private final MetricRegistry metricRegistry;
-  private final HttpClientConfig config;
+  private final DropwizardMetricsConfig config;
   private final ConcurrentMap<String, HttpMetricGauge> gauges;
 
   @Inject
   public HttpClientMetrics(
     HttpClient httpClient,
-    MetricRegistry metricRegistry
+    MetricRegistry metricRegistry,
+    DropwizardMetricsConfig config
   ) {
-    boolean enabled = Boolean.getBoolean("ratpack.metrics.httpclient.enabled");
-    int pollingFrequency = Integer.getInteger("ratpack.metrics.httpclient.pollingFrequency", 30);
-
     this.httpClient = httpClient;
     this.metricRegistry = metricRegistry;
-    this.config = new HttpClientConfig()
-      .enable(enabled)
-      .pollingFrequencyInSeconds(pollingFrequency);
+    this.config = config;
     this.gauges = new ConcurrentHashMap<>();
   }
 
   @Override
   public void onStart(StartEvent event) throws Exception {
-    if (config.isEnabled() && httpClient instanceof DefaultHttpClient) {
-      ExecController execController = event.getRegistry().get(ExecController.class);
-      execController.getExecutor().scheduleAtFixedRate(this, 0, config.getPollingFrequencyInSeconds(), TimeUnit.SECONDS);
-    }
+    config.getHttpClient().ifPresent(httpClientConfig -> {
+      boolean enabled = httpClientConfig.isEnabled();
+      int pollingFrequency = httpClientConfig.getPollingFrequencyInSeconds();
+
+      if (enabled && httpClient instanceof DefaultHttpClient) {
+        ExecController execController = event.getRegistry().get(ExecController.class);
+        execController.getExecutor().scheduleAtFixedRate(this, 0, pollingFrequency, TimeUnit.SECONDS);
+      }
+    });
   }
 
   @Override

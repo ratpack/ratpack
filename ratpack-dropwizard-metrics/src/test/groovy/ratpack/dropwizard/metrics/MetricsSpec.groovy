@@ -40,7 +40,6 @@ import ratpack.exec.Promise
 import ratpack.groovy.handling.GroovyChain
 import ratpack.groovy.test.embed.GroovyEmbeddedApp
 import ratpack.http.client.HttpClient
-import ratpack.http.client.internal.DefaultHttpClient
 import ratpack.test.embed.EmbeddedApp
 import ratpack.test.internal.RatpackGroovyDslSpec
 import ratpack.websocket.RecordingWebSocketClient
@@ -838,20 +837,23 @@ class MetricsSpec extends RatpackGroovyDslSpec {
 
   def "it should report http client metrics"() {
     given:
-    System.setProperty("ratpack.metrics.httpclient.enabled", "true")
-    System.setProperty("ratpack.metrics.httpclient.pollingFrequency", "1")
-
     MetricRegistry registry
     String ok = 'ok'
     def result = new BlockingVariable<String>()
-    def httpClient = HttpClient.of { DefaultHttpClient.Spec spec ->
+    def httpClient = HttpClient.of { spec ->
       spec.poolSize(0)
       spec.enableMetricsCollection(true)
     }
 
     bindings {
       bindInstance(HttpClient, httpClient)
-      module new DropwizardMetricsModule()
+      module new DropwizardMetricsModule(), { spec ->
+        spec.httpClient { config ->
+          config
+            .enable(true)
+            .pollingFrequencyInSeconds(1)
+        }
+      }
     }
 
     otherApp {
@@ -905,9 +907,5 @@ class MetricsSpec extends RatpackGroovyDslSpec {
       assert registry.getGauges().get("httpclient.${otherAppUrl().host}.total.idle.connections").value == 0
       assert registry.getGauges().get("httpclient.${otherAppUrl().host}.total.connections").value == 0
     }
-
-    cleanup:
-    System.setProperty("ratpack.metrics.httpclient.enabled", "false")
-    System.setProperty("ratpack.metrics.httpclient.pollingFrequency", "30")
   }
 }
