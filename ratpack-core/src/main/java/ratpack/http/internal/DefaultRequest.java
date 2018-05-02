@@ -197,23 +197,19 @@ public class DefaultRequest implements Request {
   }
 
   public String getPath() {
-//    if (path == null) {
-      String uri = getUri();
-      String noSlash = uri.substring(1);
-      int i = noSlash.indexOf("?");
-      if (i < 0) {
-        path = noSlash;
-      } else {
-        path = noSlash.substring(0, i);
-      }
-//    }
+    String uri = getUri();
+    String noSlash = uri.substring(1);
+    int i = noSlash.indexOf("?");
+    if (i < 0) {
+      path = noSlash;
+    } else {
+      path = noSlash.substring(0, i);
+    }
     try {
-//      if (path.contains("%")) {
       if (path.contains("+")) {
         path = path.replaceAll("\\+", "%2B");
       }
       path = URLDecoder.decode(path, System.getProperty("sun.jnu.encoding"));
-//      }
     } catch (IllegalArgumentException e) {
       e.printStackTrace();
     } catch (UnsupportedEncodingException e) {
