@@ -41,10 +41,13 @@ import ratpack.stream.Streams;
 import ratpack.stream.TransformablePublisher;
 import ratpack.util.MultiValueMap;
 import ratpack.util.internal.ImmutableDelegatingMultiValueMap;
+import ratpack.util.internal.InternalRatpackError;
 
 import javax.security.cert.X509Certificate;
+import java.io.UnsupportedEncodingException;
 import java.net.InetSocketAddress;
 import java.net.URI;
+import java.net.URLDecoder;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.*;
@@ -155,7 +158,13 @@ public class DefaultRequest implements Request {
         uri = rawUri;
       } else {
         URI parsed = URI.create(rawUri);
-        String path = parsed.getPath();
+        String rawPath = parsed.getPath();
+        String preDecodedPath = rawPath.replaceAll("\\+", "%2B");
+        try {
+          path = URLDecoder.decode(preDecodedPath, "UTF8");
+        } catch (UnsupportedEncodingException e) {
+          throw new InternalRatpackError("UTF8 is not available", e);
+        }
         if (Strings.isNullOrEmpty(path)) {
           path = "/";
         }
@@ -188,7 +197,7 @@ public class DefaultRequest implements Request {
   }
 
   public String getPath() {
-    if (path == null) {
+//    if (path == null) {
       String uri = getUri();
       String noSlash = uri.substring(1);
       int i = noSlash.indexOf("?");
@@ -197,9 +206,21 @@ public class DefaultRequest implements Request {
       } else {
         path = noSlash.substring(0, i);
       }
+//    }
+    try {
+//      if (path.contains("%")) {
+      if (path.contains("+")) {
+        path = path.replaceAll("\\+", "%2B");
+      }
+      path = URLDecoder.decode(path, System.getProperty("sun.jnu.encoding"));
+//      }
+    } catch (IllegalArgumentException e) {
+      e.printStackTrace();
+    } catch (UnsupportedEncodingException e) {
+      e.printStackTrace();
+    } finally {
+      return path;
     }
-
-    return path;
   }
 
   public Set<Cookie> getCookies() {
