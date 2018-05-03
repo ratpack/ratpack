@@ -161,9 +161,9 @@ public class DefaultRequest implements Request {
         String rawPath = parsed.getPath();
         String preDecodedPath = rawPath.replaceAll("\\+", "%2B");
         try {
-          path = URLDecoder.decode(preDecodedPath, "UTF8");
+          path = URLDecoder.decode(preDecodedPath, "UTF-8");
         } catch (UnsupportedEncodingException e) {
-          throw new InternalRatpackError("UTF8 is not available", e);
+          throw new InternalRatpackError("UTF-8 is not available", e);
         }
         if (Strings.isNullOrEmpty(path)) {
           path = "/";
@@ -209,7 +209,7 @@ public class DefaultRequest implements Request {
       if (path.contains("+")) {
         path = path.replaceAll("\\+", "%2B");
       }
-      path = URLDecoder.decode(path, System.getProperty("sun.jnu.encoding"));
+      path = URLDecoder.decode(path, "UTF-8");
     } catch (IllegalArgumentException e) {
       e.printStackTrace();
     } catch (UnsupportedEncodingException e) {
