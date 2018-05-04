@@ -150,4 +150,15 @@ public interface HttpClientSpec {
    * @since 1.6
    */
   HttpClientSpec responseIntercept(Operation operation);
+
+  /**
+   * Enable metric collection on HTTP Client.
+   * <p>
+   * Defaults to false.
+   * <p>
+   * @param enableMetricsCollection A boolean used to enable metric collection.
+   * @return {@code this}
+   * @since 1.6
+   */
+  HttpClientSpec enableMetricsCollection(boolean enableMetricsCollection);
 }

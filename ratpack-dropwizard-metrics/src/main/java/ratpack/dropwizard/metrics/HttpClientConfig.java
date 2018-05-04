@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package ratpack.dropwizard.metrics.internal;
+package ratpack.dropwizard.metrics;
 
 public class HttpClientConfig {
 
