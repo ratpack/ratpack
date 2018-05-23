@@ -237,11 +237,11 @@ class StaticFileSpec extends RatpackGroovyDslSpec {
     }
 
     then:
-//    getText("some%20other.txt") == "1"
+    getText("some%20other.txt") == "1"
     getText("some+more.txt") == "2"
-//    getText("path%20to/some+where/test.txt") == "3"
-//    get("some+other.txt").statusCode == NOT_FOUND.code()
-//    get("some%20more.txt").statusCode == NOT_FOUND.code()
+    getText("path%20to/some+where/test.txt") == "3"
+    get("some+other.txt").statusCode == NOT_FOUND.code()
+    get("some%20more.txt").statusCode == NOT_FOUND.code()
   }
 
   def "can nest file system binding handlers"() {
