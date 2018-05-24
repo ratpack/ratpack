@@ -149,4 +149,24 @@ class HierarchicalExecutionSpec extends BaseExecutionSpec {
     then:
     events == ["false", "complete"]
   }
+
+  def "child gets default label based on parent counter"() {
+    given:
+    counts(4)
+    def labels = Collections.synchronizedList([])
+    def code = {
+      labels << it.label
+      latch.countDown()
+    }
+
+    when:
+    exec {
+      it.fork().start(code)
+      it.fork().label('foo').start(code)
+      it.fork().start(code)
+    }
+
+    then:
+    labels as Set == ['0', 'foo', '2'] as Set
+  }
 }
