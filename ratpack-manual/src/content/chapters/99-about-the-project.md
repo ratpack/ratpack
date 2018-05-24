@@ -89,6 +89,7 @@ The following people have provided significant contributions.
 * [Timur Salyakhutdinov](https://github.com/timic)
 * [Matthew Kavanagh](https://github.com/mkavanagh)
 * [Jason Terhune-Wold](https://github.com/jterhune)
+* [Jon Bevan](https://github.com/jdbevan)
 
 ### Past project members
 
