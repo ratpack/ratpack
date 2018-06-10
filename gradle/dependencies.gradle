@@ -41,6 +41,7 @@ ext {
     xmlApis: "1.4.01",
     snakeyaml: "1.20",
     prometheusClient: "0.2.0",
+    shadow: "2.0.4"
   ]
 
   if (System.getenv('CI_GROOVY_VERSION')) {

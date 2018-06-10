@@ -49,7 +49,7 @@ ext {
 }
 
 task replaceTemplateTokens(type: Sync) {
-  def tokens = [version: version, slf4jVersion: commonVersions.slf4j, spockVersion: commonVersions.spock]
+  def tokens = [version: version, slf4jVersion: commonVersions.slf4j, spockVersion: commonVersions.spock, shadowVersion: commonVersions.shadow]
   inputs.properties(tokens)
 
   from('src/templates/ratpack') {
