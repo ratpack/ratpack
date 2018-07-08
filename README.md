@@ -20,4 +20,3 @@ Optional Gradle build time support makes building and testing applications a bre
 
 Please see [CONTRIBUTING.md](https://github.com/ratpack/ratpack/blob/master/CONTRIBUTING.md)
 
-
