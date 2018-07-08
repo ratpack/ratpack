@@ -53,7 +53,7 @@ public class FileRenderer extends RendererSupport<Path> {
     this.cacheMetadata = cacheMetadata;
   }
 
-  private static Cache<Path, Optional<BasicFileAttributes>> CACHE;
+  private static Cache<Path, Optional<BasicFileAttributes>> cache;
 
   @Override
   public void render(Context ctx, Path targetFile) throws Exception {
@@ -114,10 +114,10 @@ public class FileRenderer extends RendererSupport<Path> {
   }
 
   private static Cache<Path, Optional<BasicFileAttributes>> getCache() {
-    if (CACHE == null) {
-      CACHE = Caffeine.newBuilder().maximumSize(10000).build();
+    if (cache == null) {
+      cache = Caffeine.newBuilder().maximumSize(10000).build();
     }
-    return CACHE;
+    return cache;
   }
 
 }
