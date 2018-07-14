@@ -20,6 +20,8 @@ import com.google.common.net.HostAndPort
 import io.netty.util.CharsetUtil
 import ratpack.error.ServerErrorHandler
 import ratpack.exec.Blocking
+import ratpack.form.Form
+import ratpack.form.UploadedFile
 import ratpack.func.Action
 import ratpack.groovy.internal.ClosureUtil
 import ratpack.groovy.test.handling.GroovyRequestFixture
@@ -27,6 +29,7 @@ import ratpack.handling.Context
 import ratpack.handling.Handler
 import ratpack.handling.RequestOutcome
 import ratpack.registry.Registry
+import ratpack.test.http.MultipartFormSpec
 import spock.lang.Specification
 import spock.util.concurrent.BlockingVariable
 
@@ -475,6 +478,95 @@ class HandlerUnitTestingSpec extends Specification {
     host         | port
     'localhost'  | 8080
     'ratpack.io' | 45678
+  }
+
+  def "can post multipart form-data"() {
+    given:
+    fixture.form(data)
+
+    when:
+    handle {
+      context.parse(Form).then { Form form ->
+        response.send(toString(form))
+      }
+    }
+
+    then:
+    bodyText == toString(data)
+
+    where:
+    data = ['name1': 'value1', 'name2': 'value2']
+    toString = { Map map -> map.collect { "${it.key}=${map.get(it.key)}" }.join('\n') }
+  }
+
+  def "can post multipart form-data using spec"() {
+    given:
+    MultipartFormSpec spec = fixture.form()
+    values.each { value ->
+      spec.field(name, value)
+    }
+
+    when:
+    handle {
+      context.parse(Form).then { Form form ->
+        response.send(form.toString())
+      }
+    }
+
+    then:
+    bodyText == [(name): values].toString()
+
+    where:
+    name = 'name1'
+    values = ['value1', 'value2']
+  }
+
+  def "can post file using multipart form"() {
+    given:
+    fixture.file(field, filename, data)
+
+    when:
+    handle {
+      context.parse(Form).then { Form form ->
+        UploadedFile file = form.file(field)
+        response.send("${file.fileName}=${file.text}")
+      }
+    }
+
+    then:
+    bodyText == "${filename}=${data}"
+
+    where:
+    field = 'upload'
+    filename = 'ratpack.md'
+    data = '# Ratpack'
+  }
+
+  def "can post file using multipart form spec"() {
+    given:
+    fixture.file()
+      .contentType(contentType)
+      .data(data)
+      .field(field)
+      .name(name)
+      .add()
+
+    when:
+    handle {
+      context.parse(Form).then { Form form ->
+        UploadedFile file = form.file(field)
+        response.send("${file.fileName}=${file.text}")
+      }
+    }
+
+    then:
+    bodyText == "${name}=${data}"
+
+    where:
+    contentType = 'text/markdown'
+    data = '# Ratpack'
+    field = 'upload'
+    name = 'ratpack.md'
   }
 
 }
