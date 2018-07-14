@@ -54,6 +54,9 @@ import ratpack.stream.TransformablePublisher;
 import ratpack.test.handling.HandlerTimeoutException;
 import ratpack.test.handling.HandlingResult;
 import ratpack.test.handling.RequestFixture;
+import ratpack.test.http.MultipartFileSpec;
+import ratpack.test.http.internal.DefaultMultipartForm;
+import ratpack.test.http.MultipartFormSpec;
 import ratpack.util.Exceptions;
 
 import java.net.InetSocketAddress;
@@ -87,6 +90,8 @@ public class DefaultRequestFixture implements RequestFixture {
   private ServerConfigBuilder serverConfigBuilder = ServerConfig.builder();
   private DefaultPathBinding pathBinding;
 
+  private Optional<DefaultMultipartForm.Builder> formBuilder = Optional.empty();
+
   @Override
   public RequestFixture body(byte[] bytes, String contentType) {
     requestHeaders.add(HttpHeaderNames.CONTENT_TYPE, contentType);
@@ -98,6 +103,32 @@ public class DefaultRequestFixture implements RequestFixture {
   @Override
   public RequestFixture body(String text, String contentType) {
     return body(text.getBytes(CharsetUtil.UTF_8), contentType);
+  }
+
+  @Override
+  public MultipartFileSpec file() {
+    return findOrCreateForm().file();
+  }
+
+  @Override
+  public RequestFixture file(String field, String filename, String data) {
+    DefaultMultipartForm.Builder form = findOrCreateForm();
+    form.file().field(field).name(filename).data(data).add();
+
+    return this;
+  }
+
+  @Override
+  public MultipartFormSpec form() {
+    return findOrCreateForm();
+  }
+
+  @Override
+  public RequestFixture form(Map<String, String> data) {
+    DefaultMultipartForm.Builder form = findOrCreateForm();
+    form.fields(data);
+
+    return this;
   }
 
   @Override
@@ -122,6 +153,7 @@ public class DefaultRequestFixture implements RequestFixture {
 
   private HandlingResult invoke(Handler handler, Registry registry, DefaultHandlingResult.ResultsHolder results) throws HandlerTimeoutException {
     ServerConfig serverConfig = registry.get(ServerConfig.class);
+    writeMultipartFormIfRequired();
 
     DefaultRequest request = new DefaultRequest(
       Instant.now(), requestHeaders, HttpMethod.valueOf(method.toUpperCase()), HttpVersion.valueOf(protocol), uri,
@@ -287,6 +319,22 @@ public class DefaultRequestFixture implements RequestFixture {
   public RequestFixture protocol(String protocol) {
     this.protocol = protocol;
     return this;
+  }
+
+  private void writeMultipartFormIfRequired() {
+    if(formBuilder.isPresent()) {
+      DefaultMultipartForm form = formBuilder.get().build();
+      method("POST");
+      body(form.getBody(), form.getContentType());
+    }
+  }
+
+  private DefaultMultipartForm.Builder findOrCreateForm() {
+    if(!formBuilder.isPresent()) {
+      formBuilder = Optional.of(DefaultMultipartForm.builder());
+    }
+
+    return formBuilder.get();
   }
 
   private Registry getEffectiveRegistry(final DefaultHandlingResult.ResultsHolder results) {

@@ -29,6 +29,8 @@ import ratpack.registry.RegistrySpec;
 import ratpack.server.ServerConfig;
 import ratpack.server.ServerConfigBuilder;
 import ratpack.test.handling.internal.DefaultRequestFixture;
+import ratpack.test.http.MultipartFileSpec;
+import ratpack.test.http.MultipartFormSpec;
 
 import java.util.Map;
 
@@ -171,6 +173,44 @@ public interface RequestFixture {
    * @return this
    */
   RequestFixture body(String text, String contentType);
+
+  /**
+   * A specification of a file to upload (see RFC2388)
+   * <p>
+   * Can be used to construct a multipart form with files
+   *
+   * @return a specification of a multipart file
+   */
+  MultipartFileSpec file();
+
+  /**
+   * Uploads a file via a multipart form (see RFC2388)
+   *
+   * @param field form field name
+   * @param filename filename of uploaded file
+   * @param data content of file
+   * @return this
+   */
+  RequestFixture file(String field, String filename, String data);
+
+  /**
+   * A specification of a multipart form (see RFC2388)
+   * <p>
+   * Can be used to construct a multipart form with name value pairs and files
+   * <p>
+   * Note that more than one value and more than one file can be associated with a single field
+   *
+   * @return a specification of a multipart form
+   */
+  MultipartFormSpec form();
+
+  /**
+   * Sets the fields on a multipart form (see RFC2388)
+   *
+   * @param fields map of field name to field value
+   * @return this
+   */
+  RequestFixture form(Map<String, String> fields);
 
   /**
    * A specification of the context registry.
