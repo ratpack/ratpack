@@ -29,6 +29,8 @@ import ratpack.registry.RegistrySpec;
 import ratpack.server.ServerConfigBuilder;
 import ratpack.test.handling.HandlingResult;
 import ratpack.test.handling.RequestFixture;
+import ratpack.test.http.MultipartFileSpec;
+import ratpack.test.http.MultipartFormSpec;
 
 import java.util.Map;
 
@@ -71,6 +73,28 @@ public class DefaultGroovyRequestFixture implements GroovyRequestFixture {
   @Override
   public GroovyRequestFixture body(String text, String contentType) {
     delegate.body(text, contentType);
+    return this;
+  }
+
+  @Override
+  public MultipartFileSpec file() {
+    return delegate.file();
+  }
+
+  @Override
+  public GroovyRequestFixture file(String field, String filename, String data) {
+    delegate.file(field, filename, data);
+    return this;
+  }
+
+  @Override
+  public MultipartFormSpec form() {
+    return delegate.form();
+  }
+
+  @Override
+  public GroovyRequestFixture form(Map<String, String> data) {
+    delegate.form(data);
     return this;
   }
 
