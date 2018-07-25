@@ -1,0 +1,3 @@
+moduleName=ratpack-reactor
+moduleVersion=
+extensionClasses=ratpack.reactor.ReactorRatpack

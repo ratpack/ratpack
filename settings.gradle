@@ -27,6 +27,7 @@ include \
     "ratpack-session-redis",
     "ratpack-gradle",
     "ratpack-handlebars",
+    "ratpack-reactor",
     "ratpack-remote",
     "ratpack-remote-test",
     "ratpack-rx",
