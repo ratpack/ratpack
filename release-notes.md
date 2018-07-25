@@ -22,3 +22,4 @@ It should not be considered the final announcement for any release at any time.
 * Added rx2 Module
 * Added thymeleaf3 Module
 * Enhance RequestFixture with multipart form and file upload capabilities
+* Added reactor module 
