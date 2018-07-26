@@ -52,7 +52,6 @@ import java.time.Duration;
 import java.time.Instant;
 import java.util.*;
 import java.util.function.Supplier;
-import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 public class DefaultRequest implements Request {
@@ -213,7 +212,7 @@ public class DefaultRequest implements Request {
       path = noSlash.substring(0, i);
     }
     try {
-      while (Pattern.matches(".*%[A-Fa-f0-9]{2}.*",path.subSequence(0,path.length()))) {
+      while (Pattern.matches(".*%[A-Fa-f0-9]{2}.*", path.subSequence(0, path.length()))) {
         if (path.contains("+")) {
           path = path.replaceAll("\\+", "%2B");
         }
