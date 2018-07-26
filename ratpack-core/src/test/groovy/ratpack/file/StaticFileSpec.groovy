@@ -27,6 +27,7 @@ import ratpack.http.client.RequestSpec
 import ratpack.http.internal.HttpHeaderDateFormat
 import ratpack.server.Stopper
 import ratpack.test.internal.RatpackGroovyDslSpec
+import ratpack.util.internal.InternalRatpackError
 import spock.util.concurrent.BlockingVariable
 import spock.util.concurrent.PollingConditions
 
@@ -242,6 +243,21 @@ class StaticFileSpec extends RatpackGroovyDslSpec {
     getText("path%20to/some+where/test.txt") == "3"
     get("some+other.txt").statusCode == NOT_FOUND.code()
     get("some%20more.txt").statusCode == NOT_FOUND.code()
+  }
+
+  def "invalid URL characters do not make it to file reader"() {
+    given:
+    write "d1/some+more.txt", "2"
+
+    when:
+    handlers {
+      files { dir "d1" }
+    }
+    getText("some%2508+more.txt")
+
+    then:
+    thrown InternalRatpackError
+    getText("some%252Bmore.txt") == "2"
   }
 
   def "can nest file system binding handlers"() {
