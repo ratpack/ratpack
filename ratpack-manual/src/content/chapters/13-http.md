@@ -319,7 +319,59 @@ TODO introduce assets method
 
 ### Before send
 
-TODO introduce beforeSend method and the Response interface.
+The [`Response`](api/ratpack/http/Response.html) object contains a method, `beforeSend(Action<? super Response> responseFinalizer)`, that is invoked immediately before a Response is sent to the client.
+
+You may not call any of the `.send()` methods on the `Response` within the `responseFinalizer` callback.
+
+This method is particularly useful for modifying
+
+* headers
+* cookies
+* the status
+* the content-type
+
+at the last second.
+
+A practical use-case for this would be modifying the status code or headers when using [`StreamedResponse.forwardTo()`](api/ratpack/http/client/StreamedResponse.html).
+
+For example:
+
+```language-java
+import io.netty.handler.codec.http.HttpHeaderNames;
+import ratpack.http.client.ReceivedResponse;
+import ratpack.test.embed.EmbeddedApp;
+import ratpack.http.Headers;
+import ratpack.http.Request;
+import ratpack.http.Status;
+
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
+
+public class Example {
+  public static void main(String... args) throws Exception {
+    EmbeddedApp
+      .fromHandler(ctx -> {
+        ctx.getResponse()
+          .contentType("application/json")
+          .status(Status.OK)
+          .beforeSend(response -> {
+             response.getHeaders().remove(HttpHeaderNames.CONTENT_LENGTH);
+             response.cookie("DNT", "1");
+             response.status(Status.of(451, "Unavailable for Legal Reasons"));
+             response.contentType("text/plain");
+          }).send();
+      })
+      .test(httpClient -> {
+        ReceivedResponse receivedResponse = httpClient.get();
+
+        Headers headers = receivedResponse.getHeaders();
+        assertEquals(451, receivedResponse.getStatusCode());
+        assertEquals("text/plain", headers.get(HttpHeaderNames.CONTENT_TYPE));
+        assertTrue(headers.get(HttpHeaderNames.SET_COOKIE).contains("DNT"));
+      });
+  }
+}
+```
 
 ## Headers
 

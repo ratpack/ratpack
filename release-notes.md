@@ -15,7 +15,11 @@ It should not be considered the final announcement for any release at any time.
 * `Promise.mapError(Predicate,Function)` 
 * `RatpackServer.getRegistry()`
 * Fix for URL paths when serving files
+* Fix to not allow any empty string as the session id.
 * Configure `HttpClient` for Retrofit builders
 * Check for null content-type in retrofit request
 * `ByteBuf` metrics in `DropwizardMetricsMetrics`
 * Added rx2 Module
+* Added thymeleaf3 Module
+* Enhance RequestFixture with multipart form and file upload capabilities
+* Added reactor module 

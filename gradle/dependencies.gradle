@@ -1,46 +1,48 @@
-  /*
- * Copyright 2013 the original author or authors.
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *    http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
+/*
+* Copyright 2013 the original author or authors.
+*
+* Licensed under the Apache License, Version 2.0 (the "License");
+* you may not use this file except in compliance with the License.
+* You may obtain a copy of the License at
+*
+*    http://www.apache.org/licenses/LICENSE-2.0
+*
+* Unless required by applicable law or agreed to in writing, software
+* distributed under the License is distributed on an "AS IS" BASIS,
+* WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+* See the License for the specific language governing permissions and
+* limitations under the License.
+*/
 
 ext {
   commonVersions = [
-    remote: "0.7",
-    slf4j: "1.7.25",
-    netty: "4.1.23.Final",
-    guava: "21.0",
-    groovy: "2.4.12",
-    pac4j: "1.8.8",
-    rxjava: "1.1.2",
-    rxjava2: "2.1.12",
-    hystrix: "1.5.13",
-    jackson: "2.9.5",
+    remote           : "0.7",
+    slf4j            : "1.7.25",
+    netty            : "4.1.23.Final",
+    guava            : "21.0",
+    groovy           : "2.4.12",
+    pac4j            : "1.8.8",
+    rxjava           : "1.1.2",
+    rxjava2          : "2.1.12",
+    reactor          : "3.1.8.RELEASE",
+    hystrix          : "1.5.13",
+    jackson          : "2.9.5",
     dropwizardMetrics: "3.1.1",
-    pegdown: "1.5.0",
-    spock: "1.1-groovy-2.4",
-    log4j: "2.6.2",
-    newrelic: "3.15.0",
-    reactiveStreams: "1.0.2",
-    guice: "4.1.0",
-    springBoot: "1.3.0.RELEASE",
-    caffeine: "2.6.2",
-    retrofit: "2.1.0",
-    commonsLogging: "1.2",
-    commonsCodec: "1.10",
-    xmlApis: "1.4.01",
-    snakeyaml: "1.20",
-    prometheusClient: "0.2.0",
+    pegdown          : "1.5.0",
+    spock            : "1.1-groovy-2.4",
+    log4j            : "2.6.2",
+    newrelic         : "3.15.0",
+    reactiveStreams  : "1.0.2",
+    guice            : "4.1.0",
+    springBoot       : "1.3.0.RELEASE",
+    caffeine         : "2.6.2",
+    retrofit         : "2.1.0",
+    commonsLogging   : "1.2",
+    commonsCodec     : "1.10",
+    xmlApis          : "1.4.01",
+    snakeyaml        : "1.20",
+    prometheusClient : "0.2.0",
+    shadow           : "2.0.4"
   ]
 
   if (System.getenv('CI_GROOVY_VERSION')) {
@@ -67,30 +69,32 @@ ext {
   }
 
   commonDependencies = [
-    spock: dependencies.create("org.spockframework:spock-core:${commonVersions.spock}", {
+    spock      : dependencies.create("org.spockframework:spock-core:${commonVersions.spock}", {
       exclude group: "org.codehaus.groovy", module: "groovy-all"
     }),
-    groovy: "org.codehaus.groovy:groovy-all:${commonVersions.groovy}",
-    guava: "com.google.guava:guava:$commonVersions.guava",
-    guice:  dependencies.create("com.google.inject:guice:$commonVersions.guice", {
+    groovy     : "org.codehaus.groovy:groovy-all:${commonVersions.groovy}",
+    guava      : "com.google.guava:guava:$commonVersions.guava",
+    guice      : dependencies.create("com.google.inject:guice:$commonVersions.guice", {
       exclude group: "com.google.guava", module: "guava"
     }),
-    rxjava: "io.reactivex:rxjava:$commonVersions.rxjava",
-    rxjava2: "io.reactivex.rxjava2:rxjava:${commonVersions.rxjava2}",
-    remote: dependencies.create("io.remotecontrol:remote-core:${commonVersions.remote}", {
+    rxjava     : "io.reactivex:rxjava:$commonVersions.rxjava",
+    rxjava2    : "io.reactivex.rxjava2:rxjava:${commonVersions.rxjava2}",
+    reactor    : "io.projectreactor:reactor-core:${commonVersions.reactor}",
+    reactorTest: "io.projectreactor:reactor-test:${commonVersions.reactor}",
+    remote     : dependencies.create("io.remotecontrol:remote-core:${commonVersions.remote}", {
       exclude group: "org.codehaus.groovy", module: "groovy-all"
     }),
-    remoteHttp: dependencies.create("io.remotecontrol:remote-transport-http:${commonVersions.remote}", {
+    remoteHttp : dependencies.create("io.remotecontrol:remote-transport-http:${commonVersions.remote}", {
       exclude group: "org.codehaus.groovy", module: "groovy-all"
     }),
-    jackson: "com.fasterxml.jackson.core:jackson-databind:${commonVersions.jackson}",
-    slf4j: "org.slf4j:slf4j-api:${commonVersions.slf4j}",
-    h2: "com.h2database:h2:1.4.197",
-    toolingApi: dependencies.create("org.gradle:gradle-tooling-api:${gradle.gradleVersion}", {
+    jackson    : "com.fasterxml.jackson.core:jackson-databind:${commonVersions.jackson}",
+    slf4j      : "org.slf4j:slf4j-api:${commonVersions.slf4j}",
+    h2         : "com.h2database:h2:1.4.197",
+    toolingApi : dependencies.create("org.gradle:gradle-tooling-api:${gradle.gradleVersion}", {
       exclude group: "org.slf4j", module: "slf4j-api"
     }),
-    snakeyaml: "org.yaml:snakeyaml:${commonVersions.snakeyaml}",
-    compass: [
+    snakeyaml  : "org.yaml:snakeyaml:${commonVersions.snakeyaml}",
+    compass    : [
       dependencies.create("rubygems:compass:1.0.3"),
       dependencies.create("rubygems:chunky_png:1.2.9", {
         force = true
