@@ -218,6 +218,7 @@ public class DefaultRequest implements Request {
         }
         path = URLDecoder.decode(path, "UTF-8");
       }
+      //Let's make sure we clean up non-printables (null, backspace, bell, et al).
       path.chars().forEach(charcode -> {
         if (charcode < 32) {
           throw new InternalRatpackError(String.format("Invalid character after URL Decoding dec(%d)", charcode));

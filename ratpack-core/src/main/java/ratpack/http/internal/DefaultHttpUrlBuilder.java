@@ -78,9 +78,10 @@ public class DefaultHttpUrlBuilder implements HttpUrlBuilder {
           // have to encode + to stop URLDecoder from treating it as a space (it's only synonymous with %20 in query strings)
           String path = part.replaceAll("\\+", "%2B");
 
-          while (Pattern.matches(".*%[A-Fa-f0-9]{2}.*", path.subSequence(0, path.length()))) {
+          while (Pattern.matches(".*%[A-Fa-f0-9]{2}.*",   path.subSequence(0, path.length()))) {
             path = URLDecoder.decode(path, "UTF-8");
           }
+          //Let's make sure we clean up non-printables (null, backspace, bell, et al).
           path.chars().forEach(charcode -> {
             if (charcode < 32) {
               throw new InternalRatpackError(String.format("Invalid character after URL Decoding dec(%d)", charcode));
