@@ -70,7 +70,6 @@ class DefaultRequestSpec extends RatpackGroovyDslSpec {
     "http://example.com:8080/?message=hello"       | "/?message=hello"                              | "message=hello"                | ""
     "http://example.com:8080/user/12345"           | "/user/12345"                                  | ""                             | "user/12345"
     "https://example.com:8443/user?name=fred"      | "/user?name=fred"                              | "name=fred"                    | "user"
-    "http://example.com:8080/user/12%2034"         | "/user/12 34"                                  | ""                             | "user/12 34"
   }
 
   def "It should detect an AJAX request"() {

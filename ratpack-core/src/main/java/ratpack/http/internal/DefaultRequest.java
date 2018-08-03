@@ -41,18 +41,14 @@ import ratpack.stream.Streams;
 import ratpack.stream.TransformablePublisher;
 import ratpack.util.MultiValueMap;
 import ratpack.util.internal.ImmutableDelegatingMultiValueMap;
-import ratpack.util.internal.InternalRatpackError;
 
 import javax.security.cert.X509Certificate;
-import java.io.UnsupportedEncodingException;
 import java.net.InetSocketAddress;
 import java.net.URI;
-import java.net.URLDecoder;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.*;
 import java.util.function.Supplier;
-import java.util.regex.Pattern;
 
 public class DefaultRequest implements Request {
 
@@ -159,18 +155,7 @@ public class DefaultRequest implements Request {
         uri = rawUri;
       } else {
         URI parsed = URI.create(rawUri);
-        String rawPath = parsed.getPath();
-        String preDecodedPath = rawPath.replaceAll("\\+", "%2B");
-        try {
-          path = URLDecoder.decode(preDecodedPath, "UTF-8");
-          path.chars().forEach(charcode -> {
-            if (charcode < 32) {
-              throw new InternalRatpackError(String.format("Invalid character after URL Decoding %d", charcode));
-            }
-          });
-        } catch (UnsupportedEncodingException e) {
-          throw new InternalRatpackError("UTF-8 is not available", e);
-        }
+        String path = parsed.getPath();
         if (Strings.isNullOrEmpty(path)) {
           path = "/";
         }
@@ -203,34 +188,18 @@ public class DefaultRequest implements Request {
   }
 
   public String getPath() {
-    String uri = getUri();
-    String noSlash = uri.substring(1);
-    int i = noSlash.indexOf("?");
-    if (i < 0) {
-      path = noSlash;
-    } else {
-      path = noSlash.substring(0, i);
-    }
-    try {
-      while (Pattern.matches(".*%[A-Fa-f0-9]{2}.*", path.subSequence(0, path.length()))) {
-        if (path.contains("+")) {
-          path = path.replaceAll("\\+", "%2B");
-        }
-        path = URLDecoder.decode(path, "UTF-8");
+    if (path == null) {
+      String uri = getUri();
+      String noSlash = uri.substring(1);
+      int i = noSlash.indexOf("?");
+      if (i < 0) {
+        path = noSlash;
+      } else {
+        path = noSlash.substring(0, i);
       }
-      //Let's make sure we clean up non-printables (null, backspace, bell, et al).
-      path.chars().forEach(charcode -> {
-        if (charcode < 32) {
-          throw new InternalRatpackError(String.format("Invalid character after URL Decoding dec(%d)", charcode));
-        }
-      });
-    } catch (IllegalArgumentException e) {
-      e.printStackTrace();
-    } catch (UnsupportedEncodingException e) {
-      e.printStackTrace();
-    } finally {
-      return path;
     }
+
+    return path;
   }
 
   public Set<Cookie> getCookies() {

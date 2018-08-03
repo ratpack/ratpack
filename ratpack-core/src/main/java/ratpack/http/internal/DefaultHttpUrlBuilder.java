@@ -32,7 +32,6 @@ import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URLDecoder;
 import java.util.*;
-import java.util.regex.Pattern;
 
 public class DefaultHttpUrlBuilder implements HttpUrlBuilder {
 
@@ -76,18 +75,8 @@ public class DefaultHttpUrlBuilder implements HttpUrlBuilder {
       for (String part : parts) {
         try {
           // have to encode + to stop URLDecoder from treating it as a space (it's only synonymous with %20 in query strings)
-          String path = part.replaceAll("\\+", "%2B");
-
-          while (Pattern.matches(".*%[A-Fa-f0-9]{2}.*",   path.subSequence(0, path.length()))) {
-            path = URLDecoder.decode(path, "UTF-8");
-          }
-          //Let's make sure we clean up non-printables (null, backspace, bell, et al).
-          path.chars().forEach(charcode -> {
-            if (charcode < 32) {
-              throw new InternalRatpackError(String.format("Invalid character after URL Decoding dec(%d)", charcode));
-            }
-          });
-          segment(path);
+          String s = part.replaceAll("\\+", "%2B");
+          segment(URLDecoder.decode(s, "UTF8"));
         } catch (UnsupportedEncodingException e) {
           throw new InternalRatpackError("UTF8 is not available", e);
         }
