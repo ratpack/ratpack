@@ -24,7 +24,7 @@ import ratpack.test.internal.SimpleErrorHandler
 
 class ContentNegotiationSpec extends RatpackGroovyDslSpec {
 
-  def "can content negotiate"() {
+  def "can content negotiate accept header '#acceptHeader' to '#contentTypeHeader'"() {
     when:
     handlers {
       get {
@@ -35,38 +35,28 @@ class ContentNegotiationSpec extends RatpackGroovyDslSpec {
           html {
             render "html"
           }
+          plainText {
+            render "text"
+          }
         }
       }
     }
 
     and:
-    withAcceptHeader("application/json;q=0.5,text/html;q=1")
+    withAcceptHeader(acceptHeader)
     then:
-    text == "html"
-    response.headers.get("Content-Type") == "text/html"
+    text == body
+    response.headers.get("Content-Type") == contentTypeHeader
     response.statusCode == 200
 
-    when:
-    withAcceptHeader("application/json,text/html")
-    then:
-    text == "json"
-    response.headers.get("Content-Type") == "application/json"
-    response.statusCode == 200
-
-    when:
-    withAcceptHeader("*")
-    then:
-    text == "json"
-
-    when:
-    withAcceptHeader("*/*")
-    then:
-    text == "json"
-
-    when:
-    withAcceptHeader("text/*")
-    then:
-    text == "html"
+    where:
+    acceptHeader                           | contentTypeHeader          | body
+    "application/json;q=0.5,text/html;q=1" | "text/html;charset=UTF-8"  | "html"
+    "application/json,text/html"           | "application/json"         | "json"
+    "*"                                    | "application/json"         | "json"
+    "*/*"                                  | "application/json"         | "json"
+    "text/*"                               | "text/html;charset=UTF-8"  | "html"
+    "text/plain"                           | "text/plain;charset=UTF-8" | "text"
   }
 
   def "by accepts responder mime types"() {

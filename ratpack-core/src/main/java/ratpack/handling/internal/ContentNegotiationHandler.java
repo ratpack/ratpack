@@ -70,7 +70,8 @@ public class ContentNegotiationHandler implements Handler {
 
   public static class DefaultByContentSpec implements ByContentSpec {
 
-    private static final String TYPE_HTML = "text/html";
+    private static final String TYPE_HTML = "text/html;charset=UTF-8";
+    private static final String TYPE_TEXT_PLAIN = "text/plain;charset=UTF-8";
     private static final String TYPE_XML = "application/xml";
 
     private final Map<String, Handler> handlers;
@@ -119,7 +120,7 @@ public class ContentNegotiationHandler implements Handler {
 
     @Override
     public ByContentSpec plainText(Handler handler) {
-      return type(HttpHeaderValues.TEXT_PLAIN, handler);
+      return type(TYPE_TEXT_PLAIN, handler);
     }
 
     @Override
