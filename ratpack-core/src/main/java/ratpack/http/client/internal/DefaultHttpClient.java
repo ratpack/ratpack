@@ -180,6 +180,7 @@ public class DefaultHttpClient implements HttpClientInternal {
     private Duration connectTimeout = Duration.ofSeconds(30);
     private Action<? super RequestSpec> requestInterceptor = Action.noop();
     private Action<? super HttpResponse> responseInterceptor = Action.noop();
+    private Action<? super Throwable> errorInterceptor = Action.noop();
     private boolean enableMetricsCollection;
 
     private Spec() {
@@ -259,6 +260,12 @@ public class DefaultHttpClient implements HttpClientInternal {
     }
 
     @Override
+    public HttpClientSpec errorIntercept(Action<? super Throwable> interceptor) {
+      errorInterceptor = errorInterceptor.append(interceptor);
+      return this;
+    }
+
+    @Override
     public HttpClientSpec enableMetricsCollection(boolean enableMetricsCollection) {
       this.enableMetricsCollection = enableMetricsCollection;
       return this;
@@ -279,7 +286,8 @@ public class DefaultHttpClient implements HttpClientInternal {
   public Promise<ReceivedResponse> request(URI uri, final Action<? super RequestSpec> requestConfigurer) {
     return intercept(
       Promise.async(downstream -> new ContentAggregatingRequestAction(uri, this, 0, Execution.current(), requestConfigurer.append(spec.requestInterceptor)).connect(downstream)),
-      spec.responseInterceptor
+      spec.responseInterceptor,
+      spec.errorInterceptor
     );
   }
 
@@ -287,19 +295,30 @@ public class DefaultHttpClient implements HttpClientInternal {
   public Promise<StreamedResponse> requestStream(URI uri, Action<? super RequestSpec> requestConfigurer) {
     return intercept(
       Promise.async(downstream -> new ContentStreamingRequestAction(uri, this, 0, Execution.current(), requestConfigurer.append(spec.requestInterceptor)).connect(downstream)),
-      spec.responseInterceptor
+      spec.responseInterceptor,
+      spec.errorInterceptor
     );
   }
 
-  private <T extends HttpResponse> Promise<T> intercept(Promise<T> promise, Action<? super HttpResponse> action) {
-    return promise.next(r ->
-      ExecController.require()
-        .fork()
-        .eventLoop(Execution.current().getEventLoop())
-        .start(e ->
-          action.execute(r)
-        )
-    );
+  private <T extends HttpResponse> Promise<T> intercept(Promise<T> promise, Action<? super HttpResponse> action, Action<? super Throwable> errorAction) {
+    return promise.wiretap(r -> {
+        if (r.isError()) {
+          ExecController.require()
+            .fork()
+            .eventLoop(Execution.current().getEventLoop())
+            .start(e ->
+              errorAction.execute(r.getThrowable())
+            );
+        }
+      })
+      .next(r ->
+        ExecController.require()
+          .fork()
+          .eventLoop(Execution.current().getEventLoop())
+          .start(e ->
+            action.execute(r)
+          )
+      );
   }
 
   public HttpClientStats getHttpClientStats() {

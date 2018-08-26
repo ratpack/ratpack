@@ -152,6 +152,17 @@ public interface HttpClientSpec {
   HttpClientSpec responseIntercept(Operation operation);
 
   /**
+   * Add an interceptor for errors thrown by this client (eg. connection refused, timeouts)
+   * <p>
+   * This function is additive.
+   *
+   * @param interceptor the action to perform on the error before propagating.
+   * @return {@code this}
+   * @since 1.6
+   */
+  HttpClientSpec errorIntercept(Action<? super Throwable> interceptor);
+
+  /**
    * Enable metric collection on HTTP Client.
    * <p>
    * Defaults to false.
