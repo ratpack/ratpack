@@ -86,9 +86,9 @@ tasks.withType(Test) {
     mustRunAfter tasks.withType(Checkstyle)
   }
 
-  jvmArgs "-Xss320k", "-XX:MaxDirectMemorySize=64m"
+  jvmArgs "-Xss320k", "-XX:MaxDirectMemorySize=128m"
   minHeapSize "120m"
-  maxHeapSize "200m"
+  maxHeapSize "300m"
 
   testLogging {
     exceptionFormat "full"
