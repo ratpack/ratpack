@@ -301,9 +301,15 @@ public class DefaultHttpClient implements HttpClientInternal {
   }
 
   private <T extends HttpResponse> Promise<T> intercept(Promise<T> promise, Action<? super HttpResponse> action, Action<? super Throwable> errorAction) {
-    return promise.onError(Exception.class, t -> {
-        errorAction.execute(t);
-        throw t;
+    return promise.wiretap(r -> {
+        if (r.isError()) {
+          ExecController.require()
+            .fork()
+            .eventLoop(Execution.current().getEventLoop())
+            .start(e ->
+              errorAction.execute(r.getThrowable())
+            );
+        }
       })
       .next(r ->
         ExecController.require()
