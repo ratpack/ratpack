@@ -246,7 +246,7 @@ class HttpClientInterceptorSpec extends BaseHttpClientSpec {
 
     bindings {
       bindInstance HttpClient, HttpClient.of { spec ->
-        spec.errorIntercept() { throwable ->
+        spec.errorIntercept { throwable ->
           Operation.of {
             latch.countDown()
           }.then()
