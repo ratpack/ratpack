@@ -63,6 +63,33 @@ class HttpClientInterceptorSpec extends BaseHttpClientSpec {
   }
 
   @Timeout(5)
+  def "can intercept errors"() {
+    given:
+
+    def latch = new CountDownLatch(1)
+
+    bindings {
+      bindInstance HttpClient, HttpClient.of { spec ->
+        spec.errorIntercept { throwable ->
+          latch.countDown()
+        }
+      }
+    }
+    handlers {
+      get { HttpClient client ->
+        render client.get(new URI("http://localhost:20000")).onError { render('OK') }
+      }
+    }
+
+    when:
+    def result = text
+    latch.await(5, TimeUnit.SECONDS)
+
+    then:
+    result == 'OK'
+  }
+
+  @Timeout(5)
   def "can append request specific http client interceptors"() {
     given:
 
