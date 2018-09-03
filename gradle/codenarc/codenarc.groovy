@@ -261,7 +261,7 @@ ruleset {
   // rulesets/imports.xml
   DuplicateImport
   ImportFromSamePackage
-//  ImportFromSunPackages
+  ImportFromSunPackages
 //  MisorderedStaticImports
   UnnecessaryGroovyImport
   UnusedImport
