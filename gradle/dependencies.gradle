@@ -20,7 +20,7 @@ ext {
     slf4j            : "1.7.25",
     netty            : "4.1.29.Final",
     guava            : "21.0",
-    groovy           : "2.4.12",
+    groovy           : "2.4.15",
     pac4j            : "1.8.8",
     rxjava           : "1.1.2",
     rxjava2          : "2.1.12",
