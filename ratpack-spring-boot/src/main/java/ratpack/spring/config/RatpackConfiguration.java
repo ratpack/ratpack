@@ -17,6 +17,7 @@
 package ratpack.spring.config;
 
 import com.google.inject.Module;
+import org.springframework.beans.factory.DisposableBean;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
@@ -34,14 +35,13 @@ import ratpack.server.ServerConfigBuilder;
 import ratpack.spring.Spring;
 import ratpack.spring.config.internal.ChainConfigurers;
 
-import javax.annotation.PreDestroy;
 import java.util.Collections;
 import java.util.List;
 
 @Configuration
 @Import(ChainConfigurers.class)
 @EnableConfigurationProperties(RatpackProperties.class)
-public class RatpackConfiguration implements CommandLineRunner {
+public class RatpackConfiguration implements CommandLineRunner, DisposableBean {
 
   @Autowired
   private RatpackServer server;
@@ -51,8 +51,8 @@ public class RatpackConfiguration implements CommandLineRunner {
     server.start();
   }
 
-  @PreDestroy
-  public void stop() throws Exception {
+  @Override
+  public void destroy() throws Exception {
     server.stop();
   }
 
