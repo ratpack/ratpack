@@ -18,7 +18,6 @@ package ratpack.server.internal;
 
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Iterables;
-import com.sun.nio.zipfs.ZipFileSystemProvider;
 
 import java.io.IOException;
 import java.net.URI;
@@ -124,7 +123,7 @@ public abstract class BaseDirFinder {
 
   private static Path determineBaseDir(Path configPath) {
     Path baseDir = configPath.getParent();
-    if (baseDir == null && configPath.getFileSystem().provider() instanceof ZipFileSystemProvider) {
+    if (baseDir == null && configPath.getFileSystem().provider().getScheme().equals("jar")) {
       baseDir = Iterables.getFirst(configPath.getFileSystem().getRootDirectories(), null);
     }
     if (baseDir == null) {
