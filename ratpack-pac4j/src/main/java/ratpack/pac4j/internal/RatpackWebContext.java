@@ -28,6 +28,7 @@ import ratpack.exec.Promise;
 import ratpack.form.Form;
 import ratpack.form.internal.DefaultForm;
 import ratpack.form.internal.FormDecoder;
+import ratpack.func.Block;
 import ratpack.handling.Context;
 import ratpack.http.*;
 import ratpack.server.PublicAddress;
@@ -114,7 +115,7 @@ public class RatpackWebContext implements WebContext {
     if (value == null) {
       session.remove(name);
     } else {
-      Exceptions.uncheck(() -> session.set(name, value, session.getJavaSerializer()));
+      Exceptions.uncheck((Block)() -> session.set(name, value, session.getJavaSerializer()));
     }
   }
 
