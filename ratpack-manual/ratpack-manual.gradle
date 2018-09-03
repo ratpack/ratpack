@@ -41,6 +41,10 @@ apply from: "$rootDir/gradle/javaModule.gradle"
 apply plugin: "com.github.robfletcher.compass"
 apply plugin: "com.eriwen.gradle.js"
 
+jruby {
+  execVersion = '9.1.14.0'
+}
+
 dependencies {
   compass commonDependencies.compass
 
