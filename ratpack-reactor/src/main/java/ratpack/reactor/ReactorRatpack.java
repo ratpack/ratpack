@@ -42,7 +42,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.BiFunction;
 
 /**
- * Provides integration with <a href="https://github.com/Netflix/RxJava">RxJava2</a>.
+ * Provides integration with <a href="https://projectreactor.io/">Project Reactor</a>.
  * <p>
  * The methods of this class provide bi-directional conversion between Ratpack's {@link Promise} and Reactor's {@link Flux} and {@link Mono}.
  * This allows Ratpack promise based API to be integrated into an RxJava based app and vice versa.
