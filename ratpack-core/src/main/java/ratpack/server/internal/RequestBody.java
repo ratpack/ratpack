@@ -323,7 +323,7 @@ public class RequestBody implements RequestBodyReader, RequestBodyAccumulator {
     } else {
       ByteBuf[] byteBufsArray = this.received.toArray(new ByteBuf[this.received.size()]);
       received.clear();
-      return Unpooled.unmodifiableBuffer(byteBufsArray);
+      return Unpooled.wrappedUnmodifiableBuffer(byteBufsArray);
     }
   }
 
