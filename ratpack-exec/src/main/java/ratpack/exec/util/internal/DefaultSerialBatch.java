@@ -35,8 +35,8 @@ public class DefaultSerialBatch<T> implements SerialBatch<T> {
 
   private final Iterable<? extends Promise<T>> promises;
 
-  public DefaultSerialBatch(Iterable<? extends Promise<T>> promises) {
-    this.promises = promises;
+  public DefaultSerialBatch(Iterable<? extends Promise<? extends T>> promises) {
+    this.promises = Types.cast(promises);
   }
 
   @Override
