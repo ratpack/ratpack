@@ -27,12 +27,12 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.util.Map;
 
-public final class Template3 {
+public final class Template {
 
   private final String name;
   private final IContext context;
 
-  private Template3(String name, IContext context) {
+  private Template(String name, IContext context) {
     this.name = name;
     this.context = context;
   }
@@ -45,19 +45,19 @@ public final class Template3 {
     return context;
   }
 
-  public static Template3 thymeleafTemplate(String name) {
+  public static Template thymeleafTemplate(String name) {
     return thymeleafTemplate(name, (Map<String, Object>) null);
   }
 
-  public static Template3 thymeleafTemplate(String name, IContext context) {
-    return new Template3(name, context);
+  public static Template thymeleafTemplate(String name, IContext context) {
+    return new Template(name, context);
   }
 
-  public static Template3 thymeleafTemplate(String name, Map<String, Object> model) {
+  public static Template thymeleafTemplate(String name, Map<String, Object> model) {
     HttpServletRequest request = new ThymeleafHttpServletRequestAdapter();
     HttpServletResponse response = new ThymeleafHttpServletResponseAdapter();
     ServletContext servletContext = new ThymeleafServletContextAdapter();
-    return new Template3(name, new WebContext(request, response, servletContext, null, model));
+    return new Template(name, new WebContext(request, response, servletContext, null, model));
   }
 
 }

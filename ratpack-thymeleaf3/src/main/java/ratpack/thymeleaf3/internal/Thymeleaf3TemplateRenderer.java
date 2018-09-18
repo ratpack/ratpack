@@ -19,11 +19,11 @@ package ratpack.thymeleaf3.internal;
 import org.thymeleaf.TemplateEngine;
 import ratpack.handling.Context;
 import ratpack.render.RendererSupport;
-import ratpack.thymeleaf3.Template3;
+import ratpack.thymeleaf3.Template;
 
 import javax.inject.Inject;
 
-public final class Thymeleaf3TemplateRenderer extends RendererSupport<Template3> {
+public final class Thymeleaf3TemplateRenderer extends RendererSupport<Template> {
 
   private final TemplateEngine templateEngine;
 
@@ -33,7 +33,7 @@ public final class Thymeleaf3TemplateRenderer extends RendererSupport<Template3>
   }
 
   @Override
-  public void render(Context ctx, Template3 template) throws Exception {
+  public void render(Context ctx, Template template) throws Exception {
     try {
       ctx.getResponse().contentTypeIfNotSet("text/html");
       String processed = templateEngine.process(template.getName(), template.getContext());
