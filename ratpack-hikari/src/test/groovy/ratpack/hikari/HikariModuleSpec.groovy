@@ -22,7 +22,7 @@ import ratpack.server.Service
 import ratpack.server.StartEvent
 import ratpack.test.internal.RatpackGroovyDslSpec
 
-public class HikariModuleSpec extends RatpackGroovyDslSpec {
+class HikariModuleSpec extends RatpackGroovyDslSpec {
 
   def "can use db"() {
     when:
