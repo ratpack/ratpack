@@ -91,6 +91,8 @@ The following people have provided significant contributions.
 * [Jason Terhune-Wold](https://github.com/jterhune)
 * [Jon Bevan](https://github.com/jdbevan)
 * [Szymon Stępniak](https://github.com/wololock)
+* [Javier Salinas](https://github.com/mustaine)
+* [Jordi Gerona](https://github.com/jordi9)
 
 ### Past project members
 
