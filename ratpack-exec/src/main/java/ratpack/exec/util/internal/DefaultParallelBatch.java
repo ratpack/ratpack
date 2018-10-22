@@ -42,8 +42,8 @@ public class DefaultParallelBatch<T> implements ParallelBatch<T> {
   private final Iterable<? extends Promise<T>> promises;
   private final Action<? super Execution> execInit;
 
-  public DefaultParallelBatch(Iterable<? extends Promise<T>> promises, Action<? super Execution> execInit) {
-    this.promises = promises;
+  public DefaultParallelBatch(Iterable<? extends Promise<? extends T>> promises, Action<? super Execution> execInit) {
+    this.promises = Types.cast(promises);
     this.execInit = execInit;
   }
 
