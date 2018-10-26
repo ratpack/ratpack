@@ -29,7 +29,6 @@ import ratpack.http.client.ReceivedResponse;
 import ratpack.http.client.RequestSpec;
 
 import java.io.IOException;
-import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 
@@ -118,6 +117,7 @@ public class RatpackCallFactory implements okhttp3.Call.Factory {
       Response.Builder builder = new Response.Builder();
       builder.request(request)
         .code(r.getStatusCode())
+        .message(r.getStatus().getMessage())
         .body(new ResponseBody() {
           @Override
           public MediaType contentType() {
@@ -134,10 +134,8 @@ public class RatpackCallFactory implements okhttp3.Call.Factory {
             return new Buffer().write(r.getBody().getBytes());
           }
         });
-      for (Map.Entry<String, Collection<String>> entry : r.getHeaders().asMultiValueMap().asMultimap().asMap().entrySet()) {
-        for (String value : entry.getValue()) {
-          builder.addHeader(entry.getKey(), value);
-        }
+      for (Map.Entry<String, String> entry : r.getHeaders().asMultiValueMap().entrySet()) {
+        builder.addHeader(entry.getKey(), entry.getKey());
       }
       builder.protocol(Protocol.HTTP_1_1);
       return builder.build();
