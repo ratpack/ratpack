@@ -42,7 +42,7 @@ public class RatpackCallAdapterFactory extends CallAdapter.Factory {
   }
 
   @Override
-  public CallAdapter<?> get(Type returnType, Annotation[] annotations, Retrofit retrofit) {
+  public CallAdapter<?, ?> get(Type returnType, Annotation[] annotations, Retrofit retrofit) {
     TypeToken<?> rawType = TypeToken.of(returnType);
     if (rawType.getRawType() != Promise.class) {
       return null;
@@ -55,7 +55,7 @@ public class RatpackCallAdapterFactory extends CallAdapter.Factory {
   }
 
   // returnType is the parameterization of Promise
-  protected CallAdapter<Promise<?>> getCallAdapter(ParameterizedType returnType) {
+  protected CallAdapter<?, Promise<?>> getCallAdapter(ParameterizedType returnType) {
     Type parameterType = Utils.getSingleParameterUpperBound(returnType);
     TypeToken<?> parameterTypeToken = TypeToken.of(parameterType);
     //Promising a Response type, need the actual value
@@ -73,7 +73,7 @@ public class RatpackCallAdapterFactory extends CallAdapter.Factory {
     return new SimpleCallAdapter(parameterType);
   }
 
-  static final class ReceivedResponseCallAdapter implements CallAdapter<Promise<?>> {
+  static final class ReceivedResponseCallAdapter implements CallAdapter<Object, Promise<?>> {
 
     private final Type responseType;
     private final ratpack.func.Factory<? extends HttpClient> factory;
@@ -89,12 +89,12 @@ public class RatpackCallAdapterFactory extends CallAdapter.Factory {
     }
 
     @Override
-    public <R> Promise<ReceivedResponse> adapt(Call<R> call) {
+    public Promise<ReceivedResponse> adapt(Call<Object> call) {
       return ((RatpackCallFactory.RatpackCall) RatpackCallFactory.with(factory).newCall(call.request())).promise();
     }
   }
 
-  static final class ResponseCallAdapter implements CallAdapter<Promise<?>> {
+  static final class ResponseCallAdapter implements CallAdapter<Object, Promise<?>> {
     private final Type responseType;
 
     ResponseCallAdapter(Type responseType) {
@@ -107,17 +107,17 @@ public class RatpackCallAdapterFactory extends CallAdapter.Factory {
     }
 
     @Override
-    public <R> Promise<Response<?>> adapt(Call<R> call) {
+    public Promise<Response<?>> adapt(Call<Object> call) {
       return Promise.async(downstream ->
-        call.enqueue(new Callback<R>() {
+        call.enqueue(new Callback<Object>() {
 
           @Override
-          public void onResponse(Call<R> call, Response<R> response) {
+          public void onResponse(Call<Object> call, Response<Object> response) {
             downstream.success(response);
           }
 
           @Override
-          public void onFailure(Call<R> call, Throwable t) {
+          public void onFailure(Call<Object> call, Throwable t) {
             downstream.error(t);
           }
         })
@@ -125,7 +125,7 @@ public class RatpackCallAdapterFactory extends CallAdapter.Factory {
     }
   }
 
-  static final class SimpleCallAdapter implements CallAdapter<Promise<?>> {
+  static final class SimpleCallAdapter implements CallAdapter<Object, Promise<?>> {
     private final Type responseType;
 
     SimpleCallAdapter(Type responseType) {
@@ -138,12 +138,12 @@ public class RatpackCallAdapterFactory extends CallAdapter.Factory {
     }
 
     @Override
-    public <R> Promise<?> adapt(Call<R> call) {
+    public Promise<?> adapt(Call<Object> call) {
       return Promise.async(downstream ->
-        call.enqueue(new Callback<R>() {
+        call.enqueue(new Callback<Object>() {
 
           @Override
-          public void onResponse(Call<R> call, Response<R> response) {
+          public void onResponse(Call<Object> call, Response<Object> response) {
             if (response.isSuccessful()) {
               downstream.success(response.body());
             } else {
@@ -154,7 +154,7 @@ public class RatpackCallAdapterFactory extends CallAdapter.Factory {
           }
 
           @Override
-          public void onFailure(Call<R> call, Throwable t) {
+          public void onFailure(Call<Object> call, Throwable t) {
             downstream.error(t);
           }
         })
