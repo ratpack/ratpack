@@ -49,7 +49,8 @@ include \
     "ratpack-consul",
     "ratpack-base",
     "ratpack-exec",
-    "ratpack-rocker"
+    "ratpack-rocker",
+    "ratpack-gson"
 
 include "perf"
 
