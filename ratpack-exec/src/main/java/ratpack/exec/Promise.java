@@ -21,11 +21,19 @@ import ratpack.exec.internal.CachingUpstream;
 import ratpack.exec.internal.DefaultExecution;
 import ratpack.exec.internal.DefaultPromise;
 import ratpack.exec.util.Promised;
-import ratpack.func.*;
+import ratpack.func.Action;
+import ratpack.func.BiAction;
+import ratpack.func.BiFunction;
+import ratpack.func.Block;
+import ratpack.func.Factory;
+import ratpack.func.Function;
+import ratpack.func.Pair;
+import ratpack.func.Predicate;
 import ratpack.util.Exceptions;
 
 import java.time.Duration;
 import java.util.Objects;
+import java.util.concurrent.CompletableFuture;
 
 import static ratpack.func.Action.ignoreArg;
 
@@ -1899,7 +1907,7 @@ public interface Promise<T> {
         @Override
         public void error(Throwable throwable) {
           try {
-            listener.execute(Result.<T>error(throwable));
+            listener.execute(Result.error(throwable));
           } catch (Exception e) {
             throwable.addSuppressed(e);
           }
@@ -2461,4 +2469,29 @@ public interface Promise<T> {
   default Promise<T> retry(int maxAttempts, BiFunction<? super Integer, ? super Throwable, Promise<Duration>> onError) {
     return transform(up -> down -> DefaultPromise.retryAttempt(1, maxAttempts, up, down, onError));
   }
+
+  /**
+   * Convert this promise into a {@link CompletableFuture}.
+   * <p>
+   * @return a {@link CompletableFuture} that will complete successfully or exceptionally on the current execution thread.
+   * @since 1.6
+   */
+  default CompletableFuture<T> toCompletableFuture() {
+    CompletableFuture<T> future = new CompletableFuture<>();
+    onError(future::completeExceptionally).then(future::complete);
+    return future;
+  }
+
+  /**
+   * Convert a {@link CompletableFuture} into a promise.
+   * <p>
+   * @param future the {@link CompletableFuture} to convert into a {@link Promise}
+   * @param <T> The type of the promised value
+   * @return a {@link Promise} that will be consumed on the current execution thread.
+   * @since 1.6
+   */
+  static <T> Promise<T> fromCompletableFuture(CompletableFuture<T> future) {
+    return async(downstream -> downstream.accept(future));
+  }
+
 }
