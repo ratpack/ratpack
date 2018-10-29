@@ -2490,7 +2490,7 @@ public interface Promise<T> {
    * @return a {@link Promise} that will be consumed on the current execution thread.
    * @since 1.6
    */
-  static <T> Promise<T> fromCompletableFuture(CompletableFuture<T> future) {
+  static <T> Promise<T> toPromise(CompletableFuture<T> future) {
     return async(downstream -> downstream.accept(future));
   }
 

@@ -73,7 +73,7 @@ class PromiseCompletableFutureSpec extends Specification {
 
     when: "convert to a promise"
     def result = ExecHarness.yieldSingle {
-      Promise.fromCompletableFuture(future)
+      Promise.toPromise(future)
     }
 
     then: "it worked"
@@ -88,7 +88,7 @@ class PromiseCompletableFutureSpec extends Specification {
 
     when: "convert to a promise"
     def result = ExecHarness.yieldSingle {
-      Promise.fromCompletableFuture(future)
+      Promise.toPromise(future)
     }
 
     then: "it worked"
