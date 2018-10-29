@@ -33,9 +33,9 @@ import java.util.Map;
 /**
  * An extension module that provides support for Thymeleaf templating engine.
  * <p>
- * To use it one has to register the module and then render {@link ratpack.thymeleaf3.Template3} instances.
+ * To use it one has to register the module and then render {@link Template} instances.
  * Instances of {@code Template} can be created using one of the
- * {@link ratpack.thymeleaf3.Template3#thymeleafTemplate(String, Map)}
+ * {@link Template#thymeleafTemplate(String, Map)}
  * static methods.
  * <p>
  * By default templates are looked up in the {@code thymeleaf} directory of the application root with a {@code .html} suffix.
@@ -46,10 +46,10 @@ import java.util.Map;
  *
  * @see <a href="http://www.thymeleaf.org/" target="_blank">Thymeleaf</a>
  */
-public final class Thymeleaf3Module extends ConfigurableModule<Thymeleaf3Module.Config> {
+public final class ThymeleafModule extends ConfigurableModule<ThymeleafModule.Config> {
 
   /**
-   * The configuration object for {@link Thymeleaf3Module}.
+   * The configuration object for {@link ThymeleafModule}.
    */
   public static class Config {
     private String templatesMode = DEFAULT_TEMPLATE_MODE;
@@ -59,7 +59,7 @@ public final class Thymeleaf3Module extends ConfigurableModule<Thymeleaf3Module.
     /**
      * The mode for templates.
      * <p>
-     * {@value ratpack.thymeleaf3.Thymeleaf3Module#DEFAULT_TEMPLATE_MODE} by default.
+     * {@value ThymeleafModule#DEFAULT_TEMPLATE_MODE} by default.
      *
      * @return the mode for templates.
      */
@@ -70,7 +70,7 @@ public final class Thymeleaf3Module extends ConfigurableModule<Thymeleaf3Module.
     /**
      * The prefix for templates.
      * <p>
-     * {@value ratpack.thymeleaf3.Thymeleaf3Module#DEFAULT_TEMPLATE_PREFIX} by default.
+     * {@value ThymeleafModule#DEFAULT_TEMPLATE_PREFIX} by default.
      *
      * @return the prefix for templates.
      */
@@ -81,7 +81,7 @@ public final class Thymeleaf3Module extends ConfigurableModule<Thymeleaf3Module.
     /**
      * The suffix for templates.
      * <p>
-     * {@value ratpack.thymeleaf3.Thymeleaf3Module#DEFAULT_TEMPLATE_SUFFIX} by default.
+     * {@value ThymeleafModule#DEFAULT_TEMPLATE_SUFFIX} by default.
      *
      * @return the suffix for templates.
      */

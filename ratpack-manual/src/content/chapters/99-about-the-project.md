@@ -92,6 +92,8 @@ The following people have provided significant contributions.
 * [Jon Bevan](https://github.com/jdbevan)
 * [Szymon Stępniak](https://github.com/wololock)
 * [James Westover](https://github.com/jameswestover)
+* [Javier Salinas](https://github.com/mustaine)
+* [Jordi Gerona](https://github.com/jordi9)
 
 ### Past project members
 

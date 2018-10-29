@@ -19,9 +19,9 @@ package ratpack.thymeleaf3
 import ratpack.test.internal.RatpackGroovyDslSpec
 
 import static io.netty.handler.codec.http.HttpResponseStatus.INTERNAL_SERVER_ERROR
-import static ratpack.thymeleaf3.Template3.thymeleafTemplate
+import static Template.thymeleafTemplate
 
-class Thymeleaf3TemplateSpec extends RatpackGroovyDslSpec {
+class ThymeleafTemplateSpec extends RatpackGroovyDslSpec {
 
   void 'can render a thymeleaf template from #scenario'() {
     given:
@@ -29,7 +29,7 @@ class Thymeleaf3TemplateSpec extends RatpackGroovyDslSpec {
 
     when:
     bindings {
-      module new Thymeleaf3Module(templatesPrefix: templatesPrefix)
+      module new ThymeleafModule(templatesPrefix: templatesPrefix)
     }
     handlers {
       get {
@@ -54,7 +54,7 @@ class Thymeleaf3TemplateSpec extends RatpackGroovyDslSpec {
 
     when:
     bindings {
-      module Thymeleaf3Module, { Thymeleaf3Module.Config config -> config.templatesPrefix("fromConfig") }
+      module ThymeleafModule, { ThymeleafModule.Config config -> config.templatesPrefix("fromConfig") }
     }
     handlers {
       get {
@@ -72,7 +72,7 @@ class Thymeleaf3TemplateSpec extends RatpackGroovyDslSpec {
 
     when:
     bindings {
-      module new Thymeleaf3Module(templatesSuffix: templatesSuffix), {
+      module new ThymeleafModule(templatesSuffix: templatesSuffix), {
         if (configTemplatesSuffix != null) {
           it.templateSuffix(configTemplatesSuffix)
         }
@@ -100,7 +100,7 @@ class Thymeleaf3TemplateSpec extends RatpackGroovyDslSpec {
 
     when:
     bindings {
-      module new Thymeleaf3Module(templatesSuffix: templatesSuffix)
+      module new ThymeleafModule(templatesSuffix: templatesSuffix)
     }
     handlers {
       get {
@@ -120,7 +120,7 @@ class Thymeleaf3TemplateSpec extends RatpackGroovyDslSpec {
     mkdir('thymeleaf')
 
     bindings {
-      module new Thymeleaf3Module()
+      module new ThymeleafModule()
     }
     handlers {
       get {
@@ -142,7 +142,7 @@ class Thymeleaf3TemplateSpec extends RatpackGroovyDslSpec {
 
     when:
     bindings {
-      module new Thymeleaf3Module()
+      module new ThymeleafModule()
     }
     handlers {
       get {
@@ -161,7 +161,7 @@ class Thymeleaf3TemplateSpec extends RatpackGroovyDslSpec {
 
     when:
     bindings {
-      module new Thymeleaf3Module()
+      module new ThymeleafModule()
     }
     handlers {
       get {
@@ -179,7 +179,7 @@ class Thymeleaf3TemplateSpec extends RatpackGroovyDslSpec {
 
     when:
     bindings {
-      module new Thymeleaf3Module()
+      module new ThymeleafModule()
     }
     handlers {
       get {
@@ -205,7 +205,7 @@ class Thymeleaf3TemplateSpec extends RatpackGroovyDslSpec {
 
     when:
     bindings {
-      module new Thymeleaf3Module()
+      module new ThymeleafModule()
     }
     handlers {
       get {
@@ -223,7 +223,7 @@ class Thymeleaf3TemplateSpec extends RatpackGroovyDslSpec {
 
     when:
     bindings {
-      module new Thymeleaf3Module(templatesPrefix: templatesPrefix)
+      module new ThymeleafModule(templatesPrefix: templatesPrefix)
     }
     handlers {
       get {

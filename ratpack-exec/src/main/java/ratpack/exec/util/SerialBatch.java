@@ -45,7 +45,7 @@ public interface SerialBatch<T> extends Batch<T> {
    * @param <T> the type of item produced by each promise
    * @return a {@link SerialBatch}
    */
-  static <T> SerialBatch<T> of(Iterable<? extends Promise<T>> promises) {
+  static <T> SerialBatch<T> of(Iterable<? extends Promise<? extends T>> promises) {
     return new DefaultSerialBatch<>(promises);
   }
 
@@ -58,7 +58,7 @@ public interface SerialBatch<T> extends Batch<T> {
    */
   @SafeVarargs
   @SuppressWarnings("varargs")
-  static <T> SerialBatch<T> of(Promise<T>... promises) {
+  static <T> SerialBatch<T> of(Promise<? extends T>... promises) {
     return of(Arrays.asList(promises));
   }
 

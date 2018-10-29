@@ -144,7 +144,8 @@ class RatpackRetrofitSpec extends Specification {
     }.valueOrThrow
 
     then:
-    thrown(RatpackRetrofitCallException)
+    def t = thrown(RatpackRetrofitCallException)
+    t.response.statusCode == 500
 
   }
 

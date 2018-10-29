@@ -48,7 +48,7 @@ public interface ParallelBatch<T> extends Batch<T> {
    * @param <T> the type of item produced by each promise
    * @return a {@link ParallelBatch}
    */
-  static <T> ParallelBatch<T> of(Iterable<? extends Promise<T>> promises) {
+  static <T> ParallelBatch<T> of(Iterable<? extends Promise<? extends T>> promises) {
     return new DefaultParallelBatch<>(promises, Action.noop());
   }
 
@@ -61,7 +61,7 @@ public interface ParallelBatch<T> extends Batch<T> {
    */
   @SafeVarargs
   @SuppressWarnings("varargs")
-  static <T> ParallelBatch<T> of(Promise<T>... promises) {
+  static <T> ParallelBatch<T> of(Promise<? extends T>... promises) {
     return of(Arrays.asList(promises));
   }
 

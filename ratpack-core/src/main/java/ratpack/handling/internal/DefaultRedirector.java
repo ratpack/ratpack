@@ -67,7 +67,7 @@ public class DefaultRedirector implements Redirector {
         //Rule 1a - Protocol relative url
         generatedPath = host.getScheme() + ":" + path;
       } else {
-        if (path.charAt(0) == '/') {
+        if (path.startsWith("/")) {
           //Rule 2 - Starting Slash
           generatedPath = host.toString() + path;
         } else {
