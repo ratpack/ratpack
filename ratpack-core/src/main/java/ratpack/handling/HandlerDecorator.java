@@ -80,7 +80,7 @@ import ratpack.registry.Registry;
  * import ratpack.handling.Context;
  * import ratpack.registry.Registry;
  * import ratpack.test.embed.EmbeddedApp;
-
+ *
  * import ratpack.guice.Guice;
  * import com.google.inject.AbstractModule;
  * import com.google.inject.Inject;
@@ -148,7 +148,7 @@ public interface HandlerDecorator {
 
   /**
    * A handler decorator implementation that does not decorate the handler.
-   *
+   * <p>
    * That is, it just returns the given handler.
    *
    * @return a handler decorator that does not decorate the handler
@@ -163,7 +163,7 @@ public interface HandlerDecorator {
    * As the {@code rest} argument encapsulates the application handlers, the returned handler should generally delegate to it (via {@link Context#insert(Handler...)}).
    *
    * @param serverRegistry the server registry
-   * @param rest the rest of the handlers of the application
+   * @param rest           the rest of the handlers of the application
    * @return a new handler
    * @throws Exception any
    */
