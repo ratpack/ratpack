@@ -16,8 +16,6 @@
 
 package ratpack.exec.util.retry;
 
-import ratpack.func.Action;
-
 import java.time.Duration;
 
 /**
