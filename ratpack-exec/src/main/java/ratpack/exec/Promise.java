@@ -21,6 +21,8 @@ import ratpack.exec.internal.CachingUpstream;
 import ratpack.exec.internal.DefaultExecution;
 import ratpack.exec.internal.DefaultPromise;
 import ratpack.exec.util.Promised;
+import ratpack.exec.util.retry.RetryPolicy;
+
 import ratpack.func.Action;
 import ratpack.func.BiAction;
 import ratpack.func.BiFunction;
@@ -2346,52 +2348,6 @@ public interface Promise<T> {
 
   /**
    * Causes {@code this} yielding the promised value to be retried on error, after a fixed delay.
-   * <p>
-   * The given function is invoked for each failure,
-   * with the sequence number of the failure as the first argument and the failure exception as the second.
-   * This may be used to log or collect exceptions.
-   * If all errors are to be ignored, use {@link BiAction#noop()}.
-   * <p>
-   * Any exception thrown by the function – possibly the exception it receives as an argument – will
-   * be propagated to the subscriber, yielding a failure.
-   * This can be used to selectively retry on certain failures, but immediately fail on others.
-   * <p>
-   * If the promise fails {@code maxAttempts} times,
-   * the given function will not be invoked and the most and the most recent exception will propagate.
-   * <p>
-   * To retry immediately, pass a zero duration.
-   * Use {@link #retry(int, BiFunction)} if desiring a dynamic (e.g. increasing) delay between attempts.
-   *
-   * <pre class="java">{@code
-   * import ratpack.exec.ExecResult;
-   * import ratpack.exec.Promise;
-   * import ratpack.test.exec.ExecHarness;
-   *
-   * import java.time.Duration;
-   * import java.util.Arrays;
-   * import java.util.LinkedList;
-   * import java.util.List;
-   * import java.util.concurrent.atomic.AtomicInteger;
-   *
-   * import static org.junit.Assert.assertEquals;
-   *
-   * public class Example {
-   *   private static final List<String> LOG = new LinkedList<>();
-   *
-   *   public static void main(String... args) throws Exception {
-   *     AtomicInteger source = new AtomicInteger();
-   *
-   *     ExecResult<Integer> result = ExecHarness.yieldSingle(exec ->
-   *       Promise.sync(source::incrementAndGet)
-   *         .mapIf(i -> i < 3, i -> { throw new IllegalStateException(); })
-   *         .retry(3, Duration.ofMillis(500), (i, t) -> LOG.add("retry attempt: " + i))
-   *     );
-   *
-   *     assertEquals(Integer.valueOf(3), result.getValue());
-   *     assertEquals(Arrays.asList("retry attempt: 1", "retry attempt: 2"), LOG);
-   *   }
-   * }
-   * }</pre>
    *
    * @param maxAttempts the maximum number of times to retry
    * @param delay the duration to wait between retry attempts
@@ -2399,7 +2355,9 @@ public interface Promise<T> {
    * @return a promise with a retry error handler
    * @see #retry(int, BiFunction)
    * @since 1.5
+   * @deprecated since 1.6, use {@link #retry(RetryBuilder, BiAction)}
    */
+  @Deprecated
   default Promise<T> retry(int maxAttempts, Duration delay, @NonBlocking BiAction<? super Integer, ? super Throwable> onError) {
     Promise<Duration> delayPromise = Promise.value(delay);
     return retry(maxAttempts, (i, error) ->
@@ -2412,23 +2370,41 @@ public interface Promise<T> {
 
   /**
    * Causes {@code this} yielding the promised value to be retried on error, after a calculated delay.
+   *
+   * @param maxAttempts the maximum number of times to retry
+   * @param onError the error handler
+   * @return a promise with a retry error handler
+   * @see #retry(int, Duration, BiAction)
+   * @since 1.5
+   * @deprecated since 1.6, use {@link #retry(RetryBuilder, BiAction)}
+   */
+  @Deprecated
+  default Promise<T> retry(int maxAttempts, BiFunction<? super Integer, ? super Throwable, Promise<Duration>> onError) {
+    return transform(up -> down -> DefaultPromise.retryAttempt(1, maxAttempts, up, down, onError));
+  }
+
+  /**
+   * Causes {@code this} yielding the promised value to be retried on error, under the rules of provided {@code retryPolicy}.
    * <p>
    * The given function is invoked for each failure,
    * with the sequence number of the failure as the first argument and the failure exception as the second.
-   * It should return the duration of time to wait before retrying.
-   * To retry immediately, return a zero duration.
-   * Use {@link #retry(int, Duration, BiAction)} if desiring a fixed delay between attempts.
+   * This may be used to log or collect exceptions.
+   * If all errors are to be ignored, use {@link BiAction#noop()}.
    * <p>
    * Any exception thrown by the function – possibly the exception it receives as an argument – will
    * be propagated to the subscriber, yielding a failure.
    * This can be used to selectively retry on certain failures, but immediately fail on others.
    * <p>
-   * If the promise fails {@code maxAttempts} times,
-   * the given function will not be invoked and the most and the most recent exception will propagate.
+   * If the promise exhausts the {@code retryPolicy},
+   * the given function will not be invoked and the most recent exception will propagate.
+   * <p>
    *
    * <pre class="java">{@code
    * import ratpack.exec.ExecResult;
    * import ratpack.exec.Promise;
+   * import ratpack.exec.util.retry.AttemptRetryPolicy;
+   * import ratpack.exec.util.retry.RetryPolicy;
+   * import ratpack.exec.util.retry.FixedDelay;
    * import ratpack.test.exec.ExecHarness;
    *
    * import java.time.Duration;
@@ -2445,13 +2421,14 @@ public interface Promise<T> {
    *   public static void main(String... args) throws Exception {
    *     AtomicInteger source = new AtomicInteger();
    *
+   *     RetryPolicy retryPolicy = AttemptRetryPolicy.of(b -> b
+   *       .delay(FixedDelay.of(Duration.ofMillis(500)))
+   *       .maxAttempts(3));
+   *
    *     ExecResult<Integer> result = ExecHarness.yieldSingle(exec ->
    *       Promise.sync(source::incrementAndGet)
    *         .mapIf(i -> i < 3, i -> { throw new IllegalStateException(); })
-   *         .retry(3, (i, t) -> {
-   *           LOG.add("retry attempt: " + i);
-   *           return Promise.value(Duration.ofMillis(500 * i));
-   *         })
+   *         .retry(retryPolicy, (i, t) -> LOG.add("retry attempt: " + i))
    *     );
    *
    *     assertEquals(Integer.valueOf(3), result.getValue());
@@ -2460,14 +2437,13 @@ public interface Promise<T> {
    * }
    * }</pre>
    *
-   * @param maxAttempts the maximum number of times to retry
+   * @param retryPolicy policy to govern this retry behaviour
    * @param onError the error handler
    * @return a promise with a retry error handler
-   * @see #retry(int, Duration, BiAction)
-   * @since 1.5
+   * @since 1.6
    */
-  default Promise<T> retry(int maxAttempts, BiFunction<? super Integer, ? super Throwable, Promise<Duration>> onError) {
-    return transform(up -> down -> DefaultPromise.retryAttempt(1, maxAttempts, up, down, onError));
+  default Promise<T> retry(RetryPolicy retryPolicy, BiAction<? super Integer, ? super Throwable> onError) {
+    return transform(up -> down -> DefaultPromise.retry(retryPolicy, up, down, onError));
   }
 
   /**
