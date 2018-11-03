@@ -17,7 +17,6 @@
 package ratpack.exec.util.retry;
 
 import com.google.common.annotations.VisibleForTesting;
-import ratpack.func.Action;
 
 import java.time.Clock;
 import java.time.Duration;
