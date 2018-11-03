@@ -17,7 +17,6 @@
 package ratpack.exec.util.retry;
 
 import ratpack.exec.Promise;
-import ratpack.func.BiAction;
 
 import java.time.Duration;
 
