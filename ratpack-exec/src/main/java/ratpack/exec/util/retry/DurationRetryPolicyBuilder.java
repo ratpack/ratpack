@@ -16,8 +16,6 @@
 
 package ratpack.exec.util.retry;
 
-import com.google.common.annotations.VisibleForTesting;
-
 import java.time.Clock;
 import java.time.Duration;
 
@@ -50,7 +48,7 @@ public interface DurationRetryPolicyBuilder {
   DurationRetryPolicy build();
 
   /**
-   * The delay strategy
+   * The delay strategy.
    *
    * @param delay the delay strategy
    * @return this
@@ -58,7 +56,7 @@ public interface DurationRetryPolicyBuilder {
   DurationRetryPolicyBuilder delay(Delay delay);
 
   /**
-   * Maximum duration until timeout of the retry policy
+   * Maximum duration until timeout of the retry policy.
    *
    * @param maxDuration the maximum duration
    * @return this
@@ -66,12 +64,11 @@ public interface DurationRetryPolicyBuilder {
   DurationRetryPolicyBuilder maxDuration(Duration maxDuration);
 
   /**
-   * Clock used to determine current time. Exposed for testing purposes.
+   * Clock used to determine current time.
    *
    * @param clock clock used to determine current time
    * @return this
    */
-  @VisibleForTesting
   DurationRetryPolicyBuilder clock(Clock clock);
 
 }
