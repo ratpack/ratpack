@@ -67,7 +67,10 @@ public class ByteBufBackedTypedData implements TypedData {
   @Override
   public byte[] getBytes() {
     if (byteBuf.hasArray()) {
-      return byteBuf.array();
+      byte[] bytes = new byte[byteBuf.readableBytes()];
+      int readerIndex = byteBuf.readerIndex();
+      byteBuf.getBytes(readerIndex, bytes);
+      return bytes;
     } else {
       ByteArrayOutputStream baos = new ByteArrayOutputStream(byteBuf.writerIndex());
       try {
