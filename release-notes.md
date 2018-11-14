@@ -6,7 +6,7 @@ It should not be considered the final announcement for any release at any time.
 # v1.6.0
 * Upgrade to Jackson 2.9.5
 * Upgrade to Caffeine 2.6.2
-* Upgrade to Netty 4.1.23.Final
+* Upgrade to Netty 4.1.31.Final
 * Upgrade to Snake Yaml 1.20
 * `ServerConfigBuilder.registerShutdownHook(boolean)` defaults to `true`
 * `HttpClient` request/response interceptors
@@ -23,3 +23,5 @@ It should not be considered the final announcement for any release at any time.
 * Added thymeleaf3 Module
 * Enhance RequestFixture with multipart form and file upload capabilities
 * Added reactor module 
+
+ 
