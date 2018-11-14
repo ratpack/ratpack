@@ -54,9 +54,21 @@ public interface TypedData {
   /**
    * The raw data as bytes.
    *
+   * @deprecated This returns the entire underlying buffer, not accounting for the actual data's offset or length in the buffer. See {@link #copyBytes()}
+   *
    * @return the raw data as bytes.
    */
+  @Deprecated
   byte[] getBytes();
+
+  /**
+   * The raw data as bytes. This will create an array copy of the data.
+   *
+   * @since 1.6
+   *
+   * @return the raw data as bytes.
+   */
+  byte[] copyBytes();
 
   /**
    * The raw data as a (unmodifiable) buffer.

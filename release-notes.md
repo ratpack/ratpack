@@ -3,6 +3,7 @@ This file contains the in progress release notes during the cycle.
 It should not be considered the final announcement for any release at any time.
 -->
 
+
 # v1.6.0
 * Upgrade to Jackson 2.9.5
 * Upgrade to Caffeine 2.6.2
