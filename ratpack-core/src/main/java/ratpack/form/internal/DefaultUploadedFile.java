@@ -67,6 +67,11 @@ public class DefaultUploadedFile implements UploadedFile {
   }
 
   @Override
+  public byte[] copyBytes() {
+    return typedData.copyBytes();
+  }
+
+  @Override
   public void writeTo(OutputStream outputStream) throws IOException {
     typedData.writeTo(outputStream);
   }

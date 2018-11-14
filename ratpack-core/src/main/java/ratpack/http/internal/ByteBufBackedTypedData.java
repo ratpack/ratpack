@@ -80,6 +80,24 @@ public class ByteBufBackedTypedData implements TypedData {
   }
 
   @Override
+  public byte[] copyBytes() {
+    if (byteBuf.hasArray()) {
+      byte[] bytes = new byte[byteBuf.readableBytes()];
+      int readerIndex = byteBuf.readerIndex();
+      byteBuf.getBytes(readerIndex, bytes);
+      return bytes;
+    } else {
+      ByteArrayOutputStream baos = new ByteArrayOutputStream(byteBuf.writerIndex());
+      try {
+        writeTo(baos);
+      } catch (IOException e) {
+        throw uncheck(e);
+      }
+      return baos.toByteArray();
+    }
+  }
+
+  @Override
   public void writeTo(OutputStream outputStream) throws IOException {
     byteBuf.resetReaderIndex();
     byteBuf.readBytes(outputStream, byteBuf.writerIndex());
