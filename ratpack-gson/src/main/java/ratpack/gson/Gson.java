@@ -190,6 +190,8 @@ public abstract class Gson {
    * This does mean that if on object-to-JSON conversion fails midway through the stream, then the output JSON will be malformed due to being incomplete.
    * If the publisher emits an error, the response will be terminated and no more JSON will be sent.
    * <pre class="java">{@code
+   * import ratpack.gson.GsonModule;
+   * import ratpack.guice.Guice;
    * import ratpack.test.embed.EmbeddedApp;
    * import ratpack.http.client.ReceivedResponse;
    * import ratpack.stream.Streams;
@@ -203,6 +205,7 @@ public abstract class Gson {
    * public class Example {
    *   public static void main(String... args) throws Exception {
    *     EmbeddedApp.of(s -> s
+   *       .registry(Guice.registry(b -> b.module(GsonModule.class)))
    *       .handlers(chain ->
    *         chain.get(ctx -> {
    *           Publisher<Integer> ints = Streams.publish(Arrays.asList(1, 2, 3));
@@ -301,6 +304,8 @@ public abstract class Gson {
    * An {@link com.google.gson.Gson} instance is obtained from the given registry eagerly.
    * The returned function uses the {@link com.google.gson.Gson#toJson(Object)} method to convert the input object to JSON.
    * <pre class="java">{@code
+   * import ratpack.gson.GsonModule;
+   * import ratpack.guice.Guice;
    * import ratpack.exec.Promise;
    * import ratpack.test.embed.EmbeddedApp;
    * import ratpack.http.client.ReceivedResponse;
@@ -314,6 +319,7 @@ public abstract class Gson {
    * public class Example {
    *   public static void main(String... args) throws Exception {
    *     EmbeddedApp.of(s -> s
+   *       .registry(Guice.registry(b -> b.module(GsonModule.class)))
    *       .handlers(chain -> chain
    *         .get(ctx ->
    *           Promise.value(singletonMap("foo", "bar"))
