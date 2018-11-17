@@ -63,17 +63,17 @@ import java.time.Duration;
  *
  *     private HikariPool hikariPool;
  *
- *     @Inject
+ *     {@literal @}Inject
  *     MyHealthCheck(HikariPool hikariPool) {
  *       this.hikariPool = hikariPool;
  *     }
  *
- *     @Override
+ *     {@literal @}Override
  *     public String getName() {
  *       return "my-health-check";
  *     }
  *
- *     @Override
+ *     {@literal @}Override
  *     public HikariPool getHikariPool() {
  *       return hikariPool;
  *     }
