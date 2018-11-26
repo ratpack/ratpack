@@ -17,9 +17,9 @@
 package ratpack.handlebars.internal;
 
 import com.github.jknack.handlebars.io.TemplateSource;
-import io.netty.util.CharsetUtil;
 
 import java.io.IOException;
+import java.nio.charset.Charset;
 import java.nio.file.Files;
 import java.nio.file.Path;
 
@@ -43,8 +43,8 @@ public class PathTemplateSource implements TemplateSource {
   }
 
   @Override
-  public String content() throws IOException {
-    return new String(Files.readAllBytes(path), CharsetUtil.UTF_8);
+  public String content(Charset charset) throws IOException {
+    return new String(Files.readAllBytes(path), charset);
   }
 
   @Override
