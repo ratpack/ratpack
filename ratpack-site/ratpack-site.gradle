@@ -24,7 +24,7 @@ buildscript {
   }
   dependencies {
     classpath 'com.bertramlabs.plugins:asset-pipeline-gradle:2.6.1'
-    classpath 'com.github.jengelman.gradle.plugins:shadow:2.0.2'
+    classpath 'com.github.jengelman.gradle.plugins:shadow:4.0.3'
     classpath 'com.bertramlabs.plugins:sass-asset-pipeline:2.6.1'
     classpath 'org.codehaus.groovy.modules.http-builder:http-builder:0.7.2'
   }
@@ -109,7 +109,7 @@ dependencies {
     exclude group: "com.google.guava", module: "guava"
     exclude group: "org.codehaus.groovy", module: "groovy-all"
   }
-  providedRuntime('com.bertramlabs.plugins:sass-asset-pipeline:2.6.1') {
+  compile('com.bertramlabs.plugins:sass-asset-pipeline:2.6.1') {
     exclude group: "org.jruby", module: "jruby-complete"
     exclude group: "commons-logging", module: "commons-logging"
     exclude group: "com.google.code.gson", module: "gson"

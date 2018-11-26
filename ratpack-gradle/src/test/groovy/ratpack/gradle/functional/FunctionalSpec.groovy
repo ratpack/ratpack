@@ -100,7 +100,7 @@ abstract class FunctionalSpec extends Specification {
         }
         repositories { jcenter() }
         dependencies {
-          classpath 'com.github.jengelman.gradle.plugins:shadow:1.2.3'
+          classpath 'com.github.jengelman.gradle.plugins:shadow:4.0.3'
           classpath 'io.ratpack:ratpack-gradle:${RATPACK_VERSION}'
         }
       }
@@ -113,7 +113,7 @@ abstract class FunctionalSpec extends Specification {
         jcenter()
       }
       dependencies {
-        compile 'org.slf4j:slf4j-simple:1.7.12'
+        compile 'org.slf4j:slf4j-simple:1.7.25'
       }
     """
 
@@ -135,7 +135,7 @@ abstract class FunctionalSpec extends Specification {
   }
 
   File getShadowJar() {
-    def f = file("build/libs/test-app-1.0-all.jar")
+    def f = file("build/libs/test-app-1.0.jar")
     assert f.exists()
     f
   }
