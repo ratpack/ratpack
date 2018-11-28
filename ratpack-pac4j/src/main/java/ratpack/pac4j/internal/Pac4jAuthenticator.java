@@ -40,6 +40,7 @@ import java.util.Optional;
 
 import static ratpack.util.Exceptions.uncheck;
 
+@Deprecated
 public class Pac4jAuthenticator implements Handler {
 
   private final String path;

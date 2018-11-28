@@ -40,6 +40,7 @@ import ratpack.util.MultiValueMap;
 import java.net.URI;
 import java.util.*;
 
+@Deprecated
 public class RatpackWebContext implements WebContext {
 
   private final Context context;
