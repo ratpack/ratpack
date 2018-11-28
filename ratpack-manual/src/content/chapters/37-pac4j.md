@@ -1,9 +1,20 @@
 # pac4j
 
-The `ratpack-pac4j` extension provides authentication and authorization support via integration with [pac4j](https://github.com/pac4j/pac4j).
-
 The pac4j library is a security engine which abstracts over different authentication protocols such as OAuth, CAS, OpenID (Connect), SAML, Google App Engine and HTTP (form and basic auth) as well as custom authentication mechanisms (e.g. database backed).
 It also supports various authorization mechanisms: roles / permissions checks, CSRF token, security headers, etc.
+
+## Deprecated  
+
+The `ratpack-pac4j` extension described below is deprecated. The pac4j project has a version that is compatible with pac4j 2.x.
+[pac4j/ratpack-pac4j](https://github.com/pac4j/ratpack-pac4j)
+
+Gradle Dependency:
+
+> implementation 'org.pac4j:ratpack-pac4j:3.0.0'
+
+The `ratpack-pac4j` extension provides authentication and authorization support via integration with [pac4j](https://github.com/pac4j/pac4j).
+
+## Deprecated Extension  
 
 The [`RatpackPac4j`](api/ratpack/pac4j/RatpackPac4j.html) class provides the entirety of the integration.
 This class provides static methods that provide handler implementations along with other finer grained constructs for use within your handler implementations.
@@ -11,7 +22,7 @@ The API reference for this class provides usage examples of each of the methods.
 
 The `ratpack-pac4j` library requires the `ratpack-session` library, and use of the associated [`SessionModule`](api/ratpack/session/SessionModule.html).
 
-## Usage
+### Usage
 
 Each authentication mechanism in `pac4j` is defined as a “client”.
 For example, pac4j provides the [FacebookClient](http://www.pac4j.org/apidocs/pac4j/@pac4j-version@/org/pac4j/oauth/client/FacebookClient.html) type that implements the Facebook authentication protocol.
@@ -35,7 +46,7 @@ It is required that a client _instance_ of the given type was specified via the,
 
 The [`RatpackPac4j.userProfile()`](api/ratpack/pac4j/RatpackPac4j.html#userProfile-ratpack.handling.Context-) method can be used to obtain the user profile if the user is logged in, without requiring authentication.
 
-## Session Usage
+### Session Usage
 
 As previously mentioned, using `ratpack-pac4j` requires session support via `ratpack-session`.
 When authenticated, the user's profile is stored in the session.
