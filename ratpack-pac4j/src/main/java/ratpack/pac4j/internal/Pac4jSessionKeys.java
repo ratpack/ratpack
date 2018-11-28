@@ -20,6 +20,7 @@ import org.pac4j.core.context.Pac4jConstants;
 import org.pac4j.core.profile.UserProfile;
 import ratpack.session.SessionKey;
 
+@Deprecated
 public class Pac4jSessionKeys {
 
   public static final SessionKey<String> REQUESTED_URL = SessionKey.of(

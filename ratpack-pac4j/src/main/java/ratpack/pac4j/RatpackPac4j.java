@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 
+
 package ratpack.pac4j;
 
 import com.google.common.collect.ImmutableList;
@@ -64,6 +65,7 @@ import static java.util.Arrays.asList;
  * <p>
  * The {@link #userProfile(Context)}, {@link #login(Context, Class)} and {@link #logout(Context)} methods provide programmatic authentication mechanisms.
  */
+@Deprecated
 public class RatpackPac4j {
 
   /**
