@@ -17,7 +17,6 @@
 package ratpack.handlebars.internal;
 
 import com.github.jknack.handlebars.io.TemplateSource;
-import io.netty.util.CharsetUtil;
 
 import java.io.IOException;
 import java.nio.charset.Charset;
