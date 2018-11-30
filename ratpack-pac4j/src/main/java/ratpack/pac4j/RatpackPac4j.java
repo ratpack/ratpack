@@ -150,7 +150,7 @@ public class RatpackPac4j {
    * This handler requires a {@link Clients} instance available in the context registry.
    * As such, this handler should be downstream of the {@link #authenticator(Client[])} handler.
    *
-   * <pre>{@code
+   * <pre class="java">{@code
    * import org.pac4j.core.profile.UserProfile;
    * import org.pac4j.http.client.indirect.IndirectBasicAuthClient;
    * import org.pac4j.http.credentials.authenticator.test.SimpleTestUsernamePasswordAuthenticator;
@@ -161,6 +161,7 @@ public class RatpackPac4j {
    *
    * import static org.junit.Assert.assertEquals;
    *
+   * @SuppressWarnings("deprecation")
    * public class Example {
    *   public static void main(String... args) throws Exception {
    *     EmbeddedApp.of(s -> s
@@ -228,7 +229,7 @@ public class RatpackPac4j {
    * If the user is not already logged in, the promise will not be fulfilled and the user will be redirected to the authenticator.
    * As such, like {@link #requireAuth(Class, Authorizer...)}, this can only be used downstream of the {@link #authenticator(Client[])} handler.
    *
-   * <pre>{@code
+   * <pre class="java">{@code
    * import org.pac4j.http.client.indirect.IndirectBasicAuthClient;
    * import org.pac4j.http.credentials.authenticator.test.SimpleTestUsernamePasswordAuthenticator;
    * import ratpack.guice.Guice;
@@ -241,6 +242,7 @@ public class RatpackPac4j {
    *
    * import static org.junit.Assert.assertEquals;
    *
+   * @SuppressWarnings("deprecation")
    * public class Example {
    *   public static void main(String... args) throws Exception {
    *     EmbeddedApp.of(s -> s
@@ -305,7 +307,7 @@ public class RatpackPac4j {
    * This method returns a promise as it will attempt to load the profile from the session if it
    * isn't already in the context registry.
    *
-   * <pre>{@code
+   * <pre class="java">{@code
    * import io.netty.handler.codec.http.HttpHeaderNames;
    * import org.pac4j.core.profile.UserProfile;
    * import org.pac4j.http.client.indirect.IndirectBasicAuthClient;
@@ -321,6 +323,7 @@ public class RatpackPac4j {
    * import static org.junit.Assert.assertEquals;
    * import static org.junit.Assert.assertTrue;
    *
+   * @SuppressWarnings("deprecation")
    * public class Example {
    *   public static void main(String... args) throws Exception {
    *     EmbeddedApp.of(s -> s
@@ -412,7 +415,7 @@ public class RatpackPac4j {
    * <p>
    * The returned operation simply removes the profile from the session, regardless of whether it's actually there or not.
    *
-   * <pre>{@code
+   * <pre class="java">{@code
    * import org.pac4j.http.client.indirect.IndirectBasicAuthClient;
    * import org.pac4j.http.credentials.authenticator.test.SimpleTestUsernamePasswordAuthenticator;
    * import ratpack.guice.Guice;
@@ -424,7 +427,7 @@ public class RatpackPac4j {
    * import java.util.Optional;
    *
    * import static org.junit.Assert.assertEquals;
-   *
+   * @SuppressWarnings("deprecation")
    * public class Example {
    *   public static void main(String... args) throws Exception {
    *     EmbeddedApp.of(s -> s
