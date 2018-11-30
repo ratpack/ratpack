@@ -14,26 +14,7 @@ The following are known version conflicts or requirements for Ratpack to run sea
 
 The following are issues caused by Java 9 and the underlying components to Ratpack at this time. Workarounds will be provided in each case
 
-* ratpack-handlebars / apache commons lang3 conflicts  
-known to have conflict per issue [#1418](https://www.github.com/ratpack/ratpack/issues/1418) and proposed fix pull request [#1420](https://www.github.com/ratpack/ratpack/pull/1420)
 
->  com.google.inject.ProvisionException: Unable to provision, see the following errors:
->  
->  Error in custom provider, java.lang.NoClassDefFoundError: org/apache/commons/lang3/Validate
-  at ratpack.handlebars.HandlebarsModule.provideTemplateCache(HandlebarsModule.java:176) (via modules: com.google.inject.util.Modules$OverrideModule -> com.google.inject.util.Modules$OverrideModule -> com.google.inject.util.Modules$OverrideModule -> com.google.inject.util.Modules$OverrideModule -> com.google.inject.util.Modules$OverrideModule -> scorpio.handlebars.HandlebarsModule)  
-  at ratpack.handlebars.HandlebarsModule.provideTemplateCache(HandlebarsModule.java:176) (via modules: com.google.inject.util.Modules$OverrideModule -> com.google.inject.util.Modules$OverrideModule -> com.google.inject.util.Modules$OverrideModule -> com.google.inject.util.Modules$OverrideModule -> com.google.inject.util.Modules$OverrideModule -> scorpio.handlebars.HandlebarsModule)  
-  while locating com.github.jknack.handlebars.cache.TemplateCache  
-  for the 4th parameter of ratpack.handlebars.HandlebarsModule.provideHandlebars(HandlebarsModule.java:184)  
-  at ratpack.handlebars.HandlebarsModule.provideHandlebars(HandlebarsModule.java:184) (via modules: com.google.inject.util.Modules$OverrideModule -> com.google.inject.util.Modules$OverrideModule -> com.google.inject.util.Modules$OverrideModule -> com.google.inject.util.Modules$OverrideModule -> com.google.inject.util.Modules$OverrideModule -> scorpio.handlebars.HandlebarsModule)  
-  while locating com.github.jknack.handlebars.Handlebars  
-  for the 1st parameter of scorpio.handlebars.render.HandlebarsTemplateRenderer.(HandlebarsTemplateRenderer.groovy:18)  
-  at sun.reflect.GeneratedMethodAccessor6.invoke(Unknown Source) (via modules: com.google.inject.util.Modules$OverrideModule -> com.google.inject.util.Modules$OverrideModule -> com.google.inject.util.Modules$OverrideModule -> com.google.inject.util.Modules$OverrideModule -> com.google.inject.util.Modules$OverrideModule -> scorpio.handlebars.HandlebarsModule)  
-  while locating scorpio.handlebars.render.HandlebarsTemplateRenderer  
-  Caused by: java.lang.NoClassDefFoundError: org/apache/commons/lang3/Validate  
-  at com.github.jknack.handlebars.cache.ConcurrentMapTemplateCache.(ConcurrentMapTemplateCache.java:62)  
-  at com.github.jknack.handlebars.cache.ConcurrentMapTemplateCache.(ConcurrentMapTemplateCache.java:69)  
-  at ratpack.handlebars.HandlebarsModule.provideTemplateCache(HandlebarsModule.java:177)  
-  at ratpack.handlebars.HandlebarsModule$$FastClassByGuice$$cfbb43aa.invoke()  
  
 ## Known Java 9 Errors/Warning messages
 
