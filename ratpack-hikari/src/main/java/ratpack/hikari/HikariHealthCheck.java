@@ -22,7 +22,6 @@ import ratpack.exec.Promise;
 import ratpack.health.HealthCheck;
 import ratpack.registry.Registry;
 
-import java.sql.Connection;
 import java.sql.SQLException;
 import java.time.Duration;
 
@@ -97,7 +96,8 @@ public abstract class HikariHealthCheck implements HealthCheck {
   @Override
   public Promise<Result> check(Registry registry) {
     return Blocking.get(() -> {
-        try (Connection conn = getHikariPool().getConnection(getTimeout().toMillis())) {
+        try {
+          getHikariPool().getConnection(getTimeout().toMillis()).close();
           return Result.healthy();
         } catch (SQLException e) {
           return HealthCheck.Result.unhealthy(String.format("Hikari couldn't get a connection after %ss", getTimeout().getSeconds()), e);
