@@ -56,6 +56,28 @@ class FileRenderingSpec extends RatpackGroovyDslSpec {
     }
   }
 
+  def "can add response finalizer"() {
+    when:
+    handlers {
+      all {
+        response.beforeSend {
+          it.headers.add("foo", "1")
+          response.beforeSend {
+            it.headers.add("bar", "1")
+          }
+        }
+        render myFile
+      }
+    }
+
+    then:
+    def r = get()
+    r.status.code == 200
+    r.body.text.contains(FILE_CONTENTS)
+    r.headers.foo == "1"
+    r.headers.bar == "1"
+  }
+
   def "renderer respect if-modified-since header"() {
     given:
     handlers {

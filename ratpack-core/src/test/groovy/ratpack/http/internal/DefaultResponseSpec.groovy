@@ -333,5 +333,27 @@ class DefaultResponseSpec extends RatpackGroovyDslSpec {
     closed.get()
     !channel.get().open
   }
+
+  def "can add response finalizer"() {
+    when:
+    handlers {
+      all {
+        response.beforeSend {
+          it.headers.add("foo", "1")
+          response.beforeSend {
+            it.headers.add("bar", "1")
+          }
+        }
+        render "abc"
+      }
+    }
+
+    then:
+    def r = get()
+    r.status.code == 200
+    r.body.text == "abc"
+    r.headers.foo == "1"
+    r.headers.bar == "1"
+  }
 }
 
