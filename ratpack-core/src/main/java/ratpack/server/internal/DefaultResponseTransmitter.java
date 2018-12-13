@@ -43,12 +43,15 @@ import ratpack.http.RequestBodyTooLargeException;
 import ratpack.http.SentResponse;
 import ratpack.http.internal.*;
 
-import java.nio.file.FileSystems;
-import java.nio.file.Files;
-import java.nio.file.Path;
+import java.io.IOException;
+import java.io.UncheckedIOException;
+import java.nio.channels.FileChannel;
+import java.nio.file.*;
 import java.time.Instant;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
+import java.util.Set;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.Consumer;
 
@@ -181,14 +184,23 @@ public class DefaultResponseTransmitter implements ResponseTransmitter {
     }
   }
 
+  private static final Set<OpenOption> OPEN_OPTIONS = Collections.singleton(StandardOpenOption.READ);
+
   @Override
   public void transmit(HttpResponseStatus status, Path file) {
+
     String sizeString = responseHeaders.getAsString(HttpHeaderConstants.CONTENT_LENGTH);
     long size = sizeString == null ? 0 : Long.parseLong(sizeString);
     boolean compress = !responseHeaders.contains(HttpHeaderConstants.CONTENT_ENCODING, HttpHeaderConstants.IDENTITY, true);
 
     if (!isSsl && !compress && file.getFileSystem().equals(FileSystems.getDefault())) {
-      FileRegion defaultFileRegion = new DefaultFileRegion(file.toFile(), 0, size);
+      FileChannel fileChannel;
+      try {
+        fileChannel = FileChannel.open(file, OPEN_OPTIONS);
+      } catch (IOException e) {
+        throw new UncheckedIOException(e);
+      }
+      FileRegion defaultFileRegion = new DefaultFileRegion(fileChannel, 0, size);
       transmit(status, defaultFileRegion, true);
     } else {
       Blocking.get(() ->
