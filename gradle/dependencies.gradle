@@ -26,7 +26,7 @@ ext {
     rxjava2          : "2.1.12",
     reactor          : "3.1.8.RELEASE",
     hystrix          : "1.5.13",
-    jackson          : "2.9.5",
+    jackson          : "2.9.8",
     dropwizardMetrics: "3.1.1",
     pegdown          : "1.5.0",
     spock            : "1.1-groovy-2.4",
@@ -40,7 +40,7 @@ ext {
     commonsLogging   : "1.2",
     commonsCodec     : "1.10",
     xmlApis          : "1.4.01",
-    snakeyaml        : "1.20",
+    snakeyaml        : "1.23",
     prometheusClient : "0.2.0",
     shadow           : "2.0.4",
     commonsLang3     : "3.3.2"
