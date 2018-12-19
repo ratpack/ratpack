@@ -32,7 +32,7 @@ import ratpack.exec.internal.ExecControllerInternal;
 import ratpack.func.Action;
 import ratpack.http.client.*;
 import ratpack.server.ServerConfig;
-import ratpack.util.internal.ChannelImplDetector;
+import ratpack.util.internal.TransportDetector;
 
 import java.net.URI;
 import java.time.Duration;
@@ -53,7 +53,7 @@ public class DefaultHttpClient implements HttpClientInternal {
       Bootstrap bootstrap = new Bootstrap()
         .remoteAddress(key.host, key.port)
         .group(key.execution.getEventLoop())
-        .channel(ChannelImplDetector.getSocketChannelImpl())
+        .channel(TransportDetector.getSocketChannelImpl())
         .option(ChannelOption.CONNECT_TIMEOUT_MILLIS, (int) key.connectTimeout.toMillis())
         .option(ChannelOption.ALLOCATOR, spec.byteBufAllocator)
         .option(ChannelOption.AUTO_READ, false)
