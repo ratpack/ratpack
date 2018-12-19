@@ -13,22 +13,37 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-apply plugin: "com.gradle.build-scan"
+buildscript {
+  repositories {
+    gradlePluginPortal()
+  }
+
+  dependencies {
+    classpath "com.gradle:build-scan-plugin:1.16"
+  }
+}
+
+apply plugin: com.gradle.scan.plugin.BuildScanPlugin
+
 def env = System.getenv()
 def publishToSlack = findProperty("publishToSlack") != null
 
 buildScan {
-  def commitId = env.REVISION
-  try {
-    commitId = 'git rev-parse --verify HEAD'.execute().text.trim()
-  } catch (ignore) {
-    // ignore
-  }
+  background {
+    def commitId = env.REVISION
+    try {
+      commitId = 'git rev-parse --verify HEAD'.execute().text.trim()
+    } catch (ignore) {
+      // ignore
+    }
 
-  if (commitId) {
-    link "Source", "https://github.com/ratpack/ratpack/tree/" + commitId
+    if (commitId) {
+      link "Source", "https://github.com/ratpack/ratpack/tree/" + commitId
+    }
   }
 }
+
+buildScan.publishAlways()
 
 if (project.isCi) {
 
