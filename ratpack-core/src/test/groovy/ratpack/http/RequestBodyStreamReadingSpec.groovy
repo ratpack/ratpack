@@ -359,15 +359,13 @@ class RequestBodyStreamReadingSpec extends RatpackGroovyDslSpec {
     }
 
     and:
-    Socket socket = new Socket()
-    socket.connect(new InetSocketAddress(address.host, address.port))
-    new OutputStreamWriter(socket.outputStream, "UTF-8").with {
+    withSocket {
       write("POST / HTTP/1.1\r\n")
-      write("Content-Length: 4000\r\n")
+      write("Content-Length: 1024000\r\n")
       write("\r\n")
+      write("${'a' * 1024}\r\n")
       close()
     }
-    socket.close()
 
     then:
     error.get() instanceof ConnectionClosedException

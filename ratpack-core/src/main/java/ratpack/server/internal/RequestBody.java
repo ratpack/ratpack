@@ -236,10 +236,14 @@ public class RequestBody implements RequestBodyReader, RequestBodyAccumulator {
                 }
               };
 
-              startBodyRead(e -> {
-                discard();
-                write.error(e);
-              });
+              if (earlyClose) {
+                listener.onEarlyClose();
+              } else {
+                startBodyRead(e -> {
+                  discard();
+                  write.error(e);
+                });
+              }
             }
           } else {
             ctx.read();
@@ -321,7 +325,7 @@ public class RequestBody implements RequestBodyReader, RequestBodyAccumulator {
     } else if (received.size() == 1) {
       return new ByteBufRef(received.remove(0));
     } else {
-      ByteBuf[] byteBufsArray = this.received.toArray(new ByteBuf[this.received.size()]);
+      ByteBuf[] byteBufsArray = this.received.toArray(new ByteBuf[0]);
       received.clear();
       return Unpooled.wrappedUnmodifiableBuffer(byteBufsArray);
     }
