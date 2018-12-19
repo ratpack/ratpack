@@ -353,7 +353,7 @@ class RequestBodyStreamReadingSpec extends RatpackGroovyDslSpec {
     handlers {
       all { ctx ->
         ByteBufStreams.compose(request.bodyStream, PooledByteBufAllocator.DEFAULT)
-          .onError { error.set(it) }
+          .onError { error.set(it); response.send() }
           .then { response.send(it) }
       }
     }
