@@ -43,8 +43,6 @@ buildScan {
   }
 }
 
-buildScan.publishAlways()
-
 if (project.isCi) {
 
   buildScan {
