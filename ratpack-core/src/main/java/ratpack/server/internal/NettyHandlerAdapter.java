@@ -52,7 +52,7 @@ import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.nio.CharBuffer;
 import java.nio.channels.ClosedChannelException;
-import java.time.Instant;
+import java.time.Clock;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 @ChannelHandler.Sharable
@@ -70,12 +70,14 @@ public class NettyHandlerAdapter extends ChannelInboundHandlerAdapter {
 
   private final Registry serverRegistry;
   private final boolean development;
+  private final Clock clock;
 
   public NettyHandlerAdapter(Registry serverRegistry, Handler handler) throws Exception {
     this.handlers = ChainHandler.unpack(handler);
     this.serverRegistry = serverRegistry;
     this.applicationConstants = new DefaultContext.ApplicationConstants(this.serverRegistry, new DefaultRenderController(), serverRegistry.get(ExecController.class), Handlers.notFound());
     this.development = serverRegistry.get(ServerConfig.class).isDevelopment();
+    this.clock = serverRegistry.get(Clock.class);
   }
 
   @Override
@@ -141,7 +143,7 @@ public class NettyHandlerAdapter extends ChannelInboundHandlerAdapter {
     ConnectionIdleTimeout connectionIdleTimeout = ConnectionIdleTimeout.of(channel);
 
     DefaultRequest request = new DefaultRequest(
-      Instant.now(),
+      clock.instant(),
       requestHeaders,
       nettyRequest.method(),
       nettyRequest.protocolVersion(),
@@ -158,7 +160,7 @@ public class NettyHandlerAdapter extends ChannelInboundHandlerAdapter {
     MutableHeaders responseHeaders = new NettyHeadersBackedMutableHeaders(nettyHeaders);
     AtomicBoolean transmitted = new AtomicBoolean(false);
 
-    DefaultResponseTransmitter responseTransmitter = new DefaultResponseTransmitter(transmitted, channel, nettyRequest, request, nettyHeaders, requestBody);
+    DefaultResponseTransmitter responseTransmitter = new DefaultResponseTransmitter(transmitted, channel, clock, nettyRequest, request, nettyHeaders, requestBody);
 
     ctx.channel().attr(DefaultResponseTransmitter.ATTRIBUTE_KEY).set(responseTransmitter);
 

@@ -47,6 +47,7 @@ import java.io.IOException;
 import java.io.UncheckedIOException;
 import java.nio.channels.FileChannel;
 import java.nio.file.*;
+import java.time.Clock;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -65,6 +66,7 @@ public class DefaultResponseTransmitter implements ResponseTransmitter {
   };
   private final AtomicBoolean transmitted;
   private final Channel channel;
+  private final Clock clock;
   private final Request ratpackRequest;
   private final HttpHeaders responseHeaders;
   private final RequestBody requestBody;
@@ -80,6 +82,7 @@ public class DefaultResponseTransmitter implements ResponseTransmitter {
   public DefaultResponseTransmitter(
     AtomicBoolean transmitted,
     Channel channel,
+    Clock clock,
     HttpRequest nettyRequest,
     Request ratpackRequest,
     HttpHeaders responseHeaders,
@@ -87,6 +90,7 @@ public class DefaultResponseTransmitter implements ResponseTransmitter {
   ) {
     this.transmitted = transmitted;
     this.channel = channel;
+    this.clock = clock;
     this.ratpackRequest = ratpackRequest;
     this.responseHeaders = responseHeaders;
     this.requestBody = requestBody;
@@ -119,7 +123,7 @@ public class DefaultResponseTransmitter implements ResponseTransmitter {
 
   private ChannelFuture pre(HttpResponseStatus responseStatus, boolean flushHeaders) {
     if (transmitted.compareAndSet(false, true)) {
-      stopTime = Instant.now();
+      stopTime = clock.instant();
       try {
         if (responseHeaders.contains(HttpHeaderNames.CONNECTION, HttpHeaderValues.CLOSE, true)) {
           isKeepAlive = false;
