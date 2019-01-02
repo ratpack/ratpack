@@ -26,8 +26,8 @@ import ratpack.exec.*;
 import ratpack.func.Action;
 import ratpack.func.Block;
 import ratpack.registry.RegistrySpec;
-import ratpack.util.internal.ChannelImplDetector;
 import ratpack.util.internal.InternalRatpackError;
+import ratpack.util.internal.TransportDetector;
 
 import java.util.Queue;
 import java.util.concurrent.*;
@@ -58,7 +58,7 @@ public class DefaultExecController implements ExecControllerInternal {
 
   public DefaultExecController(int numThreads) {
     this.numThreads = numThreads;
-    this.eventLoopGroup = ChannelImplDetector.eventLoopGroup(numThreads, new ExecControllerBindingThreadFactory(true, "ratpack-compute", Thread.MAX_PRIORITY));
+    this.eventLoopGroup = TransportDetector.eventLoopGroup(numThreads, new ExecControllerBindingThreadFactory(true, "ratpack-compute", Thread.MAX_PRIORITY));
     this.blockingExecutor = Executors.newCachedThreadPool(new ExecControllerBindingThreadFactory(false, "ratpack-blocking", Thread.NORM_PRIORITY));
   }
 

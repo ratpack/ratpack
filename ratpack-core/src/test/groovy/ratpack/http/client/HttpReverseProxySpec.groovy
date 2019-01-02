@@ -278,7 +278,7 @@ bar
     expect:
     rawResponse() == """HTTP/1.1 404 Not Found
 x-foo-header: foo
-content-type: text/plain
+content-type: text/plain;charset=UTF-8
 content-length: 16
 connection: close
 

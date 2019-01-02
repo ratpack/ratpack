@@ -1,5 +1,9 @@
 # pac4j
 
+> Note: The version of ratpack-pac4j that is maintained as part of the Ratpack project using Pac4j 1.8.x. In order to use Pac4j 2.x+, you must 
+  use the 3rd party [Ratpack Pac4j](https://github.com/pac4j/ratpack-pac4j) modules which is maintained by the Pac4j project.
+  The module released as part of Ratpack will be deprecated in Ratpack 1.7.0 and removed in Ratpack 2.0.0.
+
 The `ratpack-pac4j` extension provides authentication and authorization support via integration with [pac4j](https://github.com/pac4j/pac4j).
 
 The pac4j library is a security engine which abstracts over different authentication protocols such as OAuth, CAS, OpenID (Connect), SAML, Google App Engine and HTTP (form and basic auth) as well as custom authentication mechanisms (e.g. database backed).

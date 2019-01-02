@@ -28,6 +28,7 @@ import org.reactivestreams.tck.SubscriberBlackboxVerification
 import org.reactivestreams.tck.TestEnvironment
 import ratpack.server.internal.DefaultResponseTransmitter
 
+import java.time.Clock
 import java.util.concurrent.atomic.AtomicBoolean
 
 import static org.mockito.Matchers.any
@@ -56,7 +57,7 @@ class DefaultResponseTransmitterBlackboxVerification extends SubscriberBlackboxV
     HttpHeaders responseHeaders = mock(HttpHeaders)
 
 
-    new DefaultResponseTransmitter(new AtomicBoolean(), channel, nettyRequest, null, responseHeaders, null).transmitter(HttpResponseStatus.OK)
+    new DefaultResponseTransmitter(new AtomicBoolean(), channel, Clock.systemDefaultZone(), nettyRequest, null, responseHeaders, null).transmitter(HttpResponseStatus.OK)
   }
 
   @Override

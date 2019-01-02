@@ -24,5 +24,7 @@ dependencies {
     exclude group: "org.slf4j", module: "slf4j-api"
     exclude group: "org.apache.commons", module: "commons-lang3"
   }
+
+  runtime commonDependencies.commonsLang3
   runtime commonDependencies.slf4j
 }
