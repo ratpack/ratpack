@@ -104,6 +104,10 @@ class MetricsSpec extends RatpackGroovyDslSpec {
       info(_, _, _) >> { args ->
         println args
       }
+
+      isInfoEnabled(_) >> {
+        return  true
+      }
     }
     def graphite = Mock(GraphiteSender) {
       send(_,_,_) >> {args -> println(args)}
@@ -602,6 +606,10 @@ class MetricsSpec extends RatpackGroovyDslSpec {
     def log = Mock(Logger) {
       info(_, _, _) >> { args ->
         println args
+      }
+
+      isInfoEnabled(_) >> {
+        return true
       }
     }
 
