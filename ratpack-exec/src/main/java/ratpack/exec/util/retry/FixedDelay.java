@@ -22,7 +22,7 @@ import java.time.Duration;
 
 /**
  * A fixed duration based implementation of {@link Delay}.
- * @since 1.6
+ * @since 1.7
  */
 public class FixedDelay implements Delay {
 

@@ -23,7 +23,7 @@ import java.time.Duration;
 /**
  * A strategy object to model delays between retries.
  * @see RetryPolicy
- * @since 1.6
+ * @since 1.7
  */
 public interface Delay {
 

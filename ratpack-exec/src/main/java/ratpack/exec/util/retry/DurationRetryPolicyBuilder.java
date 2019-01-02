@@ -22,7 +22,7 @@ import java.time.Duration;
 /**
  * Builds a {@link DurationRetryPolicy}
  * @see DurationRetryPolicy#of(Action)
- * @since 1.6
+ * @since 1.7
  */
 public interface DurationRetryPolicyBuilder {
 

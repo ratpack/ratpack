@@ -62,7 +62,7 @@ import java.util.function.Function;
  * }
  * }</pre>
  *
- * @since 1.6
+ * @since 1.7
  */
 public class IndexedDelay implements Delay {
 

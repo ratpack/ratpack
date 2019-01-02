@@ -68,7 +68,7 @@ import java.time.Duration;
  * }</pre>
  *
  * @see Promise#retry(RetryPolicy, BiAction)
- * @since 1.6
+ * @since 1.7
  */
 public interface RetryPolicy {
 
