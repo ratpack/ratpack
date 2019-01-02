@@ -80,7 +80,7 @@ import java.time.Instant;
  * }</pre>
  *
  * @see DurationRetryPolicyBuilder
- * @since 1.6
+ * @since 1.7
  */
 public class DurationRetryPolicy implements RetryPolicy {
 

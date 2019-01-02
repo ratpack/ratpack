@@ -21,7 +21,7 @@ import java.time.Duration;
 /**
  * Builds an {@link AttemptRetryPolicy}
  * @see AttemptRetryPolicy#of(Action)
- * @since 1.6
+ * @since 1.7
  */
 public interface AttemptRetryPolicyBuilder {
 

@@ -29,7 +29,7 @@ import java.time.Duration;
  * That number doesn't include the initial request, meaning it will give up after 6 calls, but only 5 retries.
  *
  * @see AttemptRetryPolicyBuilder
- * @since 1.6
+ * @since 1.7
  */
 public final class AttemptRetryPolicy implements RetryPolicy {
 
