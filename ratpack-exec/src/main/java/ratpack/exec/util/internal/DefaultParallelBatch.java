@@ -25,6 +25,7 @@ import ratpack.exec.Promise;
 import ratpack.exec.util.ParallelBatch;
 import ratpack.func.Action;
 import ratpack.func.BiAction;
+import ratpack.func.Block;
 import ratpack.stream.TransformablePublisher;
 import ratpack.stream.internal.BufferingPublisher;
 import ratpack.util.Types;
@@ -41,15 +42,22 @@ public class DefaultParallelBatch<T> implements ParallelBatch<T> {
 
   private final Iterable<? extends Promise<T>> promises;
   private final Action<? super Execution> execInit;
+  private final Block onExecStart;
 
-  public DefaultParallelBatch(Iterable<? extends Promise<? extends T>> promises, Action<? super Execution> execInit) {
+  public DefaultParallelBatch(Iterable<? extends Promise<? extends T>> promises, Action<? super Execution> execInit, Block onExecStart) {
     this.promises = Types.cast(promises);
     this.execInit = execInit;
+    this.onExecStart = onExecStart;
   }
 
   @Override
   public ParallelBatch<T> execInit(Action<? super Execution> execInit) {
-    return new DefaultParallelBatch<>(promises, execInit);
+    return new DefaultParallelBatch<>(promises, execInit, onExecStart);
+  }
+
+  @Override
+  public ParallelBatch<T> onExecStart(Block onExecStart) {
+    return new DefaultParallelBatch<>(promises, execInit, onExecStart);
   }
 
   @Override
@@ -73,11 +81,12 @@ public class DefaultParallelBatch<T> implements ParallelBatch<T> {
               d.success(results);
             }
           })
-          .start(e ->
+          .start(e -> {
+            onExecStart.execute();
             promises.get(finalI).result(t -> {
               results.set(finalI, t);
-            })
-          );
+            });
+          });
       }
     });
 
@@ -125,6 +134,7 @@ public class DefaultParallelBatch<T> implements ParallelBatch<T> {
           })
           .start(e -> {
             //noinspection ThrowableResultOfMethodCallIgnored
+            onExecStart.execute();
             if (error.get() == null) {
               promise.result(t -> {
                 if (t.isError()) {
@@ -176,7 +186,10 @@ public class DefaultParallelBatch<T> implements ParallelBatch<T> {
                     write.complete();
                   }
                 })
-                .start(e -> promise.onError(write::error).then(write::item));
+                .start(e -> {
+                  onExecStart.execute();
+                  promise.onError(write::error).then(write::item);
+                });
             } else {
               if (started == 0) {
                 write.complete();

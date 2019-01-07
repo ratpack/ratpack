@@ -23,6 +23,7 @@ import ratpack.exec.Promise;
 import ratpack.exec.util.internal.DefaultParallelBatch;
 import ratpack.func.Action;
 import ratpack.func.BiAction;
+import ratpack.func.Block;
 import ratpack.stream.TransformablePublisher;
 
 import java.util.Arrays;
@@ -34,7 +35,7 @@ import java.util.List;
  * Parallel batches can be created via {@link #of(Iterable)}.
  * <p>
  * Each promise will be executed in a {@link Execution#fork() forked execution}.
- * The {@link #execInit(Action)} method allows each forked execution to be customised before executing the work.
+ * The {@link #execInit(Action)} and {@link #onExecStart(Block)} methods allow each forked execution to be customised before executing the work.
  *
  * @param <T> the type of value produced by each promise in the batch
  * @since 1.4
@@ -49,7 +50,7 @@ public interface ParallelBatch<T> extends Batch<T> {
    * @return a {@link ParallelBatch}
    */
   static <T> ParallelBatch<T> of(Iterable<? extends Promise<? extends T>> promises) {
-    return new DefaultParallelBatch<>(promises, Action.noop());
+    return new DefaultParallelBatch<>(promises, Action.noop(), Block.noop());
   }
 
   /**
@@ -77,6 +78,16 @@ public interface ParallelBatch<T> extends Batch<T> {
    * @return a new batch, configured to use the given initializer
    */
   ParallelBatch<T> execInit(Action<? super Execution> execInit);
+
+  /**
+   * Specifies a block of code that will be executed in each forked execution before any work has been done.
+   * <p>
+   * This can be used to copy over values to the forked execution (e.g. the MDC logging context).
+   *
+   * @param onExecStart the function to execute
+   * @return a new batch, configured to use the given onExecStart block
+   */
+  ParallelBatch<T> onExecStart(Block onExecStart);
 
   /**
    * {@inheritDoc}
