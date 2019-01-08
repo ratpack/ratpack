@@ -179,4 +179,29 @@ class ResponseStreamingSpec extends RatpackGroovyDslSpec {
     then:
     sentAt.get() != null
   }
+
+  def "can add response finalizer to streamed response"() {
+    when:
+    handlers {
+      all {
+        response.beforeSend {
+          it.headers.add("foo", "1")
+          response.beforeSend {
+            it.headers.add("bar", "1")
+          }
+        }
+        request.maxContentLength = 12
+        render stringChunks(
+          publish(["abc"] * 3)
+        )
+      }
+    }
+
+    then:
+    def r = request { it.post().body.text("a" * 100_000) }
+    r.status.code == 200
+    r.body.text == "abc" * 3
+    r.headers.foo == "1"
+    r.headers.bar == "1"
+  }
 }

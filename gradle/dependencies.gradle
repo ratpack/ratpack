@@ -18,7 +18,7 @@ ext {
   commonVersions = [
     remote           : "0.7",
     slf4j            : "1.7.25",
-    netty            : "4.1.31.Final",
+    netty            : "4.1.32.Final",
     guava            : "21.0",
     groovy           : "2.4.15",
     pac4j            : "1.8.8",
@@ -26,7 +26,7 @@ ext {
     rxjava2          : "2.1.12",
     reactor          : "3.1.8.RELEASE",
     hystrix          : "1.5.13",
-    jackson          : "2.9.5",
+    jackson          : "2.9.8",
     dropwizardMetrics: "3.1.1",
     pegdown          : "1.5.0",
     spock            : "1.1-groovy-2.4",
@@ -40,9 +40,10 @@ ext {
     commonsLogging   : "1.2",
     commonsCodec     : "1.10",
     xmlApis          : "1.4.01",
-    snakeyaml        : "1.20",
+    snakeyaml        : "1.23",
     prometheusClient : "0.2.0",
-    shadow           : "2.0.4"
+    shadow           : "2.0.4",
+    commonsLang3     : "3.3.2"
   ]
 
   if (System.getenv('CI_GROOVY_VERSION')) {
@@ -99,6 +100,7 @@ ext {
       dependencies.create("rubygems:chunky_png:1.2.9", {
         force = true
       })
-    ]
+    ],
+    commonsLang3: "org.apache.commons:commons-lang3:${commonVersions.commonsLang3}"
   ]
 }

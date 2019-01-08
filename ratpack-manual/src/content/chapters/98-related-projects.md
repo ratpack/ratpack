@@ -22,4 +22,4 @@ The following 3rd party projects provided additional functionality to Ratpack pr
 
 * [Bearer Token Auth](https://github.com/SmartThingsOSS/ratpack-bearer-auth) - Standard handlers for performing bearer token authentication.
 * [Cassandra Module](https://github.com/SmartThingsOSS/ratpack-cassandra) - Integrations for working with Cassandra data stores.
- 
+* [Ratpack Pac4j](https://github.com/pac4j/ratpack-pac4j) - Authentication and Authorization using Pac4j 2.x+.

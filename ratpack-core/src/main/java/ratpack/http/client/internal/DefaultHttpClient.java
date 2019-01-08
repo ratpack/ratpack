@@ -22,7 +22,6 @@ import io.netty.buffer.PooledByteBufAllocator;
 import io.netty.channel.ChannelOption;
 import io.netty.channel.pool.ChannelHealthChecker;
 import io.netty.channel.pool.ChannelPool;
-import io.netty.channel.pool.FixedChannelPool;
 import io.netty.channel.pool.SimpleChannelPool;
 import ratpack.exec.ExecController;
 import ratpack.exec.Execution;
@@ -32,7 +31,7 @@ import ratpack.exec.internal.ExecControllerInternal;
 import ratpack.func.Action;
 import ratpack.http.client.*;
 import ratpack.server.ServerConfig;
-import ratpack.util.internal.ChannelImplDetector;
+import ratpack.util.internal.TransportDetector;
 
 import java.net.URI;
 import java.time.Duration;
@@ -53,7 +52,7 @@ public class DefaultHttpClient implements HttpClientInternal {
       Bootstrap bootstrap = new Bootstrap()
         .remoteAddress(key.host, key.port)
         .group(key.execution.getEventLoop())
-        .channel(ChannelImplDetector.getSocketChannelImpl())
+        .channel(TransportDetector.getSocketChannelImpl())
         .option(ChannelOption.CONNECT_TIMEOUT_MILLIS, (int) key.connectTimeout.toMillis())
         .option(ChannelOption.ALLOCATOR, spec.byteBufAllocator)
         .option(ChannelOption.AUTO_READ, false)
@@ -62,10 +61,10 @@ public class DefaultHttpClient implements HttpClientInternal {
       if (isPooling()) {
         InstrumentedChannelPoolHandler channelPoolHandler = getPoolingHandler(key);
         hostStats.put(key.host, channelPoolHandler);
-        ChannelPool channelPool = new FixedChannelPool(bootstrap, channelPoolHandler, getPoolSize(), getPoolQueueSize());
+        CleanClosingFixedChannelPool channelPool = new CleanClosingFixedChannelPool(bootstrap, channelPoolHandler, getPoolSize(), getPoolQueueSize());
         ((ExecControllerInternal) key.execution.getController()).onClose(() -> {
           remove(key);
-          channelPool.close();
+          channelPool.closeCleanly();
         });
         return channelPool;
       } else {
@@ -302,15 +301,15 @@ public class DefaultHttpClient implements HttpClientInternal {
 
   private <T extends HttpResponse> Promise<T> intercept(Promise<T> promise, Action<? super HttpResponse> action, Action<? super Throwable> errorAction) {
     return promise.wiretap(r -> {
-        if (r.isError()) {
-          ExecController.require()
-            .fork()
-            .eventLoop(Execution.current().getEventLoop())
-            .start(e ->
-              errorAction.execute(r.getThrowable())
-            );
-        }
-      })
+      if (r.isError()) {
+        ExecController.require()
+          .fork()
+          .eventLoop(Execution.current().getEventLoop())
+          .start(e ->
+            errorAction.execute(r.getThrowable())
+          );
+      }
+    })
       .next(r ->
         ExecController.require()
           .fork()

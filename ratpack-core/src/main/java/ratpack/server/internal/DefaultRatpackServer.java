@@ -54,7 +54,7 @@ import ratpack.service.internal.DefaultEvent;
 import ratpack.service.internal.ServicesGraph;
 import ratpack.util.Exceptions;
 import ratpack.util.Types;
-import ratpack.util.internal.ChannelImplDetector;
+import ratpack.util.internal.TransportDetector;
 
 import javax.net.ssl.SSLEngine;
 import java.net.InetSocketAddress;
@@ -249,7 +249,7 @@ public class DefaultRatpackServer implements RatpackServer {
 
     return serverBootstrap
       .group(execController.getEventLoopGroup())
-      .channel(ChannelImplDetector.getServerSocketChannelImpl())
+      .channel(TransportDetector.getServerSocketChannelImpl())
       .option(ChannelOption.ALLOCATOR, PooledByteBufAllocator.DEFAULT)
       .childOption(ChannelOption.ALLOCATOR, PooledByteBufAllocator.DEFAULT)
       .childHandler(new ChannelInitializer<SocketChannel>() {

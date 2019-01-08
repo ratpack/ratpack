@@ -116,7 +116,7 @@ public interface GroovyContext extends Context {
    * }
    *
    * assert result.rendered(CharSequence) == "<p>hello!</p>";
-   * assert result.headers.get("content-type") == "text/html";
+   * assert result.headers.get("content-type") == "text/html;charset=UTF-8";
    * }</pre>
    *
    * @param closure defines the action to take for the different content types

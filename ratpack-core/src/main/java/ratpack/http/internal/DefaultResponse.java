@@ -272,7 +272,7 @@ public class DefaultResponse implements Response {
   }
 
   public void sendFile(Path file) {
-    finalizeResponse(responseFinalizers.iterator(), () -> {
+    finalizeResponse(() -> {
       setCookieHeader();
       responseTransmitter.transmit(status.getNettyStatus(), file);
     });
@@ -280,7 +280,7 @@ public class DefaultResponse implements Response {
 
   @Override
   public void sendStream(Publisher<? extends ByteBuf> stream) {
-    finalizeResponse(responseFinalizers.iterator(), () -> {
+    finalizeResponse(() -> {
       setCookieHeader();
       stream.subscribe(responseTransmitter.transmitter(status.getNettyStatus()));
     });
@@ -336,7 +336,7 @@ public class DefaultResponse implements Response {
     if (readableBytes > 0 || !mustNotHaveBody()) {
       headers.set(HttpHeaderNames.CONTENT_LENGTH, readableBytes);
     }
-    finalizeResponse(Collections.emptyIterator(), () -> {
+    finalizeResponse(() -> {
       setCookieHeader();
       responseTransmitter.transmit(status.getNettyStatus(), buffer);
     });
@@ -345,6 +345,16 @@ public class DefaultResponse implements Response {
   private boolean mustNotHaveBody() {
     int code = status.getCode();
     return (code >= 100 && code < 200) || code == 204 || code == 304;
+  }
+
+  private void finalizeResponse(Runnable then) {
+    List<Action<? super Response>> finalizersCopy = ImmutableList.copyOf(responseFinalizers);
+    responseFinalizers.clear();
+    if (finalizersCopy.isEmpty()) {
+      then.run();
+    } else {
+      finalizeResponse(finalizersCopy.iterator(), then);
+    }
   }
 
   private void finalizeResponse(Iterator<Action<? super Response>> finalizers, Runnable then) {
@@ -357,13 +367,7 @@ public class DefaultResponse implements Response {
           finalizeResponse(finalizers, then)
         );
     } else {
-      List<Action<? super Response>> finalizersCopy = ImmutableList.copyOf(responseFinalizers);
-      responseFinalizers.clear();
-      if (finalizersCopy.isEmpty()) {
-        then.run();
-      } else {
-        finalizeResponse(finalizersCopy.iterator(), then);
-      }
+      finalizeResponse(then);
     }
   }
 

@@ -103,8 +103,7 @@ public class ServerConfigDataDeserializer extends JsonDeserializer<ServerConfigD
     if (serverNode.hasNonNull("ssl")) {
       data.setSslContext(toValue(codec, serverNode.get("ssl"), SslContext.class));
     } else if (serverNode.hasNonNull("jdkSsl")) {
-      SSLContext jdkSslContext = toValue(codec, serverNode.get("jdkSsl"), SSLContext.class);
-      data.setSslContext(new JdkSslContext(jdkSslContext, false, data.isRequireClientSslAuth() ? ClientAuth.REQUIRE : ClientAuth.NONE));
+      data.setSslContext(toJdkSslContext(data, toValue(codec, serverNode.get("jdkSsl"), SSLContext.class)));
     }
     if (serverNode.hasNonNull("baseDir")) {
       throw new IllegalStateException("baseDir value cannot be set via config, it must be set directly via ServerConfigBuilder.baseDir()");
@@ -126,6 +125,11 @@ public class ServerConfigDataDeserializer extends JsonDeserializer<ServerConfigD
     }
 
     return data;
+  }
+
+  @SuppressWarnings("deprecation")
+  private JdkSslContext toJdkSslContext(ServerConfigData data, SSLContext jdkSslContext) {
+    return new JdkSslContext(jdkSslContext, false, data.isRequireClientSslAuth() ? ClientAuth.REQUIRE : ClientAuth.NONE);
   }
 
   private int parsePort(JsonNode node) {

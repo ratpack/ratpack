@@ -29,7 +29,7 @@ import java.util.Queue;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicIntegerFieldUpdater;
-import java.util.concurrent.atomic.AtomicReference;
+import java.util.concurrent.atomic.AtomicReferenceFieldUpdater;
 
 public class DefaultReadWriteAccess implements ReadWriteAccess {
 
@@ -38,7 +38,15 @@ public class DefaultReadWriteAccess implements ReadWriteAccess {
   private static final AtomicIntegerFieldUpdater<DefaultReadWriteAccess> ACTIVE_READERS_UPDATER =
     AtomicIntegerFieldUpdater.newUpdater(DefaultReadWriteAccess.class, "activeReaders");
 
-  private final Queue<Access<?>> queue = new ConcurrentLinkedQueue<>();
+  @SuppressWarnings("rawtypes")
+  private static final AtomicReferenceFieldUpdater<DefaultReadWriteAccess, Access> PENDING_WRITE_REF_UPDATER =
+    AtomicReferenceFieldUpdater.newUpdater(DefaultReadWriteAccess.class, Access.class, "pendingWriteRef");
+
+  @SuppressWarnings("rawtypes")
+  private static final AtomicReferenceFieldUpdater<DefaultReadWriteAccess, Queue> QUEUE_UPDATER =
+    AtomicReferenceFieldUpdater.newUpdater(DefaultReadWriteAccess.class, Queue.class, "queue");
+
+  private volatile Queue<Access<?>> queue;
 
   @SuppressWarnings("unused")
   private volatile int draining;
@@ -48,7 +56,7 @@ public class DefaultReadWriteAccess implements ReadWriteAccess {
 
   private final Duration defaultTimeout;
 
-  private AtomicReference<Access<?>> pendingWriteRef = new AtomicReference<>();
+  private volatile Access<?> pendingWriteRef;
 
   public DefaultReadWriteAccess(Duration defaultTimeout) {
     if (defaultTimeout.isNegative()) {
@@ -116,10 +124,11 @@ public class DefaultReadWriteAccess implements ReadWriteAccess {
           timeoutFuture = execution.getEventLoop().schedule(this::timeout, timeout.toMillis(), TimeUnit.MILLISECONDS);
         }
         this.continuation = continuation;
-        queue.add(this);
+        addToQueue(this);
         drain();
       });
     }
+
 
     private boolean fire() {
       //noinspection SimplifiableIfStatement
@@ -177,7 +186,7 @@ public class DefaultReadWriteAccess implements ReadWriteAccess {
     private void relinquish() {
       if (read) {
         if (decActiveReaders() == 0) {
-          Access<?> pendingWrite = pendingWriteRef.getAndSet(null);
+          Access<?> pendingWrite = PENDING_WRITE_REF_UPDATER.getAndSet(DefaultReadWriteAccess.this, null);
           if (pendingWrite != null) {
             pendingWrite.access();
             return;
@@ -191,33 +200,78 @@ public class DefaultReadWriteAccess implements ReadWriteAccess {
     }
   }
 
+  private boolean casQueue(Queue<Access<?>> expected, Queue<Access<?>> queue) {
+    return QUEUE_UPDATER.compareAndSet(DefaultReadWriteAccess.this, expected, queue);
+  }
+
   private void drain() {
     if (startDraining()) {
-      Access<?> access = queue.poll();
-      while (access != null) {
-        if (access.read) {
-          access.access();
-          access = queue.poll();
-        } else {
-          if (activeReaders() == 0) {
-            access.access();
-          } else {
-            pendingWriteRef.set(access);
-            if (activeReaders() == 0) {
-              access = pendingWriteRef.getAndSet(null);
-              if (access != null) {
-                access.access();
-              }
-            }
-          }
+      Queue<Access<?>> queue = getQueue();
+      if (queue != null) {
+        if (drainQueue(queue)) {
           return;
+        }
+        resetQueue();
+        if (!queue.isEmpty()) {
+          if (drainQueue(queue)) {
+            return;
+          }
         }
       }
       notDraining();
-      if (!queue.isEmpty()) {
+      if (getQueue() != null) {
         drain();
       }
     }
+  }
+
+  private void resetQueue() {
+    QUEUE_UPDATER.set(this, null);
+  }
+
+  private boolean drainQueue(Queue<Access<?>> queue) {
+    Access<?> access = queue.poll();
+    while (access != null) {
+      if (access.read) {
+        access.access();
+        access = queue.poll();
+      } else {
+        if (activeReaders() == 0) {
+          access.access();
+        } else {
+          PENDING_WRITE_REF_UPDATER.set(DefaultReadWriteAccess.this, access);
+          if (activeReaders() == 0) {
+            access = PENDING_WRITE_REF_UPDATER.getAndSet(DefaultReadWriteAccess.this, null);
+            if (access != null) {
+              access.access();
+            }
+          }
+        }
+        return true;
+      }
+    }
+    return false;
+  }
+
+  private void addToQueue(Access<?> access) {
+    Queue<Access<?>> queue = getQueue();
+    if (queue == null) {
+      queue = new ConcurrentLinkedQueue<>();
+      queue.add(access);
+      if (!casQueue(null, queue)) {
+        addToQueue(access);
+      }
+    } else {
+      queue.add(access);
+      if (!casQueue(queue, queue)) {
+        addToQueue(access);
+      }
+    }
+  }
+
+  @SuppressWarnings("unchecked")
+  private Queue<Access<?>> getQueue() {
+    return QUEUE_UPDATER.get(this);
   }
 
   private void notDraining() {
