@@ -20,7 +20,7 @@ ext {
     slf4j            : "1.7.25",
     netty            : "4.1.32.Final",
     guava            : "21.0",
-    groovy           : "2.4.15",
+    groovy           : "2.5.2",
     pac4j            : "1.8.8",
     rxjava           : "1.1.2",
     rxjava2          : "2.1.12",
@@ -29,7 +29,7 @@ ext {
     jackson          : "2.9.8",
     dropwizardMetrics: "3.1.1",
     pegdown          : "1.5.0",
-    spock            : "1.1-groovy-2.4",
+    spock            : "1.2-groovy-2.5",
     log4j            : "2.6.2",
     newrelic         : "3.15.0",
     reactiveStreams  : "1.0.2",
@@ -42,7 +42,7 @@ ext {
     xmlApis          : "1.4.01",
     snakeyaml        : "1.23",
     prometheusClient : "0.2.0",
-    shadow           : "2.0.4",
+    shadow           : "4.0.3",
     commonsLang3     : "3.3.2"
   ]
 

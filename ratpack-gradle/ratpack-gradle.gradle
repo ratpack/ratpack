@@ -41,7 +41,7 @@ dependencies {
 
   testCompile gradleTestKit()
   testCompile commonDependencies.guava
-  testCompile 'org.spockframework:spock-core:0.7-groovy-2.0', {
+  testCompile 'org.spockframework:spock-core:1.2-groovy-2.5', {
     exclude module: "groovy-all", group: "org.codehaus.groovy"
   }
 }

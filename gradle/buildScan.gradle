@@ -19,7 +19,7 @@ buildscript {
   }
 
   dependencies {
-    classpath "com.gradle:build-scan-plugin:1.16"
+    classpath "com.gradle:build-scan-plugin:2.1"
   }
 }
 
@@ -46,8 +46,8 @@ buildScan {
 if (project.isCi) {
 
   buildScan {
-    licenseAgreementUrl = 'https://gradle.com/terms-of-service'
-    licenseAgree = 'yes'
+    termsOfServiceUrl = 'https://gradle.com/terms-of-service'
+    termsOfServiceAgree = 'yes'
 
     publishAlways()
     tag "CI"
