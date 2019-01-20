@@ -18,7 +18,7 @@ jobs:
 
     environment:
       TERM: dumb
-      GRADLE_OPTS: -Xmx512m -Xms512m -Dorg.gradle.parallel.intra=true -Dorg.gradle.daemon=false
+      GRADLE_OPTS: -Xmx512m -Xms512m -Dorg.gradle.parallel.intra=false -Dorg.gradle.daemon=false
 
     steps:
       - checkout
@@ -34,12 +34,14 @@ jobs:
 
       - run: ./gradlew downloadDependencies
 
-      - save_cache:
-          paths:
-            - ~/.gradle
-          key: v1-gradle-{{ .Branch }}-{{ checksum "gradle/wrapper/gradle-wrapper.properties" }}-{{ checksum "gradle/dependencies.gradle" }}
-
       # run sanity check
       - run: ./gradlew sanityCheck --max-workers=4 --parallel
+        -
+      - save_cache:
+        paths:
+          - ~/.gradle
+          - ~/.jruby-container
+        key: v1-gradle-{{ .Branch }}-{{ checksum "gradle/wrapper/gradle-wrapper.properties" }}-{{ checksum "gradle/dependencies.gradle" }}
+
       - run: ./gradlew :ratpack-site:check :ratpack-core:check build jacocoReport --max-workers=4 --parallel --continue
 
