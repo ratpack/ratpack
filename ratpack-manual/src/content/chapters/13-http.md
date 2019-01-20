@@ -580,7 +580,7 @@ buildscript {
     jcenter()
   }
   dependencies {
-    classpath "io.ratpack:ratpack-gradle:1.6.0"
+    classpath "io.ratpack:ratpack-gradle:@ratpack-version@"
   }
 }
 
@@ -591,10 +591,10 @@ repositories {
 }
 
 dependencies {
-  runtime 'org.slf4j:slf4j-simple:1.7.25'
-  compile group: 'io.ratpack', name: 'ratpack-session', version: '1.6.0' // note: the version is subject to change
+  runtime 'org.slf4j:slf4j-simple:@slf4j-version@'
+  compile group: 'io.ratpack', name: 'ratpack-session', version: '@ratpack-version@' // note: the version is subject to change
 
-  testCompile "org.spockframework:spock-core:1.2-groovy-2.5"
+  testCompile "org.spockframework:spock-core:@spock-version@"
 }
 ```
 

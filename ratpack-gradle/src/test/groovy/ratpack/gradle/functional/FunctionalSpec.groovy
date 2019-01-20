@@ -115,6 +115,11 @@ abstract class FunctionalSpec extends Specification {
       dependencies {
         compile 'org.slf4j:slf4j-simple:1.7.25'
       }
+      shadowJar {
+        // Needed in Gradle 5.1 due to breaking change in convention mapping
+        // Can be removed once Shadow 5.0.0 is available
+        classifier = 'all'
+      }
     """
 
     file("src/ratpack/ratpack.properties") << "port=0\n"
@@ -135,7 +140,7 @@ abstract class FunctionalSpec extends Specification {
   }
 
   File getShadowJar() {
-    def f = file("build/libs/test-app-1.0.jar")
+    def f = file("build/libs/test-app-1.0-all.jar")
     assert f.exists()
     f
   }
