@@ -36,7 +36,7 @@ jobs:
 
       # run sanity check
       - run: ./gradlew sanityCheck --max-workers=4 --parallel
-        -
+
       - save_cache:
           paths:
             - ~/.gradle
