@@ -40,6 +40,6 @@ jobs:
           key: v1-gradle-{{ .Branch }}-{{ checksum "gradle/wrapper/gradle-wrapper.properties" }}-{{ checksum "gradle/dependencies.gradle" }}
 
       # run sanity check
-      - run: ./gradlew sanityCheck --max-workers=4 --parallel
-      - run: ./gradlew :ratpack-site:check :ratpack-core:check build jacocoReport --max-workers=4 --parallel --continue
+      - run: ./gradlew sanityCheck --max-workers=2 --parallel
+      - run: ./gradlew :ratpack-site:check :ratpack-core:check build jacocoReport --max-workers=2 --parallel --continue
 
