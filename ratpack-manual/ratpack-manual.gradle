@@ -42,7 +42,7 @@ apply plugin: "com.github.robfletcher.compass"
 apply plugin: "com.eriwen.gradle.js"
 
 jruby {
-  execVersion = '9.1.14.0'
+  execVersion = '9.2.5.0'
 }
 
 dependencies {
