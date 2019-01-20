@@ -115,7 +115,7 @@ dependencies {
     exclude group: "com.google.code.gson", module: "gson"
     exclude group: "com.google.guava", module: "guava"
   }
-  providedRuntime "org.jruby:jruby-complete:1.7.18"
+  providedRuntime "org.jruby:jruby-complete:9.2.5.0"
 
   runtime "org.apache.logging.log4j:log4j-slf4j-impl:${commonVersions.log4j}", {
     exclude group: "org.slf4j", module: "slf4j-api"
