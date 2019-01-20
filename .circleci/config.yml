@@ -19,7 +19,7 @@ jobs:
     environment:
       TERM: dumb
       JAVA_TOOL_OPTIONS: -XX:+UnlockExperimentalVMOptions -XX:+UseCGroupMemoryLimitForHeap
-      GRADLE_OPTS: -Dorg.gradle.parallel.intra=false
+      GRADLE_OPTS: -Dorg.gradle.parallel.intra=false -Dorg.gradle.jvmargs="-XX:+UnlockExperimentalVMOptions -XX:+UseCGroupMemoryLimitForHeap -Dfile.encoding=UTF-8"
 
     steps:
       - checkout
