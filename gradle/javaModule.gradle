@@ -98,6 +98,9 @@ tasks.withType(Test) {
     if (isCloudCi) {
       maxParallelForks 1
       systemProperty "cloudCi", "true"
+      testLogging {
+        events "started", "failed"
+      }
     }
   }
 
