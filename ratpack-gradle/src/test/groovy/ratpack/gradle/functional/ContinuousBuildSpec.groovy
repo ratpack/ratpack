@@ -90,7 +90,7 @@ class ContinuousBuildSpec extends FunctionalSpec {
     }
 
     where:
-    gradleVersion << ["3.5", "4.0", "4.1", "4.2", "4.3"]
+    gradleVersion << ["4.10.3", "5.1.1"]
   }
 
   void determinePort() {

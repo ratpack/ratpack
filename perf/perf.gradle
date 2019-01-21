@@ -120,17 +120,17 @@ task run(type: PerfTestRun, overwrite: true) {
 
 class PerfTestRun extends JavaExec {
 
-  @org.gradle.api.internal.tasks.options.Option(option = "filter", description = "comma separated list of benchmarks to run")
+  @org.gradle.api.tasks.options.Option(option = "filter", description = "comma separated list of benchmarks to run")
   void filter(String filter) {
     systemProperty "filter", filter
   }
 
-  @org.gradle.api.internal.tasks.options.Option(option = "quick", description = "reduce the sample size")
+  @org.gradle.api.tasks.options.Option(option = "quick", description = "reduce the sample size")
   void quick(boolean flag) {
     systemProperty "quick", flag
   }
 
-  @org.gradle.api.internal.tasks.options.Option(option = "smoke", description = "just exercise the benches to make sure they work")
+  @org.gradle.api.tasks.options.Option(option = "smoke", description = "just exercise the benches to make sure they work")
   void smoke(boolean flag) {
     systemProperty "smoke", flag
   }

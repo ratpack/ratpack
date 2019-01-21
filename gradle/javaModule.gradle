@@ -41,6 +41,9 @@ if (project.path != ":ratpack-benchmark") {
   }
   tasks.withType(GroovyCompile) {
     groovyOptions.forkOptions.memoryMaximumSize = "512m"
+    if (isCi) {
+      groovyOptions.forkOptions.memoryMaximumSize = "256m"
+    }
     options.compilerArgs = ["-proc:none"]
     allprojects { mustRunAfter tasks.withType(CodeNarc) }
   }
@@ -98,6 +101,9 @@ tasks.withType(Test) {
     if (isCloudCi) {
       maxParallelForks 1
       systemProperty "cloudCi", "true"
+      testLogging {
+        events "started", "failed"
+      }
     }
   }
 

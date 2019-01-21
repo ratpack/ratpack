@@ -591,10 +591,10 @@ repositories {
 }
 
 dependencies {
-  runtime 'org.slf4j:slf4j-simple:1.7.25'
-  compile 'io.ratpack:ratpack-session:@ratpack-version@'
+  runtime 'org.slf4j:slf4j-simple:@slf4j-version@'
+  compile group: 'io.ratpack', name: 'ratpack-session', version: '@ratpack-version@'
 
-  testCompile "org.spockframework:spock-core:1.0-groovy-2.4"
+  testCompile "org.spockframework:spock-core:@spock-version@"
 }
 ```
 

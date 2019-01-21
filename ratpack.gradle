@@ -51,7 +51,8 @@ ext {
   isAppveyor = System.getenv("APPVEYOR") != null
   isHeroku = System.getenv("HEROKU") != null
   isSemaphore = System.getenv("SEMAPHORE") != null
-  isCloudCi = isTravis || isDrone || isCodeship || isSnapCi || isAppveyor || isSemaphore
+  isCircleCI = System.getenv("CIRCLECI") != null
+  isCloudCi = isTravis || isDrone || isCodeship || isSnapCi || isAppveyor || isSemaphore || isCircleCI
   isCi = isCloudCi
 
   publishedModules = [
@@ -163,6 +164,12 @@ allprojects {
 
   configurations {
     published
+  }
+
+  if (isCi) {
+    tasks.withType(JavaExec) {
+      maxHeapSize = "1g"
+    }
   }
 }
 

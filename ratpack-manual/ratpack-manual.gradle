@@ -228,6 +228,8 @@ task tokeniseManual(type: Sync) {
     "pac4j-version"   : commonVersions.pac4j,
     "retrofit-version": commonVersions.retrofit,
     "slf4j-version"   : commonVersions.slf4j,
+    "spock-version"   : commonVersions.spock,
+    "shadow-version"  : commonVersions.shadow,
     "gradle-version"  : gradle.gradleVersion,
     head              : """
         <meta charset="utf-8">
