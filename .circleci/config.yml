@@ -36,7 +36,7 @@ jobs:
       - run: ./gradlew downloadDependencies
 
       # run sanity check
-      - run: ./gradlew sanityCheck --max-workers=4
+      - run: ./gradlew sanityCheck --max-workers=2
 
       - save_cache:
           paths:
