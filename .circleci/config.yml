@@ -20,7 +20,6 @@ jobs:
       TERM: dumb
       JAVA_TOOL_OPTIONS: -Xmx3200m
       GRADLE_OPTS: -Dorg.gradle.daemon=false -Dorg.gradle.workers.max=1 -Dorg.gradle.parallel=false
-
     steps:
       - checkout
 
@@ -32,7 +31,7 @@ jobs:
             - v1-gradle-{{ .Branch }}
             - v1-gradle-master
             - v1-gradle
-j
+
       - run: ./gradlew downloadDependencies
 
       # run sanity check
