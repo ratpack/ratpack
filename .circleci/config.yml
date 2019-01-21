@@ -19,7 +19,7 @@ jobs:
     environment:
       TERM: dumb
       JAVA_TOOL_OPTIONS: -Xmx512m
-      GRADLE_OPTS: -Dorg.gradle.daemon=false -Dorg.gradle.workers.max=2 -Dorg.gradle.parallel=true -Dorg.gradle.jvmargs="-Xmx512m -XX:MaxMetaspaceSize=128m -XX:+HeapDumpOnOutOfMemoryError -Dfile.encoding=UTF-8"
+      GRADLE_OPTS: -Dorg.gradle.daemon=false -Dorg.gradle.workers.max=2 -Dorg.gradle.parallel=true -Dorg.gradle.jvmargs="-Xmx1g -XX:MaxMetaspaceSize=512m -XX:+HeapDumpOnOutOfMemoryError -Dfile.encoding=UTF-8"
     steps:
       - checkout
 
