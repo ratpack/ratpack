@@ -20,7 +20,7 @@ jobs:
       TERM: dumb
       _JAVA_OPTIONS: -XX:+UnlockExperimentalVMOptions -XX:+UseCGroupMemoryLimitForHeap
       GRADLE_OPTS: -Dorg.gradle.parallel.intra=true -Dorg.gradle.jvmargs="-Xmx256m"
-      JRUBY_OPTS: -Xmx256m
+      JRUBY_OPTS: -Xmx512m
     steps:
       - checkout
 

@@ -168,7 +168,7 @@ allprojects {
 
   if (isCi) {
     tasks.withType(JavaExec) {
-      maxHeapSize = "256m"
+      maxHeapSize = "1g"
     }
   }
 }
