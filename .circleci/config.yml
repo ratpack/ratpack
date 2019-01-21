@@ -18,8 +18,8 @@ jobs:
 
     environment:
       TERM: dumb
-      JAVA_TOOL_OPTIONS: -XX:+UnlockExperimentalVMOptions -XX:+UseCGroupMemoryLimitForHeap
-      GRADLE_OPTS: -Dorg.gradle.parallel.intra=false -Dorg.gradle.jvmargs="-XX:+UnlockExperimentalVMOptions -XX:+UseCGroupMemoryLimitForHeap -Dfile.encoding=UTF-8"
+      JAVA_TOOL_OPTIONS: -Xmx3200m
+      GRADLE_OPTS: -Dorg.gradle.daemon=false -Dorg.gradle.workers.max=1 -Dorg.gradle.parallel=false
 
     steps:
       - checkout
@@ -32,11 +32,11 @@ jobs:
             - v1-gradle-{{ .Branch }}
             - v1-gradle-master
             - v1-gradle
-
+j
       - run: ./gradlew downloadDependencies
 
       # run sanity check
-      - run: ./gradlew sanityCheck --parallel
+      - run: ./gradlew sanityCheck
 
       - save_cache:
           paths:
@@ -44,5 +44,5 @@ jobs:
             - ~/.jruby-container
           key: v1-gradle-{{ .Branch }}-{{ checksum "gradle/wrapper/gradle-wrapper.properties" }}-{{ checksum "gradle/dependencies.gradle" }}
 
-      - run: ./gradlew :ratpack-site:check :ratpack-core:check build jacocoReport --parallel --continue
+      - run: ./gradlew :ratpack-site:check :ratpack-core:check build jacocoReport --continue
 
