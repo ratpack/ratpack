@@ -165,6 +165,12 @@ allprojects {
   configurations {
     published
   }
+
+  if (isCi) {
+    tasks.withType(JavaExec) {
+      maxHeapSize = "256m"
+    }
+  }
 }
 
 apply from: "gradle/idea/idea.gradle"
