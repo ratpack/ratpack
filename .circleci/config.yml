@@ -18,7 +18,7 @@ jobs:
 
     environment:
       TERM: dumb
-      GRADLE_OPTS: -Xmx512m -Xms512m -Dorg.gradle.parallel.intra=true -Dorg.gradle.jvmargs="-Xmx512m -Xms512m"
+      GRADLE_OPTS: -Xmx256m -Xms256m -Dorg.gradle.parallel.intra=true
     steps:
       - checkout
 
