@@ -49,7 +49,7 @@ jobs:
           key: v1-gradle-{{ .Branch }}-{{ checksum "gradle/wrapper/gradle-wrapper.properties" }}-{{ checksum "gradle/dependencies.gradle" }}
 
       - run:
-          run: Test & Build
+          name: Test & Build
           command: ./gradlew :ratpack-gradle:check :ratpack-site:check :ratpack-core:check build jacocoReport --continue --max-workers=2 -PpublishToSlack
 
       - run:
