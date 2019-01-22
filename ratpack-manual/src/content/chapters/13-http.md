@@ -571,7 +571,7 @@ You can add the session module to your project and start using ratpack managed s
 
 ### Preparation
 First off you need to add the required dependency to your project.
-Using gradle you can add the dependency by adding `compile group: 'io.ratpack', name: 'ratpack-session'` to dependencies.
+Using gradle you can add the dependency by adding `compile 'io.ratpack:ratpack-session:@ratpack-version@'` to dependencies.
 When you just started out your gradle file will look like this:
 
 ```language-groovy gradle
@@ -592,13 +592,14 @@ repositories {
 
 dependencies {
   runtime 'org.slf4j:slf4j-simple:@slf4j-version@'
-  compile group: 'io.ratpack', name: 'ratpack-session', version: '@ratpack-version@' // note: the version is subject to change
+  compile group: 'io.ratpack', name: 'ratpack-session', version: '@ratpack-version@'
 
   testCompile "org.spockframework:spock-core:@spock-version@"
 }
 ```
 
 Don't forget to load the module in ratpack. 
+
 ```language-groovy tested
 import static ratpack.groovy.Groovy.ratpack
 import ratpack.session.SessionModule
@@ -669,9 +670,10 @@ If your payload is small another option is to store some session data in the coo
 Your payload should be small because all Cookies for a website (domain) combined cannot exceed 4K.
 
 ### The `ratpack-session-redis` module
-To use the redis session module add the dependency (`compile group: 'io.ratpack', name: 'ratpack-session-redis'`) to your project.
+To use the redis session module add the dependency (`compile 'io.ratpack:ratpack-session-redis:@ratpack-version@'`) to your project.
 
 Then configure redis after loading the session module.
+
 ```language-groovy
 bindings {
   module(SessionModule)
