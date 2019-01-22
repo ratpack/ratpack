@@ -33,10 +33,14 @@ jobs:
             - v1-gradle-master
             - v1-gradle
 
-      - run: ./gradlew downloadDependencies
+      - run:
+          name: Download Gradle Dependencies
+          command: ./gradlew downloadDependencies
 
       # run sanity check
-      - run: ./gradlew sanityCheck --max-workers=2
+      - run:
+          name: Run Sanity Check
+          command: ./gradlew sanityCheck --max-workers=2
 
       - save_cache:
           paths:
@@ -44,5 +48,11 @@ jobs:
             - ~/.jruby-container
           key: v1-gradle-{{ .Branch }}-{{ checksum "gradle/wrapper/gradle-wrapper.properties" }}-{{ checksum "gradle/dependencies.gradle" }}
 
-      - run: ./gradlew :ratpack-gradle:check :ratpack-site:check :ratpack-core:check build jacocoReport --continue --max-workers=2 -PpublishToSlack
+      - run:
+          run: Test & Build
+          command: ./gradlew :ratpack-gradle:check :ratpack-site:check :ratpack-core:check build jacocoReport --continue --max-workers=2 -PpublishToSlack
+
+      - run:
+          name: Upload Coverage Results
+          command: bash <(curl -s https://codecov.io/bash)
 
