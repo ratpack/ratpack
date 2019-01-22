@@ -2,25 +2,20 @@
 #
 # Check https://circleci.com/docs/2.0/language-java/ for more details
 #
+defaults: &defaults
+  working_directory: ~/ratpack
+  docker:
+    - image: circleci/openjdk:8-jdk
+  environment:
+    TERM: dumb
+    _JAVA_OPTIONS: -XX:+UnlockExperimentalVMOptions -XX:+UseCGroupMemoryLimitForHeap
+    GRADLE_OPTS: -Dorg.gradle.parallel.intra=true -Dorg.gradle.jvmargs="-Xmx1g"
+    JRUBY_OPTS: -Xmx512m
+
 version: 2
 jobs:
   build:
-    docker:
-      # specify the version you desire here
-      - image: circleci/openjdk:8-jdk
-
-      # Specify service dependencies here if necessary
-      # CircleCI maintains a library of pre-built images
-      # documented at https://circleci.com/docs/2.0/circleci-images/
-      # - image: circleci/postgres:9.4
-
-    working_directory: ~/repo
-
-    environment:
-      TERM: dumb
-      _JAVA_OPTIONS: -XX:+UnlockExperimentalVMOptions -XX:+UseCGroupMemoryLimitForHeap
-      GRADLE_OPTS: -Dorg.gradle.parallel.intra=true -Dorg.gradle.jvmargs="-Xmx1g"
-      JRUBY_OPTS: -Xmx512m
+    <<: *defaults
     steps:
       - checkout
 
@@ -53,6 +48,69 @@ jobs:
           command: ./gradlew :ratpack-gradle:check :ratpack-site:check :ratpack-core:check build jacocoReport --continue --max-workers=2 -PpublishToSlack
 
       - run:
+          name: Save test results
+          command: |
+            mkdir -p ~/junit/
+            find . -type f -regex ".*/build/test-results/.*xml" -exec cp {} ~/junit/ \;
+          when: always
+
+      - run:
           name: Upload Coverage Results
           command: bash <(curl -s https://codecov.io/bash)
+          when: always
 
+      - store_test_results:
+          path: ~/junit
+
+      - store_artifacts:
+          path: ~/junit
+
+      - persist_to_workspace:
+          root: ~/ratpack
+          paths:
+            - build/*
+
+  uploadArtifacts:
+    <<: *defaults
+    steps:
+      - checkout
+
+      - attach_workspace:
+          at: ~/build
+
+      - run:
+          name: Upload Artifacts
+          command: ./gradlew --max-workers=1 artifactoryPublish -PbuildInfo.build.number=${CIRCLE_BUILD_NUM}
+
+  deploySite:
+    <<: *defaults
+    steps:
+      - checkout
+      -
+      - attach_workspace:
+          at: ~/build
+
+      - run:
+          name: Deploy Site
+          command: ./gradlew --max-workers=1 :ratpack-site:deployToHeroku
+
+workflows:
+  version: 2
+  build_and_publish:
+    jobs:
+      - build:
+          filters:
+            branches:
+              ignore: gh-pages
+      - uploadArtifacts:
+          requires:
+            - build
+          filters:
+            branches:
+              only: master
+      - deploySite:
+          requires:
+            - build
+          filters:
+            branches:
+              only: master
