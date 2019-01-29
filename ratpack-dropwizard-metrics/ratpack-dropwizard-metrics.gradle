@@ -41,6 +41,11 @@ dependencies {
   compile("io.dropwizard.metrics:metrics-graphite:${commonVersions.dropwizardMetrics}") {
     exclude group: "org.slf4j", module: "slf4j-api"
   }
+  compile("io.dropwizard.metrics:metrics-jmx:${commonVersions.dropwizardMetrics}") {
+    exclude group: "org.slf4j", module: "slf4j-api"
+  }
+
+
 
   compile "io.prometheus:simpleclient:${commonVersions.prometheusClient}"
   compile "io.prometheus:simpleclient_common:${commonVersions.prometheusClient}"
