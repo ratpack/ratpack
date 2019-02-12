@@ -53,6 +53,73 @@ class HttpClientRedirectionSpec extends BaseHttpClientSpec {
     pooled << [true, false]
   }
 
+  def "can follow redirect get request with query parameters"() {
+    given:
+    bindings {
+      bindInstance(HttpClient, HttpClient.of { it.poolSize(pooled ? 8 : 0) })
+    }
+    otherApp {
+      get("foo2") {
+        redirect(301, otherAppUrl("foo?key1=value1&key2=value2").toString())
+      }
+
+      get("foo") {
+        render context.request.queryParams["key1"] + context.request.queryParams["key2"]
+      }
+    }
+
+    when:
+    handlers {
+      get { HttpClient httpClient ->
+        httpClient.get(otherAppUrl("foo2")) {
+        } then {
+          render it.body.text
+        }
+      }
+    }
+
+    then:
+    text == "value1value2"
+
+    where:
+    pooled << [true, false]
+  }
+
+  def "can follow a relative redirect get request with query parameters"() {
+    given:
+    bindings {
+      bindInstance(HttpClient, HttpClient.of { it.poolSize(pooled ? 8 : 0) })
+    }
+    otherApp {
+      get("foo") {
+        response.with {
+          status(301)
+          headers.set(HttpHeaderConstants.LOCATION, "/tar?key1=value1&key2=value2")
+          send()
+        }
+      }
+      get("tar") {
+        render context.request.queryParams["key1"] + context.request.queryParams["key2"]
+      }
+    }
+
+    when:
+    handlers {
+      get { HttpClient httpClient ->
+        httpClient.get(otherAppUrl("foo")) {
+        } then { ReceivedResponse response ->
+          render response.body.text
+        }
+      }
+    }
+
+    then:
+    text == "value1value2"
+
+    where:
+    pooled << [true, false]
+  }
+
   def "can follow a relative redirect get request"() {
     given:
     bindings {
