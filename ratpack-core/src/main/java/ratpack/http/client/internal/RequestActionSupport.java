@@ -46,6 +46,7 @@ import javax.net.ssl.SSLEngine;
 import javax.net.ssl.SSLException;
 import javax.net.ssl.SSLParameters;
 import java.net.URI;
+import java.net.URL;
 import java.security.NoSuchAlgorithmException;
 import java.util.concurrent.TimeUnit;
 import java.util.regex.Pattern;
@@ -230,7 +231,6 @@ abstract class RequestActionSupport<T> implements Upstream<T> {
           int maxRedirects = requestConfig.maxRedirects;
           int status = response.status().code();
           String locationValue = response.headers().getAsString(HttpHeaderConstants.LOCATION);
-
           Action<? super RequestSpec> redirectConfigurer = RequestActionSupport.this.requestConfigurer;
           if (isRedirect(status) && redirectCount < maxRedirects && locationValue != null) {
             final Function<? super ReceivedResponse, Action<? super RequestSpec>> onRedirect = requestConfig.onRedirect;
@@ -250,15 +250,16 @@ abstract class RequestActionSupport<T> implements Upstream<T> {
                 }
               };
               redirectRequestConfig = redirectConfigurer.append(redirectRequestConfig);
-
-              URI locationUrl;
+              URI locationUri;
               if (ABSOLUTE_PATTERN.matcher(locationValue).matches()) {
-                locationUrl = new URI(locationValue);
+                URL redirectUrl = new URL(locationValue);
+                locationUri = new URI(redirectUrl.getProtocol(), redirectUrl.getUserInfo(), redirectUrl.getHost(), redirectUrl.getPort(), redirectUrl.getPath(), redirectUrl.getQuery(), redirectUrl.getRef());
               } else {
-                locationUrl = new URI(channelKey.ssl ? "https" : "http", null, channelKey.host, channelKey.port, locationValue, null, null);
+                QueryStringDecoder decoder = new QueryStringDecoder(locationValue);
+                locationUri = new URI(channelKey.ssl ? "https" : "http", null, channelKey.host, channelKey.port, decoder.rawPath(), decoder.rawQuery(), null);
               }
 
-              onRedirect(locationUrl, redirectCount + 1, redirectRequestConfig).connect(downstream);
+              onRedirect(locationUri, redirectCount + 1, redirectRequestConfig).connect(downstream);
 
               redirected = true;
               dispose(ctx.pipeline(), response);
