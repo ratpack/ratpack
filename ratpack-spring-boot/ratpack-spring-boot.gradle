@@ -27,7 +27,8 @@ dependencies {
   compile project(":ratpack-core")
   compile project(":ratpack-guice")
   compile "org.springframework.boot:spring-boot-autoconfigure:$commonVersions.springBoot"
-  testCompile "org.springframework:spring-web:4.2.3.RELEASE"
-  testCompile "org.springframework:spring-test:4.2.3.RELEASE"
+  testCompile "org.springframework:spring-web:5.1.5.RELEASE"
+  testCompile "org.springframework:spring-test:5.1.5.RELEASE"
+  testCompile "org.springframework.boot:spring-boot-test:$commonVersions.springBoot"
   testCompile project(":ratpack-groovy")
 }
