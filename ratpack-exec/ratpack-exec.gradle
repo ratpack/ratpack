@@ -25,7 +25,8 @@ dependencies {
   compile commonDependencies.slf4j
 
   compile "io.netty:netty-buffer:$commonVersions.netty"
-  compile "io.netty:netty-transport-native-epoll:$commonVersions.netty:linux-x86_64"
+  compile "io.netty:netty-transport-native-epoll:${commonVersions.netty}:linux-x86_64"
+  compile "io.netty:netty-tcnative:${commonVersions.nettyTCNative}:linux-x86_64"
   compile "org.reactivestreams:reactive-streams:${commonVersions.reactiveStreams}"
 
   testCompile("org.reactivestreams:reactive-streams-tck:${commonVersions.reactiveStreams}") {
