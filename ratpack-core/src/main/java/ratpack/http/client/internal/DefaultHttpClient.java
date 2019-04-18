@@ -29,7 +29,12 @@ import ratpack.exec.Operation;
 import ratpack.exec.Promise;
 import ratpack.exec.internal.ExecControllerInternal;
 import ratpack.func.Action;
-import ratpack.http.client.*;
+import ratpack.http.client.HttpClient;
+import ratpack.http.client.HttpClientSpec;
+import ratpack.http.client.HttpResponse;
+import ratpack.http.client.ReceivedResponse;
+import ratpack.http.client.RequestSpec;
+import ratpack.http.client.StreamedResponse;
 import ratpack.server.ServerConfig;
 import ratpack.util.internal.TransportDetector;
 
@@ -83,9 +88,9 @@ public class DefaultHttpClient implements HttpClientInternal {
 
   private InstrumentedChannelPoolHandler getPoolingHandler(HttpChannelKey key) {
     if (spec.enableMetricsCollection) {
-      return new InstrumentedFixedChannelPoolHandler(key, getPoolSize());
+      return new InstrumentedFixedChannelPoolHandler(key, getPoolSize(), getIdleTimeout());
     }
-    return new NoopFixedChannelPoolHandler(key);
+    return new NoopFixedChannelPoolHandler(key, getIdleTimeout());
   }
 
   private InstrumentedChannelPoolHandler getSimpleHandler(HttpChannelKey key) {
@@ -103,6 +108,11 @@ public class DefaultHttpClient implements HttpClientInternal {
   @Override
   public int getPoolQueueSize() {
     return spec.poolQueueSize;
+  }
+
+  @Override
+  public Duration getIdleTimeout() {
+    return spec.idleTimeout;
   }
 
   private boolean isPooling() {
@@ -173,6 +183,7 @@ public class DefaultHttpClient implements HttpClientInternal {
     private ByteBufAllocator byteBufAllocator = PooledByteBufAllocator.DEFAULT;
     private int poolSize;
     private int poolQueueSize = Integer.MAX_VALUE;
+    private Duration idleTimeout = Duration.ofSeconds(0);
     private int maxContentLength = ServerConfig.DEFAULT_MAX_CONTENT_LENGTH;
     private int responseMaxChunkSize = 8192;
     private Duration readTimeout = Duration.ofSeconds(30);
@@ -189,6 +200,7 @@ public class DefaultHttpClient implements HttpClientInternal {
       this.byteBufAllocator = spec.byteBufAllocator;
       this.poolSize = spec.poolSize;
       this.poolQueueSize = spec.poolQueueSize;
+      this.idleTimeout = spec.idleTimeout;
       this.maxContentLength = spec.maxContentLength;
       this.responseMaxChunkSize = spec.responseMaxChunkSize;
       this.readTimeout = spec.readTimeout;
@@ -207,6 +219,12 @@ public class DefaultHttpClient implements HttpClientInternal {
     @Override
     public HttpClientSpec poolQueueSize(int poolQueueSize) {
       this.poolQueueSize = poolQueueSize;
+      return this;
+    }
+
+    @Override
+    public HttpClientSpec idleTimeout(Duration idleTimeout) {
+      this.idleTimeout = idleTimeout;
       return this;
     }
 

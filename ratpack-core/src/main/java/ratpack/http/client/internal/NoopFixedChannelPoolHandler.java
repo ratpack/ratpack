@@ -18,18 +18,27 @@ package ratpack.http.client.internal;
 
 import io.netty.channel.Channel;
 import io.netty.channel.pool.AbstractChannelPoolHandler;
+import io.netty.handler.timeout.IdleStateHandler;
+
+import java.time.Duration;
+import java.util.concurrent.TimeUnit;
 
 public class NoopFixedChannelPoolHandler extends AbstractChannelPoolHandler implements InstrumentedChannelPoolHandler {
 
   private final String host;
+  private final Duration idleTimeout;
 
-  public NoopFixedChannelPoolHandler(HttpChannelKey channelKey) {
+  public NoopFixedChannelPoolHandler(HttpChannelKey channelKey, Duration idleTimeout) {
     this.host = channelKey.host;
+    this.idleTimeout = idleTimeout;
   }
 
   @Override
   public void channelCreated(Channel ch) throws Exception {
-
+    if (idleTimeout.getNano() > 0) {
+      ch.pipeline().addLast(new IdleStateHandler(idleTimeout.getNano(), idleTimeout.getNano(), 0, TimeUnit.NANOSECONDS));
+      ch.pipeline().addLast(IdleTimeoutHandler.INSTANCE);
+    }
   }
 
   @Override
@@ -59,4 +68,5 @@ public class NoopFixedChannelPoolHandler extends AbstractChannelPoolHandler impl
   public int getIdleConnectionCount() {
     return 0;
   }
+
 }

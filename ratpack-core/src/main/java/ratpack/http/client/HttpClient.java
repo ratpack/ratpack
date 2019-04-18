@@ -128,10 +128,19 @@ public interface HttpClient extends AutoCloseable {
   int getPoolQueueSize();
 
   /**
-   * The default read timeout value.
+   * The idle connect timeout for connections in the connection pool, after which the the offending channel will be closed.
+   * <p>
+   * If not set, the default is 0, indicating no timeout.
    *
-   * @since 1.4
+   * @since 1.6
    */
+  Duration getIdleTimeout();
+
+    /**
+     * The default read timeout value.
+     *
+     * @since 1.4
+     */
   Duration getReadTimeout();
 
   /**
