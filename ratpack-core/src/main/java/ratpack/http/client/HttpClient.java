@@ -132,7 +132,7 @@ public interface HttpClient extends AutoCloseable {
    * <p>
    * If not set, the default is 0, indicating no timeout.
    *
-   * @since 1.6
+   * @since 1.7
    */
   Duration getIdleTimeout();
 

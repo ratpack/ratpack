@@ -95,7 +95,7 @@ public interface HttpClientSpec {
    * <p>
    *
    * @return the idle timeout for client connections
-   * @since 1.6
+   * @since 1.7
    */
   HttpClientSpec idleTimeout(Duration idleTimeout);
 
