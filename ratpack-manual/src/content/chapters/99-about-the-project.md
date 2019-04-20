@@ -94,6 +94,7 @@ The following people have provided significant contributions.
 * [James Westover](https://github.com/jameswestover)
 * [Javier Salinas](https://github.com/mustaine)
 * [Jordi Gerona](https://github.com/jordi9)
+* [Kristin Clemens](https://github.com/kristinclemens)
 
 ### Past project members
 
