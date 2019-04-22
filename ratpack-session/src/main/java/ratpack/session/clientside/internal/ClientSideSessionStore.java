@@ -324,7 +324,10 @@ public class ClientSideSessionStore implements SessionStore {
   }
 
   private void addCookie(String name, String value) {
-    Cookie cookie = response.get().cookie(name, value);
+    Response r = response.get();
+    Cookie cookie = r.getCookies().stream().filter(c -> c.name().equals(name)).findFirst().orElseGet(() -> r.cookie(name, value));
+    cookie.setValue(value);
+
     if (cookieConfig.getPath() != null) {
       cookie.setPath(cookieConfig.getPath());
     }

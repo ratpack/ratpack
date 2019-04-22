@@ -449,4 +449,22 @@ class ClientSideSessionSpec extends SessionSpec {
     then:
     text == "null"
   }
+
+  def "only send 1 last access time cookie"() {
+    when:
+    handlers {
+      get { Session session ->
+        session.get("test").nextOp {
+          session.set("test", System.currentTimeMillis())
+        }.then {
+          render "ok"
+        }
+      }
+    }
+
+    then:
+    getText() == "ok"
+    def values = get().headers.getAll("Set-Cookie")
+    values.findAll { it.contains("ratpack_lat") }.size() == 1
+  }
 }
