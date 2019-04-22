@@ -36,10 +36,6 @@ class ClientSideSessionSpec extends SessionSpec {
     getCookies(path).findAll { it.name().startsWith(startsWith)?.value }.toArray()
   }
 
-  final static EXTRA_TESTING_ALGORITHMS = [
-    "AES/ECB/NoPadding",
-  ]
-
   final static SUPPORTED_ALGORITHMS = [
     "Blowfish",
     "AES/CBC/NoPadding",
@@ -349,46 +345,6 @@ class ClientSideSessionSpec extends SessionSpec {
     text == "null"
     result.set(postText("set/foo"))
     result.get() == "ok"
-    text == "foo"
-
-    where:
-    algorithm << SUPPORTED_ALGORITHMS
-  }
-
-  def "can use algorithm #algorithm (extra testing)"() {
-    def result = new BlockingVariable<String>()
-
-    given:
-    modules.clear()
-    bindings {
-      module SessionModule
-      module ClientSideSessionModule, {
-        it.with {
-          secretKey = "a" * keyLength(algorithm)
-          cipherAlgorithm = algorithm
-        }
-      }
-    }
-    handlers {
-      get { Session session ->
-        render session.get("value").map { it.orElse("null") }
-      }
-      post("set/:value") { Session session ->
-        def interim = session.set("value", pathTokens.value)
-
-        render interim.map { "ok" }
-      }
-    }
-
-    expect:
-    text == "null"
-    result.set(postText("set/foo"))
-    result.get() == "ok"
-
-    while (text == "foo") {
-      result.set(postText("set/foo"))
-      result.get() == "ok"
-    }
     text == "foo"
 
     where:
