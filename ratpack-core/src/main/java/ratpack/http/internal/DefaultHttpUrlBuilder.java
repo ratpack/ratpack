@@ -121,14 +121,16 @@ public class DefaultHttpUrlBuilder implements HttpUrlBuilder {
   @Override
   public HttpUrlBuilder encodedPath(String path) {
     Objects.requireNonNull(path, "path must not be null");
-    Arrays.asList(path.split("/")).forEach(pathSegments::add);
+    hasTrailingSlash = path.endsWith("/");
+    Arrays.stream(path.split("/")).filter(s -> !s.isEmpty()).forEach(pathSegments::add);
     return this;
   }
 
   @Override
   public HttpUrlBuilder path(String path) {
     Objects.requireNonNull(path, "path must not be null");
-    Arrays.asList(path.split("/")).forEach(this::segment);
+    hasTrailingSlash = path.endsWith("/");
+    Arrays.stream(path.split("/")).filter(s -> !s.isEmpty()).forEach(this::segment);
     return this;
   }
 

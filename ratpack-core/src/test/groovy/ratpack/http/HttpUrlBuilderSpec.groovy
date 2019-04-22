@@ -154,4 +154,15 @@ class HttpUrlBuilderSpec extends Specification {
     ]
   }
 
+  def "can append trailing slash"() {
+    expect:
+    build { path("foo/") } == "http://localhost/foo/"
+    build { path("foo/").path("/foo/") } == "http://localhost/foo/foo/"
+    build { path("foo/").params("bar") } == "http://localhost/foo/?bar"
+    build { path("foo/").path("bar")} == "http://localhost/foo/bar"
+    HttpUrlBuilder.base("http://localhost/foo/".toURI()).build().toString() == "http://localhost/foo/"
+    HttpUrlBuilder.base("http://localhost".toURI()).path("foo/").build().toString() == "http://localhost/foo/"
+    HttpUrlBuilder.base("http://localhost/foo/".toURI()).path("bar").build().toString() == "http://localhost/foo/bar"
+  }
+
 }
