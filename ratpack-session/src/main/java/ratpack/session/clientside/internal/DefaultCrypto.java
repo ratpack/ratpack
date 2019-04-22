@@ -102,9 +102,9 @@ public class DefaultCrypto implements Crypto {
     try {
       int count = cipher.doFinal(byteBuf.nioBuffer(), decMessage.nioBuffer(0, messageLength));
       if (!hasPadding) {
-        for (int i = count - 1; i >= 0; i--) {
-          if (decMessage.getByte(i) == 0x00) {
-            count--;
+        for (int i = count - 1; i >= 0; i -= 2) {
+          if (decMessage.getByte(i) == 0x00 && decMessage.getByte(i-1) == 0x00) {
+            count -= 2;
           } else {
             break;
           }

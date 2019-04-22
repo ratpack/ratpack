@@ -16,6 +16,7 @@
 
 package ratpack.session.clientside
 
+import org.spockframework.util.NotThreadSafe
 import ratpack.http.MutableHeaders
 import ratpack.http.client.RequestSpec
 import ratpack.http.internal.HttpHeaderConstants
@@ -24,14 +25,20 @@ import ratpack.session.Session
 import ratpack.session.SessionModule
 import ratpack.session.SessionSpec
 import spock.lang.Issue
+import spock.util.concurrent.BlockingVariable
 
 import java.time.Duration
 
+@NotThreadSafe
 class ClientSideSessionSpec extends SessionSpec {
 
   private String[] getCookies(String startsWith, String path) {
     getCookies(path).findAll { it.name().startsWith(startsWith)?.value }.toArray()
   }
+
+  final static EXTRA_TESTING_ALGORITHMS = [
+    "AES/ECB/NoPadding",
+  ]
 
   final static SUPPORTED_ALGORITHMS = [
     "Blowfish",
@@ -46,7 +53,8 @@ class ClientSideSessionSpec extends SessionSpec {
     "DESede/CBC/NoPadding",
     "DESede/CBC/PKCS5Padding",
     "DESede/ECB/NoPadding",
-    "DESede/ECB/PKCS5Padding"
+    "DESede/ECB/PKCS5Padding",
+    "DESede/CBC/NoPadding"
   ]
 
   static int keyLength(String algorithm) {
@@ -55,7 +63,7 @@ class ClientSideSessionSpec extends SessionSpec {
         return 24
       case ~/^DES.*/:
         return 8
-      default:
+      default: // also matches ~/^AES.*/
         return 16
     }
   }
@@ -316,6 +324,8 @@ class ClientSideSessionSpec extends SessionSpec {
 
   def "can use algorithm #algorithm"() {
     given:
+    def result = new BlockingVariable<String>()
+
     modules.clear()
     bindings {
       module SessionModule
@@ -337,34 +347,24 @@ class ClientSideSessionSpec extends SessionSpec {
 
     expect:
     text == "null"
-    postText("set/foo") == "ok"
+    result.set(postText("set/foo"))
+    result.get() == "ok"
     text == "foo"
 
     where:
     algorithm << SUPPORTED_ALGORITHMS
   }
 
-  @Issue("This alogrithms seem to intermittently fail, so we'll be ok if they break")
-  def "can use algorithm #algorithm - ok if fails"() {
+  def "can use algorithm #algorithm (extra testing)"() {
+    def result = new BlockingVariable<String>()
+
     given:
     modules.clear()
     bindings {
       module SessionModule
       module ClientSideSessionModule, {
         it.with {
-          int length = 16
-          switch (algorithm) {
-            case ~/^AES.*/:
-              length = 16
-              break
-            case ~/^DESede.*/:
-              length = 24
-              break
-            case ~/^DES.*/:
-              length = 8
-              break
-          }
-          secretKey = "a" * length
+          secretKey = "a" * keyLength(algorithm)
           cipherAlgorithm = algorithm
         }
       }
@@ -374,23 +374,25 @@ class ClientSideSessionSpec extends SessionSpec {
         render session.get("value").map { it.orElse("null") }
       }
       post("set/:value") { Session session ->
-        render session.set("value", pathTokens.value).map { "ok" }
+        def interim = session.set("value", pathTokens.value)
+
+        render interim.map { "ok" }
       }
     }
 
     expect:
-    try {
-      text == "null"
-      postText("set/foo") == "ok"
-      text == "foo"
-    } catch (Exception e) {
-      e.printStackTrace()
+    text == "null"
+    result.set(postText("set/foo"))
+    result.get() == "ok"
+
+    while (text == "foo") {
+      result.set(postText("set/foo"))
+      result.get() == "ok"
     }
+    text == "foo"
 
     where:
-    algorithm << [
-      "DESede/CBC/NoPadding",
-    ]
+    algorithm << SUPPORTED_ALGORITHMS
   }
 
   def "changing the signing token invalidates the session"() {
