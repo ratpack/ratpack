@@ -142,7 +142,15 @@ public class ClientSideSessionStore implements SessionStore {
         reset(cookieStorage);
         return false;
       }
-      long lastAccessTime = payload.readLong();
+      long lastAccessTime;
+      try {
+        lastAccessTime = payload.readLong();
+      } catch (IndexOutOfBoundsException e) {
+        // When using a NoPadding algorithm, decrypting the payload may trim one or more 0-bytes that are required in
+        // order for us to read epoch timestamps ending in one or more 0-bytes, so get the long directly instead
+        lastAccessTime = payload.getLong(payload.readerIndex());
+      }
+
       long currentTime = System.currentTimeMillis();
       long maxInactivityIntervalMillis = config.getMaxInactivityInterval().toMillis();
       if (currentTime - lastAccessTime > maxInactivityIntervalMillis) {
@@ -255,14 +263,14 @@ public class ClientSideSessionStore implements SessionStore {
   private String toBase64(ByteBuf byteBuf) {
     ByteBuf encoded = Base64.encode(byteBuf, false, Base64Dialect.STANDARD);
     try {
-      return encoded.toString(CharsetUtil.ISO_8859_1);
+      return encoded.toString(CharsetUtil.UTF_8);
     } finally {
       encoded.release();
     }
   }
 
   private ByteBuf fromBase64(ByteBufAllocator bufferAllocator, String string) {
-    ByteBuf byteBuf = ByteBufUtil.encodeString(bufferAllocator, CharBuffer.wrap(string), CharsetUtil.ISO_8859_1);
+    ByteBuf byteBuf = ByteBufUtil.encodeString(bufferAllocator, CharBuffer.wrap(string), CharsetUtil.UTF_8);
     try {
       return Base64.decode(byteBuf, Base64Dialect.STANDARD);
     } finally {
