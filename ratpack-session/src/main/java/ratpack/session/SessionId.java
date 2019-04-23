@@ -17,6 +17,7 @@
 package ratpack.session;
 
 import io.netty.util.AsciiString;
+import ratpack.session.internal.ConstantSessionId;
 
 /**
  * A handle to the session ID.
@@ -41,4 +42,28 @@ public interface SessionId {
    */
   void terminate();
 
+  /**
+   * A session ID that always returns the same value.
+   *
+   * Suitable to use if no session ID is required, and if using client side sessions.
+   *
+   * @param value the session ID value
+   * @return the session ID
+   * @since 1.7
+   */
+  static SessionId constant(AsciiString value) {
+    return new ConstantSessionId(value);
+  }
+
+  /**
+   * A session ID that is always empty.
+   *
+   * Suitable to use if no session ID is required, and if using client side sessions.
+   *
+   * @return the session ID
+   * @since 1.7
+   */
+  static SessionId empty() {
+    return ConstantSessionId.EMPTY;
+  }
 }
