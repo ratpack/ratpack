@@ -203,29 +203,6 @@ task jacocoReport(type: org.gradle.testing.jacoco.tasks.JacocoReport) {
   }
 }
 
-// Maven POM generation is not thread safe, so serialize all the Upload tasks we can use `--parallel`.
-def lock = new ReentrantLock()
-def available = lock.newCondition()
-def busy = new AtomicBoolean()
-allprojects {
-  tasks.withType(Upload) { uploadTask ->
-    doFirst {
-      lock.lock()
-      while (busy.get()) {
-        available.await()
-      }
-      busy.set(true)
-    }
-  }
-}
-gradle.taskGraph.afterTask {
-  if (it instanceof Upload && lock.heldByCurrentThread) {
-    busy.set(false)
-    available.signal()
-    lock.unlock()
-  }
-}
-
 task downloadDependencies() {
   doLast {
     allprojects { p ->
