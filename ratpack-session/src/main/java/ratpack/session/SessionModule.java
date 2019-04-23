@@ -194,6 +194,7 @@ public class SessionModule extends ConfigurableModule<SessionCookieConfig> {
   }
 
   @Provides
+  @Singleton
   SessionIdGenerator sessionIdGenerator() {
     return new DefaultSessionIdGenerator();
   }
