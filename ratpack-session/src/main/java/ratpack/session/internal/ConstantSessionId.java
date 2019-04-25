@@ -1,5 +1,5 @@
 /*
- * Copyright 2013 the original author or authors.
+ * Copyright 2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,17 +16,25 @@
 
 package ratpack.session.internal;
 
-import com.google.inject.Singleton;
 import io.netty.util.AsciiString;
-import ratpack.session.SessionIdGenerator;
+import ratpack.session.SessionId;
 
-import java.util.UUID;
+public class ConstantSessionId implements SessionId {
+  public static final SessionId EMPTY = SessionId.constant(AsciiString.EMPTY_STRING);
 
-@Singleton
-public class DefaultSessionIdGenerator implements SessionIdGenerator {
+  private final AsciiString value;
 
-  public AsciiString generateSessionId() {
-    return AsciiString.cached(UUID.randomUUID().toString());
+  public ConstantSessionId(AsciiString value) {
+    this.value = value;
   }
 
+  @Override
+  public AsciiString getValue() {
+    return value;
+  }
+
+  @Override
+  public void terminate() {
+
+  }
 }

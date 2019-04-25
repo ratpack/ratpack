@@ -1,5 +1,5 @@
 /*
- * Copyright 2013 the original author or authors.
+ * Copyright 2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,20 +13,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+package ratpack.micrometer;
 
-package ratpack.session.internal;
+import ratpack.handling.Handler;
 
-import com.google.inject.Singleton;
-import io.netty.util.AsciiString;
-import ratpack.session.SessionIdGenerator;
-
-import java.util.UUID;
-
-@Singleton
-public class DefaultSessionIdGenerator implements SessionIdGenerator {
-
-  public AsciiString generateSessionId() {
-    return AsciiString.cached(UUID.randomUUID().toString());
-  }
-
+@FunctionalInterface
+public interface RequestTimingHandler extends Handler {
 }

@@ -16,11 +16,13 @@
 
 package ratpack.session.clientside
 
+import com.google.inject.AbstractModule
 import ratpack.http.MutableHeaders
 import ratpack.http.client.RequestSpec
 import ratpack.http.internal.HttpHeaderConstants
 import ratpack.server.ServerConfig
 import ratpack.session.Session
+import ratpack.session.SessionId
 import ratpack.session.SessionModule
 import ratpack.session.SessionSpec
 import spock.lang.Issue
@@ -403,8 +405,8 @@ class ClientSideSessionSpec extends SessionSpec {
         session
           .set("value", pathTokens.value)
           .then {
-          render pathTokens.value
-        }
+            render pathTokens.value
+          }
       }
     }
 
@@ -433,8 +435,8 @@ class ClientSideSessionSpec extends SessionSpec {
         session
           .set("value", pathTokens.value)
           .then {
-          render pathTokens.value
-        }
+            render pathTokens.value
+          }
       }
     }
 
@@ -461,10 +463,38 @@ class ClientSideSessionSpec extends SessionSpec {
         }
       }
     }
-
+    
     then:
     getText() == "ok"
     def values = get().headers.getAll("Set-Cookie")
     values.findAll { it.contains("ratpack_lat") }.size() == 1
+  }
+  
+  def "can disable session ID"() {
+    given:
+    modules << new AbstractModule() {
+      @Override
+      protected void configure() {
+        bind(SessionId).toInstance(SessionId.empty())
+      }
+    }
+
+    when:
+    handlers {
+      get("nosessionaccess") {
+        response.send("foo")
+      }
+      get("store") { Session session ->
+        render session.set("foo", "bar").map { "ok" }
+      }
+      get("load") { Session session ->
+        render session.get("foo").map { it.orElse "null" }
+      }
+    }
+
+    then:
+    def r = get("store")
+    r.headers.getAll("Set-Cookie").size() == 2 // last access token and session
+    getText("load") == "bar" // session still works
   }
 }
