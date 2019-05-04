@@ -95,6 +95,7 @@ The following people have provided significant contributions.
 * [Javier Salinas](https://github.com/mustaine)
 * [Jordi Gerona](https://github.com/jordi9)
 * [Kristin Clemens](https://github.com/kristinclemens)
+* [Jonathan Leitschuh](https://github.com/JLLeitschuh)
 
 ### Past project members
 
