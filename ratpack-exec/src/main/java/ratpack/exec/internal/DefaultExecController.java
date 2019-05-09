@@ -147,7 +147,7 @@ public class DefaultExecController implements ExecControllerInternal {
   @Override
   public ExecStarter fork() {
     return new ExecStarter() {
-      private List<ExecutionErrorListener> errorListeners = Lists.newArrayList();
+      ExecutionErrorListener errorListener;
       private Action<? super Execution> onComplete = noop();
       private Action<? super Execution> onStart = noop();
       private Action<? super RegistrySpec> registry = noop();
@@ -161,7 +161,7 @@ public class DefaultExecController implements ExecControllerInternal {
 
       @Override
       public ExecStarter onError(Action<? super Throwable> onError) {
-        this.errorListeners.add((e, t) -> onError.execute(t));
+        this.errorListener = (e, t) -> onError.execute(t);
         return this;
       }
 
