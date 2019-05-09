@@ -72,16 +72,20 @@ public class DefaultExecution implements Execution {
     Action<? super Execution> action,
     Action<? super Execution> onStart,
     Action<? super Execution> onComplete,
-    Iterable<ExecutionErrorListener> errorListeners
-    ) throws Exception {
-      this.ref = new Ref(this, parent);
+    ExecutionErrorListener errorListener
+  ) throws Exception {
+    this.ref = new Ref(this, parent);
 
-      this.controller = controller;
+    this.controller = controller;
     this.eventLoop = eventLoop;
     this.onComplete = onComplete;
 
     registryInit.execute(registry);
-    errorListeners.forEach(el -> registry.add(ExecutionErrorListener.class, el));
+
+    if (errorListener != null) {
+      registry.add(ExecutionErrorListener.class, errorListener);
+    }
+
     onStart.execute(this);
 
     this.execStream = new InitialExecStream(() -> action.execute(this));
@@ -349,12 +353,27 @@ public class DefaultExecution implements Execution {
     }
 
     @Override
+    void delimit(Action<? super Throwable> onError, Action<? super Continuation> segment) {
+      throw new ExecutionException("this execution has completed (you may be trying to use a promise in a cleanup method)");
+    }
+
+    @Override
+    void delimitStream(Action<? super Throwable> onError, Action<? super ContinuationStream> segment) {
+      throw new ExecutionException("this execution has completed (you may be trying to use a promise in a cleanup method)");
+    }
+
+    @Override
     void enqueue(Block segment) {
       throw new ExecutionException("this execution has completed (you may be trying to use a promise in a cleanup method)");
     }
 
     @Override
     void error(Throwable throwable) {
+      throw new ExecutionException("this execution has completed (you may be trying to use a promise in a cleanup method)");
+    }
+
+    @Override
+    ExecStream asParent() {
       throw new ExecutionException("this execution has completed (you may be trying to use a promise in a cleanup method)");
     }
   }

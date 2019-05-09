@@ -17,7 +17,6 @@
 package ratpack.exec.internal;
 
 import com.google.common.collect.ImmutableList;
-import com.google.common.collect.Lists;
 import io.netty.channel.EventLoop;
 import io.netty.channel.EventLoopGroup;
 import io.netty.util.concurrent.DefaultThreadFactory;
@@ -30,7 +29,7 @@ import ratpack.registry.RegistrySpec;
 import ratpack.util.internal.InternalRatpackError;
 import ratpack.util.internal.TransportDetector;
 
-import java.util.List;
+
 import java.util.Queue;
 import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -204,7 +203,7 @@ public class DefaultExecController implements ExecControllerInternal {
             initialExecutionSegment,
             onStart,
             onComplete,
-            errorListeners
+            errorListener
           );
         } catch (Throwable e) {
           throw new InternalRatpackError("could not start execution", e);

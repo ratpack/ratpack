@@ -22,10 +22,12 @@ import com.google.common.reflect.TypeToken;
  * A handler for capturing unhandled errors in an {@link Execution}.
  *
  * <pre class="java">{@code
+ * 
  * import ratpack.exec.Execution;
  * import ratpack.exec.ExecutionErrorListener;
+ * import ratpack.test.exec.ExecHarness;
  *
- * import static org.junit.Assert.assertTrue;
+ * import static org.junit.Assert.assertSame;
  *
  * public class Example {
  *   public static class RecordingExecutionErrorListener implements ExecutionErrorListener {
@@ -41,24 +43,26 @@ import com.google.common.reflect.TypeToken;
  *   }
  *
  *   public static void main(String[] args) throws Exception {
- *     ExecutionErrorListener listener = new RecordingExecutionErrorListener();
+ *     RecordingExecutionErrorListener listener = new RecordingExecutionErrorListener();
  *     try (ExecHarness harness = ExecHarness.harness()) {
- *       harness.run(
+ *       ExecHarness.runSingle(
  *         // add our custom ExecutionErrorListener to the execution registry
- *         registrySpec ->
- *           registrySpec.add(ExecutionErrorListener.class, listener),
+ *         registrySpec -> { registrySpec.add(ExecutionErrorListener.class, listener);},
  *         // throw an unhandled exception
- *         execution ->
- *           throw new RuntimeException("!!")
+ *         execution -> {
+ *         throw new RuntimeException("!!");
+ *         }
  *       );
+ *     } catch (RuntimeException re) {
+ *         //Do nothing but don't let the Exception to kill the execution.
  *     }
- *     assertTrue(listener.getMessage(), "!!");
+ *     assertSame(listener.getMessage(), "!!");
  *   }
  * }
  *
  * }</pre>
  *
- * @since 1.5
+ * @since 1.7
  */
 @FunctionalInterface
 public interface ExecutionErrorListener {
