@@ -47,8 +47,7 @@ class ClientSideSessionSpec extends SessionSpec {
     "DESede/CBC/NoPadding",
     "DESede/CBC/PKCS5Padding",
     "DESede/ECB/NoPadding",
-    "DESede/ECB/PKCS5Padding",
-    "DESede/CBC/NoPadding"
+    "DESede/ECB/PKCS5Padding"
   ]
 
   static int keyLength(String algorithm) {
