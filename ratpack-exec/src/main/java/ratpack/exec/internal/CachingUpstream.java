@@ -136,7 +136,6 @@ public class CachingUpstream<T> implements Upstream<T> {
     Instant expiresAt;
     if (ttl.isNegative()) {
       expiresAt = null; // eternal
-      upstream = null; // release
     } else if (ttl.isZero()) {
       expiresAt = clock.instant().minus(Duration.ofSeconds(1));
     } else {
@@ -149,6 +148,10 @@ public class CachingUpstream<T> implements Upstream<T> {
     downstream.accept(result);
 
     tryDrain();
+
+    if (expiresAt == null) {
+      upstream = null; // release
+    }
   }
 
   private static class Cached<T> {

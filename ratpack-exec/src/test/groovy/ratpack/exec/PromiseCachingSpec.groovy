@@ -21,7 +21,10 @@ import ratpack.exec.util.SerialBatch
 import ratpack.func.Action
 import ratpack.test.exec.ExecHarness
 import spock.lang.AutoCleanup
+import spock.lang.Issue
 import spock.lang.Specification
+import spock.lang.Timeout
+import spock.lang.Unroll
 
 import java.time.Duration
 import java.util.concurrent.ConcurrentLinkedQueue
@@ -222,4 +225,27 @@ class PromiseCachingSpec extends Specification {
     events.poll() == 1
   }
 
+  @Issue("https://github.com/ratpack/ratpack/issues/1369")
+  @Unroll("can cache multiple subscribers (#i)")
+  @Timeout(10)
+  def "can cache multiple subscribers"() {
+    given:
+    final List<Promise<Integer>> promises = []
+
+    when:
+    (0..100).each { i ->
+      final Promise<Integer> p = Promise.value(1).cache()
+
+      promises << p.map { v -> v + 1 }
+      promises << p.map { v -> v + 2 }
+    }
+
+    then:
+    ExecHarness.yieldSingle { c ->
+      ParallelBatch.of(promises).yield()
+    }.getValueOrThrow()
+
+    where:
+    i << (0..50)
+  }
 }
