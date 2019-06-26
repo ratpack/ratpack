@@ -92,7 +92,7 @@ class RatpackRetrofitSpec extends Specification {
           render "foo"
         }
         get("error") {
-          response.status(500).send()
+          response.status(500).send("error")
         }
         post("bar") {
           response.status(200).send()
