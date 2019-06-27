@@ -31,6 +31,7 @@ import ratpack.test.exec.ExecHarness
 import retrofit2.Response
 import retrofit2.http.GET
 import retrofit2.http.POST
+import retrofit2.http.Query
 import spock.lang.AutoCleanup
 import spock.lang.Specification
 import spock.lang.Unroll
@@ -57,6 +58,9 @@ class RatpackRetrofitSpec extends Specification {
 
     @GET("/error")
     Promise<String> error()
+
+    @GET("/error/with_body")
+    Promise<String> errorWithBody()
 
     @GET("/error")
     Promise<Response<String>> errorResponse()
@@ -92,7 +96,10 @@ class RatpackRetrofitSpec extends Specification {
           render "foo"
         }
         get("error") {
-          response.status(500).send("error")
+          response.status(500).send()
+        }
+        get("error/with_body") {
+          response.status(500).send("application/json","{\"error\" : \"error body\"}")
         }
         post("bar") {
           response.status(200).send()
@@ -146,6 +153,19 @@ class RatpackRetrofitSpec extends Specification {
     then:
     def t = thrown(RatpackRetrofitCallException)
     t.response.statusCode == 500
+
+  }
+
+  def "simple type adapter throws exception on error response with response body"() {
+    when:
+    ExecHarness.yieldSingle(setup) {
+      service.errorWithBody()
+    }.valueOrThrow
+
+    then:
+    def t = thrown(RatpackRetrofitCallException)
+    t.response.statusCode == 500
+    t.response.body.text == "{\"error\" : \"error body\"}"
 
   }
 
