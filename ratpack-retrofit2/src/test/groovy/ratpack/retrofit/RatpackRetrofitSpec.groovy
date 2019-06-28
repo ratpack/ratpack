@@ -31,7 +31,6 @@ import ratpack.test.exec.ExecHarness
 import retrofit2.Response
 import retrofit2.http.GET
 import retrofit2.http.POST
-import retrofit2.http.Query
 import spock.lang.AutoCleanup
 import spock.lang.Specification
 import spock.lang.Unroll
