@@ -51,7 +51,9 @@ public class NoopFixedChannelPoolHandler extends AbstractChannelPoolHandler impl
 
   @Override
   public void channelAcquired(Channel ch) throws Exception {
-    ch.pipeline().remove(IdlingConnectionHandler.INSTANCE);
+    if (ch.pipeline().context(IdlingConnectionHandler.INSTANCE) != null) {
+      ch.pipeline().remove(IdlingConnectionHandler.INSTANCE);
+    }
   }
 
   @Override
