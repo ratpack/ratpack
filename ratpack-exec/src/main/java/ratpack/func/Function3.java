@@ -21,6 +21,10 @@ public interface Function3<I1, I2, I3, O> {
 
   O apply(I1 i1, I2 i2, I3 i3) throws Exception;
 
+  default BiFunction<I2, I3, O> curry(I1 i1) {
+    return (i2, i3) -> apply(i1, i2, i3);
+  }
+
   default <V> Function3<I1, I2, I3, V> andThen(Function<? super O, ? extends V> transform) {
     return (i1, i2, i3) -> transform.apply(apply(i1, i2, i3));
   }

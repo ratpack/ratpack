@@ -44,6 +44,16 @@ public interface Function<I, O> {
   O apply(I i) throws Exception;
 
   /**
+   * Binds a value to the input of the function.
+   *
+   * @param i the input to the function
+   * @return a factory that generates a result.
+   */
+  default Factory<O> curry(I i) {
+    return () -> apply(i);
+  }
+
+  /**
    * Joins {@code this} function with the given function.
    *
    * <pre class="java">{@code

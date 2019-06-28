@@ -21,6 +21,10 @@ public interface Function8<I1, I2, I3, I4, I5, I6, I7, I8, O> {
 
   O apply(I1 i1, I2 i2, I3 i3, I4 i4, I5 i5, I6 i6, I7 i7, I8 i8) throws Exception;
 
+  default Function7<I2, I3, I4, I5, I6, I7, I8, O> curry(I1 i1) {
+    return (i2, i3, i4, i5, i6, i7, i8) -> apply(i1, i2, i3, i4, i5, i6, i7, i8);
+  }
+
   default <V> Function8<I1, I2, I3, I4, I5, I6, I7, I8, V> andThen(Function<? super O, ? extends V> transform) {
     return (i1, i2, i3, i4, i5, i6, i7, i8) -> transform.apply(apply(i1, i2, i3, i4, i5, i6, i7, i8));
   }
