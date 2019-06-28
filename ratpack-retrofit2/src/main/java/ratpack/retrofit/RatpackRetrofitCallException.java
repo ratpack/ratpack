@@ -60,7 +60,9 @@ public class RatpackRetrofitCallException extends Exception {
   public RatpackRetrofitCallException(Request request, Response<?> response) {
     super(request.url().toString() + ": " + Exceptions.uncheck(() -> {
       Charset charset = response.errorBody().contentType() == null ? null : response.errorBody().contentType().charset();
-      if (charset == null) charset = Charset.forName("UTF-8");
+      if (charset == null) {
+        charset = Charset.forName("UTF-8");
+      }
       return response.errorBody().source().buffer().clone().readString(charset);
     }));
     this.response = response;
