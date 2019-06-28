@@ -29,6 +29,7 @@ import retrofit2.Call;
 import retrofit2.Response;
 
 import java.io.IOException;
+import java.nio.charset.Charset;
 
 /**
  * Exception throw from Retrofit clients when using simple types instead of {@link Response} and the request is not successful.
@@ -57,7 +58,13 @@ public class RatpackRetrofitCallException extends Exception {
    * @since 1.6.0
    */
   public RatpackRetrofitCallException(Request request, Response<?> response) {
-    super(request.url().toString() + ": " + Exceptions.uncheck(() -> response.errorBody().string()));
+    super(request.url().toString() + ": " + Exceptions.uncheck(() -> {
+      Charset charset = response.errorBody().contentType() == null ? null : response.errorBody().contentType().charset();
+      if (charset == null) {
+        charset = Charset.forName("UTF-8");
+      }
+      return response.errorBody().source().buffer().clone().readString(charset);
+    }));
     this.response = response;
   }
 
@@ -72,7 +79,7 @@ public class RatpackRetrofitCallException extends Exception {
       Status.of(response.code(), response.message()),
       new OkHttpHeadersBackedHeaders(response.headers()),
       new ByteBufBackedTypedData(
-        Unpooled.wrappedBuffer(Exceptions.uncheck(() -> response.errorBody().bytes())),
+        Unpooled.wrappedBuffer(Exceptions.uncheck(() -> response.errorBody().source().buffer().clone().readByteArray())),
         DefaultMediaType.get(response.errorBody().contentType() != null ? response.errorBody().contentType().toString() : null)
       )
     );
