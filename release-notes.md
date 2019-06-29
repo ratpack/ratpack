@@ -10,3 +10,4 @@ It should not be considered the final announcement for any release at any time.
 * Add Idle timeout for connections in the http connection pool 
 * Groovy 2.5.4
 * Spock 1.3
+* Add `MockApi` and `HandlerFactory` for supporting easy remote api functional testing
