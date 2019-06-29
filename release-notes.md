@@ -12,3 +12,5 @@ It should not be considered the final announcement for any release at any time.
 * Fix duplicate client side session cookies
 * Deprecate raptack-pac4j
 * Allow error bodies in ratpack-retrofit2
+* Groovy 2.5.4
+* Spock 1.3
