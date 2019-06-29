@@ -8,3 +8,5 @@ It should not be considered the final announcement for any release at any time.
 
 * Upgrade to Handlebars 4.1.2
 * Add Idle timeout for connections in the http connection pool 
+* Groovy 2.5.4
+* Spock 1.3
