@@ -56,6 +56,13 @@ class InstrumentedFixedChannelPoolHandlerSpec extends Specification {
     handler.channelCreated(channel)
 
     then:
+    assert handler.getActiveConnectionCount() == 0
+    assert handler.getIdleConnectionCount() == poolSize
+
+    when:
+    handler.channelAcquired(channel)
+
+    then:
     assert handler.getActiveConnectionCount() == 1
     assert handler.getIdleConnectionCount() == poolSize - 1
 

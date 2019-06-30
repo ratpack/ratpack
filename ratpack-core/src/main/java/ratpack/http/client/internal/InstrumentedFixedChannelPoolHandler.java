@@ -33,12 +33,6 @@ public class InstrumentedFixedChannelPoolHandler extends NoopFixedChannelPoolHan
   }
 
   @Override
-  public void channelCreated(Channel ch) throws Exception {
-    super.channelCreated(ch);
-    activeConnectionCount.increment();
-  }
-
-  @Override
   public void channelReleased(Channel ch) throws Exception {
     super.channelReleased(ch);
     activeConnectionCount.decrement();
