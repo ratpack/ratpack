@@ -42,18 +42,11 @@ class InstrumentedSimpleChannelPoolHandlerSpec extends Specification {
     handler.channelCreated(channel)
 
     then:
-    assert handler.getActiveConnectionCount() == 1
+    assert handler.getActiveConnectionCount() == 0
     assert handler.getIdleConnectionCount() == 0
 
     when:
     handler.channelAcquired(channel)
-
-    then:
-    assert handler.getActiveConnectionCount() == 2
-    assert handler.getIdleConnectionCount() == 0
-
-    when:
-    handler.channelReleased(channel)
 
     then:
     assert handler.getActiveConnectionCount() == 1

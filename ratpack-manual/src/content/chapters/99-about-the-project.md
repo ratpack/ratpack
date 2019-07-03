@@ -96,6 +96,7 @@ The following people have provided significant contributions.
 * [Jordi Gerona](https://github.com/jordi9)
 * [Kristin Clemens](https://github.com/kristinclemens)
 * [Jonathan Leitschuh](https://github.com/JLLeitschuh)
+* [Roger Pereira](https://github.com/rogerpereira123)
 
 ### Past project members
 
