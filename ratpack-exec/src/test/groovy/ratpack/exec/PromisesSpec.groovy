@@ -16,6 +16,7 @@
 
 package ratpack.exec
 
+import ratpack.exec.util.PromiseZipper
 import spock.lang.Ignore
 import spock.lang.Specification
 
@@ -26,9 +27,9 @@ class PromisesSpec extends Specification {
   def "test zipper success"() {
     when:
     def result = yieldSingle {
-      Promises.zip(Promise.value("a"), Promise.value(1), { String a, Integer b ->
+      PromiseZipper.zip(Promise.value("a"), Promise.value(1)).yield{ String a, Integer b ->
         a + b
-      })
+      }
     }
 
     then:
@@ -38,9 +39,9 @@ class PromisesSpec extends Specification {
   def "test zipper error"() {
     when:
     def result = yieldSingle {
-      Promises.zip(Promise.value("a"), Promise.error(new Exception("bah")), { String a, Integer b ->
+      PromiseZipper.zip(Promise.value("a"), Promise.error(new Exception("bah"))).yield { String a, Integer b ->
         a + b
-      })
+      }
     }
 
     then:
@@ -50,9 +51,9 @@ class PromisesSpec extends Specification {
   def "test zipper multi error"() {
     when:
     def result = yieldSingle {
-      Promises.zip(Promise.error(new Exception("bah1")), Promise.error(new Exception("bah2")), { String a, Integer b ->
+      PromiseZipper.zip(Promise.error(new Exception("bah1")), Promise.error(new Exception("bah2"))).yield { String a, Integer b ->
         a + b
-      })
+      }
     }
 
     then:
@@ -62,9 +63,9 @@ class PromisesSpec extends Specification {
   def "test zipper zip function error"() {
     when:
     def result = yieldSingle {
-      Promises.zip(Promise.value("a"), Promise.value(1), { String s, Integer b ->
+      PromiseZipper.zip(Promise.value("a"), Promise.value(1)).yield { String s, Integer b ->
         throw new Exception("oops")
-      })
+      }
     }
 
     then:
@@ -74,9 +75,9 @@ class PromisesSpec extends Specification {
   def "test zipper3 success"() {
     when:
     def result = yieldSingle {
-      Promises.zip(Promise.value("a"), Promise.value(1), Promise.value(0.0), { String a, Integer b, Double c ->
+      PromiseZipper.zip(Promise.value("a"), Promise.value(1), Promise.value(0.0)).yield { String a, Integer b, Double c ->
         a + b + c
-      })
+      }
     }
 
     then:
@@ -86,9 +87,9 @@ class PromisesSpec extends Specification {
   def "test zipper4 success"() {
     when:
     def result = yieldSingle {
-      Promises.zip(Promise.value("a"), Promise.value(1), Promise.value(0.0), Promise.value("b"), { String a, Integer b, Double c, String d ->
+      PromiseZipper.zip(Promise.value("a"), Promise.value(1), Promise.value(0.0), Promise.value("b")).yield { String a, Integer b, Double c, String d ->
         a + b + c + d
-      })
+      }
     }
 
     then:
@@ -98,9 +99,9 @@ class PromisesSpec extends Specification {
   def "test zipper5 success"() {
     when:
     def result = yieldSingle {
-      Promises.zip(Promise.value("a"), Promise.value(1), Promise.value(0.0), Promise.value("b"), Promise.value(1), { String a, Integer b, Double c, String d, Integer e ->
+      PromiseZipper.zip(Promise.value("a"), Promise.value(1), Promise.value(0.0), Promise.value("b"), Promise.value(1)).yield { String a, Integer b, Double c, String d, Integer e ->
         a + b + c + d + e
-      })
+      }
     }
 
     then:
@@ -110,9 +111,9 @@ class PromisesSpec extends Specification {
   def "test zipper6 success"() {
     when:
     def result = yieldSingle {
-      Promises.zip(Promise.value("a"), Promise.value(1), Promise.value(0.0), Promise.value("b"), Promise.value(1), Promise.value(7), { String a, Integer b, Double c, String d, Integer e, Integer f ->
+      PromiseZipper.zip(Promise.value("a"), Promise.value(1), Promise.value(0.0), Promise.value("b"), Promise.value(1), Promise.value(7)).yield { String a, Integer b, Double c, String d, Integer e, Integer f ->
         a + b + c + d + e + f
-      })
+      }
     }
 
     then:
@@ -122,9 +123,9 @@ class PromisesSpec extends Specification {
   def "test zipper7 success"() {
     when:
     def result = yieldSingle {
-      Promises.zip(Promise.value("a"), Promise.value(1), Promise.value(0.0), Promise.value("b"), Promise.value(1), Promise.value(7), Promise.value("g"), { String a, Integer b, Double c, String d, Integer e, Integer f, String g ->
+      PromiseZipper.zip(Promise.value("a"), Promise.value(1), Promise.value(0.0), Promise.value("b"), Promise.value(1), Promise.value(7), Promise.value("g")).yield { String a, Integer b, Double c, String d, Integer e, Integer f, String g ->
         a + b + c + d + e + f + g
-      })
+      }
     }
 
     then:
@@ -134,9 +135,9 @@ class PromisesSpec extends Specification {
   def "test zipper8 success"() {
     when:
     def result = yieldSingle {
-      Promises.zip(Promise.value("a"), Promise.value(1), Promise.value(0.0), Promise.value("b"), Promise.value(1), Promise.value(7), Promise.value("g"), Promise.value("0"), { String a, Integer b, Double c, String d, Integer e, Integer f, String g, String h ->
+      PromiseZipper.zip(Promise.value("a"), Promise.value(1), Promise.value(0.0), Promise.value("b"), Promise.value(1), Promise.value(7), Promise.value("g"), Promise.value("0")).yield { String a, Integer b, Double c, String d, Integer e, Integer f, String g, String h ->
         a + b + c + d + e + f + g + h
-      })
+      }
     }
 
     then:
@@ -165,9 +166,9 @@ class PromisesSpec extends Specification {
   def "test zipper all success"() {
     when:
     def result = yieldSingle {
-      Promises.zipAll(Promise.value("a"), Promise.value(1), { ExecResult<String> a, ExecResult<Integer> b ->
+      PromiseZipper.zip(Promise.value("a"), Promise.value(1)).yieldAll { ExecResult<String> a, ExecResult<Integer> b ->
         a.value + b.value
-      })
+      }
     }
 
     then:
@@ -177,9 +178,9 @@ class PromisesSpec extends Specification {
   def "test zipper all error"() {
     when:
     def result = yieldSingle {
-      Promises.zipAll(Promise.error(new Exception("bah")), Promise.error(new Exception("bah")), { ExecResult<String> a, ExecResult<Integer> b ->
+      PromiseZipper.zip(Promise.error(new Exception("bah")), Promise.error(new Exception("bah"))).yieldAll { ExecResult<String> a, ExecResult<Integer> b ->
         a.throwable.message + b.throwable.message
-      })
+      }
     }
 
     then:
