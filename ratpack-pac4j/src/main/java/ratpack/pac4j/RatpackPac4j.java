@@ -160,7 +160,7 @@ public class RatpackPac4j {
    *
    * import static org.junit.Assert.assertEquals;
    *
-   * @SuppressWarnings("deprecation")
+   * {@literal @}SuppressWarnings("deprecation")
    * public class Example {
    *   public static void main(String... args) throws Exception {
    *     EmbeddedApp.of(s -> s
@@ -240,7 +240,7 @@ public class RatpackPac4j {
    *
    * import static org.junit.Assert.assertEquals;
    *
-   * @SuppressWarnings("deprecation")
+   * {@literal @}SuppressWarnings("deprecation")
    * public class Example {
    *   public static void main(String... args) throws Exception {
    *     EmbeddedApp.of(s -> s
@@ -320,7 +320,7 @@ public class RatpackPac4j {
    * import static org.junit.Assert.assertEquals;
    * import static org.junit.Assert.assertTrue;
    *
-   * @SuppressWarnings("deprecation")
+   * {@literal @}SuppressWarnings("deprecation")
    * public class Example {
    *   public static void main(String... args) throws Exception {
    *     EmbeddedApp.of(s -> s
@@ -423,7 +423,7 @@ public class RatpackPac4j {
    * import java.util.Optional;
    *
    * import static org.junit.Assert.assertEquals;
-   * @SuppressWarnings("deprecation")
+   * {@literal @}SuppressWarnings("deprecation")
    * public class Example {
    *   public static void main(String... args) throws Exception {
    *     EmbeddedApp.of(s -> s

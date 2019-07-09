@@ -15,7 +15,7 @@
  */
 
 /**
- * Support for integrating Ratpack applications with Hashicorp's <a href=https://www.consul.io/>Consul</a> service discovery and distributed configuration engine.
+ * Support for integrating Ratpack applications with Hashicorp's <a href="https://www.consul.io/">Consul</a> service discovery and distributed configuration engine.
  * <h3>Key Features</h3>
  * <p>The Consul support provides the following key features:</p>
  * <ul>

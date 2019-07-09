@@ -19,7 +19,7 @@ ext {
     remote           : "0.7",
     slf4j            : "1.7.25",
     netty            : "4.1.37.Final",
-    nettyTCNative    : "2.0.19.Final",
+    nettyTCNative    : "2.0.25.Final",
     guava            : "21.0",
     groovy           : "2.5.2",
     pac4j            : "1.8.8",
@@ -43,7 +43,7 @@ ext {
     xmlApis          : "1.4.01",
     snakeyaml        : "1.23",
     prometheusClient : "0.2.0",
-    shadow           : "4.0.3",
+    shadow           : "5.1.0",
     commonsLang3     : "3.3.2"
   ]
 

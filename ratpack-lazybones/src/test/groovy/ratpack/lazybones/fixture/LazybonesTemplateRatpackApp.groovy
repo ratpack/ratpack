@@ -95,7 +95,7 @@ class LazybonesTemplateRatpackApp implements ApplicationUnderTest {
   private void installDist() {
     DefaultGradleConnector connector = GradleConnector.newConnector() as DefaultGradleConnector
     connector.embedded(true)
-    connector.forProjectDirectory(projectDirectory).connect().newBuild().forTasks("installDist").withArguments("-u").run()
+    connector.forProjectDirectory(projectDirectory).connect().newBuild().forTasks("installDist").run()
   }
 
   ApplicationInstance ensureLaunched() {

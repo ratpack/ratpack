@@ -24,7 +24,7 @@ buildscript {
   }
   dependencies {
     classpath 'com.bertramlabs.plugins:asset-pipeline-gradle:2.6.1'
-    classpath 'com.github.jengelman.gradle.plugins:shadow:4.0.3'
+    classpath 'com.github.jengelman.gradle.plugins:shadow:5.1.0'
     classpath 'com.bertramlabs.plugins:sass-asset-pipeline:2.6.1'
     classpath 'org.codehaus.groovy.modules.http-builder:http-builder:0.7.2'
     classpath "org.jruby:jruby-complete:9.1.17.0"
