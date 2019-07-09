@@ -2355,7 +2355,7 @@ public interface Promise<T> {
    * @return a promise with a retry error handler
    * @see #retry(int, BiFunction)
    * @since 1.5
-   * @deprecated since 1.7, use {@link #retry(RetryBuilder, BiAction)}
+   * @deprecated since 1.7, use {@link #retry(RetryPolicy, BiAction)}
    */
   @Deprecated
   default Promise<T> retry(int maxAttempts, Duration delay, @NonBlocking BiAction<? super Integer, ? super Throwable> onError) {
@@ -2376,7 +2376,7 @@ public interface Promise<T> {
    * @return a promise with a retry error handler
    * @see #retry(int, Duration, BiAction)
    * @since 1.5
-   * @deprecated since 1.7, use {@link #retry(RetryBuilder, BiAction)}
+   * @deprecated since 1.7, use {@link #retry(RetryPolicy, BiAction)}
    */
   @Deprecated
   default Promise<T> retry(int maxAttempts, BiFunction<? super Integer, ? super Throwable, Promise<Duration>> onError) {

@@ -23,7 +23,7 @@ import ratpack.exec.util.retry.DurationRetryPolicyBuilder;
 import java.time.Clock;
 import java.time.Duration;
 
-public class DefaultDurationRetryPolicyBuilder implements DurationRetryPolicyBuilder {
+public class  DefaultDurationRetryPolicyBuilder implements DurationRetryPolicyBuilder {
 
   private Delay delay = DEFAULT_DELAY;
   private Duration maxDuration = DEFAULT_MAX_DURATION;

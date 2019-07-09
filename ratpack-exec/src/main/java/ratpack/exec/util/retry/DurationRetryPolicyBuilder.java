@@ -21,7 +21,7 @@ import java.time.Duration;
 
 /**
  * Builds a {@link DurationRetryPolicy}
- * @see DurationRetryPolicy#of(Action)
+ * @see DurationRetryPolicy#of(ratpack.func.Action)
  * @since 1.7
  */
 public interface DurationRetryPolicyBuilder {

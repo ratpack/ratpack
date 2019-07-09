@@ -20,7 +20,7 @@ import java.time.Duration;
 
 /**
  * Builds an {@link AttemptRetryPolicy}
- * @see AttemptRetryPolicy#of(Action)
+ * @see AttemptRetryPolicy#of(ratpack.func.Action)
  * @since 1.7
  */
 public interface AttemptRetryPolicyBuilder {
