@@ -161,7 +161,7 @@ public class DefaultRatpackServer implements RatpackServer {
     }
   }
 
-  private static class DefinitionBuild {
+  protected static class DefinitionBuild {
     private final Impositions impositions;
     private final RatpackServerDefinition definition;
     private final Throwable error;
@@ -211,7 +211,7 @@ public class DefaultRatpackServer implements RatpackServer {
     });
   }
 
-  private ChannelHandler buildHandler(DefinitionBuild definitionBuild) throws Exception {
+  protected ChannelHandler buildHandler(DefinitionBuild definitionBuild) throws Exception {
     if (definitionBuild.getServerConfig().isDevelopment()) {
       return new ReloadHandler(definitionBuild);
     } else {
@@ -295,11 +295,11 @@ public class DefaultRatpackServer implements RatpackServer {
     return new NettyHandlerAdapter(serverRegistry, ratpackHandler);
   }
 
-  private Registry buildServerRegistry(ServerConfig serverConfig, Function<? super Registry, ? extends Registry> userRegistryFactory) {
+  protected Registry buildServerRegistry(ServerConfig serverConfig, Function<? super Registry, ? extends Registry> userRegistryFactory) {
     return ServerRegistry.serverRegistry(this, impositions, execController, serverConfig, userRegistryFactory);
   }
 
-  private Handler decorateHandler(Handler rootHandler, Registry serverRegistry) throws Exception {
+  protected Handler decorateHandler(Handler rootHandler, Registry serverRegistry) throws Exception {
     final Iterable<? extends HandlerDecorator> all = serverRegistry.getAll(HANDLER_DECORATOR_TYPE_TOKEN);
     for (HandlerDecorator handlerDecorator : all) {
       rootHandler = handlerDecorator.decorate(serverRegistry, rootHandler);
@@ -307,7 +307,7 @@ public class DefaultRatpackServer implements RatpackServer {
     return rootHandler;
   }
 
-  private Handler buildRatpackHandler(Registry serverRegistry, Function<? super Registry, ? extends Handler> handlerFactory) throws Exception {
+  protected Handler buildRatpackHandler(Registry serverRegistry, Function<? super Registry, ? extends Handler> handlerFactory) throws Exception {
     return handlerFactory.apply(serverRegistry);
   }
 
