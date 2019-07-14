@@ -121,7 +121,7 @@ import ratpack.handling.Chain;
 import ratpack.thymeleaf.ThymeleafModule;
 import ratpack.spring.config.EnableRatpack;
 
-import static ratpack.thymeleaf.Template.thymeleafTemplate;
+import static ratpack.thymeleaf3.Template.thymeleafTemplate;
 
 @SpringBootApplication
 @EnableRatpack

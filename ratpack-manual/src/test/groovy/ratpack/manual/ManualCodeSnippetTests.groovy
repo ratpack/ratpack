@@ -17,7 +17,7 @@
 package ratpack.manual
 
 import com.google.common.base.StandardSystemProperty
-import ratpack.rx.RxRatpack
+import ratpack.rx2.RxRatpack
 import ratpack.test.internal.snippets.CodeSnippetTestCase
 import ratpack.test.internal.snippets.CodeSnippetTests
 import ratpack.test.internal.snippets.executer.GradleSnippetExecuter

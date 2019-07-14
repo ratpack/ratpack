@@ -122,7 +122,7 @@ To limit the reshuffling needed when introducing or reordering chapters, there a
 
 * `01..09` - introductory
 * `10..29` - core in depth (incl. testing)
-* `30..59` - integrations & modules (e.g. jackson, metrics, thymeleaf)
+* `30..59` - integrations & modules (e.g. jackson, metrics)
 * `60..69` - build time
 * `70..89` - deployment (e.g. heroku)
 * `90..99` - meta (about the project or manual)

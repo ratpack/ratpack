@@ -70,7 +70,7 @@ public abstract class RxRatpack {
   }
 
   /**
-   * Registers an {@link RxJavaPlugins#errorHandler} with RxJava that provides a default error handling strategy of forwarding exceptions to the execution error handler.
+   * Registers an {@link RxJavaPlugins#getErrorHandler} with RxJava that provides a default error handling strategy of forwarding exceptions to the execution error handler.
    * <p>
    * This method is idempotent.
    * It only needs to be called once per JVM, regardless of how many Ratpack applications are running within the JVM.

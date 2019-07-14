@@ -53,7 +53,10 @@ import java.util.concurrent.atomic.AtomicInteger;
  * <p>
  * The methods in this class are also provided as <a href="http://docs.groovy-lang.org/latest/html/documentation/#_extension_modules">Groovy Extensions</a>.
  * When using Groovy, each static method in this class is able to act as an instance-level method against the {@link Observable} type.
+ *
+ * @deprecated since 1.7.0. Use {@code ratpack-rx2} instead.
  */
+@Deprecated
 public abstract class RxRatpack {
 
   private RxRatpack() {
@@ -68,14 +71,14 @@ public abstract class RxRatpack {
    * For a Java application, a convenient place to call this is in the handler factory implementation.
    * <pre class="java">{@code
    * import ratpack.error.ServerErrorHandler;
-   * import ratpack.rx.RxRatpack;
    * import ratpack.test.embed.EmbeddedApp;
    * import rx.Observable;
    * import static org.junit.Assert.assertEquals;
    *
+   * {@literal @}SuppressWarnings("deprecation")
    * public class Example {
    *   public static void main(String... args) throws Exception {
-   *     RxRatpack.initialize(); // must be called once for the life of the JVM
+   *     ratpack.rx.RxRatpack.initialize(); // must be called once for the life of the JVM
    *
    *     EmbeddedApp.fromHandlers(chain -> chain
    *       .register(s -> s
@@ -132,18 +135,18 @@ public abstract class RxRatpack {
    * <p>
    * This method works well as a method reference to the {@link Promise#to(ratpack.func.Function)} method.
    * <pre class="java">{@code
-   * import ratpack.rx.RxRatpack;
    * import ratpack.exec.Promise;
    * import ratpack.test.exec.ExecHarness;
    *
    * import static org.junit.Assert.assertEquals;
    *
+   * {@literal @}SuppressWarnings("deprecation")
    * public class Example {
    *   public static String value;
    *   public static void main(String... args) throws Exception {
    *     ExecHarness.runSingle(e ->
    *       Promise.value("hello world")
-   *         .to(RxRatpack::observe)
+   *         .to(ratpack.rx.RxRatpack::observe)
    *         .map(String::toUpperCase)
    *         .subscribe(s -> value = s)
    *     );
@@ -171,18 +174,18 @@ public abstract class RxRatpack {
    * <p>
    * The returned observable emits completes upon completion of the operation without emitting a value, and emits the error (i.e. via {@code onError()}) if it fails.
    * <pre class="java">{@code
-   * import ratpack.rx.RxRatpack;
    * import ratpack.exec.Operation;
    * import ratpack.test.exec.ExecHarness;
    *
    * import static org.junit.Assert.assertTrue;
    *
+   * {@literal @}SuppressWarnings("deprecation")
    * public class Example {
    *   public static boolean executed;
    *   public static void main(String... args) throws Exception {
    *     ExecHarness.runSingle(e ->
    *       Operation.of(() -> executed = true)
-   *         .to(RxRatpack::observe)
+   *         .to(ratpack.rx.RxRatpack::observe)
    *         .subscribe()
    *     );
    *
@@ -204,7 +207,6 @@ public abstract class RxRatpack {
    * The promised iterable will be emitted to the observer one element at a time, like {@link Observable#from(Iterable)}.
    *
    * <pre class="java">{@code
-   * import ratpack.rx.RxRatpack;
    * import ratpack.exec.Promise;
    * import ratpack.test.exec.ExecHarness;
    *
@@ -214,12 +216,13 @@ public abstract class RxRatpack {
    *
    * import static org.junit.Assert.assertEquals;
    *
+   * {@literal @}SuppressWarnings("deprecation")
    * public class Example {
    *   public static void main(String... args) throws Exception {
    *   final List<String> items = new LinkedList<>();
    *     ExecHarness.runSingle(e ->
    *         Promise.value(Arrays.asList("foo", "bar"))
-   *           .to(RxRatpack::observeEach)
+   *           .to(ratpack.rx.RxRatpack::observeEach)
    *           .subscribe(items::add)
    *     );
    *
@@ -245,13 +248,13 @@ public abstract class RxRatpack {
    * It is sometimes more convenient to use {@link #promise(Observable.OnSubscribe)} over this method.
    *
    * <pre class="java">{@code
-   * import ratpack.rx.RxRatpack;
    * import ratpack.test.exec.ExecHarness;
    * import rx.Observable;
    * import java.util.List;
    * import java.util.Arrays;
    * import static org.junit.Assert.assertEquals;
    *
+   * {@literal @}SuppressWarnings("deprecation")
    * public class Example {
    *   static class AsyncService {
    *     public <T> Observable<T> observe(final T value) {
@@ -266,7 +269,7 @@ public abstract class RxRatpack {
    *
    *   public static void main(String[] args) throws Throwable {
    *     List<String> results = ExecHarness.yieldSingle(execution ->
-   *       RxRatpack.promise(new AsyncService().observe("foo"))
+   *       ratpack.rx.RxRatpack.promise(new AsyncService().observe("foo"))
    *     ).getValue();
    *
    *     assertEquals(Arrays.asList("foo"), results);
@@ -301,13 +304,13 @@ public abstract class RxRatpack {
    * It is intended to be used in conjunction with the {@link Observable#extend} method as a method reference.
    *
    * <pre class="java">{@code
-   * import ratpack.rx.RxRatpack;
    * import ratpack.test.exec.ExecHarness;
    * import rx.Observable;
    * import java.util.List;
    * import java.util.Arrays;
    * import static org.junit.Assert.assertEquals;
    *
+   * {@literal @}SuppressWarnings("deprecation")
    * public class Example {
    *   static class AsyncService {
    *     public <T> Observable<T> observe(final T value) {
@@ -322,7 +325,7 @@ public abstract class RxRatpack {
    *
    *   public static void main(String[] args) throws Throwable {
    *     List<String> results = ExecHarness.yieldSingle(execution ->
-   *       new AsyncService().observe("foo").extend(RxRatpack::promise)
+   *       new AsyncService().observe("foo").extend(ratpack.rx.RxRatpack::promise)
    *     ).getValue();
    *
    *     assertEquals(Arrays.asList("foo"), results);
@@ -358,11 +361,11 @@ public abstract class RxRatpack {
    * It is sometimes more convenient to use {@link #promiseSingle(Observable.OnSubscribe)} over this method.
    *
    * <pre class="java">{@code
-   * import ratpack.rx.RxRatpack;
    * import ratpack.test.exec.ExecHarness;
    * import rx.Observable;
    * import static org.junit.Assert.assertEquals;
    *
+   * {@literal @}SuppressWarnings("deprecation")
    * public class Example {
    *   static class AsyncService {
    *     public <T> Observable<T> observe(final T value) {
@@ -377,7 +380,7 @@ public abstract class RxRatpack {
    *
    *   public static void main(String[] args) throws Throwable {
    *     String result = ExecHarness.yieldSingle(execution ->
-   *       RxRatpack.promiseSingle(new AsyncService().observe("foo"))
+   *       ratpack.rx.RxRatpack.promiseSingle(new AsyncService().observe("foo"))
    *     ).getValue();
    *
    *     assertEquals("foo", result);
@@ -390,15 +393,15 @@ public abstract class RxRatpack {
    * If the observable may be empty, then use {@link Observable#singleOrDefault(Object)} to provide a default value.
    *
    * <pre class="java">{@code
-   * import ratpack.rx.RxRatpack;
    * import ratpack.test.exec.ExecHarness;
    * import rx.Observable;
    * import static org.junit.Assert.assertEquals;
    *
+   * {@literal @}SuppressWarnings("deprecation")
    * public class Example {
    *   public static void main(String[] args) throws Throwable {
    *     String result = ExecHarness.yieldSingle(execution ->
-   *       RxRatpack.promiseSingle(Observable.<String>empty().singleOrDefault("foo"))
+   *       ratpack.rx.RxRatpack.promiseSingle(Observable.<String>empty().singleOrDefault("foo"))
    *     ).getValue();
    *     assertEquals("foo", result);
    *   }
@@ -431,11 +434,11 @@ public abstract class RxRatpack {
    * It is intended to be used in conjunction with the {@link Observable#extend} method as a method reference.
    *
    * <pre class="java">{@code
-   * import ratpack.rx.RxRatpack;
    * import ratpack.test.exec.ExecHarness;
    * import rx.Observable;
    * import static org.junit.Assert.assertEquals;
    *
+   * {@literal @}SuppressWarnings("deprecation")
    * public class Example {
    *   static class AsyncService {
    *     public <T> Observable<T> observe(final T value) {
@@ -450,7 +453,7 @@ public abstract class RxRatpack {
    *
    *   public static void main(String[] args) throws Throwable {
    *     String result = ExecHarness.yieldSingle(execution ->
-   *       new AsyncService().observe("foo").extend(RxRatpack::promiseSingle)
+   *       new AsyncService().observe("foo").extend(ratpack.rx.RxRatpack::promiseSingle)
    *     ).getValue();
    *
    *     assertEquals("foo", result);
@@ -461,15 +464,15 @@ public abstract class RxRatpack {
    * This method uses {@link Observable#single()} to enforce that the observable only emits one item.
    * If the observable may be empty, then use {@link Observable#singleOrDefault(Object)} to provide a default value.
    * <pre class="java">{@code
-   * import ratpack.rx.RxRatpack;
    * import ratpack.test.exec.ExecHarness;
    * import rx.Observable;
    * import static org.junit.Assert.assertEquals;
    *
+   * {@literal @}SuppressWarnings("deprecation")
    * public class Example {
    *   public static void main(String[] args) throws Throwable {
    *     String result = ExecHarness.yieldSingle(execution ->
-   *       Observable.<String>empty().singleOrDefault("foo").extend(RxRatpack::promiseSingle)
+   *       Observable.<String>empty().singleOrDefault("foo").extend(ratpack.rx.RxRatpack::promiseSingle)
    *     ).getValue();
    *     assertEquals("foo", result);
    *   }
@@ -500,13 +503,13 @@ public abstract class RxRatpack {
    * It is sometimes more convenient to use {@link #publisher(Observable.OnSubscribe)} over this method.
    *
    * <pre class="java">{@code
-   * import ratpack.rx.RxRatpack;
    * import ratpack.stream.Streams;
    * import ratpack.test.exec.ExecHarness;
    * import rx.Observable;
    * import java.util.List;
    * import static org.junit.Assert.assertEquals;
    *
+   * {@literal @}SuppressWarnings("deprecation")
    * public class Example {
    *   static class AsyncService {
    *     public <T> Observable<T> observe(final T value) {
@@ -521,7 +524,7 @@ public abstract class RxRatpack {
    *
    *   public static void main(String[] args) throws Throwable {
    *     List<String> result = ExecHarness.yieldSingle(execution ->
-   *       RxRatpack.publisher(new AsyncService().observe("foo")).toList()
+   *       ratpack.rx.RxRatpack.publisher(new AsyncService().observe("foo")).toList()
    *     ).getValue();
    *     assertEquals("foo", result.get(0));
    *   }
@@ -542,13 +545,13 @@ public abstract class RxRatpack {
    * It is intended to be used in conjunction with the {@link Observable#extend} method as a method reference.
    *
    * <pre class="java">{@code
-   * import ratpack.rx.RxRatpack;
    * import ratpack.stream.Streams;
    * import ratpack.test.exec.ExecHarness;
    * import rx.Observable;
    * import java.util.List;
    * import static org.junit.Assert.assertEquals;
    *
+   * {@literal @}SuppressWarnings("deprecation")
    * public class Example {
    *   static class AsyncService {
    *     public <T> Observable<T> observe(final T value) {
@@ -563,7 +566,7 @@ public abstract class RxRatpack {
    *
    *   public static void main(String[] args) throws Throwable {
    *     List<String> result = ExecHarness.yieldSingle(execution ->
-   *       new AsyncService().observe("foo").extend(RxRatpack::publisher).toList()
+   *       new AsyncService().observe("foo").extend(ratpack.rx.RxRatpack::publisher).toList()
    *     ).getValue();
    *     assertEquals("foo", result.get(0));
    *   }
@@ -586,11 +589,11 @@ public abstract class RxRatpack {
    * <pre class="java">{@code
    * import rx.Observable;
    * import ratpack.test.exec.ExecHarness;
-   * import ratpack.rx.RxRatpack;
    * import java.util.Arrays;
    * import java.util.List;
    * import static org.junit.Assert.*;
    *
+   * {@literal @}SuppressWarnings("deprecation")
    * public class Example {
    *   public static void main(String... args) throws Exception {
    *     Observable<String> asyncObservable = Observable.create(subscriber ->
@@ -602,7 +605,7 @@ public abstract class RxRatpack {
    *     );
    *
    *     List<String> strings = ExecHarness.yieldSingle(e ->
-   *       RxRatpack.promise(asyncObservable.compose(RxRatpack::bindExec))
+   *       ratpack.rx.RxRatpack.promise(asyncObservable.compose(ratpack.rx.RxRatpack::bindExec))
    *     ).getValue();
    *
    *     assertEquals(Arrays.asList("foo", "bar"), strings);
@@ -633,7 +636,6 @@ public abstract class RxRatpack {
    *
    * <pre class="java">{@code
    * import ratpack.func.Pair;
-   * import ratpack.rx.RxRatpack;
    * import ratpack.test.exec.ExecHarness;
    *
    * import rx.Observable;
@@ -641,9 +643,10 @@ public abstract class RxRatpack {
    * import static org.junit.Assert.assertEquals;
    * import static org.junit.Assert.assertNotEquals;
    *
+   * {@literal @}SuppressWarnings("deprecation")
    * public class Example {
    *   public static void main(String[] args) throws Exception {
-   *     RxRatpack.initialize();
+   *     ratpack.rx.RxRatpack.initialize();
    *
    *     try (ExecHarness execHarness = ExecHarness.harness(6)) {
    *       Integer sum = execHarness.yield(execution -> {
@@ -654,9 +657,9 @@ public abstract class RxRatpack {
    *         // `map` is executed upstream from the fork; that puts it on another parallel compute thread
    *         Observable<Pair<Integer, String>> forkedObservable = Observable.just(2)
    *             .map((val) -> Pair.of(val, Thread.currentThread().getName()))
-   *             .compose(RxRatpack::fork);
+   *             .compose(ratpack.rx.RxRatpack::fork);
    *
-   *         return RxRatpack.promiseSingle(
+   *         return ratpack.rx.RxRatpack.promiseSingle(
    *             Observable.zip(unforkedObservable, forkedObservable, (Integer intVal, Pair<Integer, String> pair) -> {
    *               String forkedComputeThread = pair.right;
    *               assertNotEquals(originalComputeThread, forkedComputeThread);
@@ -692,16 +695,16 @@ public abstract class RxRatpack {
    * <pre class="java">{@code
    * import ratpack.exec.Execution;
    * import ratpack.registry.RegistrySpec;
-   * import ratpack.rx.RxRatpack;
    * import ratpack.test.exec.ExecHarness;
    *
    * import rx.Observable;
    *
    * import static org.junit.Assert.assertEquals;
    *
+   * {@literal @}SuppressWarnings("deprecation")
    * public class Example {
    *   public static void main(String[] args) throws Exception {
-   *     RxRatpack.initialize();
+   *     ratpack.rx.RxRatpack.initialize();
    *
    *     try (ExecHarness execHarness = ExecHarness.harness(6)) {
    *       String concatenatedResult = execHarness.yield(execution -> {
@@ -709,12 +712,12 @@ public abstract class RxRatpack {
    *         Observable<String> notYetForked = Observable.just("foo")
    *             .map((value) -> value + Execution.current().get(String.class));
    *
-   *         Observable<String> forkedObservable = RxRatpack.fork(
+   *         Observable<String> forkedObservable = ratpack.rx.RxRatpack.fork(
    *             notYetForked,
    *             (RegistrySpec registrySpec) -> registrySpec.add("bar")
    *         );
    *
-   *         return RxRatpack.promiseSingle(forkedObservable);
+   *         return ratpack.rx.RxRatpack.promiseSingle(forkedObservable);
    *       }).getValueOrThrow();
    *
    *       assertEquals(concatenatedResult, "foobar");
@@ -740,7 +743,6 @@ public abstract class RxRatpack {
    * Parallelize an observable by creating a new Ratpack execution for each element.
    *
    * <pre class="java">{@code
-   * import ratpack.rx.RxRatpack;
    * import ratpack.util.Exceptions;
    * import ratpack.test.exec.ExecHarness;
    *
@@ -755,17 +757,18 @@ public abstract class RxRatpack {
    *
    * import static org.junit.Assert.assertEquals;
    *
+   * {@literal @}SuppressWarnings("deprecation")
    * public class Example {
    *   public static void main(String[] args) throws Exception {
-   *     RxRatpack.initialize();
+   *     ratpack.rx.RxRatpack.initialize();
    *
    *     CyclicBarrier barrier = new CyclicBarrier(5);
    *
    *     try (ExecHarness execHarness = ExecHarness.harness(6)) {
    *       List<Integer> values = execHarness.yield(execution ->
-   *         RxRatpack.promise(
+   *         ratpack.rx.RxRatpack.promise(
    *           Observable.just(1, 2, 3, 4, 5)
-   *             .compose(RxRatpack::forkEach) // parallelize
+   *             .compose(ratpack.rx.RxRatpack::forkEach) // parallelize
    *             .doOnNext(value -> Exceptions.uncheck(() -> barrier.await())) // wait for all values
    *             .map(integer -> integer.intValue() * 2)
    *             .serialize()

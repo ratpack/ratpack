@@ -98,7 +98,7 @@ dependencies {
   compile project(":ratpack-groovy")
   compile project(":ratpack-dropwizard-metrics")
   compile project(":ratpack-remote")
-  compile project(":ratpack-rx")
+  compile project(":ratpack-rx2")
   compile project(":ratpack-newrelic")
   compile "org.pegdown:pegdown:${commonVersions.pegdown}"
 

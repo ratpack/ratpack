@@ -1285,7 +1285,7 @@ public interface Promise<T> {
    * This method can be useful when needing to convert a promise to another type as it facilitates doing so without breaking the “code flow”.
    * For example, this can be used when integrating with RxJava.
    * <pre class="java">{@code
-   * import ratpack.rx.RxRatpack;
+   * import ratpack.rx2.RxRatpack;
    * import ratpack.exec.Promise;
    * import ratpack.test.exec.ExecHarness;
    *
@@ -1301,9 +1301,9 @@ public interface Promise<T> {
    *   public static void main(String... args) throws Exception {
    *     ExecHarness.runSingle(e ->
    *         Promise.value("foo")
-   *           .to(RxRatpack::observe)
-   *           .doOnNext(i -> LOG.add("doOnNext"))
-   *           .subscribe(LOG::add)
+   *           .to(RxRatpack::single)
+   *           .doOnSuccess(i -> LOG.add("doOnNext"))
+   *           .subscribe(i -> LOG.add(i))
    *     );
    *
    *     assertEquals(Arrays.asList("doOnNext", "foo"), LOG);

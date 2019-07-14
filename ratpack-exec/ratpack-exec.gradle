@@ -40,5 +40,5 @@ dependencies {
   }
 
   //Add this so that we can reference the RX module in Javadoc code snippets for Promise
-  testRuntime project(":ratpack-rx")
+  testRuntime project(":ratpack-rx2")
 }

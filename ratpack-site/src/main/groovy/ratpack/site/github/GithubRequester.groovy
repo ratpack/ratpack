@@ -19,14 +19,16 @@ package ratpack.site.github
 import com.fasterxml.jackson.databind.ObjectReader
 import com.fasterxml.jackson.databind.node.ArrayNode
 import groovy.transform.CompileStatic
+import io.reactivex.functions.Consumer
 import ratpack.exec.Promise
 import ratpack.http.client.HttpClient
 import ratpack.http.client.ReceivedResponse
 import ratpack.http.client.RequestSpec
-import rx.Observable
-import rx.Subscriber
+import io.reactivex.Observable
+import io.reactivex.ObservableEmitter
+import io.reactivex.ObservableOnSubscribe
 
-import static ratpack.rx.RxRatpack.observe
+import static ratpack.rx2.RxRatpack.single
 
 @CompileStatic
 class GithubRequester {
@@ -40,19 +42,19 @@ class GithubRequester {
   }
 
   Promise<ArrayNode> request(String url) {
-    Observable.create({ Subscriber<ArrayNode> it ->
+    Observable.create({ ObservableEmitter<ArrayNode> it ->
       getPage(httpClient, url, it)
-    } as Observable.OnSubscribe<ArrayNode>).reduce { ArrayNode a, ArrayNode b ->
+    } as ObservableOnSubscribe<ArrayNode>).reduce { ArrayNode a, ArrayNode b ->
       a.addAll(b)
-    }.promiseSingle()
+    }.toSingle().promise()
   }
 
-  private void getPage(HttpClient httpClient, String url, Subscriber<ArrayNode> pagingSubscription) {
+  private void getPage(HttpClient httpClient, String url, ObservableEmitter<ArrayNode> pagingSubscription) {
     def promise = httpClient.get(new URI(url)) { RequestSpec it ->
       it.headers.set("User-Agent", "http://www.ratpack.io")
     }
 
-    observe(promise).subscribe { ReceivedResponse response ->
+    single(promise).subscribe({ ReceivedResponse response ->
       def node = objectReader.readTree(response.body.text)
       if (node instanceof ArrayNode) {
         pagingSubscription.onNext((ArrayNode) node)
@@ -61,12 +63,12 @@ class GithubRequester {
         if (next) {
           getPage(httpClient, next, pagingSubscription)
         } else {
-          pagingSubscription.onCompleted()
+          pagingSubscription.onComplete()
         }
       } else {
         pagingSubscription.onError(new RuntimeException("Not an array response from $url (was ${node.getClass()}): \n$response.body.text}"))
       }
-    }
+    } as Consumer<ReceivedResponse>)
   }
 
   private static String getNextUrl(String linkHeaderValue) {

@@ -64,6 +64,7 @@ import static java.util.Arrays.asList;
  * This can be used for requiring authentication for all requests starting with a particular request path for example.
  * <p>
  * The {@link #userProfile(Context)}, {@link #login(Context, Class)} and {@link #logout(Context)} methods provide programmatic authentication mechanisms.
+ * @deprecated since 1.7.0. Use <a href="https://github.com/pac4j/ratpack-pac4j">Ratpack Pac4j upstream</a> instead.
  */
 @Deprecated
 public class RatpackPac4j {
