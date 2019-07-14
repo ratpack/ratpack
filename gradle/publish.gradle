@@ -53,9 +53,16 @@ signing {
   }
 }
 
-//configurations.signatures.artifacts.all {
-//  extension = toSignArtifact.extension + "." + extension
-//}
+project.afterEvaluate {
+  project.tasks.signPublished.signatures.each {
+    if (it.type == "jar.asc") {
+      it.extension = "jar.asc"
+    }
+    if (it.type == "zip.asc") {
+      it.extension = "zip.asc"
+    }
+  }
+}
 
 configurations {
   configurations {
