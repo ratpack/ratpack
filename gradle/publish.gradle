@@ -53,9 +53,9 @@ signing {
   }
 }
 
-configurations.signatures.artifacts.all {
-  extension = toSignArtifact.extension + "." + extension
-}
+//configurations.signatures.artifacts.all {
+//  extension = toSignArtifact.extension + "." + extension
+//}
 
 configurations {
   configurations {
