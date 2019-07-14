@@ -137,10 +137,21 @@ public class MockApi implements EmbeddedApp {
     return app.getServer();
   }
 
+  /**
+   * Retrieve the factory that generates handlers for requests.
+   *
+   * @return the HandlerFactory for this mock.
+   */
   public HandlerFactory getHandlerFactory() {
     return this.factory;
   }
 
+  /**
+   * Creates an embedded Ratpack server which delegates handling to the provided factory.
+   * @param factory a factory that generates a {@link ratpack.handling.Handler} based on the incoming {@link ratpack.http.Request}
+   * @return an embedded Ratpack app which delegates all requests to the provided factory.
+   * @see EmbeddedApp
+   */
   public static MockApi of(HandlerFactory factory) {
     return new MockApi(factory);
   }
