@@ -35,8 +35,8 @@ public class NoopFixedChannelPoolHandler extends AbstractChannelPoolHandler impl
 
   @Override
   public void channelCreated(Channel ch) throws Exception {
-    if (idleTimeout.getNano() > 0) {
-      ch.pipeline().addLast(new IdleStateHandler(idleTimeout.getNano(), idleTimeout.getNano(), 0, TimeUnit.NANOSECONDS));
+    if (idleTimeout.toNanos() > 0) {
+      ch.pipeline().addLast(new IdleStateHandler(idleTimeout.toNanos(), idleTimeout.toNanos(), 0, TimeUnit.NANOSECONDS));
       ch.pipeline().addLast(IdleTimeoutHandler.INSTANCE);
     }
   }
