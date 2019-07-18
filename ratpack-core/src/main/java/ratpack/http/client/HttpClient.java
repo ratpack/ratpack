@@ -136,11 +136,11 @@ public interface HttpClient extends AutoCloseable {
    */
   Duration getIdleTimeout();
 
-    /**
-     * The default read timeout value.
-     *
-     * @since 1.4
-     */
+  /**
+   * The default read timeout value.
+   *
+   * @since 1.4
+   */
   Duration getReadTimeout();
 
   /**

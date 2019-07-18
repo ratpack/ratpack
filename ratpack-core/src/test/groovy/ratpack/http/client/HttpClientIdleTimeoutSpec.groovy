@@ -27,7 +27,7 @@ class HttpClientIdleTimeoutSpec extends BaseHttpClientSpec {
 
   def poolingIdleHttpClient = HttpClient.of {
     it.poolSize(1)
-    it.idleTimeout(Duration.ofMillis(500))
+    it.idleTimeout(Duration.ofMillis(1500))
   }
 
   def poolingHttpClient = HttpClient.of {
@@ -61,7 +61,7 @@ class HttpClientIdleTimeoutSpec extends BaseHttpClientSpec {
     def r2 = get("2")
 
     then:
-    poolingIdleHttpClient.idleTimeout == Duration.ofMillis(500)
+    poolingIdleHttpClient.idleTimeout == Duration.ofMillis(1500)
     r1.statusCode == 200
     r1.body.text == "ok"
     r2.statusCode == expectedStatus
@@ -69,8 +69,8 @@ class HttpClientIdleTimeoutSpec extends BaseHttpClientSpec {
 
     where:
     delay                  || expectedStatus || expectedBody
-    Duration.ofMillis(0)   || 200            || "ok"
-    Duration.ofMillis(750) || 500            || "closed the connection prematurely"
+    Duration.ofMillis(0)    || 200            || "ok"
+    Duration.ofMillis(1750) || 500            || "closed the connection prematurely"
   }
 
   def "test client without idle timeout"() {
@@ -100,7 +100,7 @@ class HttpClientIdleTimeoutSpec extends BaseHttpClientSpec {
     def r2 = get("2")
 
     then:
-    poolingIdleHttpClient.idleTimeout == Duration.ofMillis(500)
+    poolingIdleHttpClient.idleTimeout == Duration.ofMillis(1500)
     r1.statusCode == 200
     r1.body.text == "ok"
     r2.statusCode == expectedStatus
@@ -109,7 +109,7 @@ class HttpClientIdleTimeoutSpec extends BaseHttpClientSpec {
     where:
     delay                  || expectedStatus || expectedBody
     Duration.ofMillis(0)   || 200            || "ok"
-    Duration.ofMillis(750) || 200            || "ok"
+    Duration.ofMillis(1750) || 200            || "ok"
   }
 
   class TestServerErrorHandler implements ServerErrorHandler {
