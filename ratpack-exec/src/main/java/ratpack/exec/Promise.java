@@ -2443,7 +2443,72 @@ public interface Promise<T> {
    * @since 1.7
    */
   default Promise<T> retry(RetryPolicy retryPolicy, BiAction<? super Integer, ? super Throwable> onError) {
-    return transform(up -> down -> DefaultPromise.retry(retryPolicy, up, down, onError));
+    return retryIf(Predicate.alwaysTrue(), retryPolicy, onError);
+  }
+
+  /**
+   * Causes {@code this} yielding the promised value to be retried on error, under the rules of provided {@code retryPolicy},
+   * and if the given {@link Predicate} matches the error thrown.
+   * <p>
+   * The given function is invoked for each failure,
+   * with the sequence number of the failure as the first argument and the failure exception as the second.
+   * This may be used to log or collect exceptions.
+   * If all errors are to be ignored, use {@link BiAction#noop()}.
+   * <p>
+   * Any exception thrown by the function – possibly the exception it receives as an argument – will
+   * be propagated to the subscriber, yielding a failure.
+   * This can be used to selectively retry on certain failures, but immediately fail on others.
+   * <p>
+   * If the promise exhausts the {@code retryPolicy},
+   * the given function will not be invoked and the most recent exception will propagate.
+   * <p>
+   *
+   * <pre class="java">{@code
+   * import ratpack.exec.ExecResult;
+   * import ratpack.exec.Promise;
+   * import ratpack.exec.util.retry.AttemptRetryPolicy;
+   * import ratpack.exec.util.retry.RetryPolicy;
+   * import ratpack.exec.util.retry.FixedDelay;
+   * import ratpack.test.exec.ExecHarness;
+   *
+   * import java.time.Duration;
+   * import java.util.Arrays;
+   * import java.util.LinkedList;
+   * import java.util.List;
+   * import java.util.concurrent.atomic.AtomicInteger;
+   *
+   * import static org.junit.Assert.assertEquals;
+   *
+   * public class Example {
+   *   private static final List<String> LOG = new LinkedList<>();
+   *
+   *   public static void main(String... args) throws Exception {
+   *     AtomicInteger source = new AtomicInteger();
+   *
+   *     RetryPolicy retryPolicy = AttemptRetryPolicy.of(b -> b
+   *       .delay(FixedDelay.of(Duration.ofMillis(500)))
+   *       .maxAttempts(3));
+   *
+   *     ExecResult<Integer> result = ExecHarness.yieldSingle(exec ->
+   *       Promise.sync(source::incrementAndGet)
+   *         .mapIf(i -> i < 3, i -> { throw new IllegalStateException(); })
+   *         .retryIf(t -> t instanceof IllegalStateException, retryPolicy, (i, t) -> LOG.add("retry attempt: " + i))
+   *     );
+   *
+   *     assertEquals(Integer.valueOf(3), result.getValue());
+   *     assertEquals(Arrays.asList("retry attempt: 1", "retry attempt: 2"), LOG);
+   *   }
+   * }
+   * }</pre>
+   *
+   * @param predicate the predicate against which thrown errors are matched. If the predicate succeeds, the retry is allowed to execute
+   * @param retryPolicy policy to govern this retry behaviour
+   * @param onError the error handler
+   * @return a promise with a retry error handler
+   * @since 1.8
+   */
+  default Promise<T> retryIf(Predicate<? super Throwable> predicate, RetryPolicy retryPolicy, BiAction<? super Integer, ? super Throwable> onError) {
+    return transform(up -> down -> DefaultPromise.retry(predicate, retryPolicy, up, down, onError));
   }
 
   /**
