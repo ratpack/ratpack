@@ -32,6 +32,7 @@ import ratpack.func.Action;
 import ratpack.http.client.HttpClient;
 import ratpack.http.client.HttpClientSpec;
 import ratpack.http.client.HttpResponse;
+import ratpack.http.client.IdleTimeoutAction;
 import ratpack.http.client.ReceivedResponse;
 import ratpack.http.client.RequestSpec;
 import ratpack.http.client.StreamedResponse;
@@ -88,9 +89,9 @@ public class DefaultHttpClient implements HttpClientInternal {
 
   private InstrumentedChannelPoolHandler getPoolingHandler(HttpChannelKey key) {
     if (spec.enableMetricsCollection) {
-      return new InstrumentedFixedChannelPoolHandler(key, getPoolSize(), getIdleTimeout());
+      return new InstrumentedFixedChannelPoolHandler(key, getPoolSize(), getIdleTimeout(), getIdleTimeoutAction());
     }
-    return new NoopFixedChannelPoolHandler(key, getIdleTimeout());
+    return new NoopFixedChannelPoolHandler(key, getIdleTimeout(), getIdleTimeoutAction());
   }
 
   private InstrumentedChannelPoolHandler getSimpleHandler(HttpChannelKey key) {
@@ -113,6 +114,11 @@ public class DefaultHttpClient implements HttpClientInternal {
   @Override
   public Duration getIdleTimeout() {
     return spec.idleTimeout;
+  }
+
+  @Override
+  public IdleTimeoutAction getIdleTimeoutAction() {
+    return spec.idleTimeoutAction;
   }
 
   private boolean isPooling() {
@@ -192,6 +198,7 @@ public class DefaultHttpClient implements HttpClientInternal {
     private Action<? super HttpResponse> responseInterceptor = Action.noop();
     private Action<? super Throwable> errorInterceptor = Action.noop();
     private boolean enableMetricsCollection;
+    private IdleTimeoutAction idleTimeoutAction = IdleTimeoutAction.close();
 
     private Spec() {
     }
@@ -208,6 +215,7 @@ public class DefaultHttpClient implements HttpClientInternal {
       this.requestInterceptor = spec.requestInterceptor;
       this.responseInterceptor = spec.responseInterceptor;
       this.enableMetricsCollection = spec.enableMetricsCollection;
+      this.idleTimeoutAction = spec.idleTimeoutAction;
     }
 
     @Override
@@ -285,6 +293,12 @@ public class DefaultHttpClient implements HttpClientInternal {
     @Override
     public HttpClientSpec enableMetricsCollection(boolean enableMetricsCollection) {
       this.enableMetricsCollection = enableMetricsCollection;
+      return this;
+    }
+
+    @Override
+    public HttpClientSpec idleTimeoutAction(IdleTimeoutAction idleTimeoutAction) {
+      this.idleTimeoutAction = idleTimeoutAction;
       return this;
     }
   }

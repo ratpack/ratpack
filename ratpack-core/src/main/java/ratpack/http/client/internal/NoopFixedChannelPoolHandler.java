@@ -19,6 +19,7 @@ package ratpack.http.client.internal;
 import io.netty.channel.Channel;
 import io.netty.channel.pool.AbstractChannelPoolHandler;
 import io.netty.handler.timeout.IdleStateHandler;
+import ratpack.http.client.IdleTimeoutAction;
 
 import java.time.Duration;
 import java.util.concurrent.TimeUnit;
@@ -26,13 +27,16 @@ import java.util.concurrent.TimeUnit;
 public class NoopFixedChannelPoolHandler extends AbstractChannelPoolHandler implements InstrumentedChannelPoolHandler {
 
   private static final String IDLE_STATE_HANDLER_NAME = "idleState";
+  private static final String IDLE_TIMEOUT_HANDLER_NAME = "idleTimeout";
 
   private final String host;
   private final Duration idleTimeout;
+  private final IdleTimeoutAction idleTimeoutAction;
 
-  public NoopFixedChannelPoolHandler(HttpChannelKey channelKey, Duration idleTimeout) {
+  public NoopFixedChannelPoolHandler(HttpChannelKey channelKey, Duration idleTimeout, IdleTimeoutAction idleTimeoutAction) {
     this.host = channelKey.host;
     this.idleTimeout = idleTimeout;
+    this.idleTimeoutAction = idleTimeoutAction;
   }
 
   @Override
@@ -46,7 +50,7 @@ public class NoopFixedChannelPoolHandler extends AbstractChannelPoolHandler impl
       ch.pipeline().addLast(IdlingConnectionHandler.INSTANCE);
       if (idleTimeout.toNanos() > 0) {
         ch.pipeline().addLast(IDLE_STATE_HANDLER_NAME, new IdleStateHandler(idleTimeout.toNanos(), idleTimeout.toNanos(), 0, TimeUnit.NANOSECONDS));
-        ch.pipeline().addLast(IdleTimeoutHandler.INSTANCE);
+        ch.pipeline().addLast(IDLE_TIMEOUT_HANDLER_NAME, IdleTimeoutHandler.newInstance(idleTimeoutAction));
       }
     }
   }
@@ -59,8 +63,8 @@ public class NoopFixedChannelPoolHandler extends AbstractChannelPoolHandler impl
     if (ch.pipeline().context(IDLE_STATE_HANDLER_NAME) != null) {
       ch.pipeline().remove(IDLE_STATE_HANDLER_NAME);
     }
-    if (ch.pipeline().context(IdleTimeoutHandler.INSTANCE) != null) {
-      ch.pipeline().remove(IdleTimeoutHandler.INSTANCE);
+    if (ch.pipeline().context(IDLE_TIMEOUT_HANDLER_NAME) != null) {
+      ch.pipeline().remove(IDLE_TIMEOUT_HANDLER_NAME);
     }
   }
 

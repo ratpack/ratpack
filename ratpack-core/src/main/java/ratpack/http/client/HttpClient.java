@@ -137,6 +137,15 @@ public interface HttpClient extends AutoCloseable {
   Duration getIdleTimeout();
 
   /**
+   * The action to execute on connection idle timeout.
+   * <p>
+   * If not set, the default action is to close the connection, which removes the connection from the pool.
+   *
+   * @since 1.8
+   */
+  IdleTimeoutAction getIdleTimeoutAction();
+
+  /**
    * The default read timeout value.
    *
    * @since 1.4

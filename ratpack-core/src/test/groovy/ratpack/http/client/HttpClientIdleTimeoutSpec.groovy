@@ -35,6 +35,12 @@ class HttpClientIdleTimeoutSpec extends BaseHttpClientSpec {
     it.poolSize(1)
   }
 
+  def poolingIdleHeartbeatHttpClient = HttpClient.of {
+    it.poolSize(1)
+    it.idleTimeout(Duration.ofMillis(500))
+    it.idleTimeoutAction(IdleTimeoutAction.heartbeat())
+  }
+
   def "test client with idle timeout exceeded"() {
     given:
     Channel channel1 = null
@@ -123,6 +129,87 @@ class HttpClientIdleTimeoutSpec extends BaseHttpClientSpec {
     delay                  || expectedStatus || expectedBody
     Duration.ofMillis(0)   || 200            || "ok"
     Duration.ofMillis(1750) || 200            || "ok"
+  }
+
+  def "test client with idle timeout exceeded with heartbeat enabled"() {
+    when:
+    otherApp {
+      get("1") {
+        render "ok"
+      }
+      get("2") {
+        context.execution.sleep(delay).then {
+          render "ok"
+        }
+      }
+    }
+    bindings {
+      bindInstance(ServerErrorHandler, new TestServerErrorHandler())
+    }
+    handlers {
+      get("1") {
+        render poolingIdleHeartbeatHttpClient.get("${otherAppUrl()}1".toString().toURI()).map { it.body.text }
+      }
+      get("2") {
+        render poolingIdleHeartbeatHttpClient.get("${otherAppUrl()}2".toString().toURI()).map { it.body.text }
+      }
+    }
+    def r1 = get("1")
+    def r2 = get("2")
+
+    then:
+    poolingIdleHeartbeatHttpClient.idleTimeout == Duration.ofMillis(500)
+    r1.statusCode == 200
+    r1.body.text == "ok"
+    r2.statusCode == expectedStatus
+    r2.body.text.contains(expectedBody)
+
+    where:
+    delay                  || expectedStatus || expectedBody
+    Duration.ofMillis(0)   || 200            || "ok"
+    Duration.ofMillis(750) || 200            || "ok"
+  }
+
+  def "test client with idle timeout exceeded with heartbeat enabled, server closed"() {
+    when:
+    otherApp {
+      get("1") {
+        render "ok"
+      }
+      get("2") {
+        context.execution.sleep(Duration.ofMillis(1000)).then {
+          otherApp.close()
+        }
+        context.execution.sleep(delay).then {
+          render "ok"
+        }
+      }
+    }
+    bindings {
+      bindInstance(ServerErrorHandler, new TestServerErrorHandler())
+    }
+    handlers {
+      get("1") {
+        render poolingIdleHeartbeatHttpClient.get("${otherAppUrl()}1".toString().toURI()).map { it.body.text }
+      }
+      get("2") {
+        render poolingIdleHeartbeatHttpClient.get("${otherAppUrl()}2".toString().toURI()).map { it.body.text }
+      }
+    }
+    def r1 = get("1")
+    def r2 = get("2")
+
+    then:
+    poolingIdleHeartbeatHttpClient.idleTimeout == Duration.ofMillis(500)
+    r1.statusCode == 200
+    r1.body.text == "ok"
+    r2.statusCode == expectedStatus
+    r2.body.text.contains(expectedBody)
+
+    where:
+    delay                  || expectedStatus || expectedBody
+    Duration.ofMillis(0)   || 200            || "ok"
+    Duration.ofMillis(1750) || 500            || "closed the connection prematurely"
   }
 
   class TestServerErrorHandler implements ServerErrorHandler {

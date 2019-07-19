@@ -19,16 +19,21 @@ package ratpack.http.client.internal;
 import io.netty.channel.ChannelDuplexHandler;
 import io.netty.channel.ChannelHandler;
 import io.netty.channel.ChannelHandlerContext;
-import io.netty.channel.ChannelInboundHandler;
 import io.netty.handler.timeout.IdleState;
 import io.netty.handler.timeout.IdleStateEvent;
+import ratpack.http.client.IdleTimeoutAction;
 
 @ChannelHandler.Sharable
 public class IdleTimeoutHandler extends ChannelDuplexHandler {
 
-  static final ChannelInboundHandler INSTANCE = new IdleTimeoutHandler();
+  private final IdleTimeoutAction idleTimeoutAction;
 
-  private IdleTimeoutHandler() {
+  public static IdleTimeoutHandler newInstance(IdleTimeoutAction idleTimeoutAction) {
+    return new IdleTimeoutHandler(idleTimeoutAction);
+  }
+
+  private IdleTimeoutHandler(IdleTimeoutAction idleTimeoutAction) {
+    this.idleTimeoutAction = idleTimeoutAction;
   }
 
   @Override
@@ -36,7 +41,7 @@ public class IdleTimeoutHandler extends ChannelDuplexHandler {
     if (evt instanceof IdleStateEvent) {
       IdleStateEvent e = (IdleStateEvent) evt;
       if (e.state() == IdleState.READER_IDLE || e.state() == IdleState.WRITER_IDLE) {
-        ctx.close();
+        idleTimeoutAction.execute(ctx);
       }
     }
   }

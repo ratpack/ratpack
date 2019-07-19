@@ -185,4 +185,16 @@ public interface HttpClientSpec {
    * @since 1.6
    */
   HttpClientSpec enableMetricsCollection(boolean enableMetricsCollection);
+
+  /**
+   * Send a configurable action to the downstream server when a connection encounters an idle timeout.
+   * The default action is to close the context using {@link IdleTimeoutAction#close()},
+   * forcing the connection to be closed and remove from the pool.
+   * {@link IdleTimeoutAction#heartbeat()} can also be used. This will send a heartbeat to the channel
+   * to keep it alive. If the hearbeat fails, the channel is closed.
+   *
+   * @since 1.8.0
+   */
+  HttpClientSpec idleTimeoutAction(IdleTimeoutAction idleTimeoutAction);
+
 }

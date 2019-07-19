@@ -20,6 +20,7 @@ import io.netty.channel.Channel
 import io.netty.channel.ChannelConfig
 import io.netty.channel.ChannelPipeline
 import ratpack.exec.Execution
+import ratpack.http.client.IdleTimeoutAction
 import spock.lang.Specification
 
 import java.time.Duration
@@ -45,7 +46,7 @@ class InstrumentedFixedChannelPoolHandlerSpec extends Specification {
 
   void 'it should handle construction and listening to ChannelPool changes'() {
     when:
-    InstrumentedFixedChannelPoolHandler handler = new InstrumentedFixedChannelPoolHandler(channelKey, poolSize, Duration.ofSeconds(15))
+    InstrumentedFixedChannelPoolHandler handler = new InstrumentedFixedChannelPoolHandler(channelKey, poolSize, Duration.ofSeconds(15), IdleTimeoutAction.close())
 
     then:
     assert handler.host == 'ratpack.io'
