@@ -85,6 +85,35 @@ class HttpClientRedirectionSpec extends BaseHttpClientSpec {
     pooled << [true, false]
   }
 
+  def "can follow redirect get request with encoded query parameters"() {
+    given:
+    bindings {
+      bindInstance(HttpClient, HttpClient.of { it.poolSize(pooled ? 8 : 0) })
+    }
+    otherApp {
+      get("foo2") {
+        redirect(301, otherAppUrl("foo?loc=${URLEncoder.encode("http://ratpack.io=10", "UTF-8")}"))
+      }
+
+      get("foo") {
+        render request.queryParams["loc"]
+      }
+    }
+
+    when:
+    handlers {
+      get { HttpClient httpClient ->
+        httpClient.get(otherAppUrl("foo2")) then { render it.body.text }
+      }
+    }
+
+    then:
+    text == "http://ratpack.io=10"
+
+    where:
+    pooled << [true, false]
+  }
+
   def "can follow a relative redirect get request with query parameters"() {
     given:
     bindings {
@@ -115,6 +144,41 @@ class HttpClientRedirectionSpec extends BaseHttpClientSpec {
 
     then:
     text == "value1value2"
+
+    where:
+    pooled << [true, false]
+  }
+
+  def "can follow a relative redirect get request with encoded query parameters"() {
+    given:
+    bindings {
+      bindInstance(HttpClient, HttpClient.of { it.poolSize(pooled ? 8 : 0) })
+    }
+    otherApp {
+      get("foo") {
+        response.with {
+          status(301)
+          headers.set(HttpHeaderConstants.LOCATION, "/bar?loc=${URLEncoder.encode("http://ratpack.io=10", "UTF-8")}")
+          send()
+        }
+      }
+      get("bar") {
+        render request.queryParams["loc"]
+      }
+    }
+
+    when:
+    handlers {
+      get { HttpClient httpClient ->
+        httpClient.get(otherAppUrl("foo")) {
+        } then { ReceivedResponse response ->
+          render response.body.text
+        }
+      }
+    }
+
+    then:
+    text == "http://ratpack.io=10"
 
     where:
     pooled << [true, false]

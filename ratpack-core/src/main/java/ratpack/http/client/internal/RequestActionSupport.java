@@ -46,7 +46,6 @@ import javax.net.ssl.SSLEngine;
 import javax.net.ssl.SSLException;
 import javax.net.ssl.SSLParameters;
 import java.net.URI;
-import java.net.URL;
 import java.security.NoSuchAlgorithmException;
 import java.util.concurrent.TimeUnit;
 import java.util.regex.Pattern;
@@ -252,11 +251,10 @@ abstract class RequestActionSupport<T> implements Upstream<T> {
               redirectRequestConfig = redirectConfigurer.append(redirectRequestConfig);
               URI locationUri;
               if (ABSOLUTE_PATTERN.matcher(locationValue).matches()) {
-                URL redirectUrl = new URL(locationValue);
-                locationUri = new URI(redirectUrl.getProtocol(), redirectUrl.getUserInfo(), redirectUrl.getHost(), redirectUrl.getPort(), redirectUrl.getPath(), redirectUrl.getQuery(), redirectUrl.getRef());
+                locationUri = new URI(locationValue);
               } else {
-                QueryStringDecoder decoder = new QueryStringDecoder(locationValue);
-                locationUri = new URI(channelKey.ssl ? "https" : "http", null, channelKey.host, channelKey.port, decoder.rawPath(), decoder.rawQuery(), null);
+                URI partial = URI.create(locationValue);
+                locationUri = new URI(channelKey.ssl ? "https" : "http", null, channelKey.host, channelKey.port, partial.getPath(), partial.getQuery(), null);
               }
 
               onRedirect(locationUri, redirectCount + 1, redirectRequestConfig).connect(downstream);
