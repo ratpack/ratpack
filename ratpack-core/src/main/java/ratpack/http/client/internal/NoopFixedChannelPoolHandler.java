@@ -25,6 +25,8 @@ import java.util.concurrent.TimeUnit;
 
 public class NoopFixedChannelPoolHandler extends AbstractChannelPoolHandler implements InstrumentedChannelPoolHandler {
 
+  private static final String IDLE_STATE_HANDLER_NAME = "idleState";
+
   private final String host;
   private final Duration idleTimeout;
 
@@ -35,10 +37,6 @@ public class NoopFixedChannelPoolHandler extends AbstractChannelPoolHandler impl
 
   @Override
   public void channelCreated(Channel ch) throws Exception {
-    if (idleTimeout.toNanos() > 0) {
-      ch.pipeline().addLast(new IdleStateHandler(idleTimeout.toNanos(), idleTimeout.toNanos(), 0, TimeUnit.NANOSECONDS));
-      ch.pipeline().addLast(IdleTimeoutHandler.INSTANCE);
-    }
   }
 
   @Override
@@ -46,6 +44,10 @@ public class NoopFixedChannelPoolHandler extends AbstractChannelPoolHandler impl
     if (ch.isOpen()) {
       ch.config().setAutoRead(true);
       ch.pipeline().addLast(IdlingConnectionHandler.INSTANCE);
+      if (idleTimeout.toNanos() > 0) {
+        ch.pipeline().addLast(IDLE_STATE_HANDLER_NAME, new IdleStateHandler(idleTimeout.toNanos(), idleTimeout.toNanos(), 0, TimeUnit.NANOSECONDS));
+        ch.pipeline().addLast(IdleTimeoutHandler.INSTANCE);
+      }
     }
   }
 
@@ -53,6 +55,12 @@ public class NoopFixedChannelPoolHandler extends AbstractChannelPoolHandler impl
   public void channelAcquired(Channel ch) throws Exception {
     if (ch.pipeline().context(IdlingConnectionHandler.INSTANCE) != null) {
       ch.pipeline().remove(IdlingConnectionHandler.INSTANCE);
+    }
+    if (ch.pipeline().context(IDLE_STATE_HANDLER_NAME) != null) {
+      ch.pipeline().remove(IDLE_STATE_HANDLER_NAME);
+    }
+    if (ch.pipeline().context(IdleTimeoutHandler.INSTANCE) != null) {
+      ch.pipeline().remove(IdleTimeoutHandler.INSTANCE);
     }
   }
 

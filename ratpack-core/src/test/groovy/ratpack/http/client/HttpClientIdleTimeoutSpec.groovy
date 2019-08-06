@@ -16,6 +16,7 @@
 
 package ratpack.http.client
 
+import io.netty.channel.Channel
 import ratpack.error.ServerErrorHandler
 import ratpack.handling.Context
 import spock.lang.Unroll
@@ -35,12 +36,18 @@ class HttpClientIdleTimeoutSpec extends BaseHttpClientSpec {
   }
 
   def "test client with idle timeout exceeded"() {
+    given:
+    Channel channel1 = null
+    Channel channel2 = null
+
     when:
     otherApp {
       get("1") {
+        channel1 = directChannelAccess.channel
         render "ok"
       }
       get("2") {
+        channel2 = directChannelAccess.channel
         context.execution.sleep(delay).then {
           render "ok"
         }
@@ -58,6 +65,7 @@ class HttpClientIdleTimeoutSpec extends BaseHttpClientSpec {
       }
     }
     def r1 = get("1")
+    Thread.sleep(delay.toMillis())
     def r2 = get("2")
 
     then:
@@ -67,10 +75,13 @@ class HttpClientIdleTimeoutSpec extends BaseHttpClientSpec {
     r2.statusCode == expectedStatus
     r2.body.text.contains(expectedBody)
 
+    channel1.equals(channel2) == reused
+    channel1.remoteAddress().equals(channel2.remoteAddress()) == reused
+
     where:
-    delay                  || expectedStatus || expectedBody
-    Duration.ofMillis(0)    || 200            || "ok"
-    Duration.ofMillis(1750) || 500            || "closed the connection prematurely"
+    delay                  || expectedStatus || expectedBody || reused
+    Duration.ofMillis(0)    || 200            || "ok" || true
+    Duration.ofMillis(1750) || 200            || "ok" || false
   }
 
   def "test client without idle timeout"() {
@@ -116,6 +127,7 @@ class HttpClientIdleTimeoutSpec extends BaseHttpClientSpec {
 
     @Override
     void error(Context context, Throwable throwable) throws Exception {
+      throwable.printStackTrace()
       context.response.status(500).send(throwable.message)
     }
 
