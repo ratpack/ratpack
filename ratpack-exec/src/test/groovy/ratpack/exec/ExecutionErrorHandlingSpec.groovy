@@ -63,8 +63,8 @@ class ExecutionErrorHandlingSpec extends Specification {
     def latch = new CountDownLatch(1)
     def result = ""
     def errorListener = { e, t ->
-      latch.countDown()
       result = t.message
+      latch.countDown()
     } as ExecutionErrorListener
 
     when:
@@ -83,12 +83,12 @@ class ExecutionErrorHandlingSpec extends Specification {
     def latch = new CountDownLatch(2)
     def results = []
     def errorListener1 = { e, t ->
-      latch.countDown()
       results << 1
+      latch.countDown()
     } as ExecutionErrorListener
     def errorListener2 = { e, t ->
-      latch.countDown()
       results << 2
+      latch.countDown()
     } as ExecutionErrorListener
 
     when:
