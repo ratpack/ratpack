@@ -1,7 +1,7 @@
 project.apply plugin: "codenarc"
 
 dependencies {
-  codenarc "org.codenarc:CodeNarc:0.23"
+  codenarc "org.codenarc:CodeNarc:1.2.1"
 }
 
 codenarc {

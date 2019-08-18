@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 
+
 package ratpack.pac4j;
 
 import com.google.common.collect.ImmutableList;
@@ -21,6 +22,7 @@ import org.pac4j.core.authorization.Authorizer;
 import org.pac4j.core.client.Client;
 import org.pac4j.core.client.Clients;
 import org.pac4j.core.client.DirectClient;
+import org.pac4j.core.context.WebContext;
 import org.pac4j.core.credentials.Credentials;
 import org.pac4j.core.exception.RequiresHttpAction;
 import org.pac4j.core.exception.TechnicalException;
@@ -62,7 +64,9 @@ import static java.util.Arrays.asList;
  * This can be used for requiring authentication for all requests starting with a particular request path for example.
  * <p>
  * The {@link #userProfile(Context)}, {@link #login(Context, Class)} and {@link #logout(Context)} methods provide programmatic authentication mechanisms.
+ * @deprecated since 1.7.0. Use <a href="https://github.com/pac4j/ratpack-pac4j">Ratpack Pac4j upstream</a> instead.
  */
+@Deprecated
 public class RatpackPac4j {
 
   /**
@@ -152,25 +156,25 @@ public class RatpackPac4j {
    * import org.pac4j.http.client.indirect.IndirectBasicAuthClient;
    * import org.pac4j.http.credentials.authenticator.test.SimpleTestUsernamePasswordAuthenticator;
    * import ratpack.guice.Guice;
-   * import ratpack.pac4j.RatpackPac4j;
    * import ratpack.session.SessionModule;
    * import ratpack.test.embed.EmbeddedApp;
    *
    * import static org.junit.Assert.assertEquals;
    *
+   * {@literal @}SuppressWarnings("deprecation")
    * public class Example {
    *   public static void main(String... args) throws Exception {
    *     EmbeddedApp.of(s -> s
    *         .registry(Guice.registry(b -> b.module(SessionModule.class)))
    *         .handlers(c -> c
-   *             .all(RatpackPac4j.authenticator(new IndirectBasicAuthClient(new SimpleTestUsernamePasswordAuthenticator())))
-   *             .get("logout", ctx -> RatpackPac4j.logout(ctx).then(() -> ctx.render("logged out")))
+   *             .all(ratpack.pac4j.RatpackPac4j.authenticator(new IndirectBasicAuthClient(new SimpleTestUsernamePasswordAuthenticator())))
+   *             .get("logout", ctx -> ratpack.pac4j.RatpackPac4j.logout(ctx).then(() -> ctx.render("logged out")))
    *             .prefix("require-authn", a -> a
-   *                 .all(RatpackPac4j.requireAuth(IndirectBasicAuthClient.class))
+   *                 .all(ratpack.pac4j.RatpackPac4j.requireAuth(IndirectBasicAuthClient.class))
    *                 .get(ctx -> ctx.render("Hello " + ctx.get(UserProfile.class).getId()))
    *             )
    *            .prefix("require-authz", a -> a
-   *              .all(RatpackPac4j.requireAuth(IndirectBasicAuthClient.class, (ctx, profile) -> { return "special-user".equals(profile.getId()); }))
+   *              .all(ratpack.pac4j.RatpackPac4j.requireAuth(IndirectBasicAuthClient.class, (ctx, profile) -> { return "special-user".equals(profile.getId()); }))
    *              .get(ctx -> ctx.render("Hello " + ctx.get(UserProfile.class).getId()))
    *            )
    *            .get(ctx -> ctx.render("no auth required"))
@@ -230,7 +234,6 @@ public class RatpackPac4j {
    * import org.pac4j.http.credentials.authenticator.test.SimpleTestUsernamePasswordAuthenticator;
    * import ratpack.guice.Guice;
    * import ratpack.http.client.ReceivedResponse;
-   * import ratpack.pac4j.RatpackPac4j;
    * import ratpack.session.SessionModule;
    * import ratpack.test.embed.EmbeddedApp;
    *
@@ -238,15 +241,16 @@ public class RatpackPac4j {
    *
    * import static org.junit.Assert.assertEquals;
    *
+   * {@literal @}SuppressWarnings("deprecation")
    * public class Example {
    *   public static void main(String... args) throws Exception {
    *     EmbeddedApp.of(s -> s
    *         .registry(Guice.registry(b -> b.module(SessionModule.class)))
    *         .handlers(c -> c
-   *             .all(RatpackPac4j.authenticator(new IndirectBasicAuthClient(new SimpleTestUsernamePasswordAuthenticator())))
-   *             .get("auth", ctx -> RatpackPac4j.login(ctx, IndirectBasicAuthClient.class).then(p -> ctx.redirect("/")))
+   *             .all(ratpack.pac4j.RatpackPac4j.authenticator(new IndirectBasicAuthClient(new SimpleTestUsernamePasswordAuthenticator())))
+   *             .get("auth", ctx -> ratpack.pac4j.RatpackPac4j.login(ctx, IndirectBasicAuthClient.class).then(p -> ctx.redirect("/")))
    *             .get(ctx ->
-   *                 RatpackPac4j.userProfile(ctx)
+   *                 ratpack.pac4j.RatpackPac4j.userProfile(ctx)
    *                   .route(Optional::isPresent, p -> ctx.render("Hello " + p.get().getId()))
    *                   .then(p -> ctx.render("not authenticated"))
    *             )
@@ -309,7 +313,6 @@ public class RatpackPac4j {
    * import org.pac4j.http.credentials.authenticator.test.SimpleTestUsernamePasswordAuthenticator;
    * import ratpack.guice.Guice;
    * import ratpack.http.client.ReceivedResponse;
-   * import ratpack.pac4j.RatpackPac4j;
    * import ratpack.session.SessionModule;
    * import ratpack.test.embed.EmbeddedApp;
    *
@@ -318,20 +321,21 @@ public class RatpackPac4j {
    * import static org.junit.Assert.assertEquals;
    * import static org.junit.Assert.assertTrue;
    *
+   * {@literal @}SuppressWarnings("deprecation")
    * public class Example {
    *   public static void main(String... args) throws Exception {
    *     EmbeddedApp.of(s -> s
    *         .registry(Guice.registry(b -> b.module(SessionModule.class)))
    *         .handlers(c -> c
-   *             .all(RatpackPac4j.authenticator(new IndirectBasicAuthClient(new SimpleTestUsernamePasswordAuthenticator())))
+   *             .all(ratpack.pac4j.RatpackPac4j.authenticator(new IndirectBasicAuthClient(new SimpleTestUsernamePasswordAuthenticator())))
    *             .prefix("auth", a -> a
-   *                 .all(RatpackPac4j.requireAuth(IndirectBasicAuthClient.class))
+   *                 .all(ratpack.pac4j.RatpackPac4j.requireAuth(IndirectBasicAuthClient.class))
    *                 .get(ctx -> {
    *                   ctx.render("Hello " + ctx.get(UserProfile.class).getId());
    *                 })
    *             )
    *             .get("no-auth", ctx -> {
-   *               RatpackPac4j.userProfile(ctx)
+   *               ratpack.pac4j.RatpackPac4j.userProfile(ctx)
    *                 .route(Optional::isPresent, p -> ctx.render("Hello " + p.get().getId()))
    *                 .then(p -> ctx.render("not authenticated"));
    *             })
@@ -390,7 +394,7 @@ public class RatpackPac4j {
    * @see #userProfile(Context)
    */
   public static <T extends UserProfile> Promise<Optional<T>> userProfile(Context ctx, Class<T> type) {
-    return Promise.of(f ->
+    return Promise.async(f ->
       toProfile(type, f, ctx.maybeGet(UserProfile.class), () ->
         ctx.get(Session.class)
           .get(Pac4jSessionKeys.USER_PROFILE)
@@ -414,28 +418,27 @@ public class RatpackPac4j {
    * import org.pac4j.http.credentials.authenticator.test.SimpleTestUsernamePasswordAuthenticator;
    * import ratpack.guice.Guice;
    * import ratpack.http.client.ReceivedResponse;
-   * import ratpack.pac4j.RatpackPac4j;
    * import ratpack.session.SessionModule;
    * import ratpack.test.embed.EmbeddedApp;
    *
    * import java.util.Optional;
    *
    * import static org.junit.Assert.assertEquals;
-   *
+   * {@literal @}SuppressWarnings("deprecation")
    * public class Example {
    *   public static void main(String... args) throws Exception {
    *     EmbeddedApp.of(s -> s
    *         .registry(Guice.registry(b -> b.module(SessionModule.class)))
    *         .handlers(c -> c
-   *             .all(RatpackPac4j.authenticator(new IndirectBasicAuthClient(new SimpleTestUsernamePasswordAuthenticator())))
-   *             .get("auth", ctx -> RatpackPac4j.login(ctx, IndirectBasicAuthClient.class).then(p -> ctx.redirect("/")))
+   *             .all(ratpack.pac4j.RatpackPac4j.authenticator(new IndirectBasicAuthClient(new SimpleTestUsernamePasswordAuthenticator())))
+   *             .get("auth", ctx -> ratpack.pac4j.RatpackPac4j.login(ctx, IndirectBasicAuthClient.class).then(p -> ctx.redirect("/")))
    *             .get(ctx ->
-   *                 RatpackPac4j.userProfile(ctx)
+   *                 ratpack.pac4j.RatpackPac4j.userProfile(ctx)
    *                   .route(Optional::isPresent, p -> ctx.render("Hello " + p.get().getId()))
    *                   .then(p -> ctx.render("not authenticated"))
    *             )
    *             .get("logout", ctx ->
-   *                 RatpackPac4j.logout(ctx).then(() -> ctx.redirect("/"))
+   *                 ratpack.pac4j.RatpackPac4j.logout(ctx).then(() -> ctx.redirect("/"))
    *             )
    *         )
    *     ).test(httpClient -> {
@@ -461,6 +464,21 @@ public class RatpackPac4j {
   public static Operation logout(Context ctx) {
     return ctx.get(Session.class)
       .remove(Pac4jSessionKeys.USER_PROFILE);
+  }
+
+  /**
+   * Adapts a Ratpack {@link Context} to a Pac4j {@link WebContext}.
+   * <p>
+   * The returned WebContext does not have access to the request body.
+   * {@link WebContext#getRequestParameters()} and associated methods will not include any
+   * form parameters if the request was a form.
+   *
+   * @param ctx a Ratpack context
+   * @return a Pac4j web context
+   * @since 1.4
+   */
+  public static Promise<WebContext> webContext(Context ctx) {
+    return Types.cast(RatpackWebContext.from(ctx, false));
   }
 
   private static <T extends UserProfile> void toProfile(Class<T> type, Downstream<? super Optional<T>> downstream, Optional<UserProfile> userProfileOptional, Block onEmpty) throws Exception {

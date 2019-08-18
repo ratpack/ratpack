@@ -16,11 +16,9 @@
 
 package ratpack.gradle.functional
 
-import spock.lang.Timeout
 import spock.util.concurrent.BlockingVariable
 import spock.util.concurrent.PollingConditions
 
-@Timeout(120)
 class ResourceReloadingSpec extends FunctionalSpec {
 
   int port
@@ -54,7 +52,15 @@ class ResourceReloadingSpec extends FunctionalSpec {
 
     """
     when:
-    Thread.start { resultHolder.set(run("run")) }
+    run("classes") // download dependencies outside of timeout
+
+    Thread.start {
+      try {
+        resultHolder.set(run("run"))
+      } catch (ignore) {
+        resultHolder.set(null)
+      }
+    }
     def portFile = file("port")
     new PollingConditions().within(30) {
       assert portFile.isFile() && portFile.text

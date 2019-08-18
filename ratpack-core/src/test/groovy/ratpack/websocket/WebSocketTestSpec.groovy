@@ -21,7 +21,6 @@ import org.reactivestreams.Subscriber
 import ratpack.exec.ExecController
 import ratpack.func.Function
 import ratpack.test.internal.RatpackGroovyDslSpec
-import spock.lang.Timeout
 import spock.util.concurrent.BlockingVariable
 
 import java.time.Duration
@@ -34,7 +33,6 @@ import static ratpack.stream.Streams.publish
 import static ratpack.websocket.WebSockets.websocket
 import static ratpack.websocket.WebSockets.websocketBroadcast
 
-@Timeout(30)
 class WebSocketTestSpec extends RatpackGroovyDslSpec {
 
   def "can send and receive websockets"() {
@@ -256,12 +254,10 @@ class WebSocketTestSpec extends RatpackGroovyDslSpec {
     setup:
     def closed = new BlockingVariable<Boolean>(2)
     def connected = new BlockingVariable<Boolean>(2)
-    WebSocket ws
 
     handlers {
       get {
         context.websocket {
-          ws = it
           connected.set(true)
           null
         } connect {

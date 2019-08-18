@@ -26,9 +26,9 @@ import ratpack.api.Nullable;
 import ratpack.file.FileSystemBinding;
 import ratpack.func.Action;
 import ratpack.func.Function;
-import ratpack.groovy.handling.GroovyChain;
-import ratpack.groovy.handling.GroovyContext;
+import ratpack.groovy.handling.*;
 import ratpack.groovy.handling.internal.ClosureBackedHandler;
+import ratpack.groovy.handling.internal.DefaultGroovyByMethodSpec;
 import ratpack.groovy.handling.internal.GroovyDslChainActionTransformer;
 import ratpack.groovy.internal.ClosureInvoker;
 import ratpack.groovy.internal.ClosureUtil;
@@ -43,6 +43,7 @@ import ratpack.guice.BindingsSpec;
 import ratpack.guice.Guice;
 import ratpack.handling.Chain;
 import ratpack.handling.Handler;
+import ratpack.handling.Handlers;
 import ratpack.handling.internal.ChainBuilders;
 import ratpack.http.internal.HttpHeaderConstants;
 import ratpack.registry.Registry;
@@ -75,13 +76,13 @@ public abstract class Groovy {
    * <p>
    * This method is used in Ratpack scripts as the entry point.
    * <pre class="groovy-ratpack-dsl">
-   * import ratpack.session.SessionModule
+   * import ratpack.groovy.sql.SqlModule
    * import static ratpack.groovy.Groovy.*
    *
    * ratpack {
    *   bindings {
    *     // example of registering a module
-   *     add(new SessionModule())
+   *     add(new SqlModule())
    *   }
    *   handlers {
    *     // define the application handlers
@@ -140,6 +141,33 @@ public abstract class Groovy {
      * @param configurer The configuration closure, delegating to {@link ServerConfigBuilder}
      */
     void serverConfig(@DelegatesTo(value = ServerConfigBuilder.class, strategy = Closure.DELEGATE_FIRST) Closure<?> configurer);
+
+    /**
+     * Evaluates the provided path using the Ratpack DSL and applies the configuration to this server.
+     * <p>
+     * The configuration supplied by the included path are applied inline with the existing parent configuration.
+     * This allows the same semantics as specifying the configuration in a single file to be followed.
+     * For {@link Ratpack#bindings(Closure)}, the configuration is appended.
+     * For {@link Ratpack#handlers} and {@link Ratpack#serverConfig(Closure)}, the configuration is merged.
+     * Settings from the parent configuration that are applied after the {@code include}, will be applied after the child configurations.
+     * <p>
+     * If the {@code path} is a relative path, then it will be resolved against the location of the parent script file that is including it.
+     *
+     * @param path The absolute path to the external Groovy DSL to included into the server.
+     * @since 1.3
+     */
+    void include(Path path);
+
+    /**
+     * Evaluates the path provided using the Ratpack DSL and applies the configuration to this server.
+     * <p>
+     * The provided string is evaluated using {@link java.nio.file.Paths#get(String, String...)}
+     *
+     * @param path The absolute path to the external Groovy DSL to included into the server.
+     * @see #include(Path)
+     * @since 1.3
+     */
+    void include(String path);
 
   }
 
@@ -697,6 +725,32 @@ public abstract class Groovy {
 
   public static Markup markupBuilder(CharSequence contentType, Charset encoding, @DelegatesTo(value = MarkupBuilder.class, strategy = Closure.DELEGATE_FIRST) Closure<?> closure) {
     return new Markup(contentType, encoding, closure);
+  }
+
+  /**
+   * Builds a content negotiating handler.
+   *
+   * @param registry the registry to obtain handlers from for by-class lookups
+   * @param closure the spec action
+   * @return a content negotiating handler
+   * @throws Exception any thrown by {@code action}
+   * @since 1.5
+   */
+  public static Handler byContent(Registry registry, @DelegatesTo(value = GroovyByMethodSpec.class, strategy = Closure.DELEGATE_FIRST) Closure<?> closure) throws Exception {
+    return Handlers.byContent(registry, s -> ClosureUtil.configureDelegateFirst(new DefaultGroovyByContentSpec(s), closure));
+  }
+
+  /**
+   * Builds a multi method handler.
+   *
+   * @param registry the registry to obtain handlers from for by-class lookups
+   * @param closure the spec action
+   * @return a multi method handler
+   * @throws Exception any thrown by {@code action}
+   * @since 1.5
+   */
+  public static Handler byMethod(Registry registry, @DelegatesTo(value = GroovyByContentSpec.class, strategy = Closure.DELEGATE_FIRST) Closure<?> closure) throws Exception {
+    return Handlers.byMethod(registry, s -> ClosureUtil.configureDelegateFirst(new DefaultGroovyByMethodSpec(s), closure));
   }
 
 }

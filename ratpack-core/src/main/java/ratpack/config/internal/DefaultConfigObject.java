@@ -16,15 +16,17 @@
 
 package ratpack.config.internal;
 
+import com.google.common.reflect.TypeToken;
 import ratpack.config.ConfigObject;
+import ratpack.util.Types;
 
 public class DefaultConfigObject<T> implements ConfigObject<T> {
 
   private final String path;
-  private final Class<T> type;
+  private final TypeToken<T> type;
   private final T object;
 
-  public DefaultConfigObject(String path, Class<T> type, T object) {
+  public DefaultConfigObject(String path, TypeToken<T> type, T object) {
     this.path = path;
     this.type = type;
     this.object = object;
@@ -37,6 +39,11 @@ public class DefaultConfigObject<T> implements ConfigObject<T> {
 
   @Override
   public Class<T> getType() {
+    return Types.cast(type.getRawType());
+  }
+
+  @Override
+  public TypeToken<T> getTypeToken() {
     return type;
   }
 

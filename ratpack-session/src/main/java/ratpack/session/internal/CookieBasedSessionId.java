@@ -70,7 +70,7 @@ public class CookieBasedSessionId implements SessionId {
             break;
           }
         }
-        cookieSessionId = match == null ? Optional.empty() : Optional.of(AsciiString.of(match.value()));
+        cookieSessionId = (match == null || match.value().isEmpty()) ? Optional.empty() : Optional.of(AsciiString.of(match.value()));
       }
     }
 

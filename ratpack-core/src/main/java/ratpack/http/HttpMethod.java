@@ -16,11 +16,66 @@
 
 package ratpack.http;
 
+import ratpack.http.internal.DefaultHttpMethod;
+
 /**
  * The method of a HTTP request.
  */
 @SuppressWarnings("UnusedDeclaration")
 public interface HttpMethod {
+
+  /**
+   * The GET method.
+   *
+   * @since 1.4
+   */
+  HttpMethod GET = DefaultHttpMethod.valueOf(io.netty.handler.codec.http.HttpMethod.GET);
+  /**
+   * The HEAD method.
+   *
+   * @since 1.4
+   */
+  HttpMethod HEAD = DefaultHttpMethod.valueOf(io.netty.handler.codec.http.HttpMethod.HEAD);
+  /**
+   * The POST method.
+   *
+   * @since 1.4
+   */
+  HttpMethod POST = DefaultHttpMethod.valueOf(io.netty.handler.codec.http.HttpMethod.POST);
+  /**
+   * The PUT method.
+   *
+   * @since 1.4
+   */
+  HttpMethod PUT = DefaultHttpMethod.valueOf(io.netty.handler.codec.http.HttpMethod.PUT);
+  /**
+   * The DELETE method.
+   *
+   * @since 1.4
+   */
+  HttpMethod DELETE = DefaultHttpMethod.valueOf(io.netty.handler.codec.http.HttpMethod.DELETE);
+  /**
+   * The PATCH method.
+   *
+   * @since 1.4
+   */
+  HttpMethod PATCH = DefaultHttpMethod.valueOf(io.netty.handler.codec.http.HttpMethod.PATCH);
+  /**
+   * The OPTIONS method.
+   *
+   * @since 1.4
+   */
+  HttpMethod OPTIONS = DefaultHttpMethod.valueOf(io.netty.handler.codec.http.HttpMethod.OPTIONS);
+
+  /**
+   * Creates a method of the given name.
+   *
+   * @param name the method name
+   * @since 1.4
+   */
+  static HttpMethod of(String name) {
+    return DefaultHttpMethod.valueOf(io.netty.handler.codec.http.HttpMethod.valueOf(name.toUpperCase()));
+  }
 
   /**
    * The name of the method, always in upper case.
@@ -85,5 +140,15 @@ public interface HttpMethod {
    * @return True if the given name equals {@link #getName()} irrespective of case.
    */
   boolean name(String name);
+
+  /**
+   * Returns the method in the underlying Netty form.
+   * <p>
+   * Use of this method should be avoided, in favor of using the other methods of this interface.
+   *
+   * @return the method in the underlying Netty form
+   * @since 1.4
+   */
+  io.netty.handler.codec.http.HttpMethod getNettyMethod();
 
 }

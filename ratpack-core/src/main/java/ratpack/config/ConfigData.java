@@ -18,9 +18,11 @@ package ratpack.config;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
+import com.google.common.reflect.TypeToken;
 import ratpack.config.internal.DefaultConfigDataBuilder;
 import ratpack.func.Action;
 import ratpack.server.internal.ServerEnvironment;
+import ratpack.util.Types;
 
 /**
  * Configuration data for the application, potentially built from many sources.
@@ -70,7 +72,6 @@ public interface ConfigData {
    * The default object mapper is constructed without argument.
    * It then has the following Jackson modules applied implicitly:
    * <ul>
-   *     <li>{@link com.fasterxml.jackson.datatype.jdk7.Jdk7Module}</li>
    *     <li>{@link com.fasterxml.jackson.datatype.jdk8.Jdk8Module}</li>
    *     <li>{@link com.fasterxml.jackson.datatype.guava.GuavaModule}</li>
    *     <li>{@link com.fasterxml.jackson.datatype.jsr310.JavaTimeModule}</li>
@@ -136,7 +137,20 @@ public interface ConfigData {
    * @param <O> the type to bind to
    * @return a config object of the specified type with bound configuration data
    */
-  <O> ConfigObject<O> getAsConfigObject(String pointer, Class<O> type);
+  default <O> ConfigObject<O> getAsConfigObject(String pointer, Class<O> type) {
+    return getAsConfigObject(pointer, Types.token(type));
+  }
+
+  /**
+   * Binds a segment of the configuration data to the specified type.
+   *
+   * @param pointer a <a href="https://tools.ietf.org/html/rfc6901">JSON Pointer</a> specifying the point in the configuration data to bind from
+   * @param type the class of the type to bind to
+   * @param <O> the type to bind to
+   * @return a config object of the specified type with bound configuration data
+   * @since 1.4
+   */
+  <O> ConfigObject<O> getAsConfigObject(String pointer, TypeToken<O> type);
 
   /**
    * Binds the root of the configuration data to the specified type.

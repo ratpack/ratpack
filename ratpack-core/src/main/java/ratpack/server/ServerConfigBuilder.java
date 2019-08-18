@@ -18,6 +18,9 @@ package ratpack.server;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.io.ByteSource;
+import com.google.common.reflect.TypeToken;
+import io.netty.handler.ssl.SslContext;
+import io.netty.handler.ssl.SslContextBuilder;
 import ratpack.config.ConfigData;
 import ratpack.config.ConfigDataBuilder;
 import ratpack.config.ConfigSource;
@@ -25,13 +28,16 @@ import ratpack.config.EnvironmentParser;
 import ratpack.func.Action;
 import ratpack.func.Function;
 import ratpack.impose.ServerConfigImposition;
+import ratpack.util.Types;
 
 import javax.net.ssl.SSLContext;
 import java.io.File;
+import java.lang.reflect.Type;
 import java.net.InetAddress;
 import java.net.URI;
 import java.net.URL;
 import java.nio.file.Path;
+import java.time.Duration;
 import java.util.Map;
 import java.util.Properties;
 
@@ -68,6 +74,27 @@ public interface ServerConfigBuilder extends ConfigDataBuilder {
    */
   default ServerConfigBuilder baseDir(File file) {
     return baseDir(file.toPath());
+  }
+
+  /**
+   * Sets the base dir using {@link BaseDir#find()}.
+   *
+   * @return {@code this}
+   * @since 1.4
+   */
+  default ServerConfigBuilder findBaseDir() {
+    return baseDir(BaseDir.find());
+  }
+
+  /**
+   * Sets the base dir using {@link BaseDir#find(String)}.
+   *
+   * @param markerFilePath the path to the marker file on the classpath
+   * @return {@code this}
+   * @since 1.4
+   */
+  default ServerConfigBuilder findBaseDir(String markerFilePath) {
+    return baseDir(BaseDir.find(markerFilePath));
   }
 
   /**
@@ -115,6 +142,18 @@ public interface ServerConfigBuilder extends ConfigDataBuilder {
   ServerConfigBuilder threads(int threads);
 
   /**
+   * Whether or not to register a JVM shutdown hook to gracefully stop the server.
+   * <p>
+   * Default value is {@code true}.
+   *
+   * @param registerShutdownHook whether to register or not
+   * @return {@code this}
+   * @since 1.6
+   * @see ServerConfig#isRegisterShutdownHook()
+   */
+  ServerConfigBuilder registerShutdownHook(boolean registerShutdownHook);
+
+  /**
    * The public address of the application.
    * <p>
    * Default value is {@code null}.
@@ -148,6 +187,30 @@ public interface ServerConfigBuilder extends ConfigDataBuilder {
   ServerConfigBuilder maxChunkSize(int maxChunkSize);
 
   /**
+   * The maximum initial line length allowed for reading http requests.
+   *
+   * Default value is {@link ServerConfig#DEFAULT_MAX_INITIAL_LINE_LENGTH}.
+   *
+   * @param maxInitialLineLength the maximum length of the initial line of the request.
+   * @return {@code this}
+   * @see ServerConfig#getMaxInitialLineLength()
+   * @since 1.4
+   */
+  ServerConfigBuilder maxInitialLineLength(int maxInitialLineLength);
+
+  /**
+   * The maximum size of all headers allowed for reading http requests.
+   *
+   * Default value is {@link ServerConfig#DEFAULT_MAX_HEADER_SIZE}.
+   *
+   * @param maxHeaderSize the maximum size of the sum of the length of all headers.
+   * @return {@code this}
+   * @see ServerConfig#getMaxHeaderSize()
+   * @since 1.4
+   */
+  ServerConfigBuilder maxHeaderSize(int maxHeaderSize);
+
+  /**
    * The connect timeout of the channel.
    *
    * @param connectTimeoutMillis the connect timeout in milliseconds
@@ -155,6 +218,16 @@ public interface ServerConfigBuilder extends ConfigDataBuilder {
    * @see ServerConfig#getConnectTimeoutMillis()
    */
   ServerConfigBuilder connectTimeoutMillis(int connectTimeoutMillis);
+
+  /**
+   * The default read timeout of the channel.
+   *
+   * @param idleTimeout the idleTimeout ({@link Duration#ZERO} = no timeout, must not be negative, must not be null)
+   * @return {@code this}
+   * @see ServerConfig#getIdleTimeout()
+   * @since 1.5
+   */
+  ServerConfigBuilder idleTimeout(Duration idleTimeout);
 
   /**
    * The maximum number of messages to read per read loop.
@@ -175,6 +248,21 @@ public interface ServerConfigBuilder extends ConfigDataBuilder {
   ServerConfigBuilder receiveBufferSize(int receiveBufferSize);
 
   /**
+   * The maximum amount of connections that may be waiting to be accepted at any time.
+   * <p>
+   * This is effectively the {@code SO_BACKLOG} standard socket parameter.
+   * If the queue is full (i.e. there are too many pending connections), connection attempts will be rejected.
+   * Established connections are not part of this queue so do not contribute towards the limit.
+   * <p>
+   * The default value is platform specific, but usually either 200 or 128.
+   * Most application do not need to change this default.
+   *
+   * @param connectQueueSize connection queue size
+   * @since 1.5
+   */
+  ServerConfigBuilder connectQueueSize(int connectQueueSize);
+
+  /**
    * The maximum loop count for a write operation until <a href="http://docs.oracle.com/javase/7/docs/api/java/nio/channels/WritableByteChannel.html?is-external=true#write(java.nio.ByteBuffer)" target="_blank">WritableByteChannel.write(ByteBuffer)</a> returns a non-zero value.
    *
    * @param writeSpinCount the write spin count
@@ -190,7 +278,9 @@ public interface ServerConfigBuilder extends ConfigDataBuilder {
    * @return {@code this}
    * @see ratpack.ssl.SSLContexts
    * @see ServerConfig#getSslContext()
+   * @deprecated since 1.5, replaced by {@link #ssl(SslContext)}
    */
+  @Deprecated
   ServerConfigBuilder ssl(SSLContext sslContext);
 
   /**
@@ -198,8 +288,20 @@ public interface ServerConfigBuilder extends ConfigDataBuilder {
    *
    * @param requireClientSslAuth whether or not server needs client SSL authentication
    * @return {@code this}
+   * @deprecated since 1.5, prefer {@link #ssl(SslContext)}
    */
+  @Deprecated
   ServerConfigBuilder requireClientSslAuth(boolean requireClientSslAuth);
+
+  /**
+   * The SSL context to use if the application serves content over HTTPS.
+   *
+   * @param sslContext the SSL context
+   * @return {@code this}
+   * @see SslContextBuilder
+   * @since 1.5
+   */
+  ServerConfigBuilder ssl(SslContext sslContext);
 
   /**
    * {@inheritDoc}
@@ -312,6 +414,13 @@ public interface ServerConfigBuilder extends ConfigDataBuilder {
    */
   @Override
   ServerConfigBuilder props(Properties properties);
+
+  /**
+   * {@inheritDoc}
+   * @since 1.4
+   */
+  @Override
+  ServerConfigBuilder object(String path, Object object);
 
   /**
    * {@inheritDoc}
@@ -466,7 +575,31 @@ public interface ServerConfigBuilder extends ConfigDataBuilder {
    * @param type the class of the type to bind to
    * @return {@code this}
    */
-  ServerConfigBuilder require(String pointer, Class<?> type);
+  default ServerConfigBuilder require(String pointer, Class<?> type) {
+    return require(pointer, Types.token(type));
+  }
+
+  /**
+   * Declares that it is required that the server config provide an object of the given type at the given path.
+   *
+   * @param pointer a <a href="https://tools.ietf.org/html/rfc6901">JSON Pointer</a> specifying the point in the configuration data to bind from
+   * @param type the type to bind to
+   * @return {@code this}
+   * @since 1.4
+   */
+  default ServerConfigBuilder require(String pointer, Type type) {
+    return require(pointer, Types.token(type));
+  }
+
+  /**
+   * Declares that it is required that the server config provide an object of the given type at the given path.
+   *
+   * @param pointer a <a href="https://tools.ietf.org/html/rfc6901">JSON Pointer</a> specifying the point in the configuration data to bind from
+   * @param type the type to bind to
+   * @return {@code this}
+   * @since 1.4
+   */
+  ServerConfigBuilder require(String pointer, TypeToken<?> type);
 
   /**
    * Builds the server config.

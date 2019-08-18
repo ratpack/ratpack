@@ -19,8 +19,3 @@ apply from: "$rootDir/gradle/javaModule.gradle"
 dependencies {
   compile commonDependencies.groovy
 }
-
-configurations {
-  compile.extendsFrom groovy
-  testCompile.extendsFrom -= groovy
-}

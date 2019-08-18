@@ -17,32 +17,49 @@
 package ratpack.test.internal
 
 import io.netty.util.CharsetUtil
+import io.netty.util.ResourceLeakDetectorFactory
 import org.junit.Rule
 import org.junit.rules.TemporaryFolder
 import ratpack.http.client.RequestSpec
 import ratpack.test.embed.EmbeddedApp
 import ratpack.test.http.TestHttpClient
+import ratpack.test.internal.spock.InheritedTimeout
+import ratpack.test.internal.spock.InheritedUnroll
 import spock.lang.Specification
+import spock.util.concurrent.PollingConditions
 
 import java.nio.charset.Charset
+import java.util.concurrent.atomic.AtomicReference
 
-import static ratpack.test.http.TestHttpClient.testHttpClient
-
+@InheritedTimeout(30)
+@InheritedUnroll
 abstract class EmbeddedRatpackSpec extends Specification {
 
+  private static final AtomicReference<Boolean> LEAKED = new AtomicReference<>(false)
+
+  static {
+    System.setProperty("io.netty.leakDetectionLevel", "paranoid")
+    ResourceLeakDetectorFactory.resourceLeakDetectorFactory = new FlaggingResourceLeakDetectorFactory(LEAKED)
+  }
   @Rule
   TemporaryFolder temporaryFolder
 
   @Delegate
   TestHttpClient client
 
+  boolean failOnLeak = true
+
   abstract EmbeddedApp getApplication()
+
+  @SuppressWarnings("FieldName")
+  public static final PollingConditions wait = new PollingConditions(timeout: 3)
 
   void configureRequest(RequestSpec requestSpecification) {
     // do nothing
   }
 
   def setup() {
+    LEAKED.set(false)
     client = testHttpClient({ application.address }) {
       configureRequest(it)
     }
@@ -54,11 +71,14 @@ abstract class EmbeddedRatpackSpec extends Specification {
     } catch (Throwable ignore) {
 
     }
+
+    if (LEAKED.get() && failOnLeak) {
+      throw new Exception("A resource has leaked in this test!")
+    }
   }
 
   String rawResponse(Charset charset = CharsetUtil.UTF_8) {
-    StringBuilder builder = new StringBuilder()
-    Socket socket = new Socket(application.address.host, application.address.port)
+    Socket socket = socket()
     try {
       new OutputStreamWriter(socket.outputStream, "UTF-8").with {
         write("GET / HTTP/1.1\r\n")
@@ -67,18 +87,21 @@ abstract class EmbeddedRatpackSpec extends Specification {
         flush()
       }
 
-      InputStreamReader inputStreamReader = new InputStreamReader(socket.inputStream, charset)
-      BufferedReader bufferedReader = new BufferedReader(inputStreamReader)
-
-      def chunk
-      while ((chunk = bufferedReader.readLine()) != null) {
-        builder.append(chunk).append("\n")
-      }
-
-      builder.toString()
+      socket.inputStream.getText(charset.name()).normalize()
     } finally {
       socket.close()
     }
   }
 
+  Socket socket() {
+    Socket socket = new Socket()
+    socket.connect(new InetSocketAddress(application.address.host, application.address.port))
+    socket
+  }
+
+  Socket withSocket(Socket socket = this.socket(), @DelegatesTo(OutputStream) Closure<?> closure) {
+    def os = socket.outputStream
+    new OutputStreamWriter(os, "UTF-8").with(closure)
+    socket
+  }
 }

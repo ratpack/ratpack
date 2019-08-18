@@ -20,13 +20,15 @@ package ratpack.test.http.internal;
 import com.google.common.collect.ImmutableMultimap;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
-import com.google.common.net.HostAndPort;
 import io.netty.handler.codec.http.cookie.ClientCookieDecoder;
 import io.netty.handler.codec.http.cookie.ClientCookieEncoder;
 import io.netty.handler.codec.http.cookie.Cookie;
+import ratpack.exec.ExecController;
+import ratpack.exec.internal.DefaultExecController;
 import ratpack.func.Action;
 import ratpack.func.Function;
 import ratpack.http.HttpUrlBuilder;
+import ratpack.http.client.HttpClient;
 import ratpack.http.client.ReceivedResponse;
 import ratpack.http.client.RequestSpec;
 import ratpack.http.client.internal.DelegatingRequestSpec;
@@ -34,6 +36,8 @@ import ratpack.http.internal.HttpHeaderConstants;
 import ratpack.test.ApplicationUnderTest;
 import ratpack.test.http.TestHttpClient;
 import ratpack.test.internal.BlockingHttpClient;
+import ratpack.test.internal.TestByteBufAllocators;
+import ratpack.util.Exceptions;
 
 import java.net.URI;
 import java.net.URISyntaxException;
@@ -96,7 +100,7 @@ public class DefaultTestHttpClient implements TestHttpClient {
 
   @Override
   public ReceivedResponse head(String path) {
-    return request(path, spec -> spec.method("HEAD"));
+    return request(path, RequestSpec::head);
   }
 
   @Override
@@ -106,7 +110,7 @@ public class DefaultTestHttpClient implements TestHttpClient {
 
   @Override
   public ReceivedResponse options(String path) {
-    return request(path, spec -> spec.method("OPTIONS"));
+    return request(path, RequestSpec::options);
   }
 
   @Override
@@ -126,7 +130,7 @@ public class DefaultTestHttpClient implements TestHttpClient {
 
   @Override
   public ReceivedResponse get(String path) {
-    return request(path, spec -> spec.method("GET"));
+    return request(path, RequestSpec::get);
   }
 
   @Override
@@ -146,7 +150,7 @@ public class DefaultTestHttpClient implements TestHttpClient {
 
   @Override
   public ReceivedResponse post(String path) {
-    return request(path, spec -> spec.method("POST"));
+    return request(path, RequestSpec::post);
   }
 
   @Override
@@ -167,7 +171,7 @@ public class DefaultTestHttpClient implements TestHttpClient {
 
   @Override
   public ReceivedResponse put(String path) {
-    return request(path, spec -> spec.method("PUT"));
+    return request(path, RequestSpec::put);
   }
 
   @Override
@@ -188,7 +192,7 @@ public class DefaultTestHttpClient implements TestHttpClient {
 
   @Override
   public ReceivedResponse patch(String path) {
-    return request(path, spec -> spec.method("PATCH"));
+    return request(path, RequestSpec::patch);
   }
 
   @Override
@@ -208,7 +212,7 @@ public class DefaultTestHttpClient implements TestHttpClient {
 
   @Override
   public ReceivedResponse delete(String path) {
-    return request(path, spec -> spec.method("DELETE"));
+    return request(path, RequestSpec::delete);
   }
 
   @Override
@@ -228,18 +232,17 @@ public class DefaultTestHttpClient implements TestHttpClient {
 
   @Override
   public ReceivedResponse request(String path, Action<? super RequestSpec> requestAction) {
-    try {
+    try (ExecController execController = new DefaultExecController(2)) {
       URI uri = builder(path).params(params).build();
-
-      response = client.request(uri, Duration.ofMinutes(60), requestSpec -> {
-        final RequestSpec decorated = new CookieHandlingRequestSpec(requestSpec);
-        decorated.method("GET");
-        defaultRequestConfig.execute(decorated);
-        request.execute(decorated);
-        requestAction.execute(decorated);
-        int port = uri.getPort() > 0 ? uri.getPort() : 80;
-        requestSpec.getHeaders().add(HttpHeaderConstants.HOST, HostAndPort.fromParts(uri.getHost(), port).toString());
-      });
+      try (HttpClient httpClient = httpClient()) {
+        response = client.request(httpClient, uri, execController, Duration.ofMinutes(60), requestSpec -> {
+          final RequestSpec decorated = new CookieHandlingRequestSpec(requestSpec);
+          decorated.get();
+          defaultRequestConfig.execute(decorated);
+          request.execute(decorated);
+          requestAction.execute(decorated);
+        });
+      }
     } catch (Throwable throwable) {
       throw uncheck(throwable);
     }
@@ -248,8 +251,16 @@ public class DefaultTestHttpClient implements TestHttpClient {
     return response;
   }
 
+  private HttpClient httpClient() {
+    return Exceptions.uncheck(() -> HttpClient.of(s -> s
+      .byteBufAllocator(TestByteBufAllocators.LEAKING_UNPOOLED_HEAP)
+      .maxContentLength(Integer.MAX_VALUE)
+      .poolSize(8)
+    ));
+  }
+
   private void applyCookies(RequestSpec requestSpec) {
-    List<Cookie> requestCookies = getCookies(requestSpec.getUrl().getPath());
+    List<Cookie> requestCookies = getCookies(requestSpec.getUri().getPath());
     String encodedCookie = requestCookies.isEmpty() ? "" : ClientCookieEncoder.STRICT.encode(requestCookies);
     requestSpec.getHeaders().add(HttpHeaderConstants.COOKIE, encodedCookie);
   }
@@ -262,7 +273,8 @@ public class DefaultTestHttpClient implements TestHttpClient {
         if (decodedCookie.value() == null || decodedCookie.value().isEmpty()) {
           // clear cookie with the given name, skip the other parameters (path, domain) in compare to
           cookies.forEach((key, list) -> {
-            for (Iterator<Cookie> iter = list.listIterator(); iter.hasNext();) {
+            Iterator<Cookie> iter = list.listIterator();
+            while (iter.hasNext()) {
               if (iter.next().name().equals(decodedCookie.name())) {
                 iter.remove();
               }
@@ -301,9 +313,6 @@ public class DefaultTestHttpClient implements TestHttpClient {
 
   public List<Cookie> getCookies(String path) {
     List<Cookie> clonedList = Lists.newLinkedList();
-    if (cookies == null) {
-      return clonedList;
-    }
     if (path == null || "".equals(path) || "/".equals(path)) {
       List<Cookie> list = cookies.get("/");
       if (list != null) {

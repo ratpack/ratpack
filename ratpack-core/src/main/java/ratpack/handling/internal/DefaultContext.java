@@ -17,7 +17,6 @@
 package ratpack.handling.internal;
 
 import com.google.common.collect.Lists;
-import com.google.common.collect.Maps;
 import com.google.common.reflect.TypeToken;
 import io.netty.channel.Channel;
 import io.netty.channel.EventLoop;
@@ -31,25 +30,21 @@ import ratpack.exec.Promise;
 import ratpack.file.FileSystemBinding;
 import ratpack.file.internal.ResponseTransmitter;
 import ratpack.func.Action;
-import ratpack.func.Block;
 import ratpack.func.Function;
 import ratpack.handling.*;
 import ratpack.handling.direct.DirectChannelAccess;
-import ratpack.http.Request;
-import ratpack.http.Response;
-import ratpack.http.TypedData;
+import ratpack.http.*;
 import ratpack.http.internal.DefaultRequest;
 import ratpack.http.internal.HttpHeaderConstants;
 import ratpack.parse.NoSuchParserException;
 import ratpack.parse.Parse;
 import ratpack.parse.Parser;
+import ratpack.path.InvalidPathEncodingException;
 import ratpack.path.PathBinding;
-import ratpack.path.PathTokens;
 import ratpack.path.internal.PathBindingStorage;
 import ratpack.path.internal.RootPathBinding;
 import ratpack.registry.NotInRegistryException;
 import ratpack.registry.Registry;
-import ratpack.registry.internal.TypeCaching;
 import ratpack.render.NoSuchRendererException;
 import ratpack.render.internal.RenderController;
 import ratpack.server.ServerConfig;
@@ -58,100 +53,29 @@ import ratpack.util.Types;
 
 import java.lang.reflect.UndeclaredThrowableException;
 import java.nio.file.Path;
+import java.time.Instant;
 import java.util.*;
 
 import static com.google.common.base.Throwables.getStackTraceAsString;
 import static io.netty.handler.codec.http.HttpHeaderNames.IF_MODIFIED_SINCE;
-import static io.netty.handler.codec.http.HttpResponseStatus.NOT_MODIFIED;
 import static ratpack.util.Exceptions.uncheck;
 
 public class DefaultContext implements Context {
 
-  private static final TypeToken<Parser<?>> PARSER_TYPE_TOKEN = TypeCaching.typeToken(new TypeToken<Parser<?>>() {});
+  private static final TypeToken<Parser<?>> PARSER_TYPE_TOKEN = Types.intern(new TypeToken<Parser<?>>() {});
 
   private final static Logger LOGGER = LoggerFactory.getLogger(DefaultContext.class);
+  private final RequestConstants requestConstants;
+  private Registry joinedRegistry;
+  private PathBindingStorage pathBindings;
+
+  public DefaultContext(RequestConstants requestConstants) {
+    this.requestConstants = requestConstants;
+  }
 
   public static Context current() {
     return Execution.current().get(Context.TYPE);
   }
-
-  public static class ApplicationConstants {
-    private final RenderController renderController;
-    private final ExecController execController;
-    private final ServerConfig serverConfig;
-    private final Handler end;
-
-    public ApplicationConstants(Registry registry, RenderController renderController, ExecController execController, Handler end) {
-      this.renderController = renderController;
-      this.execController = execController;
-      this.serverConfig = registry.get(ServerConfig.TYPE);
-      this.end = end;
-    }
-  }
-
-  public static class RequestConstants implements DirectChannelAccess {
-    private final ApplicationConstants applicationConstants;
-    private final DefaultRequest request;
-    private final Channel channel;
-    private final ResponseTransmitter responseTransmitter;
-    private final Action<Action<Object>> onTakeOwnership;
-
-    private Execution execution;
-
-    private final Deque<ChainIndex> indexes = new ArrayDeque<>();
-
-    public Response response;
-    public Context context;
-    public Handler handler;
-
-    public RequestConstants(ApplicationConstants applicationConstants, DefaultRequest request, Channel channel, ResponseTransmitter responseTransmitter, Action<Action<Object>> onTakeOwnership) {
-      this.applicationConstants = applicationConstants;
-      this.request = request;
-      this.channel = channel;
-      this.responseTransmitter = responseTransmitter;
-      this.onTakeOwnership = onTakeOwnership;
-    }
-
-    @Override
-    public Channel getChannel() {
-      return channel;
-    }
-
-    @Override
-    public void takeOwnership(Action<Object> messageReceiver) {
-      try {
-        onTakeOwnership.execute(messageReceiver);
-      } catch (Exception e) {
-        throw uncheck(e);
-      }
-    }
-  }
-
-  private static class ChainIndex implements Iterator<Handler> {
-    final Handler[] handlers;
-    Registry registry;
-    final boolean first;
-    int i;
-
-    private ChainIndex(Handler[] handlers, Registry registry, boolean first) {
-      this.handlers = handlers;
-      this.registry = registry;
-      this.first = first;
-    }
-
-    public Handler next() {
-      return handlers[i++];
-    }
-
-    @Override
-    public boolean hasNext() {
-      return i < handlers.length;
-    }
-  }
-
-  private final RequestConstants requestConstants;
-  private Registry joinedRegistry;
-  private PathBindingStorage pathBindings;
 
   public static void start(EventLoop eventLoop, final RequestConstants requestConstants, Registry registry, Handler[] handlers, Action<? super Execution> onComplete) {
     ChainIndex index = new ChainIndex(handlers, registry, true);
@@ -179,28 +103,6 @@ public class DefaultContext implements Context {
         context.joinedRegistry = new ContextRegistry(context).join(requestConstants.execution);
         context.next();
       });
-  }
-
-  private static class ContextRegistry implements Registry {
-    private final DefaultContext context;
-
-    public ContextRegistry(DefaultContext context) {
-      this.context = context;
-    }
-
-    @Override
-    public <O> Optional<O> maybeGet(TypeToken<O> type) {
-      return context.getCurrentRegistry().maybeGet(type);
-    }
-
-    @Override
-    public <O> Iterable<? extends O> getAll(TypeToken<O> type) {
-      return context.getCurrentRegistry().getAll(type);
-    }
-  }
-
-  public DefaultContext(RequestConstants requestConstants) {
-    this.requestConstants = requestConstants;
   }
 
   private Registry getCurrentRegistry() {
@@ -286,16 +188,47 @@ public class DefaultContext implements Context {
     next();
   }
 
-  public PathTokens getPathTokens() {
-    return pathBindings.peek().getTokens();
+  public void byMethod(Action<? super ByMethodSpec> action) throws Exception {
+    Handlers.byMethod(this, action).handle(this);
   }
 
-  public PathTokens getAllPathTokens() {
-    return pathBindings.peek().getAllTokens();
+  public void byContent(Action<? super ByContentSpec> action) throws Exception {
+    Handlers.byContent(this, action).handle(this);
   }
 
-  public Path file(String path) {
-    return get(FileSystemBinding.TYPE).file(path);
+  public void error(Throwable throwable) {
+    if (throwable instanceof ClientErrorException) {
+      clientError(((ClientErrorException) throwable).getClientErrorCode());
+      return;
+    }
+
+    ServerErrorHandler serverErrorHandler = get(ServerErrorHandler.TYPE);
+    throwable = unpackThrowable(throwable);
+
+    ThrowableHolder throwableHolder = getRequest().maybeGet(ThrowableHolder.TYPE).orElse(null);
+    if (throwableHolder == null) {
+      getRequest().add(ThrowableHolder.TYPE, new ThrowableHolder(throwable));
+
+      try {
+        if (throwable instanceof InvalidPathEncodingException) {
+          serverErrorHandler.error(this, (InvalidPathEncodingException) throwable);
+        } else {
+          serverErrorHandler.error(this, throwable);
+        }
+      } catch (Throwable errorHandlerThrowable) {
+        onErrorHandlerError(serverErrorHandler, throwable, errorHandlerThrowable);
+      }
+    } else {
+      onErrorHandlerError(serverErrorHandler, throwableHolder.getThrowable(), throwable);
+    }
+  }
+
+  public void clientError(int statusCode) {
+    try {
+      get(ClientErrorHandler.TYPE).error(this, statusCode);
+    } catch (Throwable e) {
+      error(Exceptions.toException(e));
+    }
   }
 
   public void render(Object object) throws NoSuchRendererException {
@@ -308,9 +241,62 @@ public class DefaultContext implements Context {
     }
   }
 
+  public void redirect(Object to) {
+    redirect(302, to);
+  }
+
+  public void redirect(int code, Object to) {
+    Redirector redirector = joinedRegistry.get(Redirector.TYPE);
+    redirector.redirect(this, code, to);
+  }
+
+  @Override
+  public void lastModified(Instant lastModified, Runnable runnable) {
+    Instant ifModifiedSince = requestConstants.request.getHeaders().getInstant(IF_MODIFIED_SINCE);
+
+    if (ifModifiedSince != null) {
+      // Normalise to second resolution
+      ifModifiedSince = Instant.ofEpochSecond(ifModifiedSince.getEpochSecond());
+      lastModified = Instant.ofEpochSecond(lastModified.getEpochSecond());
+
+      if (!lastModified.isAfter(ifModifiedSince)) {
+        requestConstants.response.status(Status.NOT_MODIFIED).send();
+        return;
+      }
+    }
+
+    requestConstants.response.getHeaders().setDate(HttpHeaderConstants.LAST_MODIFIED, lastModified);
+    runnable.run();
+  }
+
+  @Override
+  public <T> Promise<T> parse(Class<T> type) {
+    return parse(Parse.of(type));
+  }
+
+  @Override
+  public <T> Promise<T> parse(TypeToken<T> type) {
+    return parse(Parse.of(type));
+  }
+
+  public <T, O> Promise<T> parse(Class<T> type, O opts) {
+    return parse(Parse.of(type, opts));
+  }
+
+  public <T, O> Promise<T> parse(TypeToken<T> type, O opts) {
+    return parse(Parse.of(type, opts));
+  }
+
   @Override
   public <T, O> Promise<T> parse(Parse<T, O> parse) {
-    return getRequest().getBody().map(b -> parse(b, parse));
+    return getRequest().getBody()
+      .map(b -> {
+        try {
+          return parse(b, parse);
+        } finally {
+          b.getBuffer().release();
+        }
+      });
   }
 
   @Override
@@ -340,21 +326,13 @@ public class DefaultContext implements Context {
   }
 
   @Override
-  public <T> Promise<T> parse(Class<T> type) {
-    return parse(Parse.of(type));
+  public DirectChannelAccess getDirectChannelAccess() {
+    return requestConstants;
   }
 
   @Override
-  public <T> Promise<T> parse(TypeToken<T> type) {
-    return parse(Parse.of(type));
-  }
-
-  public <T, O> Promise<T> parse(Class<T> type, O opts) {
-    return parse(Parse.of(type, opts));
-  }
-
-  public <T, O> Promise<T> parse(TypeToken<T> type, O opts) {
-    return parse(Parse.of(type, opts));
+  public PathBinding getPathBinding() {
+    return pathBindings.peek();
   }
 
   @Override
@@ -362,55 +340,8 @@ public class DefaultContext implements Context {
     requestConstants.responseTransmitter.addOutcomeListener(callback);
   }
 
-  @Override
-  public DirectChannelAccess getDirectChannelAccess() {
-    return requestConstants;
-  }
-
-  public void redirect(Object to) {
-    redirect(302, to);
-  }
-
-  public void redirect(int code, Object to) {
-    Redirector redirector = joinedRegistry.get(Redirector.TYPE);
-    redirector.redirect(this, code, to);
-  }
-
-  @Override
-  public void lastModified(Date date, Runnable runnable) {
-    Date ifModifiedSinceHeader = requestConstants.request.getHeaders().getDate(IF_MODIFIED_SINCE);
-    long lastModifiedSecs = date.getTime() / 1000;
-
-    if (ifModifiedSinceHeader != null) {
-      long time = ifModifiedSinceHeader.getTime();
-      long ifModifiedSinceSecs = time / 1000;
-
-      if (lastModifiedSecs == ifModifiedSinceSecs) {
-        requestConstants.response.status(NOT_MODIFIED.code()).send();
-        return;
-      }
-    }
-
-    requestConstants.response.getHeaders().setDate(HttpHeaderConstants.LAST_MODIFIED, date);
-    runnable.run();
-  }
-
-  public void error(Throwable throwable) {
-    ServerErrorHandler serverErrorHandler = get(ServerErrorHandler.TYPE);
-    throwable = unpackThrowable(throwable);
-
-    ThrowableHolder throwableHolder = getRequest().maybeGet(ThrowableHolder.TYPE).orElse(null);
-    if (throwableHolder == null) {
-      getRequest().add(ThrowableHolder.TYPE, new ThrowableHolder(throwable));
-
-      try {
-        serverErrorHandler.error(this, throwable);
-      } catch (Throwable errorHandlerThrowable) {
-        onErrorHandlerError(serverErrorHandler, throwable, errorHandlerThrowable);
-      }
-    } else {
-      onErrorHandlerError(serverErrorHandler, throwableHolder.getThrowable(), throwable);
-    }
+  public Path file(String path) {
+    return get(FileSystemBinding.TYPE).file(path);
   }
 
   private void onErrorHandlerError(ServerErrorHandler serverErrorHandler, Throwable original, Throwable errorHandlerThrowable) {
@@ -436,34 +367,102 @@ public class DefaultContext implements Context {
     }
   }
 
-  public void clientError(int statusCode) {
-    try {
-      get(ClientErrorHandler.TYPE).error(this, statusCode);
-    } catch (Throwable e) {
-      error(Exceptions.toException(e));
-    }
-  }
-
-  public void byMethod(Action<? super ByMethodSpec> action) throws Exception {
-    Map<String, Block> blocks = Maps.newLinkedHashMap();
-    DefaultByMethodSpec spec = new DefaultByMethodSpec(blocks);
-    action.execute(spec);
-    new MultiMethodHandler(blocks).handle(this);
-  }
-
-  public void byContent(Action<? super ByContentSpec> action) throws Exception {
-    Map<String, Block> blocks = Maps.newLinkedHashMap();
-    DefaultByContentSpec spec = new DefaultByContentSpec(blocks);
-    action.execute(spec);
-    new ContentNegotiationHandler(blocks, spec.getNoMatchHandler()).handle(this);
-  }
-
   @Override
   public <O> O get(TypeToken<O> type) throws NotInRegistryException {
     if (type.equals(PathBinding.TYPE)) {
-      return Types.cast(pathBindings.peek());
+      return Types.cast(getPathBinding());
     }
     return joinedRegistry.get(type);
+  }
+
+  public static class ApplicationConstants {
+    private final RenderController renderController;
+    private final ExecController execController;
+    private final ServerConfig serverConfig;
+    private final Handler end;
+
+    public ApplicationConstants(Registry registry, RenderController renderController, ExecController execController, Handler end) {
+      this.renderController = renderController;
+      this.execController = execController;
+      this.serverConfig = registry.get(ServerConfig.TYPE);
+      this.end = end;
+    }
+  }
+
+  public static class RequestConstants implements DirectChannelAccess {
+    private final ApplicationConstants applicationConstants;
+    private final DefaultRequest request;
+    private final Channel channel;
+    private final ResponseTransmitter responseTransmitter;
+    private final Action<Action<Object>> onTakeOwnership;
+    private final Deque<ChainIndex> indexes = new ArrayDeque<>();
+    public Response response;
+    public Context context;
+    public Handler handler;
+    private Execution execution;
+
+    public RequestConstants(ApplicationConstants applicationConstants, DefaultRequest request, Channel channel, ResponseTransmitter responseTransmitter, Action<Action<Object>> onTakeOwnership) {
+      this.applicationConstants = applicationConstants;
+      this.request = request;
+      this.channel = channel;
+      this.responseTransmitter = responseTransmitter;
+      this.onTakeOwnership = onTakeOwnership;
+    }
+
+    @Override
+    public Channel getChannel() {
+      return channel;
+    }
+
+    @Override
+    public void takeOwnership(Action<Object> messageReceiver) {
+      try {
+        onTakeOwnership.execute(messageReceiver);
+      } catch (Exception e) {
+        throw uncheck(e);
+      }
+    }
+
+  }
+
+  private static class ChainIndex implements Iterator<Handler> {
+    final Handler[] handlers;
+    final boolean first;
+    Registry registry;
+    int i;
+
+    private ChainIndex(Handler[] handlers, Registry registry, boolean first) {
+      this.handlers = handlers;
+      this.registry = registry;
+      this.first = first;
+    }
+
+    @Override
+    public boolean hasNext() {
+      return i < handlers.length;
+    }
+
+    public Handler next() {
+      return handlers[i++];
+    }
+  }
+
+  private static class ContextRegistry implements Registry {
+    private final DefaultContext context;
+
+    public ContextRegistry(DefaultContext context) {
+      this.context = context;
+    }
+
+    @Override
+    public <O> Optional<O> maybeGet(TypeToken<O> type) {
+      return context.getCurrentRegistry().maybeGet(type);
+    }
+
+    @Override
+    public <O> Iterable<? extends O> getAll(TypeToken<O> type) {
+      return context.getCurrentRegistry().getAll(type);
+    }
   }
 
   @Override

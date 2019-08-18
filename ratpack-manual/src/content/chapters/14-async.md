@@ -113,7 +113,7 @@ See the [Blocking#get()](api/ratpack/exec/Blocking.html#get-ratpack.func.Factory
 
 ## Performing async operations
 
-The [Promise#of(Upstream<T>>)](api/ratpack/exec/Promise.html#of-ratpack.exec.Upstream-) for integrating with async APIs.
+The [Promise#async(Upstream<T>>)](api/ratpack/exec/Promise.html#async-ratpack.exec.Upstream-) for integrating with async APIs.
 It is essentially a mechanism for adapting 3rd party APIs to Ratpack's promise type.
 
 ```language-java
@@ -125,7 +125,7 @@ import static org.junit.Assert.assertEquals;
 public class Example {
   public static void main(String... args) throws Exception {
     EmbeddedApp.fromHandler(ctx ->
-        Promise.of((f) ->
+        Promise.async((f) ->
             new Thread(() -> f.success("hello world")).start()
         ).then(ctx::render)
     ).test(httpClient -> {
@@ -134,9 +134,6 @@ public class Example {
   }
 }
 ```
-
-It is important to note that the promise is always fulfilled on a compute thread managed by Ratpack.
-When the “fulfiller” is invoked from a non Ratpack thread (perhaps it's a thread managed by the 3rd party async API) the promise subscriber will be invoked on a Ratpack thread.
 
 ## Async composition and avoiding callback hell
 

@@ -28,16 +28,19 @@ import ratpack.exec.Promise;
 import ratpack.form.Form;
 import ratpack.form.internal.DefaultForm;
 import ratpack.form.internal.FormDecoder;
+import ratpack.func.Block;
 import ratpack.handling.Context;
 import ratpack.http.*;
 import ratpack.server.PublicAddress;
 import ratpack.session.Session;
 import ratpack.session.SessionData;
+import ratpack.util.Exceptions;
 import ratpack.util.MultiValueMap;
 
 import java.net.URI;
 import java.util.*;
 
+@Deprecated
 public class RatpackWebContext implements WebContext {
 
   private final Context context;
@@ -84,11 +87,12 @@ public class RatpackWebContext implements WebContext {
   }
 
   private RequestAttributes getRequestAttributes() {
-    RequestAttributes attributes = request.get(RequestAttributes.class);
-    if (attributes == null) {
-      attributes = new RequestAttributes();
-      request.add(attributes);
-    }
+    return request.maybeGet(RequestAttributes.class).orElseGet(this::addEmptyRequestAttributes);
+  }
+
+  private RequestAttributes addEmptyRequestAttributes() {
+    RequestAttributes attributes = new RequestAttributes();
+    request.add(attributes);
     return attributes;
   }
 
@@ -112,13 +116,13 @@ public class RatpackWebContext implements WebContext {
     if (value == null) {
       session.remove(name);
     } else {
-      session.set(name, value, session.getJavaSerializer());
+      Exceptions.uncheck((Block)() -> session.set(name, value, session.getJavaSerializer()));
     }
   }
 
   @Override
   public Object getSessionAttribute(String name) {
-    return session.get(name, session.getJavaSerializer()).orElse(null);
+    return Exceptions.uncheck(() -> session.get(name, session.getJavaSerializer()).orElse(null));
   }
 
   @Override
@@ -133,7 +137,7 @@ public class RatpackWebContext implements WebContext {
 
   @Override
   public String getRemoteAddr() {
-    return request.getRemoteAddress().getHostText();
+    return request.getRemoteAddress().getHost();
   }
 
   @Override
@@ -216,7 +220,9 @@ public class RatpackWebContext implements WebContext {
     final DefaultCookie newCookie = new DefaultCookie(cookie.getName(), cookie.getValue());
     newCookie.setDomain(cookie.getDomain());
     newCookie.setPath(cookie.getPath());
-    newCookie.setMaxAge(cookie.getMaxAge());
+    if (cookie.getMaxAge() >= 0) {
+      newCookie.setMaxAge(cookie.getMaxAge());
+    }
     newCookie.setSecure(cookie.isSecure());
     newCookie.setHttpOnly(cookie.isHttpOnly());
     response.getCookies().add(newCookie);

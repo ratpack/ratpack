@@ -41,7 +41,7 @@ public class Render {
   }
 
   private Promise<ByteBuf> invoke() {
-    return Promise.of(f -> {
+    return Promise.async(f -> {
         ByteBuf byteBuf = bufferAllocator.ioBuffer();
         try {
           CompiledTextTemplate fromCache = getFromCache(compiledTemplateCache, templateSource);

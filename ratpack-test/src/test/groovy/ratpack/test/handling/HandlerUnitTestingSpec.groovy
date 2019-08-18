@@ -20,6 +20,8 @@ import com.google.common.net.HostAndPort
 import io.netty.util.CharsetUtil
 import ratpack.error.ServerErrorHandler
 import ratpack.exec.Blocking
+import ratpack.form.Form
+import ratpack.form.UploadedFile
 import ratpack.func.Action
 import ratpack.groovy.internal.ClosureUtil
 import ratpack.groovy.test.handling.GroovyRequestFixture
@@ -27,8 +29,8 @@ import ratpack.handling.Context
 import ratpack.handling.Handler
 import ratpack.handling.RequestOutcome
 import ratpack.registry.Registry
+import ratpack.test.http.MultipartFormSpec
 import spock.lang.Specification
-import spock.lang.Unroll
 import spock.util.concurrent.BlockingVariable
 
 import java.util.concurrent.CountDownLatch
@@ -279,7 +281,6 @@ class HandlerUnitTestingSpec extends Specification {
     sentResponse
   }
 
-  @Unroll
   def "can set request body"() {
     //noinspection GroovyAssignabilityCheck
     given:
@@ -380,7 +381,21 @@ class HandlerUnitTestingSpec extends Specification {
     rendered(String) == [a: "1", b: "2"].toString()
   }
 
-  @Unroll
+  def "can add path past binding for unit tests"() {
+    given:
+    fixture {
+      pathBinding "bound/to", "past/binding", [:]
+    }
+
+    when:
+    handle {
+      render([boundTo: pathBinding.boundTo, pastBinding: pathBinding.pastBinding].toString())
+    }
+
+    then:
+    rendered(String) == [boundTo: "bound/to", pastBinding: "past/binding"].toString()
+  }
+
   def "can access things inserted into registry"() {
     when:
     handle {
@@ -447,7 +462,6 @@ class HandlerUnitTestingSpec extends Specification {
     result.headers.location == "http://localhost:5050/foo"
   }
 
-  @Unroll
   def "can get remote host and port"() {
     given:
     fixture.remoteAddress(HostAndPort.fromParts(host, port))
@@ -464,6 +478,95 @@ class HandlerUnitTestingSpec extends Specification {
     host         | port
     'localhost'  | 8080
     'ratpack.io' | 45678
+  }
+
+  def "can post multipart form-data"() {
+    given:
+    fixture.form(data)
+
+    when:
+    handle {
+      context.parse(Form).then { Form form ->
+        response.send(toString(form))
+      }
+    }
+
+    then:
+    bodyText == toString(data)
+
+    where:
+    data = ['name1': 'value1', 'name2': 'value2']
+    toString = { Map map -> map.collect { "${it.key}=${map.get(it.key)}" }.join('\n') }
+  }
+
+  def "can post multipart form-data using spec"() {
+    given:
+    MultipartFormSpec spec = fixture.form()
+    values.each { value ->
+      spec.field(name, value)
+    }
+
+    when:
+    handle {
+      context.parse(Form).then { Form form ->
+        response.send(form.toString())
+      }
+    }
+
+    then:
+    bodyText == [(name): values].toString()
+
+    where:
+    name = 'name1'
+    values = ['value1', 'value2']
+  }
+
+  def "can post file using multipart form"() {
+    given:
+    fixture.file(field, filename, data)
+
+    when:
+    handle {
+      context.parse(Form).then { Form form ->
+        UploadedFile file = form.file(field)
+        response.send("${file.fileName}=${file.text}")
+      }
+    }
+
+    then:
+    bodyText == "${filename}=${data}"
+
+    where:
+    field = 'upload'
+    filename = 'ratpack.md'
+    data = '# Ratpack'
+  }
+
+  def "can post file using multipart form spec"() {
+    given:
+    fixture.file()
+      .contentType(contentType)
+      .data(data)
+      .field(field)
+      .name(name)
+      .add()
+
+    when:
+    handle {
+      context.parse(Form).then { Form form ->
+        UploadedFile file = form.file(field)
+        response.send("${file.fileName}=${file.text}")
+      }
+    }
+
+    then:
+    bodyText == "${name}=${data}"
+
+    where:
+    contentType = 'text/markdown'
+    data = '# Ratpack'
+    field = 'upload'
+    name = 'ratpack.md'
   }
 
 }

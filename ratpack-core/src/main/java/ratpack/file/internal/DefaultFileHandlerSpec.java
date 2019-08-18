@@ -54,7 +54,7 @@ public class DefaultFileHandlerSpec implements FileHandlerSpec {
     }
     DefaultFileHandlerSpec spec = new DefaultFileHandlerSpec();
     config.execute(spec);
-    Handler handler = new FileHandler(spec.indexFiles);
+    Handler handler = new FileHandler(spec.indexFiles, !serverConfig.isDevelopment());
     if (spec.dir != null) {
       handler = Handlers.fileSystem(serverConfig, spec.dir, handler);
     }

@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 the original author or authors.
+ * Copyright 2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,107 +16,192 @@
 
 package ratpack.http
 
+import com.google.common.base.Charsets
+import io.netty.buffer.ByteBuf
 import io.netty.buffer.Unpooled
-import io.netty.util.CharsetUtil
+import org.reactivestreams.Subscriber
+import org.reactivestreams.Subscription
+import ratpack.exec.Execution
+import ratpack.http.client.HttpClient
+import ratpack.stream.StreamEvent
+import ratpack.stream.Streams
 import ratpack.test.internal.RatpackGroovyDslSpec
-import spock.lang.Ignore
+import spock.util.concurrent.BlockingVariable
+import spock.util.concurrent.PollingConditions
 
-import java.util.concurrent.CountDownLatch
-import java.util.concurrent.LinkedBlockingQueue
+import java.time.Duration
+import java.time.Instant
+import java.util.concurrent.ConcurrentLinkedQueue
 
+import static ratpack.http.ResponseChunks.stringChunks
 import static ratpack.stream.Streams.publish
 
 class ResponseStreamingSpec extends RatpackGroovyDslSpec {
 
-  @Ignore
-  // unstable due to different buffer sizes on different platforms
-  def "can stream response with back pressure"() {
+  def "too large unread request body is silently discarded when streaming a response"() {
+    when:
+    handlers {
+      all {
+        request.maxContentLength = 12
+        render stringChunks(
+          publish(["abc"] * 3)
+        )
+      }
+    }
+
+    then:
+    def r = request { it.post().body.text("a" * 100_000) }
+    r.status.code == 200
+    r.body.text == "abc" * 3
+  }
+
+  def "unread request body is silently discarded when streaming a response"() {
+    when:
+    handlers {
+      all {
+        request.maxContentLength = 100_000
+        render stringChunks(
+          publish(["abc"] * 3)
+        )
+      }
+    }
+
+    then:
+    def r = request { it.post().body.text("a" * 1000) }
+    r.status.code == 200
+    r.body.text == "abc" * 3
+  }
+
+  def "client cancellation causes server publisher to receive cancel"() {
     given:
-    def sent = new LinkedBlockingQueue()
-    def complete = new CountDownLatch(1)
-    Runnable valve
-    byte[] bytes
+    Queue<StreamEvent<ByteBuf>> events = new ConcurrentLinkedQueue<>()
+    def buffer = Unpooled.unreleasableBuffer(Unpooled.copiedBuffer("a" * 30720, Charsets.UTF_8))
 
     when:
     handlers {
       get {
-        def stream = publish([1, 2, 3, 4, 5]).wiretap {
-          if (it.data) {
-            sent.put(it.item)
-          } else if (it.complete) {
-            complete.countDown()
-          }
-        }.map {
-          Unpooled.wrappedBuffer(bytes)
-        }.gate {
-          valve = it
+        def stream = Streams.constant(buffer).wiretap {
+          events << it
         }
-
         response.sendStream(stream)
+      }
+      get("read") { ctx ->
+        get(HttpClient).requestStream(application.address) {
+
+        }.then {
+          it.body.subscribe(new Subscriber<ByteBuf>() {
+            @Override
+            void onSubscribe(Subscription s) {
+              Execution.sleep(Duration.ofSeconds(1)).then {
+                s.cancel()
+                ctx.render "cancel"
+              }
+            }
+
+            @Override
+            void onNext(ByteBuf byteBuf) {
+
+            }
+
+            @Override
+            void onError(Throwable t) {
+
+            }
+
+            @Override
+            void onComplete() {
+
+            }
+          })
+        }
       }
     }
 
-    Socket socket = new Socket()
-    socket.receiveBufferSize = socket.sendBufferSize
-    assert socket.receiveBufferSize == socket.sendBufferSize
+    then:
+    getText("read") == "cancel"
+    new PollingConditions().eventually {
+      events.find { it.cancel }
+    }
 
-    bytes = new byte[socket.receiveBufferSize * 2]
-    def bufferLength = bytes.length
+    cleanup:
+    buffer.release()
+  }
 
-    socket.connect(new InetSocketAddress(address.host, address.port))
+  def "client cancellation before reading headers causes stream to cancel"() {
+    given:
+    Queue<StreamEvent<ByteBuf>> events = new ConcurrentLinkedQueue<>()
+    def buffer = Unpooled.unreleasableBuffer(Unpooled.copiedBuffer("a" * 10, Charsets.UTF_8))
+
+    when:
+    handlers {
+      get {
+        def stream = Streams.periodically(context, Duration.ofSeconds(10), { buffer }).wiretap {
+          events << it
+        }
+        response.sendStream(stream.bindExec())
+      }
+    }
+
+    then:
+    InputStream is = application.address.toURL().openStream()
+    Thread.sleep(1000)
+    is.close()
+    new PollingConditions(timeout: 2).eventually {
+      events.find { it.cancel }
+    }
+
+    cleanup:
+    buffer.release()
+  }
+
+  def "request outcome has duration if client disconnects before sending response"() {
+    when:
+    def sentAt = new BlockingVariable<Instant>(5)
+    handlers {
+      get {
+        onClose {
+          sentAt.set(it.sentAt)
+        }
+        Execution.sleep(Duration.ofMillis(1000)).then {
+          render stringChunks("text/plain", Streams.constant("a"))
+        }
+      }
+    }
+
+    def socket = socket()
     new OutputStreamWriter(socket.outputStream, "UTF-8").with {
       write("GET / HTTP/1.1\r\n")
-      write("Connection: close\r\n")
       write("\r\n")
       flush()
     }
-
-    def is = socket.inputStream
-    def reader = new InputStreamReader(is, CharsetUtil.UTF_8)
-
-    reader.readLine() // status line
-    reader.readLine() // header/body separating empty line
-
-    then:
-    sent.empty
-
-    when:
-    valve.run() // let request flow up
-
-    then:
-    sent.take() == 1 // first sent directly out and buffered at client
-    sent.take() == 2 // second requested by netty and queue there
-    sent.empty
-
-    read(is, bufferLength) // consume first from client buffer, transmitting second, creates request for third
-
-    sent.take() == 3
-    sent.empty
-
-    read(is, bufferLength)
-    read(is, bufferLength)
-
-    sent.take() == 4
-    sent.take() == 5
-    sent.empty
-
-    read(is, bufferLength)
-    read(is, bufferLength)
-
-    sent.empty
-    complete.await()
-
-    cleanup:
     socket.close()
+
+    then:
+    sentAt.get() != null
   }
 
-  void read(InputStream inputStream, int read) {
-    while (read > 0) {
-      def bytesRead = inputStream.skip(read)
-      if (bytesRead <= 0) {
-        throw new IllegalStateException("stream finished early")
+  def "can add response finalizer to streamed response"() {
+    when:
+    handlers {
+      all {
+        response.beforeSend {
+          it.headers.add("foo", "1")
+          response.beforeSend {
+            it.headers.add("bar", "1")
+          }
+        }
+        request.maxContentLength = 12
+        render stringChunks(
+          publish(["abc"] * 3)
+        )
       }
-      read -= bytesRead
     }
+
+    then:
+    def r = request { it.post().body.text("a" * 100_000) }
+    r.status.code == 200
+    r.body.text == "abc" * 3
+    r.headers.foo == "1"
+    r.headers.bar == "1"
   }
 }

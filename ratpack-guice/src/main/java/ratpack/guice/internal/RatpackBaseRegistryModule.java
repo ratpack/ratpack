@@ -22,19 +22,17 @@ import com.google.common.reflect.TypeToken;
 import com.google.inject.*;
 import com.google.inject.matcher.AbstractMatcher;
 import com.google.inject.matcher.Matchers;
-import com.google.inject.multibindings.Multibinder;
 import io.netty.buffer.ByteBufAllocator;
 import org.aopalliance.intercept.MethodInterceptor;
-import org.reactivestreams.Publisher;
 import ratpack.api.Blocks;
 import ratpack.error.ClientErrorHandler;
 import ratpack.error.ServerErrorHandler;
 import ratpack.exec.ExecController;
 import ratpack.exec.ExecInitializer;
 import ratpack.exec.Execution;
-import ratpack.exec.Promise;
 import ratpack.file.FileSystemBinding;
 import ratpack.file.MimeTypes;
+import ratpack.file.internal.FileRenderer;
 import ratpack.form.internal.FormParser;
 import ratpack.guice.ExecutionScoped;
 import ratpack.guice.RequestScoped;
@@ -43,15 +41,16 @@ import ratpack.http.Request;
 import ratpack.http.Response;
 import ratpack.http.client.HttpClient;
 import ratpack.registry.Registry;
-import ratpack.render.Renderable;
-import ratpack.render.Renderer;
+import ratpack.render.internal.CharSequenceRenderer;
+import ratpack.render.internal.PromiseRenderer;
+import ratpack.render.internal.PublisherRenderer;
+import ratpack.render.internal.RenderableRenderer;
 import ratpack.server.PublicAddress;
 import ratpack.server.RatpackServer;
 import ratpack.server.ServerConfig;
 import ratpack.sse.ServerSentEventStreamClient;
 
 import java.lang.reflect.Method;
-import java.nio.file.Path;
 import java.util.List;
 import java.util.Optional;
 
@@ -61,13 +60,29 @@ import java.util.Optional;
  */
 public class RatpackBaseRegistryModule extends AbstractModule {
 
+  private static final List<Class<?>> SIMPLE_TYPES = ImmutableList.of(
+    ServerConfig.class, ByteBufAllocator.class, ExecController.class, MimeTypes.class, PublicAddress.class,
+    Redirector.class, ClientErrorHandler.class, ServerErrorHandler.class, RatpackServer.class,
+    HttpClient.class, ServerSentEventStreamClient.class
+  );
+
+  @SuppressWarnings({"rawtypes"})
+  private static final ImmutableList<TypeToken<?>> PARAMETERISED_TYPES = ImmutableList.of(
+    FileRenderer.TYPE,
+    PromiseRenderer.TYPE,
+    PublisherRenderer.TYPE,
+    RenderableRenderer.TYPE,
+    CharSequenceRenderer.TYPE,
+    FormParser.TYPE
+  );
+
+  private static final ImmutableList<Class<?>> OPTIONAL_TYPES = ImmutableList.of(FileSystemBinding.class);
   private final Registry baseRegistry;
 
   public RatpackBaseRegistryModule(Registry baseRegistry) {
     this.baseRegistry = baseRegistry;
   }
 
-  @SuppressWarnings({"Convert2MethodRef", "rawtypes"})
   @Override
   protected void configure() {
     ExecutionScope executionScope = new ExecutionScope();
@@ -79,21 +94,9 @@ public class RatpackBaseRegistryModule extends AbstractModule {
 
     bind(ExecutionPrimingInitializer.class);
 
-    List<Class<?>> simpleTypes = ImmutableList.of(
-      ServerConfig.class, ByteBufAllocator.class, ExecController.class, MimeTypes.class, PublicAddress.class,
-      Redirector.class, ClientErrorHandler.class, ServerErrorHandler.class, RatpackServer.class
-    );
-    List<TypeToken<?>> genericTypes = ImmutableList.of(
-      new TypeToken<Renderer<Path>>() {}, new TypeToken<Renderer<Promise>>() {}, new TypeToken<Renderer<Publisher>>() {},
-      new TypeToken<Renderer<Renderable>>() {}, new TypeToken<Renderer<CharSequence>>() {}
-    );
-    List<Class<?>> setTypes = ImmutableList.of(FormParser.class);
-    List<Class<?>> optionalTypes = ImmutableList.of(FileSystemBinding.class);
-
-    simpleTypes.stream().forEach(t -> simpleBind(t));
-    genericTypes.stream().forEach(t -> genericBind(t));
-    setTypes.stream().forEach(t -> setBind(t));
-    optionalTypes.stream().forEach(t -> optionalBind(t));
+    SIMPLE_TYPES.forEach(this::simpleBind);
+    PARAMETERISED_TYPES.forEach(this::parameterisedBind);
+    OPTIONAL_TYPES.forEach(this::optionalBind);
 
     MethodInterceptor interceptor = new BlockingInterceptor();
     bindInterceptor(Matchers.annotatedWith(Blocks.class), new NotGroovyMethodMatcher(), interceptor);
@@ -105,14 +108,8 @@ public class RatpackBaseRegistryModule extends AbstractModule {
   }
 
   @SuppressWarnings("unchecked")
-  private <T> void genericBind(TypeToken<T> typeToken) {
-    TypeLiteral<T> typeLiteral = (TypeLiteral<T>) TypeLiteral.get(typeToken.getType());
-    bind(typeLiteral).toProvider(() -> baseRegistry.get(typeToken));
-  }
-
-  private <T> void setBind(Class<T> type) {
-    Multibinder<T> setBinder = Multibinder.newSetBinder(binder(), type);
-    baseRegistry.getAll(type).forEach(instance -> setBinder.addBinding().toInstance(instance));
+  private <T> void parameterisedBind(TypeToken<T> typeToken) {
+    bind(GuiceUtil.toTypeLiteral(typeToken)).toProvider(() -> baseRegistry.get(typeToken));
   }
 
   private <T> void optionalBind(Class<T> type) {
@@ -120,16 +117,6 @@ public class RatpackBaseRegistryModule extends AbstractModule {
     if (optional.isPresent()) {
       bind(type).toProvider(() -> baseRegistry.get(type));
     }
-  }
-
-  @Provides
-  HttpClient httpClient(ByteBufAllocator byteBufAllocator, ServerConfig serverConfig) {
-    return HttpClient.httpClient(byteBufAllocator, serverConfig.getMaxContentLength());
-  }
-
-  @Provides
-  ServerSentEventStreamClient sseClient(ByteBufAllocator byteBufAllocator) {
-    return ServerSentEventStreamClient.sseStreamClient(byteBufAllocator);
   }
 
   @Provides

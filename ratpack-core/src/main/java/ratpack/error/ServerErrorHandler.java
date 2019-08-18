@@ -19,6 +19,7 @@ package ratpack.error;
 import com.google.common.reflect.TypeToken;
 import ratpack.api.NonBlocking;
 import ratpack.handling.Context;
+import ratpack.path.InvalidPathEncodingException;
 import ratpack.util.Types;
 
 /**
@@ -49,5 +50,22 @@ public interface ServerErrorHandler {
    */
   @NonBlocking
   void error(Context context, Throwable throwable) throws Exception;
+
+  /**
+   * Processes the given request path encoding error that occurred processing the given context.
+   * <p>
+   * Implementations should strive to avoid throwing exceptions.
+   * If exceptions are thrown, they will just be logged at a warning level and the response will be finalised with a 500 error code and empty body.
+   *
+   * @param context The context being processed
+   * @param exception The path encoding error that occurred
+   * @throws Exception if something goes wrong handling the error
+   *
+   * @since 1.5
+   */
+  @NonBlocking
+  default void error(Context context, InvalidPathEncodingException exception) throws Exception {
+    context.clientError(400);
+  }
 
 }

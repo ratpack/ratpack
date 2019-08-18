@@ -16,14 +16,15 @@
 
 package ratpack.server.internal;
 
+import io.netty.handler.ssl.SslContext;
 import ratpack.file.FileSystemBinding;
 import ratpack.server.ServerConfig;
 
-import javax.net.ssl.SSLContext;
 import java.net.InetAddress;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.UnknownHostException;
+import java.time.Duration;
 import java.util.Optional;
 
 public class ServerConfigData {
@@ -34,17 +35,24 @@ public class ServerConfigData {
   private boolean development;
   private int threads = ServerConfig.DEFAULT_THREADS;
   private URI publicAddress;
-  private SSLContext sslContext;
+  private SslContext sslContext;
   private boolean requireClientSslAuth;
   private int maxContentLength = ServerConfig.DEFAULT_MAX_CONTENT_LENGTH;
   private Optional<Integer> connectTimeoutMillis = Optional.empty();
   private Optional<Integer> maxMessagesPerRead = Optional.empty();
   private Optional<Integer> receiveBufferSize = Optional.empty();
   private Optional<Integer> writeSpinCount = Optional.empty();
+  private Optional<Integer> connectQueueSize = Optional.empty();
   private int maxChunkSize = ServerConfig.DEFAULT_MAX_CHUNK_SIZE;
+  private int maxInitialLineLength = ServerConfig.DEFAULT_MAX_INITIAL_LINE_LENGTH;
+  private int maxHeaderSize = ServerConfig.DEFAULT_MAX_HEADER_SIZE;
 
-  public ServerConfigData(FileSystemBinding baseDir, int port, boolean development, URI publicAddress) {
+  private Duration idleTimeout = Duration.ZERO;
+  private boolean registerShutdownHook = true;
+
+  public ServerConfigData(FileSystemBinding baseDir, InetAddress address, int port, boolean development, URI publicAddress) {
     this.baseDir = baseDir;
+    this.address = address;
     this.port = port;
     this.development = development;
     this.publicAddress = publicAddress;
@@ -118,11 +126,11 @@ public class ServerConfigData {
     this.publicAddress = new URI(publicAddress);
   }
 
-  public SSLContext getSslContext() {
+  public SslContext getSslContext() {
     return sslContext;
   }
 
-  public void setSslContext(SSLContext sslContext) {
+  public void setSslContext(SslContext sslContext) {
     this.sslContext = sslContext;
   }
 
@@ -154,6 +162,22 @@ public class ServerConfigData {
     this.writeSpinCount = Optional.of(writeSpinCount);
   }
 
+  public int getMaxInitialLineLength() {
+    return maxInitialLineLength;
+  }
+
+  public void setMaxInitialLineLength(final int maxInitialLineLength) {
+    this.maxInitialLineLength = maxInitialLineLength;
+  }
+
+  public int getMaxHeaderSize() {
+    return maxHeaderSize;
+  }
+
+  public void setMaxHeaderSize(final int maxHeaderSize) {
+    this.maxHeaderSize = maxHeaderSize;
+  }
+
   public int getMaxChunkSize() {
     return maxChunkSize;
   }
@@ -164,5 +188,35 @@ public class ServerConfigData {
 
   public FileSystemBinding getBaseDir() {
     return baseDir;
+  }
+
+  public Duration getIdleTimeout() {
+    return idleTimeout;
+  }
+
+  public void setIdleTimeout(Duration idleTimeout) {
+    if (idleTimeout == null) {
+      throw new IllegalArgumentException("idleTimeout must not be null");
+    }
+    if (idleTimeout.isNegative()) {
+      throw new IllegalArgumentException("idleTimeout must not be negative");
+    }
+    this.idleTimeout = idleTimeout;
+  }
+
+  public void setConnectQueueSize(Integer integer) {
+    this.connectQueueSize = Optional.of(integer);
+  }
+
+  public Optional<Integer> getConnectQueueSize() {
+    return connectQueueSize;
+  }
+
+  public boolean isRegisterShutdownHook() {
+    return registerShutdownHook;
+  }
+
+  public void setRegisterShutdownHook(boolean registerShutdownHook) {
+    this.registerShutdownHook = registerShutdownHook;
   }
 }

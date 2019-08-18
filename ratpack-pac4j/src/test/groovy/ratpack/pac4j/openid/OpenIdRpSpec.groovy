@@ -26,15 +26,11 @@ import ratpack.pac4j.RatpackPac4j
 import ratpack.session.SessionModule
 import ratpack.test.internal.RatpackGroovyDslSpec
 import spock.lang.AutoCleanup
-import spock.lang.Unroll
 
 import static io.netty.handler.codec.http.HttpHeaderNames.LOCATION
 import static io.netty.handler.codec.http.HttpResponseStatus.FOUND
 import static io.netty.handler.codec.http.HttpResponseStatus.UNAUTHORIZED
-import static ratpack.http.internal.HttpHeaderConstants.COOKIE
-import static ratpack.http.internal.HttpHeaderConstants.SET_COOKIE
-import static ratpack.http.internal.HttpHeaderConstants.XML_HTTP_REQUEST
-import static ratpack.http.internal.HttpHeaderConstants.X_REQUESTED_WITH
+import static ratpack.http.internal.HttpHeaderConstants.*
 import static ratpack.pac4j.RatpackPac4j.DEFAULT_AUTHENTICATOR_PATH
 
 /**
@@ -42,10 +38,10 @@ import static ratpack.pac4j.RatpackPac4j.DEFAULT_AUTHENTICATOR_PATH
  */
 class OpenIdRpSpec extends RatpackGroovyDslSpec {
 
-  private static final String EMAIL         = "fake@example.com"
-  private static final String AUTH_PATH     = "auth"
-  private static final String NOAUTH_PATH   = "noauth"
-  private static final String PREFIX_PATH   = "prefix"
+  private static final String EMAIL = "fake@example.com"
+  private static final String AUTH_PATH = "auth"
+  private static final String NOAUTH_PATH = "noauth"
+  private static final String PREFIX_PATH = "prefix"
   private static final String PROVIDER_PATH = "/openid_provider"
 
   @AutoCleanup
@@ -87,8 +83,7 @@ class OpenIdRpSpec extends RatpackGroovyDslSpec {
 
   }
 
-  @Unroll("test no auth given prefix path [#prefix]")
-  def "test noauth"() {
+  def "test no auth given prefix path [#prefix]"() {
     when:
     def response = client.get("$prefix$NOAUTH_PATH")
 
@@ -99,8 +94,7 @@ class OpenIdRpSpec extends RatpackGroovyDslSpec {
     prefix << ["", "$PREFIX_PATH/"]
   }
 
-  @Unroll("successful auth using prefix #prefix")
-  def "test successful auth"() {
+  def "successful auth using prefix #prefix"() {
     setup:
     reset { request -> noRedirects request }
     provider.addResult(true, EMAIL)

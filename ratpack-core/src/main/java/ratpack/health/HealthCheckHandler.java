@@ -16,22 +16,14 @@
 
 package ratpack.health;
 
-import com.google.common.collect.ImmutableSortedMap;
-import com.google.common.collect.Maps;
 import com.google.common.reflect.TypeToken;
-import ratpack.exec.Execution;
-import ratpack.exec.Promise;
 import ratpack.exec.Throttle;
 import ratpack.handling.Context;
 import ratpack.handling.Handler;
-import ratpack.registry.Registry;
 import ratpack.util.Types;
 
 import java.util.Collections;
-import java.util.Iterator;
-import java.util.Map;
 import java.util.Optional;
-import java.util.concurrent.atomic.AtomicInteger;
 
 /**
  * A handler that executes {@link HealthCheck health checks} and renders the results.
@@ -91,6 +83,7 @@ import java.util.concurrent.atomic.AtomicInteger;
  * The handler creates a {@link HealthCheckResults} object with the results of running the health checks and {@link Context#render(Object) renders} it.
  * Ratpack provides a default renderer for {@link HealthCheckResults} objects, that renders results as plain text one per line with the format:
  * <pre>{@code name : HEALTHY|UNHEALTHY [message] [exception]}</pre>
+ * <p>If any result is unhealthy, a {@code 503} status will be emitted, else {@code 200}.</p>
  * <p>
  * To change the output format, simply add your own renderer for this type to the registry.
  *
@@ -197,58 +190,23 @@ public class HealthCheckHandler implements Handler {
    * @param ctx the request context
    */
   @Override
-  public void handle(Context ctx) {
+  public void handle(Context ctx) throws Exception {
     ctx.getResponse().getHeaders()
       .add("Cache-Control", "no-cache, no-store, must-revalidate")
       .add("Pragma", "no-cache")
       .add("Expires", 0);
 
-    try {
-      String checkName = ctx.getPathTokens().get(name);
-      if (checkName != null) {
-        Optional<HealthCheck> first = ctx.first(HEALTH_CHECK_TYPE_TOKEN, healthCheck -> healthCheck.getName().equals(checkName) ? healthCheck : null);
-        if (first.isPresent()) {
-          ctx.render(execute(ctx, Collections.singleton(first.get())));
-        } else {
-          ctx.clientError(404);
-        }
+    String checkName = ctx.getPathTokens().get(name);
+    if (checkName != null) {
+      Optional<HealthCheck> first = ctx.first(HEALTH_CHECK_TYPE_TOKEN, healthCheck -> healthCheck.getName().equals(checkName) ? healthCheck : null);
+      if (first.isPresent()) {
+        ctx.render(HealthCheck.checkAll(ctx, Collections.singleton(first.get())));
       } else {
-        ctx.render(execute(ctx, ctx.getAll(HEALTH_CHECK_TYPE_TOKEN)));
+        ctx.clientError(404);
       }
-    } catch (Exception e) {
-      ctx.error(e);
+    } else {
+      ctx.render(HealthCheck.checkAll(ctx, throttle, ctx.getAll(HEALTH_CHECK_TYPE_TOKEN)));
     }
   }
 
-  private Promise<HealthCheck.Result> execute(Registry registry, HealthCheck healthCheck) {
-    return Promise.wrap(() -> healthCheck.check(registry)).mapError(HealthCheck.Result::unhealthy);
-  }
-
-  private Promise<HealthCheckResults> execute(Registry registry, Iterable<? extends HealthCheck> healthChecks) {
-    Iterator<? extends HealthCheck> iterator = healthChecks.iterator();
-    if (!iterator.hasNext()) {
-      return Promise.value(new HealthCheckResults(ImmutableSortedMap.of()));
-    }
-
-    return Promise.<Map<String, HealthCheck.Result>>of(f -> {
-      AtomicInteger counter = new AtomicInteger();
-      Map<String, HealthCheck.Result> results = Maps.newConcurrentMap();
-      while (iterator.hasNext()) {
-        counter.incrementAndGet();
-        HealthCheck healthCheck = iterator.next();
-        Execution.fork().start(e ->
-            execute(registry, healthCheck)
-              .throttled(throttle)
-              .then(r -> {
-                results.put(healthCheck.getName(), r);
-                if (counter.decrementAndGet() == 0 && !iterator.hasNext()) {
-                  f.success(results);
-                }
-              })
-        );
-      }
-    })
-      .map(ImmutableSortedMap::copyOf)
-      .map(HealthCheckResults::new);
-  }
 }

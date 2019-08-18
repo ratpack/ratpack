@@ -27,7 +27,7 @@ import ratpack.groovy.template.TextTemplateModule;
 import ratpack.guice.Guice;
 import ratpack.newrelic.NewRelicModule;
 import ratpack.registry.Registry;
-import ratpack.rx.RxRatpack;
+import ratpack.rx2.RxRatpack;
 import ratpack.server.BaseDir;
 import ratpack.server.RatpackServer;
 import ratpack.site.github.GitHubData;

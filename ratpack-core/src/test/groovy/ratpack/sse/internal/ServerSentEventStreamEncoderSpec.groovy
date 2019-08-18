@@ -16,7 +16,6 @@
 
 package ratpack.sse.internal
 
-import io.netty.buffer.UnpooledByteBufAllocator
 import io.netty.util.CharsetUtil
 import org.reactivestreams.Publisher
 import ratpack.exec.Result
@@ -26,7 +25,7 @@ import ratpack.sse.ServerSentEvents
 import ratpack.stream.Streams
 import ratpack.stream.internal.CollectingSubscriber
 import ratpack.test.internal.RatpackGroovyDslSpec
-import spock.lang.Unroll
+import ratpack.test.internal.TestByteBufAllocators
 
 import java.util.concurrent.CountDownLatch
 import java.util.concurrent.atomic.AtomicReference
@@ -35,27 +34,46 @@ class ServerSentEventStreamEncoderSpec extends RatpackGroovyDslSpec {
 
   def encoder = new ServerSentEventEncoder()
 
-  @Unroll
   def "can encode valid server sent events"() {
     expect:
-    encoder.encode(sse, UnpooledByteBufAllocator.DEFAULT).toString(CharsetUtil.UTF_8) == expectedEncoding
+    encoder.encode(sse, TestByteBufAllocators.LEAKING_UNPOOLED_HEAP).toString(CharsetUtil.UTF_8) == expectedEncoding
 
     where:
     sse                                                                                             | expectedEncoding
-    serverSentEvent("foo") { it.id("${it.item}Id").event("${it.item}Type").data("${it.item}Data") } | "event: fooType\ndata: fooData\nid: fooId\n\n"
+    serverSentEvent("foo") { it.id("${it.item}Id").event("${it.item}Type").data("${it.item}Data") } | "id: fooId\nevent: fooType\ndata: fooData\n\n"
     serverSentEvent("foo") { it.event("${it.item}Type").data("${it.item}Data") }                    | "event: fooType\ndata: fooData\n\n"
     serverSentEvent("foo") { it.data("${it.item}Data") }                                            | "data: fooData\n\n"
-    serverSentEvent("foo") { it.id("${it.item}Id").data("${it.item}Data") }                         | "data: fooData\nid: fooId\n\n"
+    serverSentEvent("foo") { it.id("${it.item}Id").data("${it.item}Data") }                         | "id: fooId\ndata: fooData\n\n"
     serverSentEvent("foo") { it.id("${it.item}Id") }                                                | "id: fooId\n\n"
-    serverSentEvent("foo") { it.id("${it.item}Id").event("${it.item}Type") }                        | "event: fooType\nid: fooId\n\n"
+    serverSentEvent("foo") { it.id("${it.item}Id").event("${it.item}Type") }                        | "id: fooId\nevent: fooType\n\n"
     serverSentEvent("foo") { it.event("${it.item}Type") }                                           | "event: fooType\n\n"
-    serverSentEvent { it.id("fooId").event("fooType").data("fooData") }                             | "event: fooType\ndata: fooData\nid: fooId\n\n"
+    serverSentEvent { it.id("fooId").event("fooType").data("fooData") }                             | "id: fooId\nevent: fooType\ndata: fooData\n\n"
     serverSentEvent { it.event("fooType").data("fooData") }                                         | "event: fooType\ndata: fooData\n\n"
     serverSentEvent { it.data("fooData") }                                                          | "data: fooData\n\n"
-    serverSentEvent { it.id("fooId").data("fooData") }                                              | "data: fooData\nid: fooId\n\n"
+    serverSentEvent { it.id("fooId").data("fooData") }                                              | "id: fooId\ndata: fooData\n\n"
     serverSentEvent { it.id("fooId") }                                                              | "id: fooId\n\n"
-    serverSentEvent { it.id("fooId").event("fooType") }                                             | "event: fooType\nid: fooId\n\n"
+    serverSentEvent { it.id("fooId").event("fooType") }                                             | "id: fooId\nevent: fooType\n\n"
     serverSentEvent { it.event("fooType") }                                                         | "event: fooType\n\n"
+    serverSentEvent { it.data("foo\nbar") }                                                         | "data: foo\ndata: bar\n\n"
+    serverSentEvent { it.data("foo\n") }                                                            | "data: foo\ndata: \n\n"
+    serverSentEvent { it.comment("this is a \n comment").data("foo\n") }                            | ": this is a \n:  comment\ndata: foo\ndata: \n\n"
+    serverSentEvent { it.comment("comment") }                                                       | ": comment\n\n"
+  }
+
+  def "errors if id contains newline"() {
+    when:
+    serverSentEvent { it.id("foo\nbar") }
+
+    then:
+    thrown IllegalArgumentException
+  }
+
+  def "errors if event contains newline"() {
+    when:
+    serverSentEvent { it.event("foo\nbar") }
+
+    then:
+    thrown IllegalArgumentException
   }
 
   public <T> Event serverSentEvent(T t, Action<? super Event> action) {
@@ -80,4 +98,5 @@ class ServerSentEventStreamEncoderSpec extends RatpackGroovyDslSpec {
     latch.await()
     ref.get().valueOrThrow
   }
+
 }

@@ -22,6 +22,7 @@ import ratpack.form.FormParseOpts;
 import ratpack.handling.Context;
 import ratpack.http.TypedData;
 import ratpack.parse.Parse;
+import ratpack.parse.Parser;
 import ratpack.parse.ParserSupport;
 import ratpack.util.MultiValueMap;
 import ratpack.util.Types;
@@ -31,6 +32,12 @@ import static ratpack.util.MultiValueMap.empty;
 public class FormParser extends ParserSupport<FormParseOpts> {
 
   private static final TypeToken<Form> FORM_TYPE = Types.token(Form.class);
+
+  public static final TypeToken<Parser<FormParseOpts>> TYPE = Types.intern(new TypeToken<Parser<FormParseOpts>>() {});
+  public static final Parser<FormParseOpts> INSTANCE = new FormParser();
+
+  private FormParser() {
+  }
 
   @SuppressWarnings("unchecked")
   @Override

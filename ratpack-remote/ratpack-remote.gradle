@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-description = "Integration with the Groovy Remote Control library for Ratpack applications - http://groovy.codehaus.org/modules/remote/"
+description = "Integration with the Groovy Remote Control library for Ratpack applications "
 
 apply from: "$rootDir/gradle/groovyModule.gradle"
 
@@ -22,6 +22,5 @@ dependencies {
   compile project(":ratpack-guice")
   compile commonDependencies.remote
 
-  testCompile commonDependencies."remote-http"
+  testCompile commonDependencies.remoteHttp
 }
-

@@ -54,7 +54,7 @@ public class Markup implements Renderable {
   @Override
   public void render(Context context) throws Exception {
     ByteArrayOutputStream out = new ByteArrayOutputStream();
-    OutputStreamWriter writer = new OutputStreamWriter(out, CharsetUtil.getEncoder(getEncoding()));
+    OutputStreamWriter writer = new OutputStreamWriter(out, CharsetUtil.encoder(getEncoding()));
     MarkupBuilder markupBuilder = new MarkupBuilder(writer);
 
     ClosureUtil.configureDelegateFirst(markupBuilder, markupBuilder, getDefinition());

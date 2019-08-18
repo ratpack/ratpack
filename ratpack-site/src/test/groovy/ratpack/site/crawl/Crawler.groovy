@@ -183,12 +183,6 @@ abstract class Crawler {
 
     if (connection instanceof HttpsURLConnection) {
       def https = connection as HttpsURLConnection
-      https.setHostnameVerifier(new HostnameVerifier() {
-        @Override
-        boolean verify(String s, SSLSession sslSession) {
-          return true
-        }
-      })
 
       def trustManager = new X509TrustManager() {
         @Override
@@ -207,7 +201,7 @@ abstract class Crawler {
         }
       }
 
-      def sc = SSLContext.getInstance("SSL")
+      def sc = SSLContext.getDefault()
       sc.init([] as KeyManager[], [trustManager] as TrustManager[], new SecureRandom())
       https.setSSLSocketFactory(new DelegatingSSLSocketFactory(sc.socketFactory))
     }

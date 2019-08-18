@@ -17,9 +17,7 @@
 package ratpack.groovy.internal
 
 import spock.lang.Specification
-import spock.lang.Unroll
 
-@Unroll
 class GroovyVersionCheckSpec extends Specification {
 
   void '#version is a supported groovy runtime version'() {

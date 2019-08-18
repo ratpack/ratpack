@@ -16,12 +16,43 @@
 
 package ratpack.config;
 
+import com.google.common.reflect.TypeToken;
+
+/**
+ * An object deserialized from config.
+ *
+ * @param <T> the type of object
+ * @see ConfigData#getAsConfigObject(String, TypeToken)
+ */
 public interface ConfigObject<T> {
 
+  /**
+   * The path to the config item.
+   *
+   * @return the path to the config item
+   */
   String getPath();
 
+  /**
+   * The raw type of the config item.
+   *
+   * @return the raw type of the config item
+   */
   Class<T> getType();
 
+  /**
+   * The complete type of the config item.
+   *
+   * @return the complete type of the config item
+   * @since 1.4
+   */
+  TypeToken<T> getTypeToken();
+
+  /**
+   * The bound object.
+   *
+   * @return the bound object
+   */
   T getObject();
 
 }

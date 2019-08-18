@@ -33,6 +33,7 @@ public class DropwizardMetricsConfig {
   public static final Duration DEFAULT_INTERVAL = Duration.ofSeconds(30);
 
   private boolean jvmMetrics;
+  private boolean prometheusCollection;
   private boolean requestTimingMetrics = true;
   private boolean blockingTimingMetrics = true;
   private Map<String, String> requestMetricGroups;
@@ -42,6 +43,8 @@ public class DropwizardMetricsConfig {
   private Optional<CsvConfig> csv = Optional.empty();
   private Optional<Slf4jConfig> slf4j = Optional.empty();
   private Optional<GraphiteConfig> graphite = Optional.empty();
+  private Optional<ByteBufAllocatorConfig> byteBufAllocator = Optional.empty();
+  private Optional<HttpClientConfig> httpClient = Optional.empty();
 
   /**
    * The state of jvm metrics collection.
@@ -60,6 +63,69 @@ public class DropwizardMetricsConfig {
   public DropwizardMetricsConfig jvmMetrics(boolean jvmMetrics) {
     this.jvmMetrics = jvmMetrics;
     return this;
+  }
+
+  /**
+   * The state of the Prometheus metrics collector.
+   *
+   * @return True if Prometheus metrics collection is enabled. False otherwise
+   * @since 1.6
+   */
+  public boolean isPrometheusCollection() {
+    return prometheusCollection;
+  }
+
+  /**
+   * The state of Prometheus metrics collection.
+   * This method only enables binding the metric registry to the Prometheus collector.
+   * The Prometheus formatted metrics can be exposed by adding the {@link MetricsPrometheusHandler} to the handler chain.
+   *
+   * @param prometheusCollection True if metrics should be collected into the Prometheus collector. False otherwise
+   * @return this
+   * @see MetricsPrometheusHandler
+   * @since 1.6
+   */
+  public DropwizardMetricsConfig prometheusCollection(boolean prometheusCollection) {
+    this.prometheusCollection = prometheusCollection;
+    return this;
+  }
+
+  /**
+   * Get the settings for the byte buf allocator metric set.
+   *
+   * @return the metric set settings
+   * @since 1.6
+   */
+  public Optional<ByteBufAllocatorConfig> getByteBufAllocator() {
+    return byteBufAllocator;
+  }
+
+  /**
+   * @return this
+   * @see #byteBufAllocator(ratpack.func.Action)
+   * @since 1.6
+   */
+  public DropwizardMetricsConfig byteBufAllocator() {
+    return byteBufAllocator(Action.noop());
+  }
+
+  /**
+   * Configure the byte buf allocator metric set.
+   *
+   * @param configure the configuration for the byte buf allocator metric set
+   * @return this
+   * @since 1.6
+   */
+  public DropwizardMetricsConfig byteBufAllocator(Action<? super ByteBufAllocatorConfig> configure) {
+    try {
+      configure.execute(byteBufAllocator.orElseGet(() -> {
+        byteBufAllocator = Optional.of(new ByteBufAllocatorConfig());
+        return byteBufAllocator.get();
+      }));
+      return this;
+    } catch (Exception e) {
+      throw uncheck(e);
+    }
   }
 
   /**
@@ -313,6 +379,44 @@ public class DropwizardMetricsConfig {
       configure.execute(graphite.orElseGet(() -> {
         graphite = Optional.of(new GraphiteConfig());
         return graphite.get();
+      }));
+      return this;
+    } catch (Exception e) {
+      throw uncheck(e);
+    }
+  }
+
+  /**
+   * Get the settings for the http client metric set.
+   *
+   * @return the metric set settings.
+   * @since 1.6
+   */
+  public Optional<HttpClientConfig> getHttpClient() {
+    return httpClient;
+  }
+
+  /**
+   * @return this
+   * @see #httpClient(ratpack.func.Action)
+   * @since 1.6
+   */
+  public DropwizardMetricsConfig httpClient() {
+    return httpClient(Action.noop());
+  }
+
+  /**
+   * Configure the http client metric set.
+   *
+   * @param configure the configuration for the http client metric set.
+   * @return this
+   * @since 1.6
+   */
+  public DropwizardMetricsConfig httpClient(Action<? super HttpClientConfig> configure) {
+    try {
+      configure.execute(httpClient.orElseGet(() -> {
+        httpClient = Optional.of(new HttpClientConfig());
+        return httpClient.get();
       }));
       return this;
     } catch (Exception e) {

@@ -12,7 +12,7 @@ section(id: "main") {
       p('The following are the released versions of Ratpack:')
       ul {
         released.each { version ->
-          li { a(href: "/versions/${version.version}", "${version.version} (${version.due?.format("yyyy-MM-dd") ?: "unscheduled"})") }
+          li { a(href: "/versions/${version.version}", "${version.version} (${version.dueString() ?: "unscheduled"})") }
         }
       }
     } else {
@@ -24,7 +24,7 @@ section(id: "main") {
       p('The following are the Ratpack versions currently in development:')
       ul {
         unreleased.each { version ->
-          li { a(href: "/versions/${version.version}", "${version.version} (${version.due?.format("yyyy-MM-dd") ?: "unscheduled"})") }
+          li { a(href: "/versions/${version.version}", "${version.version} (${version.dueString() ?: "unscheduled"})") }
         }
       }
     } else {

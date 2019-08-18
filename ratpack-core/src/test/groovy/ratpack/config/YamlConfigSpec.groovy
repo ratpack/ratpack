@@ -118,4 +118,16 @@ class YamlConfigSpec extends BaseConfigSpec {
     then:
     thrown IllegalStateException
   }
+
+  def "handles empty yaml file"() {
+    def baseDir = tempFolder.newFolder("baseDir").toPath()
+    def configFile = tempFolder.newFile("baseDir/file.yaml").toPath()
+    configFile.text = ''
+
+    when:
+    ServerConfig.of { it.baseDir(baseDir).yaml(configFile) }
+
+    then:
+    noExceptionThrown()
+  }
 }

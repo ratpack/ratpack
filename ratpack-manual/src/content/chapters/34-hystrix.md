@@ -1,5 +1,11 @@
 # Hystrix
 
+> Note: The Hystrix project has been placed in [maintenance mode](https://github.com/Netflix/Hystrix#hystrix-status) and is no longer receiving updates.
+  Hystrix relies on RxJava 1.x, which integration with Ratpack has been deprecated as of 1.7.0. Users of `ratpack-hystrix` have a few options
+  for continuing support: continue to utilize `ratpack-rx` until it is removed in Ratpack 2.0, utilize `ratpack-rx2` through the [`RxJavaInterop`](https://github.com/akarnokd/RxJavaInterop)
+  library, or migrate from Hystrix to [Resilience4j](https://github.com/resilience4j/resilience4j) through the use of the
+  [`ratpack-resilience4j`](https://github.com/resilience4j/resilience4j/tree/master/resilience4j-ratpack) provided by that project.
+
 If your application is part of a distributed architecture like microservices, has dependencies on other distributed services or a client library that can potentially result in network requests, then it is essential that you defend your application 
 with [Hystrix](https://github.com/Netflix/Hystrix/wiki). Part of the [Netflix OSS Platform](https://github.com/Netflix), Hystrix is a library that provides fault tolerance and greater control in the face of failure resulting in reduced latency, 
 increased responsiveness and resilience for your application.  See the [Hystrix Wiki](https://github.com/Netflix/Hystrix/wiki/How-To-Use#Common-Patterns) for common usage patterns.
@@ -9,7 +15,7 @@ a [Hystrix Concurrency Strategy](http://netflix.github.io/Hystrix/javadoc/index.
 to be used for managing the [Hystrix Request Context](http://netflix.github.io/Hystrix/javadoc/index.html?com/netflix/hystrix/strategy/concurrent/HystrixRequestContext.html).  What all that means is that you **do not** need to initialise a Hystrix Request Context
 (`HystrixRequestContext context = HystrixRequestContext.initializeContext();`) before a request begins as detailed in the [Hystrix wiki](https://github.com/Netflix/Hystrix/wiki/How-To-Use#RequestContextSetup).
 
-One of the best features of Hystrix is the metrics that are captured and the [dashboard](https://github.com/Netflix/Hystrix/wiki/Dashboard) provided for viewing them real-time.  This is achieved by streaming metrics out of your application over SSE and 
+One of the best features of Hystrix is the metrics that are captured and the [dashboard](https://github.com/Netflix-Skunkworks/hystrix-dashboard/wiki) provided for viewing them real-time.  This is achieved by streaming metrics out of your application over SSE and 
 the `ratpack-hystrix` JAR provides a [handler](api/ratpack/hystrix/HystrixMetricsEventStreamHandler.html) that will do this for you.
     
 The `ratpack-hystrix` module as of @ratpack-version@ is built against (and depends on) RxJava @versions-hystrix@.
@@ -30,10 +36,10 @@ or [RxRatpack#promiseSingle](api/ratpack/rx/RxRatpack.html#promiseSingle-rx.Obse
 import com.netflix.hystrix.HystrixCommandGroupKey;
 import com.netflix.hystrix.HystrixObservableCommand;
 import ratpack.exec.Promise;
-import ratpack.rx.RxRatpack;
 import rx.Observable;
 public class CommandFactory {
 
+  @SuppressWarnings("deprecation")
   public static Promise<String> fooCommand() {
     Observable<String> command = new HystrixObservableCommand<String>(HystrixCommandGroupKey.Factory.asKey("foo-command")) {
       @Override
@@ -42,7 +48,7 @@ public class CommandFactory {
       }
     }.toObservable();
 
-    return RxRatpack.promiseSingle(command);
+    return ratpack.rx.RxRatpack.promiseSingle(command);
   }
 }
 ```

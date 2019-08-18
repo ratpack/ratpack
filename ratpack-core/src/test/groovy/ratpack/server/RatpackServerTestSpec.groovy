@@ -25,10 +25,10 @@ import ratpack.test.embed.EmbeddedApp
 import ratpack.test.http.TestHttpClient
 import spock.lang.AutoCleanup
 import spock.lang.Specification
-import spock.lang.Timeout
 
 import java.util.concurrent.Callable
 import java.util.concurrent.Executors
+import java.util.concurrent.atomic.AtomicInteger
 
 class RatpackServerTestSpec extends Specification {
 
@@ -83,6 +83,23 @@ class RatpackServerTestSpec extends Specification {
     then:
     server.isRunning()
     http.text == "bar"
+  }
+
+  def "access Registry via RatpackServer"() {
+    given:
+    def value = "foo"
+    server = RatpackServer.of {
+      it
+        .serverConfig(ServerConfig.embedded())
+        .registryOf { it.add(String, value) }
+        .handler { return { it.render it.get(String) } as Handler }
+    }
+
+    when:
+    server.start()
+
+    then:
+    server.registry.get().get(String) == "foo"
   }
 
   def "configuration changes are applied up on reload"() {
@@ -143,8 +160,8 @@ class RatpackServerTestSpec extends Specification {
 
   def "server lifecycle events are executed with event data"() {
     given:
-    def counter = 0
-    def reloadCounter = 0
+    def counter = new AtomicInteger()
+    def reloadCounter = new AtomicInteger()
 
     server = RatpackServer.of {
       it.serverConfig(ServerConfig.embedded().development(false))
@@ -155,14 +172,14 @@ class RatpackServerTestSpec extends Specification {
           @Override
           void onStart(StartEvent event) throws Exception {
             if (!event.reload) {
-              counter++
+              counter.incrementAndGet()
             }
           }
 
           @Override
           void onStop(StopEvent event) throws Exception {
             if (!event.reload) {
-              counter += event.registry.get(Integer)
+              counter.addAndGet(event.registry.get(Integer))
             }
           }
         })
@@ -171,14 +188,14 @@ class RatpackServerTestSpec extends Specification {
           @Override
           void onStart(StartEvent event) throws Exception {
             if (event.reload) {
-              reloadCounter++
+              reloadCounter.incrementAndGet()
             }
           }
 
           @Override
           void onStop(StopEvent event) throws Exception {
             if (event.reload) {
-              reloadCounter++
+              reloadCounter.incrementAndGet()
             }
           }
         })
@@ -191,25 +208,24 @@ class RatpackServerTestSpec extends Specification {
 
     then:
     server.running
-    counter == 1
-    reloadCounter == 0
+    counter.get() == 1
+    reloadCounter.get() == 0
 
     when:
     server.reload()
 
     then:
     server.running
-    counter == 1
-    reloadCounter == 2
+    counter.get() == 1
+    reloadCounter.get() == 2
 
     when:
     server.stop()
 
     then:
     !server.running
-    counter == 6
-    reloadCounter == 2
-
+    counter.get() == 6
+    reloadCounter.get() == 2
   }
 
   def "netty configuration is applied"() {
@@ -236,7 +252,6 @@ class RatpackServerTestSpec extends Specification {
     http.getText("writeSpinCount") == "10"
   }
 
-  @Timeout(5)
   def "handle concurrent requests while in development mode"() {
     given:
     int concurrentRequests = 2

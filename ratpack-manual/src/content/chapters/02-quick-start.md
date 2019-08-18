@@ -114,6 +114,11 @@ When run, the server will be available via `http://localhost:5050/`.
 The [`handlers()` method](api/ratpack/server/RatpackServerSpec.html#handlers-ratpack.func.Action-) takes a function that receives a [`Chain`](api/ratpack/handling/Chain.html) object.
 The “Handler Chain API” is used to build the response handling strategy.
 
+The Ratpack Gradle plugin supports [Gradle's Continuous Build feature](https://docs.gradle.org/current/userguide/continuous_build.html).
+Use it to have changes to your source code be automatically applied to your running application. 
+
+For further information on using Ratpack with Groovy, please see the [Gradle](gradle.html) chapter.
+
 ### Using the Gradle Groovy plugin
 
 Create a `build.gradle` file with the following contents:
@@ -165,10 +170,12 @@ When run, the server will be available via `http://localhost:5050/`.
 The [`handlers()` method](api/ratpack/groovy/Groovy.Ratpack.html#handlers-groovy.lang.Closure-) takes a closure that delegates to a [`GroovyChain`](api/ratpack/groovy/handling/GroovyChain.html) object.
 The “Groovy Handler Chain DSL” is used to build the response handling strategy.
 
-Changes to the `ratpack.groovy` file are live during development.
-You can edit the file, and the changes will take effect on the next request.
+The Ratpack Gradle plugin supports [Gradle's Continuous Build feature](https://docs.gradle.org/current/userguide/continuous_build.html).
+Use it to have changes to your source code be automatically applied to your running application. 
 
 For further information on using Ratpack with Groovy, please see the [Groovy](groovy.html) chapter.
+
+For further information on using Ratpack with Groovy, please see the [Gradle](gradle.html) chapter.
 
 ## Using Lazybones project templates
 

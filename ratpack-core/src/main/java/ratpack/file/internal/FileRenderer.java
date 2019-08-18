@@ -16,6 +16,9 @@
 
 package ratpack.file.internal;
 
+import com.github.benmanes.caffeine.cache.Cache;
+import com.github.benmanes.caffeine.cache.Caffeine;
+import com.google.common.reflect.TypeToken;
 import io.netty.handler.codec.http.HttpHeaderNames;
 import ratpack.exec.Blocking;
 import ratpack.file.MimeTypes;
@@ -24,42 +27,46 @@ import ratpack.func.Factory;
 import ratpack.handling.Context;
 import ratpack.http.Response;
 import ratpack.http.internal.HttpHeaderConstants;
+import ratpack.render.Renderer;
 import ratpack.render.RendererSupport;
-import ratpack.server.internal.ServerEnvironment;
 import ratpack.util.Exceptions;
-import ratpack.util.internal.BoundedConcurrentHashMap;
+import ratpack.util.Types;
 
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.attribute.BasicFileAttributes;
 import java.util.Date;
 import java.util.Optional;
-import java.util.concurrent.ConcurrentMap;
 
 import static io.netty.handler.codec.http.HttpResponseStatus.NOT_MODIFIED;
 
 public class FileRenderer extends RendererSupport<Path> {
 
-  private static final boolean CACHEABLE = !ServerEnvironment.env().isDevelopment();
-  private static final ConcurrentMap<Path, Optional<BasicFileAttributes>> CACHE = new BoundedConcurrentHashMap<>(10000, Runtime.getRuntime().availableProcessors());
+  private final boolean cacheMetadata;
+
+  public static final TypeToken<Renderer<Path>> TYPE = Types.intern(new TypeToken<Renderer<Path>>() {});
+
+  public static final Renderer<Path> CACHING = new FileRenderer(true);
+  public static final Renderer<Path> NON_CACHING = new FileRenderer(false);
+
+  private FileRenderer(boolean cacheMetadata) {
+    this.cacheMetadata = cacheMetadata;
+  }
+
+  private static Cache<Path, Optional<BasicFileAttributes>> cache;
 
   @Override
-  public void render(Context context, Path targetFile) throws Exception {
-    readAttributes(targetFile, attributes -> {
+  public void render(Context ctx, Path targetFile) throws Exception {
+    readAttributes(targetFile, cacheMetadata, attributes -> {
       if (attributes == null || !attributes.isRegularFile()) {
-        context.clientError(404);
+        ctx.clientError(404);
       } else {
-        sendFile(context, targetFile, attributes);
+        sendFile(ctx, targetFile, attributes);
       }
     });
   }
 
   public static void sendFile(Context context, Path file, BasicFileAttributes attributes) {
-    if (!context.getRequest().getMethod().isGet()) {
-      context.clientError(405);
-      return;
-    }
-
     Date date = new Date(attributes.lastModifiedTime().toMillis());
 
     context.lastModified(date, () -> {
@@ -90,12 +97,12 @@ public class FileRenderer extends RendererSupport<Path> {
     };
   }
 
-  public static void readAttributes(Path file, Action<? super BasicFileAttributes> then) throws Exception {
-    if (CACHEABLE) {
-      Optional<BasicFileAttributes> basicFileAttributes = CACHE.get(file);
+  public static void readAttributes(Path file, boolean cacheMetadata, Action<? super BasicFileAttributes> then) throws Exception {
+    if (cacheMetadata) {
+      Optional<BasicFileAttributes> basicFileAttributes = getCache().getIfPresent(file);
       if (basicFileAttributes == null) {
         Blocking.get(getter(file)).then(a -> {
-          CACHE.put(file, Optional.ofNullable(a));
+          getCache().put(file, Optional.ofNullable(a));
           then.execute(a);
         });
       } else {
@@ -104,6 +111,13 @@ public class FileRenderer extends RendererSupport<Path> {
     } else {
       Blocking.get(getter(file)).then(then);
     }
+  }
+
+  private static Cache<Path, Optional<BasicFileAttributes>> getCache() {
+    if (cache == null) {
+      cache = Caffeine.newBuilder().maximumSize(10000).build();
+    }
+    return cache;
   }
 
 }

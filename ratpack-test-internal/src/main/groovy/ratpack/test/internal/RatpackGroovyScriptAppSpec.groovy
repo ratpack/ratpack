@@ -45,7 +45,7 @@ abstract class RatpackGroovyScriptAppSpec extends EmbeddedRatpackSpec {
     }
   }
 
-  protected getApplicationFile(String fileName) {
+  protected File getApplicationFile(String fileName) {
     if (!appFile) {
       appFile = temporaryFolder.newFile(fileName)
     }

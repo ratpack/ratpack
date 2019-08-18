@@ -16,8 +16,9 @@
 
 package ratpack.dropwizard.metrics.internal;
 
-import com.codahale.metrics.JmxReporter;
+
 import com.codahale.metrics.MetricRegistry;
+import com.codahale.metrics.jmx.JmxReporter;
 import ratpack.dropwizard.metrics.DropwizardMetricsConfig;
 
 import javax.inject.Inject;

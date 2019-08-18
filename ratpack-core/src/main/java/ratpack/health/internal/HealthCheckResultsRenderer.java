@@ -16,29 +16,46 @@
 
 package ratpack.health.internal;
 
+import com.google.common.reflect.TypeToken;
+import io.netty.buffer.ByteBuf;
+import io.netty.buffer.ByteBufAllocator;
+import io.netty.buffer.ByteBufOutputStream;
 import ratpack.handling.Context;
 import ratpack.health.HealthCheckResults;
+import ratpack.http.internal.HttpHeaderConstants;
+import ratpack.render.Renderer;
 import ratpack.render.RendererSupport;
+import ratpack.util.Types;
+
+import java.io.BufferedOutputStream;
+import java.io.OutputStreamWriter;
+import java.io.Writer;
 
 public class HealthCheckResultsRenderer extends RendererSupport<HealthCheckResults> {
 
+  public static final TypeToken<Renderer<HealthCheckResults>> TYPE = Types.intern(new TypeToken<Renderer<HealthCheckResults>>() {});
+
+  private final ByteBufAllocator byteBufAllocator;
+
+  public HealthCheckResultsRenderer(ByteBufAllocator byteBufAllocator) {
+    this.byteBufAllocator = byteBufAllocator;
+  }
+
   @SuppressWarnings("ThrowableResultOfMethodCallIgnored")
   @Override
-  public void render(Context context, HealthCheckResults healthCheckResults) throws Exception {
-    StringBuilder builder = new StringBuilder();
-    healthCheckResults.getResults().forEach((name, result) -> {
-      if (builder.length() > 0) {
-        builder.append("\n");
-      }
-      builder.append(name).append(" : ").append(result.isHealthy() ? "HEALTHY" : "UNHEALTHY");
-      if (!result.isHealthy()) {
-        builder.append(" [").append(result.getMessage()).append("]");
-        if (result.getError() != null) {
-          builder.append(" [").append(result.getError().toString()).append("]");
-        }
-      }
-    });
+  public void render(Context ctx, HealthCheckResults healthCheckResults) throws Exception {
+    ByteBuf buffer = byteBufAllocator.buffer();
 
-    context.getResponse().send(builder.toString());
+    try (Writer writer = new OutputStreamWriter(new BufferedOutputStream(new ByteBufOutputStream(buffer)))) {
+      healthCheckResults.writeTo(writer);
+    } catch (Exception e) {
+      buffer.release();
+      throw e;
+    }
+
+    ctx.getResponse()
+      .contentTypeIfNotSet(HttpHeaderConstants.PLAIN_TEXT_UTF8)
+      .status(healthCheckResults.isUnhealthy() ? 503 : 200)
+      .send(buffer);
   }
 }

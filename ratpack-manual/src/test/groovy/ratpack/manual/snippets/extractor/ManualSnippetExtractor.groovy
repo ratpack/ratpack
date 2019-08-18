@@ -16,9 +16,9 @@
 
 package ratpack.manual.snippets.extractor
 
-import ratpack.manual.snippets.TestCodeSnippet
-import ratpack.manual.snippets.executer.ExceptionTransformer
-import ratpack.manual.snippets.executer.SnippetExecuter
+import ratpack.test.internal.snippets.TestCodeSnippet
+import ratpack.test.internal.snippets.executer.ExceptionTransformer
+import ratpack.test.internal.snippets.executer.SnippetExecuter
 import ratpack.util.RatpackVersion
 
 import java.util.regex.Pattern
@@ -80,7 +80,9 @@ class ManualSnippetExtractor {
    * Perform the substitutions that {@code :ratpack-manual:tokeniseManual} would perform, as required by tested snippets.
    */
   private static String performSubstitutions(String snippet) {
-    return snippet.replaceAll("@ratpack-version@", RatpackVersion.version)
+    return snippet
+      .replaceAll("@ratpack-version@", RatpackVersion.version)
+      .replaceAll("@shadow-version@", "4.0.3")
   }
 
   private static TestCodeSnippet createSnippet(String sourceClassName, File sourceFile, int lineNumber, String snippet, SnippetExecuter executer) {

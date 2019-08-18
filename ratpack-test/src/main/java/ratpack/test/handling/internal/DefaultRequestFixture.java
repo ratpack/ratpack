@@ -54,11 +54,16 @@ import ratpack.stream.TransformablePublisher;
 import ratpack.test.handling.HandlerTimeoutException;
 import ratpack.test.handling.HandlingResult;
 import ratpack.test.handling.RequestFixture;
+import ratpack.test.http.MultipartFileSpec;
+import ratpack.test.http.internal.DefaultMultipartForm;
+import ratpack.test.http.MultipartFormSpec;
 import ratpack.util.Exceptions;
 
 import java.net.InetSocketAddress;
 import java.time.Instant;
+import java.util.Collections;
 import java.util.Map;
+import java.util.Optional;
 
 import static io.netty.buffer.Unpooled.buffer;
 import static io.netty.buffer.Unpooled.unreleasableBuffer;
@@ -85,6 +90,8 @@ public class DefaultRequestFixture implements RequestFixture {
   private ServerConfigBuilder serverConfigBuilder = ServerConfig.builder();
   private DefaultPathBinding pathBinding;
 
+  private Optional<DefaultMultipartForm.Builder> formBuilder = Optional.empty();
+
   @Override
   public RequestFixture body(byte[] bytes, String contentType) {
     requestHeaders.add(HttpHeaderNames.CONTENT_TYPE, contentType);
@@ -96,6 +103,32 @@ public class DefaultRequestFixture implements RequestFixture {
   @Override
   public RequestFixture body(String text, String contentType) {
     return body(text.getBytes(CharsetUtil.UTF_8), contentType);
+  }
+
+  @Override
+  public MultipartFileSpec file() {
+    return findOrCreateForm().file();
+  }
+
+  @Override
+  public RequestFixture file(String field, String filename, String data) {
+    DefaultMultipartForm.Builder form = findOrCreateForm();
+    form.file().field(field).name(filename).data(data).add();
+
+    return this;
+  }
+
+  @Override
+  public MultipartFormSpec form() {
+    return findOrCreateForm();
+  }
+
+  @Override
+  public RequestFixture form(Map<String, String> data) {
+    DefaultMultipartForm.Builder form = findOrCreateForm();
+    form.fields(data);
+
+    return this;
   }
 
   @Override
@@ -120,35 +153,56 @@ public class DefaultRequestFixture implements RequestFixture {
 
   private HandlingResult invoke(Handler handler, Registry registry, DefaultHandlingResult.ResultsHolder results) throws HandlerTimeoutException {
     ServerConfig serverConfig = registry.get(ServerConfig.class);
+    writeMultipartFormIfRequired();
 
     DefaultRequest request = new DefaultRequest(
       Instant.now(), requestHeaders, HttpMethod.valueOf(method.toUpperCase()), HttpVersion.valueOf(protocol), uri,
-      new InetSocketAddress(remoteHostAndPort.getHostText(), remoteHostAndPort.getPort()),
-      new InetSocketAddress(localHostAndPort.getHostText(), localHostAndPort.getPort()),
+      new InetSocketAddress(remoteHostAndPort.getHost(), remoteHostAndPort.getPort()),
+      new InetSocketAddress(localHostAndPort.getHost(), localHostAndPort.getPort()),
       serverConfig,
       new RequestBodyReader() {
+
+        private boolean unread = true;
+        private long maxContentLength = 8096;
+
+        public boolean isUnread() {
+          return unread;
+        }
+
         @Override
         public long getContentLength() {
           return requestBody.readableBytes();
         }
 
         @Override
-        public Promise<? extends ByteBuf> read(long maxContentLength, Block onTooLarge) {
-          return Promise.value(requestBody)
+        public long getMaxContentLength() {
+          return maxContentLength;
+        }
+
+        @Override
+        public void setMaxContentLength(long maxContentLength) {
+          this.maxContentLength = maxContentLength;
+        }
+
+        @Override
+        public Promise<? extends ByteBuf> read(Block onTooLarge) {
+          return Promise.sync(() -> {
+            unread = false;
+            return requestBody;
+          })
             .route(r -> r.readableBytes() > maxContentLength, onTooLarge.action());
         }
 
         @Override
-        public TransformablePublisher<? extends ByteBuf> readStream(long maxContentLength) {
-          return Streams.<ByteBuf>yield(r -> {
-            if (r.getRequestNum() > 0) {
-              return null;
-            } else {
-              return requestBody;
-            }
-          });
+        public TransformablePublisher<? extends ByteBuf> readStream() {
+          return Streams.publish(Collections.singleton(requestBody)).wiretap(e ->
+            unread = false
+          );
         }
-      }
+      },
+      idleTimeout -> {
+      },
+      null
     );
 
     if (pathBinding != null) {
@@ -206,7 +260,12 @@ public class DefaultRequestFixture implements RequestFixture {
 
   @Override
   public RequestFixture pathBinding(String boundTo, String pastBinding, Map<String, String> pathTokens) {
-    pathBinding = new DefaultPathBinding(pastBinding, ImmutableMap.copyOf(pathTokens), new RootPathBinding(pastBinding));
+    return pathBinding(boundTo, pastBinding, pathTokens, "");
+  }
+
+  @Override
+  public RequestFixture pathBinding(String boundTo, String pastBinding, Map<String, String> pathTokens, String description) {
+    pathBinding = new DefaultPathBinding(boundTo, ImmutableMap.copyOf(pathTokens), new RootPathBinding(boundTo + "/" + pastBinding), description);
     return this;
   }
 
@@ -260,6 +319,22 @@ public class DefaultRequestFixture implements RequestFixture {
   public RequestFixture protocol(String protocol) {
     this.protocol = protocol;
     return this;
+  }
+
+  private void writeMultipartFormIfRequired() {
+    if(formBuilder.isPresent()) {
+      DefaultMultipartForm form = formBuilder.get().build();
+      method("POST");
+      body(form.getBody(), form.getContentType());
+    }
+  }
+
+  private DefaultMultipartForm.Builder findOrCreateForm() {
+    if(!formBuilder.isPresent()) {
+      formBuilder = Optional.of(DefaultMultipartForm.builder());
+    }
+
+    return formBuilder.get();
   }
 
   private Registry getEffectiveRegistry(final DefaultHandlingResult.ResultsHolder results) {
@@ -321,6 +396,11 @@ public class DefaultRequestFixture implements RequestFixture {
 
     @Override
     public RatpackServer reload() throws Exception {
+      throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public Optional<Registry> getRegistry() {
       throw new UnsupportedOperationException();
     }
   }

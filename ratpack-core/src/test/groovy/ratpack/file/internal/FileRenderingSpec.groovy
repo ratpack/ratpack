@@ -56,6 +56,28 @@ class FileRenderingSpec extends RatpackGroovyDslSpec {
     }
   }
 
+  def "can add response finalizer"() {
+    when:
+    handlers {
+      all {
+        response.beforeSend {
+          it.headers.add("foo", "1")
+          response.beforeSend {
+            it.headers.add("bar", "1")
+          }
+        }
+        render myFile
+      }
+    }
+
+    then:
+    def r = get()
+    r.status.code == 200
+    r.body.text.contains(FILE_CONTENTS)
+    r.headers.foo == "1"
+    r.headers.bar == "1"
+  }
+
   def "renderer respect if-modified-since header"() {
     given:
     handlers {
@@ -71,7 +93,7 @@ class FileRenderingSpec extends RatpackGroovyDslSpec {
     then:
     with(response) {
       statusCode == NOT_MODIFIED.code()
-      headers.get(CONTENT_LENGTH).toInteger() == 0
+      !headers.contains(CONTENT_LENGTH)
     }
   }
 
@@ -88,8 +110,16 @@ class FileRenderingSpec extends RatpackGroovyDslSpec {
     response.statusCode == OK.code()
     // compare the last modified dates formatted as milliseconds are stripped when added as a response header
     formatDateHeader(parseDateHeader(response, LAST_MODIFIED)) == formatDateHeader(Files.getLastModifiedTime(myFile).toMillis())
+  }
 
+  def "can render in response to non GET"() {
+    when:
+    handlers {
+      post { render myFile }
+    }
 
+    then:
+    postText() == myFile.text
   }
 
   private static Date parseDateHeader(ReceivedResponse response, String name) {

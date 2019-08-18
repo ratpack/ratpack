@@ -45,6 +45,10 @@ public class DefaultFileSystemBinding implements FileSystemBinding {
   }
 
   public Path file(String path) {
+    if (path == null) {
+      throw new IllegalArgumentException("Path must not be null");
+    }
+
     if (path.startsWith("/")) {
       path = path.substring(1);
     }

@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 the original author or authors.
+ * Copyright 2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,24 +16,19 @@
 
 package ratpack.gradle.continuous;
 
+import org.gradle.deployment.internal.Deployment;
+import org.gradle.deployment.internal.DeploymentHandle;
 import ratpack.gradle.continuous.run.RatpackAdapter;
 
-public class RatpackDeploymentHandle implements RatpackAdapter {
+import javax.inject.Inject;
+
+public class RatpackDeploymentHandle implements DeploymentHandle {
 
   private final RatpackAdapter adapter;
 
+  @Inject
   public RatpackDeploymentHandle(RatpackAdapter adapter) {
     this.adapter = adapter;
-  }
-
-  @Override
-  public void start() {
-    adapter.start();
-  }
-
-  @Override
-  public void buildError(Throwable throwable) {
-    adapter.buildError(throwable);
   }
 
   @Override
@@ -41,6 +36,12 @@ public class RatpackDeploymentHandle implements RatpackAdapter {
     return adapter.isRunning();
   }
 
+  @Override
+  public void start(Deployment deployment) {
+    adapter.start();
+  }
+
+  @Override
   public void stop() {
     adapter.stop();
   }

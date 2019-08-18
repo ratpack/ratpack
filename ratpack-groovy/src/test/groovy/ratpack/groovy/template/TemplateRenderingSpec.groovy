@@ -19,7 +19,6 @@ package ratpack.groovy.template
 import ratpack.error.ServerErrorHandler
 import ratpack.test.internal.RatpackGroovyDslSpec
 import ratpack.test.internal.SimpleErrorHandler
-import spock.lang.Unroll
 
 import static io.netty.handler.codec.http.HttpHeaders.Names.CONTENT_TYPE
 import static ratpack.groovy.Groovy.groovyTemplate
@@ -132,8 +131,7 @@ class TemplateRenderingSpec extends RatpackGroovyDslSpec {
     text == "outer: ab, inner: aB, innerInner: AB"
   }
 
-  @Unroll
-  "can use render in output section - #template"() {
+  def "can use render in output section - #template" ( ) {
     given:
     write "templates/outer.html", template
     write "templates/foo.html", "foo"
@@ -153,8 +151,7 @@ class TemplateRenderingSpec extends RatpackGroovyDslSpec {
     template << ["\${render 'foo.html'}", "<%= render 'foo.html' %>"]
   }
 
-  @Unroll
-  "can use render in output section in nested - #template"() {
+  def "can use render in output section in nested - #template"() {
     given:
     bindings { module(TextTemplateModule) }
     write "templates/outer.html", "<% render 'inner.html' %>"

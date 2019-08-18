@@ -18,7 +18,6 @@ package ratpack.guice.internal;
 
 import com.google.inject.*;
 import ratpack.exec.Execution;
-import ratpack.exec.UnmanagedThreadException;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -59,19 +58,23 @@ public abstract class ExecutionBasedScope<S extends Map<Key<?>, Object>> impleme
   abstract protected S createStore();
 
   private Map<Key<?>, Object> getScopedObjectMap(Key<?> key) {
-    try {
-      Execution execution = Execution.current();
-      if (!inScope(execution)) {
-        throw new OutOfScopeException("Cannot access " + key + " outside of " + name);
-      }
-      return execution.maybeGet(storeType).orElseGet(() -> {
-        S store = createStore();
-        execution.add(storeType, store);
-        return store;
-      });
-    } catch (UnmanagedThreadException e) {
-      throw new OutOfScopeException("Cannot access " + key + " outside of " + name);
+    Execution execution = Execution.currentOpt().<OutOfScopeException>orElseThrow(() -> {
+      throw outOfScopeException(key);
+    });
+
+    if (!inScope(execution)) {
+      throw outOfScopeException(key);
     }
+
+    return execution.maybeGet(storeType).orElseGet(() -> {
+      S store = createStore();
+      execution.add(storeType, store);
+      return store;
+    });
+  }
+
+  private OutOfScopeException outOfScopeException(Key<?> key) {
+    return new OutOfScopeException("Cannot access " + key + " outside of " + name);
   }
 
   protected boolean inScope(Execution execution) {

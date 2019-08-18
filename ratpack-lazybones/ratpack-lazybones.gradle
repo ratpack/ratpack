@@ -29,11 +29,14 @@ buildscript {
 
 apply from: "$rootDir/gradle/javaModule.gradle"
 apply plugin: "maven"
-apply from: "$rootDir/gradle/projectLocalRepo.gradle"
 apply plugin: "uk.co.cacoethes.lazybones-templates"
 
+repositories {
+  maven { url "https://repo.gradle.org/gradle/repo" }
+}
+
 dependencies {
-  compile "org.gradle:gradle-tooling-api:${gradle.gradleVersion}"
+  compile commonDependencies.toolingApi
 
   testCompile "commons-io:commons-io:2.4"
   testCompile "org.apache.commons:commons-lang3:3.3.2"
@@ -46,7 +49,7 @@ ext {
 }
 
 task replaceTemplateTokens(type: Sync) {
-  def tokens = [version: version, slf4jVersion: commonVersions.slf4j, spockVersion: commonVersions.spock]
+  def tokens = [version: version, slf4jVersion: commonVersions.slf4j, spockVersion: commonVersions.spock, shadowVersion: commonVersions.shadow]
   inputs.properties(tokens)
 
   from('src/templates/ratpack') {

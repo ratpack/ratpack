@@ -31,10 +31,10 @@ public class HostUtil {
 
   public static String determineHost(HostAndPort hostAndPort) {
     try {
-      InetAddress address = InetAddress.getByName(hostAndPort.getHostText());
+      InetAddress address = InetAddress.getByName(hostAndPort.getHost());
       return determineHost(address);
     } catch (UnknownHostException e) {
-      return hostAndPort.getHostText();
+      return hostAndPort.getHost();
     }
   }
 

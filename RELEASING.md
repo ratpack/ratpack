@@ -12,7 +12,7 @@ When you've got the release announcement set, copy it to the description of the 
 
 ## Pre
 
-1. Ensure there is a next (version after what is being released) milestone on GitHub with a date set (1st of next month)
+1. Ensure there is a next (version after what is being released) milestone on GitHub
 1. Check that there are no outstanding reviews for commits for the current versions, or at least that any issues don't block the release
 1. Check that there are no outstanding issues/pull requests for the development version (either implement or move them to next milestone)
 1. (a) Ensure that there are no -SNAPSHOT dependencies (or if there are, that there is good reason for them)
@@ -24,9 +24,9 @@ When you've got the release announcement set, copy it to the description of the 
 1. Ensure the the build is still passing (i.e. run `./gradlew clean build`) - really isn't needed, but doesn't hurt
 1. Commit with message “Version «number»”
 1. Tag commit with name “v«number»” (don't push yet)
-1. Build and upload the binaries: `./gradlew artifactoryPublish` - See below for credential requirements
+1. Build and upload the binaries: `./gradlew artifactoryPublish --max-workers=1` - See below for credential requirements
 1. Promote the binaries from oss.jfrog.org to Bintray and Maven Central
-    1. Go to https://oss.jfrog.org/webapp/builds/ratpack/?6
+    1. Go to https://oss.jfrog.org/artifactory/webapp/#/builds/ratpack/
     1. To log in use your Bintray username and Bintray API key
     1. Find the build you just uploaded (you should be able to tell by the version number).  If you sort by "Time Built" desc it will be at the top of the list
     1. Take the buildNumber and run `./gradlew bintrayPublish -PbuildNumber=«buildNumber» -i`
@@ -46,7 +46,7 @@ When you've got the release announcement set, copy it to the description of the 
 1. (a) Update `release-notes.md` to remove the content specific to the freshly-completed release (i.e. set it back to a fresh template)
 1. Commit with message 'Begin version «version»', and push (make sure you push the tag)
 1. Run `./gradlew clean artifactoryPublish` (to push the new snapshot snapshot, so it can be resolved)
-1. Close the Milestone on GitHub
+1. Add the `Due Date` to the Milestone in GitHub and close it
 1. Copy the release announcement to the GitHub tag description on the [GitHub releases page](https://github.com/ratpack/ratpack/releases) and publish the release
 1. Get a tweet out about the release
 1. For all example projects ([example-ratpack-gradle-java-app](https://github.com/ratpack/example-ratpack-gradle-java-app), [example-ratpack-gradle-groovy-app](https://github.com/ratpack/example-ratpack-gradle-groovy-app), [example-books](https://github.com/ratpack/example-books)):
@@ -70,7 +70,4 @@ When you've got the release announcement set, copy it to the description of the 
     1. You also need Bintray credentials to publish to the Gradle Plugin Portal repo.  You need to be a member of the Ratpack organization with permission to publish to the gradle-plugins-meta repo.
     1. Create a gradle.properties file in the root of the Ratpack project and add properties for `ratpackBintrayUser` and `ratpackBintrayApiKey` with your Bintray details.  This file does not get committed.
 1. Gradle Plugin Portal config
-    1. Create a Gradle Plugin Portal account at [https://login.gradle.org/user/register](https://login.gradle.org/user/register).
-    1. Email infrastructure+support@gradleware.com and ask to be allowed to publish artifacts for `io.ratpack.ratpack-java` and `io.ratpack.ratpack-groovy`, provide proof of team membership.
-    1. From the Plugin Portal user page, e.g. `https://plugins.gradle.org/u/$username`, generate API key by click the `Generate Publishing Key` button. 
-    1. Copy the generated `gradle.publish.key` and `gradle.publish.secret` to `~/.gradle/gradle.properties`.
+    1. Access to the `ratpack_team` publish key and secret. (Ask John or Jeff)

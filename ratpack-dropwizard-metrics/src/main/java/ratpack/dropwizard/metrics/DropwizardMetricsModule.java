@@ -20,6 +20,7 @@ import com.codahale.metrics.*;
 import com.codahale.metrics.annotation.Metered;
 import com.codahale.metrics.annotation.Timed;
 import com.codahale.metrics.graphite.GraphiteReporter;
+import com.codahale.metrics.jmx.JmxReporter;
 import com.codahale.metrics.jvm.GarbageCollectorMetricSet;
 import com.codahale.metrics.jvm.MemoryUsageGaugeSet;
 import com.codahale.metrics.jvm.ThreadStatesGaugeSet;
@@ -27,12 +28,17 @@ import com.google.inject.Injector;
 import com.google.inject.Provider;
 import com.google.inject.matcher.Matchers;
 import com.google.inject.multibindings.Multibinder;
+import io.netty.buffer.ByteBufAllocator;
+import io.netty.buffer.PooledByteBufAllocator;
+import io.netty.buffer.UnpooledByteBufAllocator;
+import io.prometheus.client.CollectorRegistry;
+import io.prometheus.client.dropwizard.DropwizardExports;
 import ratpack.dropwizard.metrics.internal.*;
 import ratpack.guice.ConfigurableModule;
 import ratpack.handling.HandlerDecorator;
-import ratpack.server.Service;
-import ratpack.server.StartEvent;
-import ratpack.server.StopEvent;
+import ratpack.service.Service;
+import ratpack.service.StartEvent;
+import ratpack.service.StopEvent;
 
 import javax.inject.Inject;
 
@@ -178,12 +184,15 @@ public class DropwizardMetricsModule extends ConfigurableModule<DropwizardMetric
     bind(GraphiteReporter.class).toProvider(GraphiteReporterProvider.class).in(SINGLETON);
     bind(MetricRegistryPeriodicPublisher.class).in(SINGLETON);
     bind(MetricsBroadcaster.class).in(SINGLETON);
+    bind(HttpClientMetrics.class).in(SINGLETON);
     bind(Startup.class);
 
     bind(BlockingExecTimingInterceptor.class).toProvider(BlockingExecTimingInterceptorProvider.class).in(SINGLETON);
     bind(RequestTimingHandler.class).toProvider(RequestTimingHandlerProvider.class).in(SINGLETON);
     Provider<RequestTimingHandler> handlerProvider = getProvider(RequestTimingHandler.class);
     Multibinder.newSetBinder(binder(), HandlerDecorator.class).addBinding().toProvider(() -> HandlerDecorator.prepend(handlerProvider.get()));
+
+    bind(CollectorRegistry.class).in(SINGLETON);
   }
 
   private <T> T injected(T instance) {
@@ -239,6 +248,30 @@ public class DropwizardMetricsModule extends ConfigurableModule<DropwizardMetric
         metricRegistry.registerAll(new GarbageCollectorMetricSet());
         metricRegistry.registerAll(new ThreadStatesGaugeSet());
         metricRegistry.registerAll(new MemoryUsageGaugeSet());
+      }
+
+      config.getByteBufAllocator().ifPresent(byteBufAllocatorConfig -> {
+        if (byteBufAllocatorConfig.isEnabled()) {
+          final MetricRegistry metricRegistry = injector.getInstance(MetricRegistry.class);
+          final ByteBufAllocator byteBufAllocator = event.getRegistry().get(ByteBufAllocator.class);
+
+          final MetricSet metricSet;
+          if (byteBufAllocator instanceof PooledByteBufAllocator) {
+            metricSet = new PooledByteBufAllocatorMetricSet((PooledByteBufAllocator) byteBufAllocator, byteBufAllocatorConfig.isDetailed());
+          } else if (byteBufAllocator instanceof UnpooledByteBufAllocator) {
+            metricSet = new UnpooledByteBufAllocatorMetricSet((UnpooledByteBufAllocator) byteBufAllocator);
+          } else {
+            throw new UnsupportedOperationException(String.format("Unknown type of byte buf allocator (%s)", byteBufAllocator.getClass()));
+          }
+
+          metricRegistry.registerAll(metricSet);
+        }
+      });
+
+      if (config.isPrometheusCollection()) {
+        final CollectorRegistry collectorRegistry = injector.getInstance(CollectorRegistry.class);
+        final MetricRegistry metricRegistry = injector.getInstance(MetricRegistry.class);
+        collectorRegistry.register(new DropwizardExports(metricRegistry));
       }
     }
 

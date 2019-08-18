@@ -18,9 +18,12 @@ package ratpack.http.client;
 
 import io.netty.buffer.ByteBuf;
 import io.netty.handler.codec.http.HttpHeaderNames;
+import io.netty.handler.ssl.SslContext;
+import io.netty.handler.ssl.SslContextBuilder;
 import ratpack.func.Action;
 import ratpack.func.Factory;
 import ratpack.func.Function;
+import ratpack.http.HttpMethod;
 import ratpack.http.MutableHeaders;
 
 import javax.net.ssl.SSLContext;
@@ -50,9 +53,18 @@ public interface RequestSpec {
    * The given value must be &gt;= 0.
    *
    * @param maxRedirects the maximum number of redirects to follow
-   * @return The RequestSpec
+   * @return {@code this}
    */
   RequestSpec redirects(int maxRedirects);
+
+  /**
+   * Get the configured maximum number of redirects.
+   *
+   * @return The maximum number of redirects
+   * @see #redirects(int)
+   * @since 1.6
+   */
+  int getRedirects();
 
   /**
    * Specifies a function to invoke when a redirectable response is received.
@@ -72,20 +84,43 @@ public interface RequestSpec {
    * Sets the {@link SSLContext} used for client and server SSL authentication.
    *
    * @param sslContext SSL context with keystore as well as trust store
-   * @return the {@link RequestSpec}
+   * @return {@code this}
+   * @deprecated since 1.5, use {@link #sslContext(SslContext)}
    */
+  @Deprecated
   RequestSpec sslContext(SSLContext sslContext);
+
+  /**
+   * Get the configured {@link SslContext} used for client and server SSL authentication.
+   *
+   * @return The {@code SslContext} used for SSL authentication
+   * @see #sslContext(SslContext)
+   * @since 1.6
+   */
+  SslContext getSslContext();
 
   /**
    * Factory method to create {@link SSLContext} used for client and server SSL authentication.
    *
    * @param factory provides a factory that will create {@link SSLContext} instance
-   * @return the {@link RequestSpec}
+   * @return {@code this}
    * @throws Exception this can be thrown from the action
+   * @deprecated since 1.5, no replacement.
    */
+  @SuppressWarnings("deprecation")
+  @Deprecated
   default RequestSpec sslContext(Factory<SSLContext> factory) throws Exception {
     return sslContext(factory.create());
   }
+
+  /**
+   * Sets the {@link SslContext} used for client and server SSL authentication.
+   *
+   * @param sslContext SSL context with keystore as well as trust store
+   * @return the {@link RequestSpec}
+   * @see SslContextBuilder#forClient()
+   */
+  RequestSpec sslContext(SslContext sslContext);
 
   /**
    * @return {@link ratpack.http.MutableHeaders} that can be used to configure the headers that will be used for the request.
@@ -93,40 +128,181 @@ public interface RequestSpec {
   MutableHeaders getHeaders();
 
   /**
-   * This method can be used to compose changes to the headers.
+   * The maximum response length to accept.
+   *
+   * @param numBytes the maximum response length to accept
+   * @return {@code this}
+   * @since 1.4
+   */
+  RequestSpec maxContentLength(int numBytes);
+
+  /**
+   * Get the configured maximum response length.
+   *
+   * @return The maximum response length
+   * @see #maxContentLength(int)
+   * @since 1.6
+   */
+  int getMaxContentLength();
+
+  /**
+   * The max size of the chunks to emit when reading a response as a stream.
+   * <p>
+   * Defaults to the configured {@link HttpClientSpec#responseMaxChunkSize(int)} for the corresponding client.
+   * <p>
+   * Increasing this value can increase throughput at the expense of memory use.
+   *
+   * @param numBytes the max number of bytes to emit
+   * @return {@code this}
+   * @since 1.5
+   */
+  RequestSpec responseMaxChunkSize(int numBytes);
+
+  /**
+   * This method can be used to buffer changes to the headers.
    *
    * @param action Provide an action that will act on MutableHeaders.
-   * @return The RequestSpec
+   * @return {@code this}
    * @throws Exception This can be thrown from the action supplied.
    */
   RequestSpec headers(Action<? super MutableHeaders> action) throws Exception;
 
   /**
-   * Set the HTTP verb to use.
-   * @param method which HTTP verb to use
-   * @return this
+   * Specifies the request method.
+   *
+   * @param method the method
+   * @return {@code this}
    */
-  RequestSpec method(String method);
+  default RequestSpec method(String method) {
+    return method(HttpMethod.of(method));
+  }
+
+  /**
+   * Specifies the request method.
+   *
+   * @param method the method
+   * @return this
+   * @since 1.4
+   */
+  RequestSpec method(HttpMethod method);
+
+  /**
+   * Get the configured request method.
+   *
+   * @return The request method.
+   * @see #method(HttpMethod)
+   * @since 1.6
+   */
+  HttpMethod getMethod();
+
+  /**
+   * Specifies to use the GET request method.
+   *
+   * @return {@code this}
+   * @since 1.4
+   */
+  default RequestSpec get() {
+    return method(HttpMethod.GET);
+  }
+
+  /**
+   * Specifies to use the POST request method.
+   *
+   * @return {@code this}
+   * @since 1.4
+   */
+  default RequestSpec post() {
+    return method(HttpMethod.POST);
+  }
+
+  /**
+   * Specifies to use the PUT request method.
+   *
+   * @return {@code this}
+   * @since 1.4
+   */
+  default RequestSpec put() {
+    return method(HttpMethod.PUT);
+  }
+
+  /**
+   * Specifies to use the DELETE request method.
+   *
+   * @return {@code this}
+   * @since 1.4
+   */
+  default RequestSpec delete() {
+    return method(HttpMethod.DELETE);
+  }
+
+  /**
+   * Specifies to use the PATCH request method.
+   *
+   * @return {@code this}
+   * @since 1.4
+   */
+  default RequestSpec patch() {
+    return method(HttpMethod.PATCH);
+  }
+
+  /**
+   * Specifies to use the OPTIONS request method.
+   *
+   * @return {@code this}
+   * @since 1.4
+   */
+  default RequestSpec options() {
+    return method(HttpMethod.OPTIONS);
+  }
+
+  /**
+   * Specifies to use the HEAD request method.
+   *
+   * @return {@code this}
+   * @since 1.4
+   */
+  default RequestSpec head() {
+    return method(HttpMethod.HEAD);
+  }
 
   /**
    * Enables automatic decompression of the response.
+   *
    * @param shouldDecompress whether to enable decompression
-   * @return this
+   * @return {@code this}
    */
   RequestSpec decompressResponse(boolean shouldDecompress);
 
-  URI getUrl();
+  /**
+   * Gets if responses are automatically decompressed.
+   *
+   * @return Whether response decompression is enabled
+   * @see #decompressResponse(boolean)
+   * @since 1.6
+   */
+  boolean getDecompressResponse();
 
   /**
-   * Sets the socket connection timeout to the given value in seconds.
-   * <p>
-   * This value defaults to 30 seconds.
+   * The request URI.
    *
-   * @since 1.1
-   * @param seconds the socket connection timeout in seconds
-   * @see #connectTimeout(Duration)
-   * @return {@code this}
+   * @return the request URI
+   * @since 1.4
    */
+  URI getUri();
+
+  /**
+   * @deprecated since 1.4, use {@link #getUri()}
+   */
+  @Deprecated
+  default URI getUrl() {
+    return getUri();
+  }
+
+  /**
+   * @since 1.1
+   * @deprecated since 1.4, use {@link #connectTimeout(Duration)}
+   */
+  @Deprecated
   default RequestSpec connectTimeoutSeconds(int seconds) {
     return connectTimeout(Duration.of(seconds, SECONDS));
   }
@@ -142,11 +318,41 @@ public interface RequestSpec {
    */
   RequestSpec connectTimeout(Duration duration);
 
+  /**
+   * Gets the configured socket connection timeout.
+   *
+   * @return The socket connection timeout
+   * @see #connectTimeout(Duration)
+   * @since 1.6
+   */
+  Duration getConnectTimeout();
+
+  /**
+   * @deprecated since 1.4, use {@link #readTimeout(Duration)}
+   */
+  @Deprecated
   default RequestSpec readTimeoutSeconds(int seconds) {
     return readTimeout(Duration.of(seconds, SECONDS));
   }
 
+  /**
+   * Sets the socket read timeout.
+   * <p>
+   * This value defaults to 30 seconds.
+   *
+   * @param duration the socket read timeout
+   * @return {@code this}
+   */
   RequestSpec readTimeout(Duration duration);
+
+  /**
+   * Gets the configured socket read timeout.
+   *
+   * @return The socket read timeout
+   * @see #readTimeout(Duration)
+   * @since 1.6
+   */
+  Duration getReadTimeout();
 
   /**
    * The body of the request, used for specifying the body content.
@@ -203,7 +409,7 @@ public interface RequestSpec {
      * @param contentType the value of the Content-Type header
      * @return this
      */
-    Body type(String contentType);
+    Body type(CharSequence contentType);
 
     /**
      * Specifies the request body by writing to an output stream.

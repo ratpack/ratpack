@@ -743,11 +743,149 @@ public interface GroovyChain extends Chain {
     );
   }
 
+  default GroovyChain when(
+    @DelegatesTo(value = GroovyContext.class, strategy = Closure.DELEGATE_FIRST) Closure<?> test,
+    Class<? extends Action<? super Chain>> action
+  ) throws Exception {
+    return when(test, getRegistry().get(action));
+  }
+
+  /**
+   * Inlines the given handlers if {@code test} is {@code true}.
+   * <p>
+   * This is literally just sugar for wrapping the given action in an {@code if} statement.
+   * It can be useful when conditionally adding handlers based on state available when building the chain.
+   *
+   * @param test whether to include the given chain action
+   * @param handlers the handlers to maybe include
+   * @return this
+   * @throws Exception any thrown by {@code action}
+   * @since 1.4
+   * @see Chain#when(boolean, Action)
+   */
+  default GroovyChain when(boolean test, @DelegatesTo(value = GroovyChain.class, strategy = Closure.DELEGATE_FIRST) Closure<?> handlers) throws Exception {
+    return when(test, chainAction(handlers));
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  default GroovyChain when(boolean test, Action<? super Chain> action) throws Exception {
+    return from(Chain.super.when(test, action));
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  default GroovyChain when(boolean test, Class<? extends Action<? super Chain>> action) throws Exception {
+    return from(Chain.super.when(test, action));
+  }
+
+  @Override
+  default GroovyChain when(Predicate<? super Context> test, Action<? super Chain> onTrue, Action<? super Chain> onFalse) throws Exception {
+    return from(Chain.super.when(test, onTrue, onFalse));
+  }
+
+  @Override
+  default GroovyChain when(Predicate<? super Context> test, Class<? extends Action<? super Chain>> onTrue, Class<? extends Action<? super Chain>> onFalse) throws Exception {
+    return from(Chain.super.when(test, onTrue, onFalse));
+  }
+
+  default GroovyChain when(
+    Predicate<? super Context> test,
+    @DelegatesTo(value = GroovyChain.class, strategy = Closure.DELEGATE_FIRST) Closure<?> ifHandlers,
+    @DelegatesTo(value = GroovyChain.class, strategy = Closure.DELEGATE_FIRST) Closure<?> elseHandlers
+  ) throws Exception {
+    return when(test, chainAction(ifHandlers), chainAction(elseHandlers));
+  }
+
+  default GroovyChain when(
+    @DelegatesTo(value = GroovyContext.class, strategy = Closure.DELEGATE_FIRST) Closure<?> test,
+    @DelegatesTo(value = GroovyChain.class, strategy = Closure.DELEGATE_FIRST) Closure<?> ifHandlers,
+    @DelegatesTo(value = GroovyChain.class, strategy = Closure.DELEGATE_FIRST) Closure<?> elseHandlers
+  ) throws Exception {
+    return when(test, chainAction(ifHandlers), chainAction(elseHandlers));
+  }
+
+  default GroovyChain when(
+    @DelegatesTo(value = GroovyContext.class, strategy = Closure.DELEGATE_FIRST) Closure<?> test,
+    Action<? super Chain> ifChain,
+    Action<? super Chain> elseChain
+  ) throws Exception {
+    return when(
+      ctx -> {
+        final GroovyContext groovyContext = GroovyContext.from(ctx);
+        return DefaultGroovyMethods.asBoolean(
+          ClosureUtil.cloneAndSetDelegate(groovyContext, test, Closure.DELEGATE_FIRST).isCase(groovyContext)
+        );
+      },
+      ifChain,
+      elseChain
+    );
+  }
+
+  default GroovyChain when(
+    @DelegatesTo(value = GroovyContext.class, strategy = Closure.DELEGATE_FIRST) Closure<?> test,
+    Class<? extends Action<? super Chain>> ifAction,
+    Class<? extends Action<? super Chain>> elseAction
+  ) throws Exception {
+    return when(test, getRegistry().get(ifAction), getRegistry().get(elseAction));
+  }
+
+  /**
+   * Inlines the appropriate handlers based on the given {@code test}.
+   * <p>
+   * A value of {@code true} will result in the given {@code ifHandlers} being used.
+   * A value of {@code false} will result in the given {@code elseHandlers} being used.
+   * <p>
+   * This is literally just sugar for wrapping the given action in an if/else statement.
+   * It can be useful when conditionally adding handlers based on state available when building the chain.
+   *
+   * @param test predicate to decide which handlers to include
+   * @param ifHandlers the handlers to include when the test is true
+   * @param elseHandlers the handlers to include when the test is false
+   * @return this
+   * @throws Exception any thrown by {@code action}
+   * @since 1.5
+   * @see Chain#when(boolean, Action, Action)
+   */
+  default GroovyChain when(
+    boolean test,
+    @DelegatesTo(value = GroovyChain.class, strategy = Closure.DELEGATE_FIRST) Closure<?> ifHandlers,
+    @DelegatesTo(value = GroovyChain.class, strategy = Closure.DELEGATE_FIRST) Closure<?> elseHandlers
+  ) throws Exception {
+    return when(test, chainAction(ifHandlers), chainAction(elseHandlers));
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  default GroovyChain when(boolean test, Action<? super Chain> onTrue, Action<? super Chain> onFalse) throws Exception {
+    return from(Chain.super.when(test, onTrue, onFalse));
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  default GroovyChain when(boolean test, Class<? extends Action<? super Chain>> onTrue, Class<? extends Action<? super Chain>> onFalse) throws Exception {
+    return from(Chain.super.when(test, onTrue, onFalse));
+  }
+
+  /**
+   * {@inheritDoc}
+   */
   @Override
   default GroovyChain onlyIf(Predicate<? super Context> test, Handler handler) {
     return from(Chain.super.onlyIf(test, handler));
   }
 
+  /**
+   * {@inheritDoc}
+   */
   @Override
   default GroovyChain onlyIf(Predicate<? super Context> test, Class<? extends Handler> handler) {
     return from(Chain.super.onlyIf(test, handler));
@@ -780,6 +918,13 @@ public interface GroovyChain extends Chain {
       },
       handler
     );
+  }
+
+  default GroovyChain onlyIf(
+    @DelegatesTo(value = GroovyContext.class, strategy = Closure.DELEGATE_FIRST) Closure<?> test,
+    Class<? extends Handler> handler
+  ) {
+    return onlyIf(test, getRegistry().get(handler));
   }
 
   /**

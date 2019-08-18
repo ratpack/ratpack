@@ -29,7 +29,6 @@ import ratpack.session.SessionModule
 import ratpack.test.internal.RatpackGroovyDslSpec
 
 import java.util.concurrent.CountDownLatch
-import java.util.concurrent.TimeUnit
 
 import static io.netty.handler.codec.http.HttpHeaderNames.LOCATION
 import static io.netty.handler.codec.http.HttpResponseStatus.FOUND
@@ -130,9 +129,7 @@ class Pac4jSessionSpec extends RatpackGroovyDslSpec {
   }
 
   def "log user id in request log"() {
-    def messages = []
     def latch = new CountDownLatch(4)
-
     def logger = Mock(Logger) {
       isInfoEnabled(_ as Marker) >> true
       4 * info(_ as Marker, _ as String, _ as Object[] ) >> { Marker marker, String msgPattern, Object[] params -> messages << MessageFormatter.arrayFormat(msgPattern, params).message; latch.countDown() }
@@ -144,6 +141,10 @@ class Pac4jSessionSpec extends RatpackGroovyDslSpec {
     }
     handlers {
       all RequestLogger.ncsa(logger)
+      all {
+        onClose { latch.countDown() }
+        next()
+      }
       all RatpackPac4j.authenticator(new FormClient("/login", new SimpleTestUsernamePasswordAuthenticator()))
       prefix("foo") {
         all(RatpackPac4j.requireAuth(FormClient))
@@ -188,13 +189,7 @@ class Pac4jSessionSpec extends RatpackGroovyDslSpec {
     resp4.statusCode == OK.code()
 
     then: 'the request is logged with the user id'
-    latch.await(10, TimeUnit.SECONDS)
-    def found = []
-    messages.each {
-      if(it ==~ /(?s).*127\.0\.0\.1 - foo \[.*\] "GET \/foo HTTP\/1\.1" 200 36 id=.*/) {
-        found << it
-      }
-    }
-    found.size() == 1
+    latch.await()
+    1 * logger.info({ it ==~ /(?s).*127\.0\.0\.1 - foo \[.*\] "GET \/foo HTTP\/1\.1" 200 36 id=.*/ })
   }
 }

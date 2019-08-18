@@ -55,10 +55,13 @@ public interface HandlingResult {
   String getBodyText();
 
   /**
-   * The cookies to be set by client, as a Set.
+   * The cookies to be set as part of the response.
    * <p>
+   * Cookies are set during request processing via the {@link ratpack.http.Response#cookie(String, String)} method,
+   * or via directly modifying {@link ratpack.http.Response#getCookies()}.
    *
-   * @return the cookies from the response object.
+   * @return the cookies to be set as part of the response
+   * @since 1.3
    */
   @Nullable
   Set<Cookie> getCookies();
@@ -89,7 +92,6 @@ public interface HandlingResult {
    * @param <T> The expected type of the exception captured.
    * @return the “unhandled” throwable that occurred, or raise {@link ratpack.test.handling.HandlerExceptionNotThrownException}
    */
-  @Nullable
   <T extends Throwable> T exception(Class<T> type);
 
   /**

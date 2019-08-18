@@ -68,7 +68,7 @@ public interface ExecHarness extends AutoCloseable {
    *
    *     // Our method under test
    *     public <T> Promise<T> promise(final T value) {
-   *       return Promise.of(fulfiller -> asyncApi.returnAsync(value, fulfiller::success));
+   *       return Promise.async(downstream -> asyncApi.returnAsync(value, downstream::success));
    *     }
    *   }
    *
@@ -89,7 +89,7 @@ public interface ExecHarness extends AutoCloseable {
    * }</pre>
    *
    * When using Ratpack's RxJava integration, ExecHarness can be used to test {@code rx.Observable} instances by first converting them to a promise.
-   * See the {@code ratpack.rx.RxRatpack.asPromise(Observable)} documentation for an example of testing observables.
+   * See the {@code ratpack.rx2.RxRatpack.single(Observable)} documentation for an example of testing observables.
    *
    * @return a new execution harness
    */

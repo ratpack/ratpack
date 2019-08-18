@@ -20,6 +20,7 @@ import com.google.inject.Provides;
 import com.google.inject.Singleton;
 import com.zaxxer.hikari.HikariConfig;
 import com.zaxxer.hikari.HikariDataSource;
+import com.zaxxer.hikari.pool.HikariPool;
 import ratpack.guice.ConfigurableModule;
 
 import javax.sql.DataSource;
@@ -31,8 +32,8 @@ import javax.sql.DataSource;
  * All aspects of the connection pool can be configured through this object.
  * See {@link ConfigurableModule} for usage patterns.
  * <pre class="java">{@code
- * import ratpack.server.Service;
- * import ratpack.server.StartEvent;
+ * import ratpack.service.Service;
+ * import ratpack.service.StartEvent;
  * import ratpack.exec.Blocking;
  * import ratpack.guice.Guice;
  * import ratpack.hikari.HikariModule;
@@ -110,8 +111,20 @@ public class HikariModule extends ConfigurableModule<HikariConfig> {
 
   @Provides
   @Singleton
-  public HikariService hikariService(HikariConfig config) {
-    return new HikariService(new HikariDataSource(config));
+  public HikariDataSource hikariDataSource(HikariConfig config) {
+    return new HikariDataSource(config);
+  }
+
+  @Provides
+  @Singleton
+  public HikariPool hikariPool(HikariDataSource hikariDataSource) {
+    return (HikariPool) hikariDataSource.getHikariPoolMXBean();
+  }
+
+  @Provides
+  @Singleton
+  public HikariService hikariService(HikariDataSource hikariDataSource) {
+    return new HikariService(hikariDataSource);
   }
 
   @Provides

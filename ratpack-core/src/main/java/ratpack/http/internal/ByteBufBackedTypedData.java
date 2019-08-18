@@ -18,18 +18,15 @@ package ratpack.http.internal;
 
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.ByteBufInputStream;
-import io.netty.buffer.Unpooled;
+import io.netty.buffer.ByteBufUtil;
 import io.netty.util.CharsetUtil;
 import ratpack.http.MediaType;
 import ratpack.http.TypedData;
 
-import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.nio.charset.Charset;
-
-import static ratpack.util.Exceptions.uncheck;
 
 public class ByteBufBackedTypedData implements TypedData {
 
@@ -48,7 +45,7 @@ public class ByteBufBackedTypedData implements TypedData {
 
   @Override
   public ByteBuf getBuffer() {
-    return Unpooled.unmodifiableBuffer(byteBuf);
+    return byteBuf.asReadOnly();
   }
 
   @Override
@@ -67,17 +64,7 @@ public class ByteBufBackedTypedData implements TypedData {
 
   @Override
   public byte[] getBytes() {
-    if (byteBuf.hasArray()) {
-      return byteBuf.array();
-    } else {
-      ByteArrayOutputStream baos = new ByteArrayOutputStream(byteBuf.writerIndex());
-      try {
-        writeTo(baos);
-      } catch (IOException e) {
-        throw uncheck(e);
-      }
-      return baos.toByteArray();
-    }
+    return ByteBufUtil.getBytes(byteBuf);
   }
 
   @Override

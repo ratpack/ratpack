@@ -19,10 +19,12 @@ package ratpack.server;
 import ratpack.registry.Registry;
 
 /**
- * A stop event.
+ * Deprecated, replaced by {@link ratpack.service.StopEvent}.
  *
- * @see Service#onStop(StopEvent)
+ * @see ratpack.service.StopEvent
+ * @deprecated since 1.3
  */
+@Deprecated
 public interface StopEvent {
 
   /**

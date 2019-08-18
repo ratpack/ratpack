@@ -36,7 +36,7 @@ class SSLContextDeserializerSpec extends Specification {
   TemporaryFolder tempFolder
 
   DeserializationContext context = null
-  SSLContextDeserializer deserializer = new SSLContextDeserializer()
+  JdkSslContextDeserializer deserializer = new JdkSslContextDeserializer()
   ObjectNode objectNode = JsonNodeFactory.instance.objectNode()
   JsonParser jsonParser = Stub(JsonParser)
 

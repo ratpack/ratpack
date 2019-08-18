@@ -54,13 +54,12 @@ import java.util.Set;
  * import ratpack.guice.Guice;
  * import ratpack.test.embed.EphemeralBaseDir;
  * import ratpack.test.embed.EmbeddedApp;
- * import ratpack.thymeleaf.ThymeleafModule;
  *
  * import java.nio.file.Path;
  *
- * import static ratpack.thymeleaf.Template.thymeleafTemplate;
  * import static org.junit.Assert.*;
  *
+ * {@literal @}SuppressWarnings("deprecation")
  * public class Example {
  *
  *   public static void main(String... args) throws Exception {
@@ -68,9 +67,9 @@ import java.util.Set;
  *       baseDir.write("thymeleaf/myTemplate.html", "<span th:text=\"${key}\"/>");
  *       EmbeddedApp.of(s -> s
  *         .serverConfig(c -> c.baseDir(baseDir.getRoot()))
- *         .registry(Guice.registry(b -> b.module(ThymeleafModule.class)))
+ *         .registry(Guice.registry(b -> b.module(ratpack.thymeleaf.ThymeleafModule.class)))
  *         .handlers(chain -> chain
- *           .get(ctx -> ctx.render(thymeleafTemplate("myTemplate", m -> m.put("key", "Hello Ratpack!"))))
+ *           .get(ctx -> ctx.render(ratpack.thymeleaf.Template.thymeleafTemplate("myTemplate", m -> m.put("key", "Hello Ratpack!"))))
  *         )
  *       ).test(httpClient -> {
  *         assertEquals("<span>Hello Ratpack!</span>", httpClient.getText());
@@ -84,8 +83,10 @@ import java.util.Set;
  *
  * @see <a href="http://www.thymeleaf.org/" target="_blank">Thymeleaf</a>
  * @see <a href="https://code.google.com/p/google-guice/wiki/Multibindings" target="_blank">Guice Multibindings</a>
+ * @deprecated since 1.7.0. Use {@code ratpack-thymeleaf3} instead.
  */
 @SuppressWarnings("UnusedDeclaration")
+@Deprecated
 public class ThymeleafModule extends ConfigurableModule<ThymeleafModule.Config> {
 
   /**

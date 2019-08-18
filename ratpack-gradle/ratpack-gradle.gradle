@@ -21,7 +21,7 @@ buildscript {
     }
   }
   dependencies {
-    classpath "com.gradle.publish:plugin-publish-plugin:0.9.1"
+    classpath "com.gradle.publish:plugin-publish-plugin:0.9.7"
   }
 }
 
@@ -29,7 +29,6 @@ description = "Build time Ratpack support with the Gradle build tool - http://gr
 
 apply from: "$rootDir/gradle/javaModule.gradle"
 apply from: "$rootDir/gradle/versionFile.gradle"
-apply from: "$rootDir/gradle/projectLocalRepo.gradle"
 apply plugin: "maven"
 
 configurations.testCompile.dependencies.clear()
@@ -38,11 +37,11 @@ sourceCompatibility = "1.6"
 targetCompatibility = "1.6"
 
 dependencies {
-  compile localGroovy()
   compile gradleApi()
 
   testCompile gradleTestKit()
-  testCompile 'org.spockframework:spock-core:0.7-groovy-2.0', {
+  testCompile commonDependencies.guava
+  testCompile 'org.spockframework:spock-core:1.2-groovy-2.5', {
     exclude module: "groovy-all", group: "org.codehaus.groovy"
   }
 }

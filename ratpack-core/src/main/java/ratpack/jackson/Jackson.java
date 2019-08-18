@@ -31,6 +31,7 @@ import ratpack.jackson.internal.DefaultJsonParseOpts;
 import ratpack.jackson.internal.DefaultJsonRender;
 import ratpack.parse.Parse;
 import ratpack.registry.Registry;
+import ratpack.stream.StreamMapper;
 import ratpack.stream.Streams;
 import ratpack.stream.WriteStream;
 
@@ -524,13 +525,13 @@ public abstract class Jackson {
    * <p>
    * Items of the stream will be converted to JSON by an {@link ObjectMapper} obtained from the given registry.
    * <p>
-   * This method uses {@link Streams#streamMap(Publisher, ratpack.func.Function)} to consume the given stream.
+   * This method uses {@link Streams#streamMap(Publisher, StreamMapper)} to consume the given stream.
    *
    * @param registry the registry to obtain the object mapper from
    * @param stream the stream to render
    * @param <T> the type of item in the stream
    * @return a renderable object
-   * @see Streams#streamMap(Publisher, ratpack.func.Function)
+   * @see Streams#streamMap(Publisher, StreamMapper)
    */
   public static <T> ResponseChunks chunkedJsonList(Registry registry, Publisher<T> stream) {
     return chunkedJsonList(getObjectWriter(registry), stream);
@@ -553,7 +554,7 @@ public abstract class Jackson {
    * @see #chunkedJsonList(Registry, Publisher)
    */
   public static <T> ResponseChunks chunkedJsonList(ObjectWriter objectWriter, Publisher<T> stream) {
-    return ResponseChunks.bufferChunks(HttpHeaderConstants.JSON, Streams.streamMap(stream, out -> {
+    return ResponseChunks.bufferChunks(HttpHeaderConstants.JSON, Streams.streamMap(stream, (s, out) -> {
       JsonGenerator generator = objectWriter.getFactory().createGenerator(new OutputStream() {
         @Override
         public void write(int b) throws IOException {
@@ -574,6 +575,7 @@ public abstract class Jackson {
           try {
             generator.writeObject(item);
           } catch (Exception e) {
+            s.cancel();
             out.error(e);
           }
         }

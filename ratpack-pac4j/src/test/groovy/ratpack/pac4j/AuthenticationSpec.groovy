@@ -185,11 +185,11 @@ class AuthenticationSpec extends RatpackGroovyDslSpec {
       all RatpackPac4j.authenticator(new IndirectBasicAuthClient(new SimpleTestUsernamePasswordAuthenticator()))
       prefix("auth-post") {
         all RatpackPac4j.requireAuth(IndirectBasicAuthClient)
-        post { ctx ->
+        get { ctx ->
           def user = get(UserProfile)
           ctx.request.body.then { body ->
             response.status(201)
-            render user.id + " posted " + body.text
+            render user.id + " logged in"
           }
         }
       }
@@ -205,7 +205,7 @@ class AuthenticationSpec extends RatpackGroovyDslSpec {
     }.post("auth-post")
 
     response.statusCode == 201
-    response.body.text == "user posted kthxbye"
+    response.body.text == "user logged in"
   }
 
   def "request body with direct auth"() {

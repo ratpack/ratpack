@@ -14,25 +14,35 @@
  * limitations under the License.
  */
 
-description = "The manual for Ratpack (documentation & API reference)"
 
-apply from: "$rootDir/gradle/javaModule.gradle"
-configurations.runtime.artifacts.clear()
-configurations.archives.artifacts.clear()
+import org.gradle.external.javadoc.internal.AbstractJavadocOptionFileOption
+import org.gradle.external.javadoc.internal.JavadocOptionFileWriterContext
 
-apply plugin: "com.github.robfletcher.compass"
-apply plugin: "com.eriwen.gradle.js"
+import static org.pegdown.Extensions.*
 
 buildscript {
   repositories {
     jcenter()
+    gradlePluginPortal()
   }
   dependencies {
-    classpath "com.github.robfletcher:compass-gradle-plugin:2.0.5"
+    classpath "com.github.robfletcher:compass-gradle-plugin:2.0.6"
+    classpath "gradle.plugin.com.github.jengelman.gradle.plugins:gradle-processes:0.5.0"
     classpath "org.pegdown:pegdown:${commonVersions.pegdown}"
     classpath "com.eriwen:gradle-js-plugin:1.12.1"
     classpath "com.google.javascript:closure-compiler:v20150315"
   }
+}
+
+description = "The manual for Ratpack (documentation & API reference)"
+
+apply from: "$rootDir/gradle/javaModule.gradle"
+
+apply plugin: "com.github.robfletcher.compass"
+apply plugin: "com.eriwen.gradle.js"
+
+jruby {
+  execVersion = '9.1.14.0'
 }
 
 dependencies {
@@ -43,13 +53,18 @@ dependencies {
     exclude group: "org.slf4j", module: "slf4j-api"
     exclude group: "com.google.inject", module: "guice"
     exclude group: "org.apache.httpcomponents", module: "httpclient"
+    exclude group: "org.apache.commons", module: "commons-lang3"
+    exclude group: "com.fasterxml.jackson.core", module: "jackson-databind"
   }
-  testRuntime "org.gradle:gradle-tooling-api:${gradle.gradleVersion}" // used by gradle snippet fixture
+  testCompile gradleTestKit()
   testRuntime "org.apache.ant:ant-nodeps:1.8.1"
   testRuntime "com.fasterxml.jackson.datatype:jackson-datatype-jdk8:${commonVersions.jackson}"
 
   testRuntime project(path: ":ratpack-pac4j", configuration: "testRuntime")
 }
+
+// Gradle needs to use its version of Groovy, exclude ours
+configurations.testCompile.exclude module: "groovy-all"
 
 def projectDependencies = configurations.testCompile.dependencies.withType(ProjectDependency)
 assert projectDependencies.any { it.dependencyProject.path == ":ratpack-hikari" }  // Hikari creates a clash on commons logging
@@ -57,6 +72,14 @@ projectDependencies.findAll {
   it.dependencyProject.path in [":ratpack-groovy-test", ":ratpack-test-internal"]
 }.each {
   it.exclude group: "commons-logging", module: "commons-logging"
+}
+
+configurations.all {
+  if (it.name in ["testCompile", "testRuntime", "testCompileClasspath", "testRuntimeClasspath"]) {
+    resolutionStrategy {
+      force "org.reactivestreams:reactive-streams:1.0.0.final"
+    }
+  }
 }
 
 apply from: "$rootDir/gradle/markdown2book.gradle"
@@ -77,18 +100,23 @@ modifyPom { pom ->
 apiModules.each { evaluationDependsOn(it.path) }
 evaluationDependsOn ":ratpack-gradle"
 
-task configureApi << {
-  api {
-    apiModules.each {
-      def packages = []
-      def root = it.file("src/main/java")
-      root.eachDirRecurse {
-        if (it.listFiles().any { it.name.endsWith(".java") }) {
-          packages << ((it.absolutePath - root.absolutePath) - "/").replaceAll("/", ".")
+task configureApi() {
+  doLast {
+    api {
+      apiModules.each {
+        def packages = []
+        def root = it.file("src/main/java")
+        root.eachDirRecurse {
+          if (it.listFiles().any { it.name.endsWith(".java") }) {
+            packages << ((it.absolutePath - root.absolutePath) - "/").replaceAll("/", ".")
+          }
         }
-      }
 
-      options.group it.name, packages
+        if (it.name == "ratpack-exec") {
+          packages = packages - ["ratpack.util", "ratpack.util.internal", "ratpack.func"]
+        }
+        options.group it.name, packages
+      }
     }
   }
 }
@@ -112,7 +140,7 @@ task api(type: Javadoc) {
     classpath += it.sourceSets.main.compileClasspath + it.sourceSets.main.output
 
     if (it.hasProperty("apiLinks")) {
-      options.links(* it.apiLinks)
+      options.links(*it.apiLinks)
     }
   }
 
@@ -130,6 +158,17 @@ task api(type: Javadoc) {
       <link rel="stylesheet" type="text/css" href="{@docRoot}/../css/fonts.css">
     """.replaceAll("(^|\\n)\\s*", "")
 
+  options.addOption new AbstractJavadocOptionFileOption<String>("-allow-script-in-comments", null) {
+    @Override
+    void write(JavadocOptionFileWriterContext context) throws IOException {
+      context.writeOption(getOption())
+    }
+
+    @Override
+    AbstractJavadocOptionFileOption<String> duplicate() {
+      this
+    }
+  }
   options.bottom = ext.additionalAssets
 
   inputs.property "additionalAssets", ext.additionalAssets
@@ -160,7 +199,6 @@ test {
   systemProperty "localRepo", rootProject.file("build/localrepo").absolutePath
   systemProperty "gradleUserHome", gradle.gradleUserHomeDir.absolutePath
   systemProperty "gradleHome", gradle.gradleHomeDir.absolutePath
-  forkEvery 1
 }
 
 task checkApi(type: Checkstyle) {
@@ -182,15 +220,18 @@ task tokeniseManual(type: Sync) {
   into "$buildDir/manual-tokenised"
 
   ext.substitutionProperties = [
-      title: "Ratpack",
-      tagline: "Simple, lean & powerful HTTP apps",
-      "ratpack-version": project.version,
-      "ratpack-group": project.group,
-      "groovy-version": commonVersions.groovy,
-      "pac4j-version": commonVersions.pac4j,
-      "slf4j-version": commonVersions.slf4j,
-      "gradle-version": gradle.gradleVersion,
-      head: """
+    title             : "Ratpack",
+    tagline           : "Simple, lean & powerful HTTP apps",
+    "ratpack-version" : project.version,
+    "ratpack-group"   : project.group,
+    "groovy-version"  : commonVersions.groovy,
+    "pac4j-version"   : commonVersions.pac4j,
+    "retrofit-version": commonVersions.retrofit,
+    "slf4j-version"   : commonVersions.slf4j,
+    "spock-version"   : commonVersions.spock,
+    "shadow-version"  : commonVersions.shadow,
+    "gradle-version"  : gradle.gradleVersion,
+    head              : """
         <meta charset="utf-8">
         <meta name="viewport" content="width=device-width, initial-scale=1">
         <link href="css/normalize.css" rel="stylesheet" type="text/css">
@@ -199,7 +240,7 @@ task tokeniseManual(type: Sync) {
         <link href="css/fonts.css" rel="stylesheet" type="text/css">
         <script src="js/all.min.js"></script>
       """,
-      footer: """
+    footer            : """
         <h2>Ratpack Manual - $version - ${new Date().format("MMMM, yyyy")}</h2>
         <p>
           <a href="http://www.ratpack.io">www.ratpack.io</a><br>
@@ -219,8 +260,6 @@ task tokeniseManual(type: Sync) {
     }
   }
 }
-
-import static org.pegdown.Extensions.*
 
 task compileManual {
   group "manual"
@@ -294,7 +333,7 @@ task jsAll(type: com.eriwen.gradle.js.tasks.CombineJsTask, dependsOn: minifyJs) 
 task stylizeManual(type: Sync) {
   into "$buildDir/stylized-manual"
   from compileManual
-  from (compassCompile) {
+  from(compassCompile) {
     exclude 'bin/'
     exclude 'build_info/'
     exclude 'cache/'
@@ -358,6 +397,10 @@ task manualZip(type: Zip) {
   from packageManual
 }
 
+configurations {
+  published.extendsFrom zip
+}
+
 artifacts {
-  delegate.default manualZip
+  zip manualZip
 }

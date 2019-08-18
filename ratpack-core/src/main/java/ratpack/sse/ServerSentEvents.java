@@ -68,7 +68,7 @@ import ratpack.stream.Streams;
  *
  *       String expectedOutput = Arrays.asList(0, 1, 2, 3, 4)
  *         .stream()
- *         .map(i -> "event: counter\ndata: event " + i + "\nid: " + i + "\n")
+ *         .map(i -> "id: " + i + "\nevent: counter\ndata: event " + i + "\n")
  *         .collect(joining("\n"))
  *         + "\n";
  *
@@ -92,7 +92,7 @@ public class ServerSentEvents implements Renderable {
    * The action is executed for each item in the stream as it is emitted before being sent as a server sent event.
    * The state of the event object when the action completes will be used as the event.
    * <p>
-   * The action <b>MUST</b> set one of the {@code id}, {@code event}, {@code data}.
+   * The action <b>MUST</b> set one of {@code id}, {@code event}, {@code data} or {@code comment}.
    *
    * @param publisher the event stream
    * @param action the conversion of stream items to event objects
@@ -102,8 +102,8 @@ public class ServerSentEvents implements Renderable {
   public static <T> ServerSentEvents serverSentEvents(Publisher<T> publisher, Action<? super Event<T>> action) {
     return new ServerSentEvents(Streams.map(publisher, item -> {
       Event<T> event = action.with(new DefaultEvent<>(item));
-      if (event.getId() == null && event.getEvent() == null && event.getData() == null) {
-        throw new IllegalArgumentException("You must supply at least one of data, event, id");
+      if (event.getData() == null && event.getId() == null && event.getEvent() == null && event.getComment() == null) {
+        throw new IllegalArgumentException("You must supply at least one of data, event, id or comment");
       }
       return event;
     }));
@@ -130,6 +130,7 @@ public class ServerSentEvents implements Renderable {
     ByteBufAllocator bufferAllocator = context.get(ByteBufAllocator.class);
     Response response = context.getResponse();
     response.getHeaders().add(HttpHeaderConstants.CONTENT_TYPE, HttpHeaderConstants.TEXT_EVENT_STREAM_CHARSET_UTF_8);
+    response.getHeaders().add(HttpHeaderConstants.TRANSFER_ENCODING, HttpHeaderConstants.CHUNKED);
     response.getHeaders().add(HttpHeaderConstants.CACHE_CONTROL, HttpHeaderConstants.NO_CACHE_FULL);
     response.getHeaders().add(HttpHeaderConstants.PRAGMA, HttpHeaderConstants.NO_CACHE);
     response.sendStream(Streams.map(publisher, i -> ServerSentEventEncoder.INSTANCE.encode(i, bufferAllocator)));

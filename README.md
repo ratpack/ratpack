@@ -1,4 +1,4 @@
-[![Build Status](https://snap-ci.com/ratpack/ratpack/branch/master/build_image)](https://snap-ci.com/ratpack/ratpack/branch/master)
+[![Build Status](https://circleci.com/gh/ratpack/ratpack/tree/master.svg?style=svg)](https://circleci.com/gh/ratpack/ratpack)
 [![codecov.io](http://codecov.io/github/ratpack/ratpack/coverage.svg?branch=master)](http://codecov.io/github/ratpack/ratpack?branch=master)
 
 [![Ratpack.io](/ratpack-site/src/assets/images/ratpack-logo.png?raw=true)](https://ratpack.io)
@@ -19,3 +19,4 @@ Optional Gradle build time support makes building and testing applications a bre
 ## Looking to contribute?
 
 Please see [CONTRIBUTING.md](https://github.com/ratpack/ratpack/blob/master/CONTRIBUTING.md)
+

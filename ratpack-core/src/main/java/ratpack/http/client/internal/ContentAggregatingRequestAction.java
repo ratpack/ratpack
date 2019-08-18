@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 the original author or authors.
+ * Copyright 2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,14 +16,15 @@
 
 package ratpack.http.client.internal;
 
-import io.netty.buffer.ByteBufAllocator;
+import io.netty.buffer.ByteBuf;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelPipeline;
 import io.netty.channel.SimpleChannelInboundHandler;
 import io.netty.handler.codec.http.FullHttpResponse;
-import io.netty.handler.codec.http.HttpObjectAggregator;
+import ratpack.bytebuf.ByteBufRef;
 import ratpack.exec.Downstream;
 import ratpack.exec.Execution;
+import ratpack.exec.Upstream;
 import ratpack.func.Action;
 import ratpack.http.client.ReceivedResponse;
 import ratpack.http.client.RequestSpec;
@@ -32,33 +33,57 @@ import java.net.URI;
 
 class ContentAggregatingRequestAction extends RequestActionSupport<ReceivedResponse> {
 
-  private final int maxContentLengthBytes;
+  private static final String AGGREGATOR_HANDLER_NAME = "aggregator";
+  private static final String RESPONSE_HANDLER_NAME = "response";
 
-  public ContentAggregatingRequestAction(Action<? super RequestSpec> requestConfigurer, URI uri, Execution execution, ByteBufAllocator byteBufAllocator, int maxContentLengthBytes, int redirectCount) {
-    super(requestConfigurer, uri, execution, byteBufAllocator, redirectCount);
-    this.maxContentLengthBytes = maxContentLengthBytes;
+  ContentAggregatingRequestAction(
+    URI uri,
+    HttpClientInternal client,
+    int redirectCount,
+    Execution execution,
+    Action<? super RequestSpec> requestConfigurer
+  ) throws Exception {
+    super(uri, client, redirectCount, execution, requestConfigurer);
   }
 
   @Override
-  protected void addResponseHandlers(ChannelPipeline p, Downstream<? super ReceivedResponse> fulfiller) {
-    p.addLast("aggregator", new HttpObjectAggregator(maxContentLengthBytes));
-    p.addLast("httpResponseHandler", new SimpleChannelInboundHandler<FullHttpResponse>(false) {
+  protected void doDispose(ChannelPipeline channelPipeline, boolean forceClose) {
+    channelPipeline.remove(AGGREGATOR_HANDLER_NAME);
+    channelPipeline.remove(RESPONSE_HANDLER_NAME);
+    super.doDispose(channelPipeline, forceClose);
+  }
+
+  @Override
+  protected void addResponseHandlers(ChannelPipeline p, Downstream<? super ReceivedResponse> downstream) {
+    p.addLast(AGGREGATOR_HANDLER_NAME, new NoContentLengthOnNoBodyHttpObjectAggregator(requestConfig.maxContentLength));
+    p.addLast(RESPONSE_HANDLER_NAME, new SimpleChannelInboundHandler<FullHttpResponse>(false) {
+
       @Override
-      public void channelRead0(ChannelHandlerContext ctx, FullHttpResponse msg) throws Exception {
-        success(fulfiller, toReceivedResponse(msg));
+      protected void channelRead0(ChannelHandlerContext ctx, FullHttpResponse response) throws Exception {
+        response.touch();
+        dispose(ctx.pipeline(), response);
+
+        ByteBuf content = new ByteBufRef(response.content());
+        execution.onComplete(() -> {
+          if (content.refCnt() > 0) {
+            content.release();
+          }
+        });
+        success(downstream, toReceivedResponse(response, content));
       }
 
       @Override
       public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) throws Exception {
-        ctx.close();
-        error(fulfiller, cause);
+        cause = decorateException(cause);
+        error(downstream, cause);
+        forceDispose(ctx.pipeline());
       }
     });
   }
 
   @Override
-  protected RequestActionSupport<ReceivedResponse> buildRedirectRequestAction(Action<? super RequestSpec> redirectRequestConfig, URI locationUrl, int redirectCount) {
-    return new ContentAggregatingRequestAction(redirectRequestConfig, locationUrl, execution, byteBufAllocator, maxContentLengthBytes, redirectCount);
+  protected Upstream<ReceivedResponse> onRedirect(URI locationUrl, int redirectCount, Action<? super RequestSpec> redirectRequestConfig) throws Exception {
+    return new ContentAggregatingRequestAction(locationUrl, client, redirectCount, execution, redirectRequestConfig);
   }
 
 }

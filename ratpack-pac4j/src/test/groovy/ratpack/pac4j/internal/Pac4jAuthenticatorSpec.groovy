@@ -32,13 +32,11 @@ import ratpack.server.internal.ConstantPublicAddress
 import ratpack.session.SessionModule
 import ratpack.test.exec.ExecHarness
 import ratpack.test.internal.RatpackGroovyDslSpec
-import spock.lang.Unroll
 
 import static ratpack.pac4j.RatpackPac4j.DEFAULT_AUTHENTICATOR_PATH
 
 class Pac4jAuthenticatorSpec extends RatpackGroovyDslSpec {
 
-  @Unroll
   void "can create clients with callback url given [#path], [#boundTo] and [#uri]"() {
     given:
     def context = Mock(Context) {
@@ -84,7 +82,7 @@ class Pac4jAuthenticatorSpec extends RatpackGroovyDslSpec {
       }
 
       // Can use async API if necessary
-      Blocking.on(Promise.of { down ->
+      Blocking.on(Promise.async { down ->
         Thread.start { down.success(1) }
       })
     } as UsernamePasswordAuthenticator

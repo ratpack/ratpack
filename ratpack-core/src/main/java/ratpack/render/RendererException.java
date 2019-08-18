@@ -35,6 +35,17 @@ public class RendererException extends RenderException {
    * @param cause the exception thrown by the renderer
    */
   public RendererException(Renderer<?> renderer, Object object, Throwable cause) {
-    super("Renderer '" + renderer + "' failed to render '" + object + "'", cause);
+    this("Renderer '" + renderer + "' failed to render '" + object + "'", cause);
+  }
+
+  /**
+   * Constructor.
+   *
+   * @param message the exception message
+   * @param cause the exception thrown by the renderer
+   * @since 1.5
+   */
+  public RendererException(String message, Throwable cause) {
+    super(message, cause);
   }
 }

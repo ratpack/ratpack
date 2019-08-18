@@ -22,11 +22,18 @@ configurations {
   reports
 }
 
+repositories {
+  maven { url "https://repo.gradle.org/gradle/repo" }
+}
 dependencies {
   compile commonDependencies.groovy
-  compile "org.gradle:gradle-tooling-api:${gradle.gradleVersion}"
+  compile commonDependencies.toolingApi, {
+    exclude group: "org.slf4j", module: "slf4j-api"
+  }
   compile "org.slf4j:slf4j-simple:${commonVersions.slf4j}"
-  testCompile commonDependencies.spock
+  testCompile commonDependencies.spock, {
+    exclude group: "org.slf4j", module: "slf4j-api"
+  }
 }
 
 task createApps {
@@ -113,17 +120,17 @@ task run(type: PerfTestRun, overwrite: true) {
 
 class PerfTestRun extends JavaExec {
 
-  @org.gradle.api.internal.tasks.options.Option(option = "filter", description = "comma separated list of benchmarks to run")
+  @org.gradle.api.tasks.options.Option(option = "filter", description = "comma separated list of benchmarks to run")
   void filter(String filter) {
     systemProperty "filter", filter
   }
 
-  @org.gradle.api.internal.tasks.options.Option(option = "quick", description = "reduce the sample size")
+  @org.gradle.api.tasks.options.Option(option = "quick", description = "reduce the sample size")
   void quick(boolean flag) {
     systemProperty "quick", flag
   }
 
-  @org.gradle.api.internal.tasks.options.Option(option = "smoke", description = "just exercise the benches to make sure they work")
+  @org.gradle.api.tasks.options.Option(option = "smoke", description = "just exercise the benches to make sure they work")
   void smoke(boolean flag) {
     systemProperty "smoke", flag
   }

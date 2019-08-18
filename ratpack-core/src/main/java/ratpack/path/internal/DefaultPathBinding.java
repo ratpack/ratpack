@@ -17,6 +17,7 @@
 package ratpack.path.internal;
 
 import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.Sets;
 import ratpack.path.PathBinding;
 import ratpack.path.PathTokens;
 
@@ -24,9 +25,63 @@ public class DefaultPathBinding implements PathBinding {
 
   private final String binding;
   private final String pastBinding;
+  private final PathBinding parent;
+  private final String description;
 
   private final PathTokens tokens;
   private final PathTokens allTokens;
+
+  public DefaultPathBinding(String binding, ImmutableMap<String, String> tokens, PathBinding parent, String description) {
+    this.binding = binding;
+    this.parent = parent;
+    this.description = description;
+    this.tokens = DefaultPathTokens.of(tokens);
+    this.allTokens = mergeTokens(this.tokens, parent.getAllTokens());
+    String bindingWithSlash = binding.concat("/");
+    String path = parent.getPastBinding();
+    if (path.equals(binding)) {
+      pastBinding = "";
+    } else if (path.startsWith(bindingWithSlash)) {
+      pastBinding = path.substring(bindingWithSlash.length());
+    } else {
+      throw new IllegalArgumentException(String.format("Path '%s' is not a child of '%s'", path, binding));
+    }
+  }
+
+  private static PathTokens mergeTokens(PathTokens thisTokens, PathTokens parentTokens) {
+    if (parentTokens.isEmpty()) {
+      return thisTokens;
+    } else if (thisTokens.isEmpty()) {
+      return parentTokens;
+    } else {
+      ImmutableMap.Builder<String, String> builder = ImmutableMap.builder();
+      Sets.difference(parentTokens.keySet(), thisTokens.keySet()).forEach(t ->
+        builder.put(t, parentTokens.get(t))
+      );
+      builder.putAll(thisTokens);
+      return DefaultPathTokens.of(builder.build());
+    }
+  }
+
+  @Override
+  public String getDescription() {
+    return parent instanceof RootPathBinding ? description : parent.getDescription() + "/" + description;
+  }
+
+  @Override
+  public String getPastBinding() {
+    return pastBinding;
+  }
+
+  @Override
+  public String getBoundTo() {
+    return binding;
+  }
+
+  @Override
+  public PathTokens getTokens() {
+    return tokens;
+  }
 
   @Override
   public boolean equals(Object o) {
@@ -39,45 +94,22 @@ public class DefaultPathBinding implements PathBinding {
 
     DefaultPathBinding that = (DefaultPathBinding) o;
 
-    return binding.equals(that.binding) && pastBinding.equals(that.pastBinding) && allTokens.equals(that.allTokens);
+    return binding.equals(that.binding)
+      && pastBinding.equals(that.pastBinding)
+      && description.equals(that.description)
+      && allTokens.equals(that.allTokens);
   }
 
   @Override
   public int hashCode() {
     int result = binding.hashCode();
     result = 31 * result + pastBinding.hashCode();
+    result = 31 * result + description.hashCode();
     result = 31 * result + allTokens.hashCode();
     return result;
   }
 
-  public DefaultPathBinding(String binding, ImmutableMap<String, String> tokens, PathBinding parent) {
-    this.binding = binding;
-    this.tokens = DefaultPathTokens.of(tokens);
-    this.allTokens = parent.getAllTokens().isEmpty() ? this.tokens : DefaultPathTokens.of(ImmutableMap.<String, String>builder().putAll(parent.getAllTokens()).putAll(tokens).build());
-
-    String bindingWithSlash = binding.concat("/");
-    String path = parent.getPastBinding();
-    if (path.equals(binding)) {
-      pastBinding = "";
-    } else if (path.startsWith(bindingWithSlash)) {
-      pastBinding = path.substring(bindingWithSlash.length());
-    } else {
-      throw new IllegalArgumentException(String.format("Path '%s' is not a child of '%s'", path, binding));
-    }
-  }
-
-  public String getPastBinding() {
-    return pastBinding;
-  }
-
-  public String getBoundTo() {
-    return binding;
-  }
-
-  public PathTokens getTokens() {
-    return tokens;
-  }
-
+  @Override
   public PathTokens getAllTokens() {
     return allTokens;
   }

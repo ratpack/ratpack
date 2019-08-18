@@ -26,8 +26,12 @@ import ratpack.config.ConfigObject;
 import ratpack.func.Action;
 import ratpack.func.Function;
 import ratpack.guice.internal.DefaultBindingsSpec;
+import ratpack.guice.internal.GuiceUtil;
 import ratpack.guice.internal.InjectorRegistryBacking;
 import ratpack.guice.internal.RatpackBaseRegistryModule;
+import ratpack.handling.Chain;
+import ratpack.handling.Context;
+import ratpack.handling.Handler;
 import ratpack.impose.Impositions;
 import ratpack.registry.Registry;
 import ratpack.server.ServerConfig;
@@ -134,10 +138,10 @@ import static ratpack.util.Exceptions.uncheck;
  * </p>
  * <h4>Dependency Injected Handlers</h4>
  * <p>
- * The {@code handler()} methods used to create a Guice backed application take an {@link Action} that operates on a {@link ratpack.handling.Chain} instance.
- * This chain instance given to this action provides a Guice backed {@link Registry} via its {@link ratpack.handling.Chain#getRegistry()} method.
+ * The {@code handler()} methods used to create a Guice backed application take an {@link Action} that operates on a {@link Chain} instance.
+ * This chain instance given to this action provides a Guice backed {@link Registry} via its {@link Chain#getRegistry()} method.
  * This registry is able to retrieve objects that were explicitly bound (i.e. defined by a module), and bind objects “just in time”.
- * This means that it can be used to construct dependency injected {@link ratpack.handling.Handler} implementations.
+ * This means that it can be used to construct dependency injected {@link Handler} implementations.
  * </p>
  * <p>
  * Simply pass the class of the handler implementation to create a new dependency injected instance of to this method,
@@ -148,7 +152,7 @@ import static ratpack.util.Exceptions.uncheck;
  * </p>
  * <h4>Accessing dependencies via context registry lookup</h4>
  * <p>
- * The {@link ratpack.handling.Context} object that is given to a handler's {@link ratpack.handling.Handler#handle(ratpack.handling.Context)}
+ * The {@link Context} object that is given to a handler's {@link Handler#handle(Context)}
  * method is also a registry implementation. In a Guice backed app, Guice bound objects can be retrieved via the {@link Registry#get(Class)} method of
  * the context. You can retrieve any bound object via its publicly bound type.
  * </p>
@@ -215,7 +219,9 @@ public abstract class Guice {
 
     ServerConfig serverConfig = baseRegistry.get(ServerConfig.class);
     BindingsSpec bindings = new DefaultBindingsSpec(serverConfig, binderActions, modules);
-    bindings.module(new RatpackBaseRegistryModule(baseRegistry));
+
+    modules.add(new RatpackBaseRegistryModule(baseRegistry));
+    modules.add(new ConfigModule(serverConfig.getRequiredConfig()));
 
     try {
       bindingsAction.execute(bindings);
@@ -224,7 +230,6 @@ public abstract class Guice {
     }
 
     modules.add(new AdHocModule(binderActions));
-    modules.add(new ConfigModule(serverConfig.getRequiredConfig()));
 
     Optional<BindingsImposition> bindingsImposition = Impositions.current().get(BindingsImposition.class);
     if (bindingsImposition.isPresent()) {
@@ -270,13 +275,14 @@ public abstract class Guice {
 
     @Override
     public void configure(Binder binder) {
+
       for (ConfigObject<?> configObject : config) {
         bind(binder, configObject);
       }
     }
 
     private static <T> void bind(Binder binder, ConfigObject<T> configObject) {
-      binder.bind(configObject.getType()).toInstance(configObject.getObject());
+      binder.bind(GuiceUtil.toTypeLiteral(configObject.getTypeToken())).toInstance(configObject.getObject());
     }
   }
 }

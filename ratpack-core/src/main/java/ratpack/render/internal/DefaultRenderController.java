@@ -20,18 +20,15 @@ import com.google.common.collect.Iterables;
 import com.google.common.reflect.TypeToken;
 import ratpack.exec.Promise;
 import ratpack.handling.Context;
-import ratpack.render.NoSuchRendererException;
-import ratpack.render.RenderableDecorator;
-import ratpack.render.Renderer;
-import ratpack.render.RendererException;
+import ratpack.render.*;
 import ratpack.util.Types;
 
 import java.util.Iterator;
 
 public class DefaultRenderController implements RenderController {
 
-  private static final TypeToken<Renderer<?>> RENDERER_TYPE = new TypeToken<Renderer<?>>() {};
-  private static final TypeToken<RenderableDecorator<?>> RENDERABLE_DECORATOR_TYPE = new TypeToken<RenderableDecorator<?>>() {};
+  private static final TypeToken<Renderer<?>> RENDERER_TYPE = Types.intern(new TypeToken<Renderer<?>>() {});
+  private static final TypeToken<RenderableDecorator<?>> RENDERABLE_DECORATOR_TYPE = Types.intern(new TypeToken<RenderableDecorator<?>>() {});
 
   @Override
   public void render(final Object toRender, final Context context) throws Exception {
@@ -46,7 +43,11 @@ public class DefaultRenderController implements RenderController {
   private <T> void doRender(T toRender, Context context) throws Exception {
     Class<T> type = Types.cast(toRender.getClass());
 
-    Iterator<? extends RenderableDecorator<?>> decorators = Iterables.filter(context.getAll(RENDERABLE_DECORATOR_TYPE), d -> d.getType().isAssignableFrom(type)).iterator();
+    Iterator<? extends RenderableDecorator<?>> decorators = Iterables.filter(
+      context.getAll(RENDERABLE_DECORATOR_TYPE),
+      d -> d.getType().isAssignableFrom(type)
+    ).iterator();
+
     if (decorators.hasNext()) {
       Promise<T> promise = Promise.value(toRender);
       while (decorators.hasNext()) {
@@ -67,6 +68,8 @@ public class DefaultRenderController implements RenderController {
         try {
           cast.render(context, decorated);
           return;
+        } catch (RenderException e) {
+          throw e;
         } catch (Exception e) {
           throw new RendererException(renderer, decorated, e);
         }

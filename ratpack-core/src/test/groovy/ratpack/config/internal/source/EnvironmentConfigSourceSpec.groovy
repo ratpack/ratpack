@@ -21,7 +21,6 @@ import ratpack.config.internal.DefaultConfigDataBuilder
 import ratpack.file.FileSystemBinding
 import ratpack.server.internal.ServerEnvironment
 import spock.lang.Specification
-import spock.lang.Unroll
 
 import static ratpack.config.ConfigDataBuilder.DEFAULT_ENV_PREFIX
 
@@ -40,7 +39,6 @@ class EnvironmentConfigSourceSpec extends Specification {
     rootNode.size() > 2
   }
 
-  @Unroll
   def "when prefix provided, only matched elements are included, minus prefix: #prefix"() {
     when:
     def rootNode = loadConfig(input, prefix)

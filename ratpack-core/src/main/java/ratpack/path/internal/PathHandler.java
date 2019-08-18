@@ -16,15 +16,15 @@
 
 package ratpack.path.internal;
 
+import com.github.benmanes.caffeine.cache.Cache;
+import com.github.benmanes.caffeine.cache.Caffeine;
 import ratpack.handling.Context;
 import ratpack.handling.Handler;
 import ratpack.handling.internal.ChainHandler;
 import ratpack.path.PathBinder;
 import ratpack.path.PathBinding;
-import ratpack.util.internal.BoundedConcurrentHashMap;
 
 import java.util.Optional;
-import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.ExecutionException;
 
 public class PathHandler implements Handler {
@@ -37,7 +37,10 @@ public class PathHandler implements Handler {
 
   private final PathBinder binder;
   private final Handler[] handler;
-  private final ConcurrentMap<PathBinding, Optional<PathBinding>> cache = new BoundedConcurrentHashMap<>(CACHE_SIZE, Runtime.getRuntime().availableProcessors());
+  
+  private final Cache<PathBinding, Optional<PathBinding>> cache = Caffeine.newBuilder()
+    .maximumSize(CACHE_SIZE)
+    .build();
 
   public PathHandler(PathBinder binder, Handler handler) {
     this.binder = binder;
@@ -51,10 +54,7 @@ public class PathHandler implements Handler {
   public void handle(Context ctx) throws ExecutionException {
     PathBindingStorage pathBindings = ctx.getExecution().get(PathBindingStorage.TYPE);
     PathBinding pathBinding = pathBindings.peek();
-    Optional<PathBinding> newBinding = cache.get(pathBinding);
-    if (newBinding == null) {
-      newBinding = cache.computeIfAbsent(pathBinding, binder::bind);
-    }
+    Optional<PathBinding> newBinding = cache.get(pathBinding, binder::bind);
 
     if (newBinding.isPresent()) {
       pathBindings.push(newBinding.get());

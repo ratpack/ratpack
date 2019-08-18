@@ -40,6 +40,7 @@ import java.util.Optional;
 
 import static ratpack.util.Exceptions.uncheck;
 
+@Deprecated
 public class Pac4jAuthenticator implements Handler {
 
   private final String path;
@@ -52,7 +53,7 @@ public class Pac4jAuthenticator implements Handler {
 
   @Override
   public void handle(Context ctx) throws Exception {
-    PathBinding pathBinding = ctx.get(PathBinding.TYPE);
+    PathBinding pathBinding = ctx.getPathBinding();
     String pastBinding = pathBinding.getPastBinding();
 
     if (pastBinding.equals(path)) {

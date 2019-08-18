@@ -18,12 +18,8 @@ package ratpack.server.internal;
 
 import io.netty.handler.codec.http.HttpContent;
 
-public interface RequestBodyAccumulator extends AutoCloseable {
+public interface RequestBodyAccumulator {
 
   void add(HttpContent httpContent);
 
-  boolean isComplete();
-
-  @Override
-  void close();
 }

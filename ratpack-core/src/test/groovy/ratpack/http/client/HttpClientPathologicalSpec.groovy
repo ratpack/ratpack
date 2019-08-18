@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 the original author or authors.
+ * Copyright 2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,7 +20,6 @@ import com.github.tomakehurst.wiremock.WireMockServer
 import com.github.tomakehurst.wiremock.client.WireMock
 import com.github.tomakehurst.wiremock.http.Fault
 import ratpack.test.internal.RatpackGroovyDslSpec
-import spock.lang.Timeout
 
 import static com.github.tomakehurst.wiremock.core.WireMockConfiguration.wireMockConfig
 
@@ -33,9 +32,11 @@ class HttpClientPathologicalSpec extends RatpackGroovyDslSpec {
     wm.start()
   }
 
-  @Timeout(5)
   void "handles empty response"() {
     given:
+    bindings {
+      bindInstance(HttpClient, HttpClient.of { it.poolSize(pooled ? 8 : 0) })
+    }
     wm.stubFor(WireMock.get(WireMock.urlEqualTo('/test')).willReturn(WireMock.aResponse().withFault(Fault.EMPTY_RESPONSE)))
     def mockServiceUrl = "http://localhost:${wm.port()}/test"
 
@@ -50,5 +51,8 @@ class HttpClientPathologicalSpec extends RatpackGroovyDslSpec {
 
     then:
     text == "Server $mockServiceUrl closed the connection prematurely"
+
+    where:
+    pooled << [true, false]
   }
 }

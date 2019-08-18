@@ -16,9 +16,11 @@
 
 package ratpack.http.client.internal;
 
+import io.netty.handler.ssl.SslContext;
 import ratpack.func.Action;
 import ratpack.func.Factory;
 import ratpack.func.Function;
+import ratpack.http.HttpMethod;
 import ratpack.http.MutableHeaders;
 import ratpack.http.client.ReceivedResponse;
 import ratpack.http.client.RequestSpec;
@@ -46,20 +48,38 @@ public class DelegatingRequestSpec implements RequestSpec {
   }
 
   @Override
+  public int getRedirects() {
+    return delegate.getRedirects();
+  }
+
+  @Override
   public RequestSpec onRedirect(Function<? super ReceivedResponse, Action<? super RequestSpec>> function) {
     delegate.onRedirect(function);
     return this;
   }
 
   @Override
+  @SuppressWarnings("deprecation")
   public RequestSpec sslContext(SSLContext sslContext) {
     delegate.sslContext(sslContext);
     return this;
   }
 
   @Override
+  public SslContext getSslContext() {
+    return delegate.getSslContext();
+  }
+
+  @Override
+  @SuppressWarnings("deprecation")
   public RequestSpec sslContext(Factory<SSLContext> factory) throws Exception {
     delegate.sslContext(factory);
+    return this;
+  }
+
+  @Override
+  public RequestSpec sslContext(SslContext sslContext) {
+    delegate.sslContext(sslContext);
     return this;
   }
 
@@ -75,9 +95,14 @@ public class DelegatingRequestSpec implements RequestSpec {
   }
 
   @Override
-  public RequestSpec method(String method) {
+  public RequestSpec method(HttpMethod method) {
     delegate.method(method);
     return this;
+  }
+
+  @Override
+  public HttpMethod getMethod() {
+    return delegate.getMethod();
   }
 
   @Override
@@ -87,14 +112,13 @@ public class DelegatingRequestSpec implements RequestSpec {
   }
 
   @Override
-  public URI getUrl() {
-    return delegate.getUrl();
+  public boolean getDecompressResponse() {
+    return delegate.getDecompressResponse();
   }
 
   @Override
-  public RequestSpec readTimeoutSeconds(int seconds) {
-    delegate.readTimeoutSeconds(seconds);
-    return this;
+  public URI getUri() {
+    return delegate.getUri();
   }
 
   @Override
@@ -104,9 +128,19 @@ public class DelegatingRequestSpec implements RequestSpec {
   }
 
   @Override
+  public Duration getConnectTimeout() {
+    return delegate.getConnectTimeout();
+  }
+
+  @Override
   public RequestSpec readTimeout(Duration duration) {
     delegate.readTimeout(duration);
     return this;
+  }
+
+  @Override
+  public Duration getReadTimeout() {
+    return delegate.getReadTimeout();
   }
 
   @Override
@@ -125,4 +159,21 @@ public class DelegatingRequestSpec implements RequestSpec {
     delegate.basicAuth(username, password);
     return this;
   }
+
+  @Override
+  public RequestSpec maxContentLength(int numBytes) {
+    return delegate.maxContentLength(numBytes);
+  }
+
+  @Override
+  public RequestSpec responseMaxChunkSize(int numBytes) {
+    delegate.responseMaxChunkSize(numBytes);
+    return this;
+  }
+
+  @Override
+  public int getMaxContentLength() {
+    return delegate.getMaxContentLength();
+  }
+
 }

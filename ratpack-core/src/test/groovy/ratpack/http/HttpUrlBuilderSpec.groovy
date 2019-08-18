@@ -123,6 +123,11 @@ class HttpUrlBuilderSpec extends Specification {
     build { encodedPath "foo%2Fbar" } == "http://localhost/foo%2Fbar"
   }
 
+  def "custom fragment"() {
+    expect:
+    build { fragment("a4") } == "http://localhost#a4"
+  }
+
   @Unroll
   def "round trip - #string"() {
     expect:
@@ -141,8 +146,23 @@ class HttpUrlBuilderSpec extends Specification {
       "http://foo.bar/a?a",
       "http://foo.bar/a?a=b&a=c",
       "http://foo.bar/a?a%3F1=b%3F1&a%3F1=c",
-      "http://foo.bar/a/"
+      "http://foo.bar/a/",
+      "http://foo.com#a1",
+      "http://foo.bar/a?a%3F1=b%3F1&a%3F1=c#a1",
+      "http://foo.bar/a+b#a1"
+
     ]
+  }
+
+  def "can append trailing slash"() {
+    expect:
+    build { path("foo/") } == "http://localhost/foo/"
+    build { path("foo/").path("/foo/") } == "http://localhost/foo/foo/"
+    build { path("foo/").params("bar") } == "http://localhost/foo/?bar"
+    build { path("foo/").path("bar")} == "http://localhost/foo/bar"
+    HttpUrlBuilder.base("http://localhost/foo/".toURI()).build().toString() == "http://localhost/foo/"
+    HttpUrlBuilder.base("http://localhost".toURI()).path("foo/").build().toString() == "http://localhost/foo/"
+    HttpUrlBuilder.base("http://localhost/foo/".toURI()).path("bar").build().toString() == "http://localhost/foo/bar"
   }
 
 }

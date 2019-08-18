@@ -17,6 +17,7 @@
 package ratpack.http
 
 import io.netty.buffer.ByteBuf
+import io.netty.buffer.ByteBufAllocator
 import io.netty.buffer.Unpooled
 import io.netty.handler.codec.http.DefaultFullHttpRequest
 import io.netty.handler.codec.http.HttpRequest
@@ -29,7 +30,6 @@ import ratpack.handling.Context
 import ratpack.handling.Handler
 import ratpack.http.client.RequestSpec
 import ratpack.test.internal.RatpackGroovyDslSpec
-import spock.lang.Unroll
 
 import static ratpack.form.Form.form
 import static ratpack.http.MediaType.APPLICATION_FORM
@@ -106,7 +106,7 @@ class FormHandlingSpec extends RatpackGroovyDslSpec {
 
       def chunks = []
       while (!httpPostRequestEncoder.isEndOfInput()) {
-        chunks << httpPostRequestEncoder.readChunk(null).content()
+        chunks << httpPostRequestEncoder.readChunk(null as ByteBufAllocator).content()
       }
       requestSpec.body.buffer(Unpooled.wrappedBuffer(chunks as ByteBuf[]))
     }
@@ -141,7 +141,7 @@ class FormHandlingSpec extends RatpackGroovyDslSpec {
 
       def chunks = []
       while (!httpPostRequestEncoder.isEndOfInput()) {
-        chunks << httpPostRequestEncoder.readChunk(null).content()
+        chunks << httpPostRequestEncoder.readChunk(null as ByteBufAllocator).content()
       }
       requestSpec.body.buffer(Unpooled.wrappedBuffer(chunks as ByteBuf[]))
     }
@@ -175,7 +175,7 @@ class FormHandlingSpec extends RatpackGroovyDslSpec {
 
       def chunks = []
       while (!httpPostRequestEncoder.isEndOfInput()) {
-        chunks << httpPostRequestEncoder.readChunk(null).content()
+        chunks << httpPostRequestEncoder.readChunk(null as ByteBufAllocator).content()
       }
       requestSpec.body.buffer(Unpooled.wrappedBuffer(chunks as ByteBuf[]))
     }
@@ -209,7 +209,7 @@ class FormHandlingSpec extends RatpackGroovyDslSpec {
 
       def chunks = []
       while (!httpPostRequestEncoder.isEndOfInput()) {
-        chunks << httpPostRequestEncoder.readChunk(null).content()
+        chunks << httpPostRequestEncoder.readChunk(null as ByteBufAllocator).content()
       }
       requestSpec.body.buffer(Unpooled.wrappedBuffer(chunks as ByteBuf[]))
     }
@@ -217,7 +217,6 @@ class FormHandlingSpec extends RatpackGroovyDslSpec {
     postText() == "File type: text/plain; charset=us-ascii"
   }
 
-  @Unroll
   def "Error for #message"() {
     given:
     handlers {

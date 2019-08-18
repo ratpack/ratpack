@@ -18,7 +18,7 @@ package ratpack.sse
 
 import io.netty.util.concurrent.Future
 import io.netty.util.concurrent.GenericFutureListener
-import ratpack.http.client.HttpClientSpec
+import ratpack.http.client.BaseHttpClientSpec
 import ratpack.stream.TransformablePublisher
 
 import java.time.Duration
@@ -30,7 +30,7 @@ import static ratpack.http.ResponseChunks.stringChunks
 import static ratpack.sse.ServerSentEvents.serverSentEvents
 import static ratpack.stream.Streams.*
 
-class ServerSentEventsSpec extends HttpClientSpec {
+class ServerSentEventsSpec extends BaseHttpClientSpec {
 
   def "can send server sent event"() {
     given:
@@ -44,17 +44,17 @@ class ServerSentEventsSpec extends HttpClientSpec {
 
     expect:
     def response = get()
-    response.body.text == """event: add
+    response.body.text == """id: 1
+event: add
 data: Event 1
-id: 1
 
+id: 2
 event: add
 data: Event 2
-id: 2
 
+id: 3
 event: add
 data: Event 3
-id: 3
 
 """
     response.statusCode == OK.code()
@@ -160,7 +160,14 @@ id: 3
     handlers {
       all {
         render serverSentEvents(publish(1..3)) {
-          it.id(it.item.toString()).event("add").data("Event ${it.item}".toString())
+          switch (it.item) {
+            case 1:
+            case 2:
+              it.id(it.item.toString()).event("add").data("Event ${it.item}".toString())
+              break
+            case 3:
+              it.comment("last")
+          }
         }
       }
     }
@@ -173,8 +180,8 @@ id: 3
     response.headers["Pragma"] == "no-cache"
     response.headers["Content-Encoding"] == "gzip"
 
-    new GZIPInputStream(response.body.inputStream).bytes ==
-      "event: add\ndata: Event 1\nid: 1\n\nevent: add\ndata: Event 2\nid: 2\n\nevent: add\ndata: Event 3\nid: 3\n\n".bytes
+    new GZIPInputStream(response.body.inputStream).text ==
+      "id: 1\nevent: add\ndata: Event 1\n\nid: 2\nevent: add\ndata: Event 2\n\n: last\n\n"
   }
 
   def "can consume server sent event stream"() {

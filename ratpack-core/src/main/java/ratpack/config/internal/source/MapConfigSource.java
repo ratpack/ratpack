@@ -21,13 +21,17 @@ import java.util.Optional;
 import java.util.Properties;
 
 public class MapConfigSource extends PropertiesConfigSource {
-  public MapConfigSource(Optional<String> prefix, Map<String, String> map) {
+  public MapConfigSource(Optional<String> prefix, Map<String, ?> map) {
     super(prefix, mapToProperties(map));
   }
 
-  private static Properties mapToProperties(Map<String, String> map) {
+  private static Properties mapToProperties(Map<String, ?> map) {
     Properties properties = new Properties();
-    properties.putAll(map);
+
+    // This manual coercion is specifically for Groovy GStrings.
+    // https://github.com/ratpack/ratpack/issues/1135
+    map.forEach((k, v) -> properties.put(String.valueOf(k), String.valueOf(v)));
+
     return properties;
   }
 }

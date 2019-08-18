@@ -72,11 +72,11 @@ repositories {
 }
 
 dependencies {
-  compile ratpack.dependency("jackson")
+  compile ratpack.dependency("dropwizard-metrics")
 }
 ```
 
-Using `ratpack.dependency("jackson")` is equivalent to `"io.ratpack:ratpack-jackson:«version of ratpack-gradle dependency»"`.
+Using `ratpack.dependency("dropwizard-metrics")` is equivalent to `"io.ratpack:ratpack-dropwizard-metrics:«version of ratpack-gradle dependency»"`.
 This is the recommended way to add dependencies that are part of the core distribution.
 
 The `'io.ratpack.ratpack-java'` plugin adds the following implicit dependencies:
@@ -120,7 +120,7 @@ buildscript {
   }
   dependencies {
     classpath "io.ratpack:ratpack-gradle:@ratpack-version@"
-    classpath 'com.github.jengelman.gradle.plugins:shadow:1.2.3'
+    classpath 'com.github.jengelman.gradle.plugins:shadow:@shadow-version@'
   }
 }
 
@@ -235,7 +235,7 @@ buildscript {
   }
   dependencies {
     classpath "io.ratpack:ratpack-gradle:@ratpack-version@"
-    classpath "com.github.jengelman.gradle.plugins:shadow:1.2.3"
+    classpath "com.github.jengelman.gradle.plugins:shadow:@shadow-version@"
   }
 }
 

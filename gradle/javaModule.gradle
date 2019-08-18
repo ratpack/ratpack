@@ -41,6 +41,9 @@ if (project.path != ":ratpack-benchmark") {
   }
   tasks.withType(GroovyCompile) {
     groovyOptions.forkOptions.memoryMaximumSize = "512m"
+    if (isCi) {
+      groovyOptions.forkOptions.memoryMaximumSize = "256m"
+    }
     options.compilerArgs = ["-proc:none"]
     allprojects { mustRunAfter tasks.withType(CodeNarc) }
   }
@@ -78,7 +81,7 @@ task javadocJar(type: Jar) {
 }
 
 artifacts {
-  archives javadocJar, sourceJar
+  published javadocJar, sourceJar, jar
 }
 
 tasks.withType(Test) {
@@ -86,9 +89,9 @@ tasks.withType(Test) {
     mustRunAfter tasks.withType(Checkstyle)
   }
 
-  jvmArgs "-Xss320k"
-  minHeapSize "120m"
-  maxHeapSize "280m"
+  jvmArgs "-Xss320k", "-XX:MaxDirectMemorySize=64m"
+  minHeapSize "256m"
+  maxHeapSize "512m"
 
   testLogging {
     exceptionFormat "full"
@@ -98,6 +101,9 @@ tasks.withType(Test) {
     if (isCloudCi) {
       maxParallelForks 1
       systemProperty "cloudCi", "true"
+      testLogging {
+        events "started", "failed"
+      }
     }
   }
 
@@ -105,7 +111,7 @@ tasks.withType(Test) {
 }
 
 jacoco {
-  toolVersion = "0.7.2.201409121644"
+  toolVersion = "0.8.2"
 }
 
 task codeQuality {

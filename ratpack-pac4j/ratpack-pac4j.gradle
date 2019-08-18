@@ -46,7 +46,12 @@ dependencies {
   testCompile("org.pac4j:pac4j-openid:${commonVersions.pac4j}") {
     exclude group: "org.slf4j", module: "slf4j-api"
     exclude group: "com.google.inject", module: "guice"
+    exclude group: "commons-codec", module: "commons-codec"
+    exclude group: "xml-apis", module: "xml-apis"
+    exclude group: "org.slf4j", module: "jcl-over-slf4j"
   }
+  testCompile "commons-codec:commons-codec:${commonVersions.commonsCodec}"
+  testCompile "xml-apis:xml-apis:${commonVersions.xmlApis}"
 
   testCompile("org.pac4j:pac4j-http:${commonVersions.pac4j}") {
     exclude group: "org.slf4j", module: "slf4j-api"
@@ -59,5 +64,5 @@ dependencies {
 }
 
 ext.apiLinks = [
-  "http://www.pac4j.org/apidocs/pac4j/${commonVersions.pac4j}"
+  "http://www.pac4j.org/apidocs/pac4j/${commonVersions.pac4j}/"
 ]

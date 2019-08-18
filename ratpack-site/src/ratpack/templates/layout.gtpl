@@ -16,6 +16,7 @@ head {
   link(rel: 'author', href: '/assets/humans.txt')
   link(rel: 'stylesheet', href: assets['normalize/normalize.css'])
   link(rel: 'stylesheet', href: assets['ratpack.css'])
+  link(rel: 'stylesheet', href: assets['fonts.css'])
 
   script(src: assets['modernizr/modernizr.js']) {}
   script(src: assets['prism/prism.js']) {}
@@ -29,11 +30,11 @@ body {
 
     nav(class: 'social') {
       h2('Ratpack is on&hellip;')
-      a(href: 'http://github.com/ratpack/', title: 'ratpack on GitHub', rel: 'external', 'GitHub')
+      a(href: 'https://github.com/ratpack/', title: 'ratpack on GitHub', rel: 'external', 'GitHub')
       newLine()
       span(class: 'join', '&amp;')
       newLine()
-      a(href: 'http://twitter.com/ratpackweb', title: '@ratpackweb on Twitter', rel: 'external', 'Twitter')
+      a(href: 'https://twitter.com/ratpackweb', title: '@ratpackweb on Twitter', rel: 'external', 'Twitter')
     }
 
   }
@@ -63,7 +64,7 @@ body {
         def credits = [
           [href: 'https://bintray.com/', img: [src: 'bintray.png', alt: 'Bintray', width: 55, height: 40]],
           [href: 'https://github.com/', img: [src: 'github.png', alt: 'Octocat', width: 122, height: 40]],
-          [href: 'http://www.gradle.org/', img: [src: 'gradle.png', alt: 'Gradle logo', width: 149, height: 40]],
+          [href: 'http://www.gradle.org/', img: [src: 'gradle-white-primary.png', alt: 'Gradle logo', width: 128, height: 43]],
           [href: 'http://groovy-lang.org/', img: [src: 'groovy.png', alt: 'Groovy logo', width: 80, height: 40]],
           [href: 'https://www.heroku.com/', img: [src: 'heroku.png', alt: 'Heroku logo', width: 120, height: 40]],
           [href: 'http://netty.io/', img: [src: 'netty.png', alt: 'Netty logo', width: 80, height: 40]],
@@ -91,7 +92,6 @@ ga('send', 'pageview');
 '''
   }
 
-  link(rel: 'stylesheet', href: assets['fonts.css'])
 }
 
 yieldUnescaped '</html>'

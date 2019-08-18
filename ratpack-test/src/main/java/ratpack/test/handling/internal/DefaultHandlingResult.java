@@ -49,6 +49,7 @@ import ratpack.test.handling.UnexpectedHandlerException;
 
 import java.nio.file.Path;
 import java.time.Instant;
+import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 import java.util.concurrent.CountDownLatch;
@@ -157,7 +158,7 @@ public class DefaultHandlingResult implements HandlingResult {
       throw uncheck(e); // what to do here?
     } finally {
       status = response.getStatus();
-      cookies = response.getCookies();
+      cookies = Collections.unmodifiableSet(response.getCookies());
     }
   }
 
@@ -189,10 +190,6 @@ public class DefaultHandlingResult implements HandlingResult {
 
   @Override
   public Set<Cookie> getCookies() {
-    Throwable throwable = results.getThrowable();
-    if (throwable != null) {
-      throw new UnexpectedHandlerException(throwable);
-    }
     return cookies;
   }
 

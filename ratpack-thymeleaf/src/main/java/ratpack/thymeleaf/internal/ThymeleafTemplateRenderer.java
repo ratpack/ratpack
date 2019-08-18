@@ -33,13 +33,13 @@ public class ThymeleafTemplateRenderer extends RendererSupport<Template> {
   }
 
   @Override
-  public void render(Context context, Template template) {
+  public void render(Context ctx, Template template) {
     String contentType = template.getContentType();
     contentType = contentType == null ? "text/html" : contentType;
     try {
-      context.getResponse().send(contentType, thymeleaf.process(template.getName(), template.getModel(), template.getFragmentSpec()));
+      ctx.getResponse().send(contentType, thymeleaf.process(template.getName(), template.getModel(), template.getFragmentSpec()));
     } catch (Exception e) {
-      context.error(e);
+      ctx.error(e);
     }
   }
 }

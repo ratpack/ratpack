@@ -54,6 +54,8 @@ public interface TypedData {
   /**
    * The raw data as bytes.
    *
+   * The returned array should not be modified.
+   *
    * @return the raw data as bytes.
    */
   byte[] getBytes();

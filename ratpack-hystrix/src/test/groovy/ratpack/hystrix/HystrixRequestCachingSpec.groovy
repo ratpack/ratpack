@@ -23,15 +23,14 @@ import com.netflix.hystrix.HystrixObservableCommand
 import ratpack.error.ServerErrorHandler
 import ratpack.exec.Blocking
 import ratpack.handling.Context
+import ratpack.http.client.BaseHttpClientSpec
 import ratpack.http.client.HttpClient
-import ratpack.http.client.HttpClientSpec
 import ratpack.http.client.ReceivedResponse
 import ratpack.rx.RxRatpack
 import rx.Observable
-import spock.lang.Unroll
 
 @SuppressWarnings("GrMethodMayBeStatic")
-class HystrixRequestCachingSpec extends HttpClientSpec {
+class HystrixRequestCachingSpec extends BaseHttpClientSpec {
 
   def setup() {
     RxRatpack.initialize()
@@ -67,7 +66,6 @@ class HystrixRequestCachingSpec extends HttpClientSpec {
     text == "exception"
   }
 
-  @Unroll
   def "can cache #executionType command execution"() {
     given:
     otherApp {

@@ -178,4 +178,17 @@ public class NcsaRequestLogger implements RequestLogger {
     return formatter.format(instant);
   }
 
+  String ncsaLogFormat(HostAndPort client, String rfc1413Ident, Optional<CharSequence> userId, Instant timestamp, HttpMethod method, String uri, String httpProtocol, Status status, String responseSize) {
+    return String.format("%s %s %s [%s] \"%s %s %s\" %d %s",
+      client.getHost(),
+      rfc1413Ident,
+      userId.orElse("-"),
+      FORMATTER.format(timestamp),
+      method.getName(),
+      uri,
+      httpProtocol,
+      status.getCode(),
+      responseSize);
+  }
+
 }

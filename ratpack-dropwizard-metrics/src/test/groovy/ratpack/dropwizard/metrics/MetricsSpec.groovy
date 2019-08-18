@@ -24,16 +24,31 @@ import com.codahale.metrics.annotation.Metered
 import com.codahale.metrics.annotation.Timed
 import com.codahale.metrics.graphite.GraphiteSender
 import groovy.json.JsonSlurper
+import io.netty.buffer.ByteBufAllocator
+import io.netty.buffer.PooledByteBufAllocator
+import io.netty.buffer.UnpooledByteBufAllocator
 import org.junit.Rule
 import org.junit.rules.TemporaryFolder
 import org.slf4j.Logger
+import ratpack.dropwizard.metrics.internal.PooledByteBufAllocatorMetricSet
+import ratpack.dropwizard.metrics.internal.UnpooledByteBufAllocatorMetricSet
+import ratpack.error.ServerErrorHandler
+import ratpack.error.internal.DefaultDevelopmentErrorHandler
 import ratpack.exec.Blocking
+import ratpack.exec.ExecController
 import ratpack.exec.Promise
+import ratpack.groovy.handling.GroovyChain
+import ratpack.groovy.test.embed.GroovyEmbeddedApp
+import ratpack.http.client.HttpClient
+import ratpack.test.embed.EmbeddedApp
 import ratpack.test.internal.RatpackGroovyDslSpec
 import ratpack.websocket.RecordingWebSocketClient
+import spock.lang.AutoCleanup
+import spock.util.concurrent.BlockingVariable
 import spock.util.concurrent.PollingConditions
 
 import java.time.Duration
+import java.util.concurrent.CountDownLatch
 import java.util.concurrent.TimeUnit
 
 class MetricsSpec extends RatpackGroovyDslSpec {
@@ -43,6 +58,20 @@ class MetricsSpec extends RatpackGroovyDslSpec {
 
   @Rule
   TemporaryFolder reportDirectory
+
+  @AutoCleanup
+  EmbeddedApp otherApp
+
+  EmbeddedApp otherApp(@DelegatesTo(value = GroovyChain, strategy = Closure.DELEGATE_FIRST) Closure<?> closure) {
+    otherApp = GroovyEmbeddedApp.of {
+      registryOf { add ServerErrorHandler, new DefaultDevelopmentErrorHandler() }
+      handlers(closure)
+    }
+  }
+
+  URI otherAppUrl(String path = "") {
+    new URI("$otherApp.address$path")
+  }
 
   def setup() {
     SharedMetricRegistries.clear()
@@ -74,6 +103,10 @@ class MetricsSpec extends RatpackGroovyDslSpec {
     def log = Mock(Logger) {
       info(_, _, _) >> { args ->
         println args
+      }
+
+      isInfoEnabled(_) >> {
+        return  true
       }
     }
     def graphite = Mock(GraphiteSender) {
@@ -180,7 +213,7 @@ class MetricsSpec extends RatpackGroovyDslSpec {
     public AnnotatedMetricService triggerTimer3() { this }
 
     @Timed(name = 'foo.timer.promise', absolute = true)
-    public Promise<String> triggerTimerPromise() { Promise.ofLazy{sleep(50); "resultPromise"} }
+    public Promise<String> triggerTimerPromise() { Promise.sync{sleep(50); "resultPromise"} }
 
     @Timed(name = 'foo.timer.sync', absolute=true)
     public String triggerTimerSync() {sleep(50); "resultSync"}
@@ -284,7 +317,7 @@ class MetricsSpec extends RatpackGroovyDslSpec {
 
   }
 
-  def "can properly capture timing events" () {
+  def "can properly capture timing events"() {
     MetricRegistry registry
 
     given:
@@ -406,6 +439,42 @@ class MetricsSpec extends RatpackGroovyDslSpec {
     (1.._) * reporter.onGaugeAdded(!null, { it.class.name.startsWith("com.codahale.metrics.jvm.GarbageCollectorMetricSet") })
     (1.._) * reporter.onGaugeAdded(!null, { it.class.name.startsWith("com.codahale.metrics.jvm.ThreadStatesGaugeSet") })
     (1.._) * reporter.onGaugeAdded(!null, { it.class.name.startsWith("com.codahale.metrics.jvm.MemoryUsageGaugeSet") })
+  }
+
+  def "can collect #allocator metrics"() {
+    def reporter = Mock(MetricRegistryListener)
+
+    given:
+    bindings {
+      bindInstance ByteBufAllocator, allocator
+      module new DropwizardMetricsModule(), {
+        it.byteBufAllocator { c ->
+          c.enable(true)
+          c.detail(true)
+        }
+      }
+    }
+
+    handlers { MetricRegistry metrics ->
+      metrics.addListener(reporter)
+
+      all {
+        render ""
+      }
+    }
+
+    when:
+    get()
+
+    then:
+    (1.._) * reporter.onGaugeAdded(!null, {
+      it.class.name.startsWith(expected.name)
+    })
+
+    where:
+    allocator                        | expected
+    PooledByteBufAllocator.DEFAULT   | PooledByteBufAllocatorMetricSet
+    UnpooledByteBufAllocator.DEFAULT | UnpooledByteBufAllocatorMetricSet
   }
 
   def "can use metrics endpoint"() {
@@ -538,6 +607,10 @@ class MetricsSpec extends RatpackGroovyDslSpec {
       info(_, _, _) >> { args ->
         println args
       }
+
+      isInfoEnabled(_) >> {
+        return true
+      }
     }
 
     def graphite = Mock(GraphiteSender) {
@@ -591,7 +664,7 @@ class MetricsSpec extends RatpackGroovyDslSpec {
 
   def "can apply custom groups for request timer metrics"() {
     def reporter = Mock(MetricRegistryListener)
-
+    def latch = new CountDownLatch(5)
     given:
     bindings {
       module new DropwizardMetricsModule(), {
@@ -601,7 +674,10 @@ class MetricsSpec extends RatpackGroovyDslSpec {
 
     handlers { MetricRegistry metrics ->
       metrics.addListener(reporter)
-      all { render "" }
+      all {
+        onClose { latch.countDown() }
+        render ""
+      }
     }
 
     when:
@@ -610,11 +686,13 @@ class MetricsSpec extends RatpackGroovyDslSpec {
     get("far")
     get("foo/3/bar")
     get("tar?id=3")
+    latch.await()
 
     then:
+    1 * reporter.onTimerAdded("tar.get-requests", !null)
     1 * reporter.onTimerAdded("foo.get-requests", !null)
     1 * reporter.onTimerAdded("f.get-requests", !null)
-    1 * reporter.onTimerAdded("tar.get-requests", !null)
+    1 * reporter.onCounterAdded('2xx-responses', !null)
   }
 
   def "can collect status code metrics"() {
@@ -715,4 +793,127 @@ class MetricsSpec extends RatpackGroovyDslSpec {
     0 * reporter.onTimerAdded("foo.get-requests", !null)
   }
 
+  def "can use prometheus metrics endpoint"() {
+    given:
+    bindings {
+      module new DropwizardMetricsModule(), { it.prometheusCollection(true) }
+    }
+    handlers { MetricRegistry metrics ->
+
+      metrics.register("fooGauge", new com.codahale.metrics.Gauge<Integer>() {
+        @Override
+        Integer getValue() {
+          2
+        }
+      })
+
+      get {
+        metrics.meter("fooMeter").mark()
+        metrics.counter("fooCounter").inc()
+        metrics.histogram("fooHistogram").update(metrics.counter("fooCounter").count)
+        render "foo"
+      }
+
+      get("admin/metrics-report", new MetricsPrometheusHandler())
+    }
+
+    when:
+    get("/")
+    def metrics = getText("admin/metrics-report").split("\n")
+
+    then:
+    metrics.contains("fooGauge 2.0")
+    metrics.contains("_2xx_responses 1.0")
+    metrics.contains("fooCounter 1.0")
+    metrics.contains("fooHistogram{quantile=\"0.5\",} 1.0")
+    metrics.contains("fooHistogram{quantile=\"0.75\",} 1.0")
+    metrics.contains("fooHistogram{quantile=\"0.95\",} 1.0")
+    metrics.contains("fooHistogram{quantile=\"0.98\",} 1.0")
+    metrics.contains("fooHistogram{quantile=\"0.99\",} 1.0")
+    metrics.contains("fooHistogram{quantile=\"0.999\",} 1.0")
+    metrics.contains("fooHistogram_count 1.0")
+    metrics.find { it.startsWith("root_get_requests{quantile=\"0.5\",}") }
+    metrics.find { it.startsWith("root_get_requests{quantile=\"0.75\",}") }
+    metrics.find { it.startsWith("root_get_requests{quantile=\"0.95\",}") }
+    metrics.find { it.startsWith("root_get_requests{quantile=\"0.98\",}") }
+    metrics.find { it.startsWith("root_get_requests{quantile=\"0.99\",}") }
+    metrics.find { it.startsWith("root_get_requests{quantile=\"0.999\",}") }
+    metrics.contains("root_get_requests_count 1.0")
+    metrics.contains("fooMeter_total 1.0")
+
+  }
+
+  def "it should report http client metrics"() {
+    given:
+    MetricRegistry registry
+    String ok = 'ok'
+    def result = new BlockingVariable<String>()
+    def httpClient = HttpClient.of { spec ->
+      spec.poolSize(0)
+      spec.enableMetricsCollection(true)
+    }
+
+    bindings {
+      bindInstance(HttpClient, httpClient)
+      module new DropwizardMetricsModule(), { spec ->
+        spec.httpClient { config ->
+          config
+            .enable(true)
+            .pollingFrequencyInSeconds(1)
+        }
+      }
+    }
+
+    otherApp {
+      get {
+        Blocking.get({
+          return result.get()
+        })
+          .onError(it.&error)
+          .then(it.&render)
+      }
+    }
+
+    handlers { MetricRegistry metrics ->
+      registry = metrics
+      get {
+        ExecController execController = it.get(ExecController)
+        execController.fork().start({
+          httpClient.get(otherAppUrl())
+            .then({ val ->
+            assert val.body.text == ok
+          })
+        })
+        render ok
+      }
+    }
+
+    when:
+    text == ok
+
+    then:
+    polling.within(2) {
+      assert registry.getGauges().get('httpclient.total.active.connections').value == 1
+      assert registry.getGauges().get('httpclient.total.idle.connections').value == 0
+      assert registry.getGauges().get('httpclient.total.connections').value == 1
+      assert registry.getGauges().get("httpclient.${otherAppUrl().host}.total.active.connections").value == 1
+      assert registry.getGauges().get("httpclient.${otherAppUrl().host}.total.idle.connections").value == 0
+      assert registry.getGauges().get("httpclient.${otherAppUrl().host}.total.connections").value == 1
+
+
+    }
+
+    when:
+    result.set(ok)
+
+    then:
+    polling.within(2) {
+      assert registry.getGauges().get('httpclient.total.active.connections').value == 0
+      assert registry.getGauges().get('httpclient.total.idle.connections').value == 0
+      assert registry.getGauges().get('httpclient.total.connections').value == 0
+      assert registry.getGauges().get("httpclient.${otherAppUrl().host}.total.active.connections").value == 0
+      assert registry.getGauges().get("httpclient.${otherAppUrl().host}.total.idle.connections").value == 0
+      assert registry.getGauges().get("httpclient.${otherAppUrl().host}.total.connections").value == 0
+    }
+  }
 }

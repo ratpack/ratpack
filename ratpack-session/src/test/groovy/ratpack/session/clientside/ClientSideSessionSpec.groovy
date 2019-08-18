@@ -16,13 +16,15 @@
 
 package ratpack.session.clientside
 
+import com.google.inject.AbstractModule
 import ratpack.http.MutableHeaders
 import ratpack.http.client.RequestSpec
 import ratpack.http.internal.HttpHeaderConstants
+import ratpack.server.ServerConfig
 import ratpack.session.Session
+import ratpack.session.SessionId
 import ratpack.session.SessionModule
 import ratpack.session.SessionSpec
-import spock.lang.Unroll
 
 import java.time.Duration
 
@@ -32,8 +34,48 @@ class ClientSideSessionSpec extends SessionSpec {
     getCookies(path).findAll { it.name().startsWith(startsWith)?.value }.toArray()
   }
 
+  final static SUPPORTED_ALGORITHMS = [
+    "Blowfish",
+    "AES/CBC/NoPadding",
+    "AES/CBC/PKCS5Padding",
+    "AES/ECB/NoPadding",
+    "AES/ECB/PKCS5Padding",
+    "DES/CBC/NoPadding",
+    "DES/CBC/PKCS5Padding",
+    "DES/ECB/NoPadding",
+    "DES/ECB/PKCS5Padding",
+    "DESede/CBC/NoPadding",
+    "DESede/CBC/PKCS5Padding",
+    "DESede/ECB/NoPadding",
+    "DESede/ECB/PKCS5Padding"
+  ]
+
+  static int keyLength(String algorithm) {
+    switch (algorithm) {
+      case ~/^DESede.*/:
+        return 24
+      case ~/^DES.*/:
+        return 8
+      default: // also matches ~/^AES.*/
+        return 16
+    }
+  }
+
+  String key
+  String token
+
   def setup() {
-    modules << new ClientSideSessionModule()
+    modules << new ClientSideSessionModule() {
+      @Override
+      protected void defaultConfig(ServerConfig serverConfig, ClientSideSessionConfig config) {
+        if (key != null) {
+          config.setSecretKey(key)
+        }
+        if (token != null) {
+          config.setSecretToken(token)
+        }
+      }
+    }
     supportsSize = false
   }
 
@@ -168,7 +210,6 @@ class ClientSideSessionSpec extends SessionSpec {
     getCookies("ratpack_session", "/").length == 0
   }
 
-  @Unroll
   def "a malformed cookie (#value) results in an empty session"() {
     given:
     handlers {
@@ -274,7 +315,6 @@ class ClientSideSessionSpec extends SessionSpec {
     values.findAll { it.contains("ratpack_session") && it.contains("Secure") }.size() == 1
   }
 
-  @Unroll
   def "can use algorithm #algorithm"() {
     given:
     modules.clear()
@@ -282,19 +322,7 @@ class ClientSideSessionSpec extends SessionSpec {
       module SessionModule
       module ClientSideSessionModule, {
         it.with {
-          int length = 16
-          switch (algorithm) {
-            case ~/^AES.*/:
-              length = 16
-              break
-            case ~/^DESede.*/:
-              length = 24
-              break
-            case ~/^DES.*/:
-              length = 8
-              break
-          }
-          secretKey = "a" * length
+          secretKey = "a" * keyLength(algorithm)
           cipherAlgorithm = algorithm
         }
       }
@@ -314,20 +342,109 @@ class ClientSideSessionSpec extends SessionSpec {
     text == "foo"
 
     where:
-    algorithm << [
-      "Blowfish",
-      "AES/CBC/NoPadding",
-      "AES/CBC/PKCS5Padding",
-      "AES/ECB/NoPadding",
-      "AES/ECB/PKCS5Padding",
-      "DES/CBC/NoPadding",
-      "DES/CBC/PKCS5Padding",
-      "DES/ECB/NoPadding",
-      "DES/ECB/PKCS5Padding",
-      "DESede/CBC/NoPadding",
-      "DESede/CBC/PKCS5Padding",
-      "DESede/ECB/NoPadding",
-      "DESede/ECB/PKCS5Padding"
-    ]
+    algorithm << SUPPORTED_ALGORITHMS
+  }
+
+  def "changing the signing token invalidates the session"() {
+    when:
+    handlers {
+      get { Session session ->
+        render session.get("value").map { it.orElse("null") }
+      }
+      get("set/:value") { Session session ->
+        session
+          .set("value", pathTokens.value)
+          .then {
+            render pathTokens.value
+          }
+      }
+    }
+
+    then:
+    getText("set/bar") == "bar"
+    text == "bar"
+
+    when:
+    token = "abcdefghi"
+    server.reload()
+
+    then:
+    text == "null"
+  }
+
+  def "changing the encryption key invalidates the session"() {
+    when:
+    key = "secretsecretsecr"
+    handlers {
+      get { Session session ->
+        render session.get("value").flatMapError {
+          session.terminate().flatMap { session.get("value") }
+        }.map { it.orElse("null") }
+      }
+      get("set/:value") { Session session ->
+        session
+          .set("value", pathTokens.value)
+          .then {
+            render pathTokens.value
+          }
+      }
+    }
+
+    then:
+    getText("set/bar") == "bar"
+    text == "bar"
+
+    when:
+    key = "secretsecretsecx"
+    server.reload()
+
+    then:
+    text == "null"
+  }
+
+  def "only send 1 last access time cookie"() {
+    when:
+    handlers {
+      get { Session session ->
+        session.get("test").nextOp {
+          session.set("test", System.currentTimeMillis())
+        }.then {
+          render "ok"
+        }
+      }
+    }
+    
+    then:
+    getText() == "ok"
+    def values = get().headers.getAll("Set-Cookie")
+    values.findAll { it.contains("ratpack_lat") }.size() == 1
+  }
+  
+  def "can disable session ID"() {
+    given:
+    modules << new AbstractModule() {
+      @Override
+      protected void configure() {
+        bind(SessionId).toInstance(SessionId.empty())
+      }
+    }
+
+    when:
+    handlers {
+      get("nosessionaccess") {
+        response.send("foo")
+      }
+      get("store") { Session session ->
+        render session.set("foo", "bar").map { "ok" }
+      }
+      get("load") { Session session ->
+        render session.get("foo").map { it.orElse "null" }
+      }
+    }
+
+    then:
+    def r = get("store")
+    r.headers.getAll("Set-Cookie").size() == 2 // last access token and session
+    getText("load") == "bar" // session still works
   }
 }

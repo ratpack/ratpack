@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 the original author or authors.
+ * Copyright 2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,18 +17,16 @@
 package ratpack.http.client.internal;
 
 import io.netty.buffer.ByteBuf;
-import io.netty.buffer.ByteBufAllocator;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelPipeline;
 import io.netty.channel.SimpleChannelInboundHandler;
-import io.netty.handler.codec.http.HttpContent;
-import io.netty.handler.codec.http.HttpResponse;
-import io.netty.handler.codec.http.LastHttpContent;
-import org.reactivestreams.Publisher;
+import io.netty.handler.codec.http.*;
+import io.netty.util.ReferenceCounted;
 import org.reactivestreams.Subscriber;
 import org.reactivestreams.Subscription;
 import ratpack.exec.Downstream;
 import ratpack.exec.Execution;
+import ratpack.exec.Upstream;
 import ratpack.func.Action;
 import ratpack.http.Headers;
 import ratpack.http.MutableHeaders;
@@ -37,169 +35,267 @@ import ratpack.http.Status;
 import ratpack.http.client.RequestSpec;
 import ratpack.http.client.StreamedResponse;
 import ratpack.http.internal.DefaultStatus;
-import ratpack.http.internal.HttpHeaderConstants;
 import ratpack.http.internal.NettyHeadersBackedHeaders;
-import ratpack.stream.Streams;
 import ratpack.stream.TransformablePublisher;
+import ratpack.stream.internal.BufferedWriteStream;
+import ratpack.stream.internal.BufferingPublisher;
+import ratpack.util.Exceptions;
 
 import java.net.URI;
-import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.ArrayList;
+import java.util.List;
 
-import static ratpack.util.Exceptions.uncheck;
+public class ContentStreamingRequestAction extends RequestActionSupport<StreamedResponse> {
 
-class ContentStreamingRequestAction extends RequestActionSupport<StreamedResponse> {
-  private final AtomicBoolean subscribedTo = new AtomicBoolean();
+  private static final String HANDLER_NAME = "streaming";
 
-  public ContentStreamingRequestAction(Action<? super RequestSpec> requestConfigurer, URI uri, Execution execution, ByteBufAllocator byteBufAllocator, int redirectCount) {
-    super(requestConfigurer, uri, execution, byteBufAllocator, redirectCount);
+  ContentStreamingRequestAction(URI uri, HttpClientInternal client, int redirectCount, Execution execution, Action<? super RequestSpec> requestConfigurer) throws Exception {
+    super(uri, client, redirectCount, execution, requestConfigurer);
   }
 
   @Override
-  protected RequestActionSupport<StreamedResponse> buildRedirectRequestAction(Action<? super RequestSpec> redirectRequestConfig, URI locationUrl, int redirectCount) {
-    return new ContentStreamingRequestAction(redirectRequestConfig, locationUrl, execution, byteBufAllocator, redirectCount);
+  protected void doDispose(ChannelPipeline channelPipeline, boolean forceClose) {
+    channelPipeline.remove(HANDLER_NAME);
+    super.doDispose(channelPipeline, forceClose);
   }
 
   @Override
   protected void addResponseHandlers(ChannelPipeline p, Downstream<? super StreamedResponse> downstream) {
-    p.addLast("httpResponseHandler", new SimpleChannelInboundHandler<HttpResponse>(false) {
-      @Override
-      public void channelRead0(ChannelHandlerContext ctx, HttpResponse msg) throws Exception {
+    p.addLast(HANDLER_NAME, new Handler(p, downstream));
+  }
+
+  @Override
+  protected Upstream<StreamedResponse> onRedirect(URI locationUrl, int redirectCount, Action<? super RequestSpec> redirectRequestConfig) throws Exception {
+    return new ContentStreamingRequestAction(locationUrl, client, redirectCount, execution, redirectRequestConfig);
+  }
+
+  private class Handler extends SimpleChannelInboundHandler<HttpObject> {
+
+    private final ChannelPipeline channelPipeline;
+    private final Downstream<? super StreamedResponse> downstream;
+
+    private List<HttpContent> received;
+    private BufferedWriteStream<ByteBuf> write;
+    private HttpResponse response;
+
+    public Handler(ChannelPipeline channelPipeline, Downstream<? super StreamedResponse> downstream) {
+      super(false);
+      this.channelPipeline = channelPipeline;
+      this.downstream = downstream;
+    }
+
+    @Override
+    protected void channelRead0(ChannelHandlerContext ctx, HttpObject httpObject) throws Exception {
+      if (httpObject instanceof HttpResponse) {
+        this.response = (HttpResponse) httpObject;
+
+        int code = response.status().code();
+        if ((code >= 100 && code < 200) || code == 204) {
+          response.headers().remove(HttpHeaderNames.CONTENT_LENGTH);
+        }
+
         // Switch auto reading off so we can control the flow of response content
-        p.channel().config().setAutoRead(false);
+        channelPipeline.channel().config().setAutoRead(false);
         execution.onComplete(() -> {
-          if (!subscribedTo.get() && ctx.channel().isOpen()) {
-            ctx.close();
+          if (write == null) {
+            forceDispose(channelPipeline);
+          }
+          if (received != null) {
+            received.forEach(ReferenceCounted::release);
           }
         });
+        success(downstream, new DefaultStreamedResponse(channelPipeline));
+      } else if (httpObject instanceof HttpContent) {
+        HttpContent httpContent = ((HttpContent) httpObject).touch();
+        boolean hasContent = httpContent.content().readableBytes() > 0;
+        boolean isLast = httpObject instanceof LastHttpContent;
 
-        final Headers headers = new NettyHeadersBackedHeaders(msg.headers());
-        final Status status = new DefaultStatus(msg.status());
-
-        success(downstream, new DefaultStreamedResponse(p, status, headers));
-      }
-
-      @Override
-      public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) throws Exception {
-        ctx.close();
-        error(downstream, cause);
-      }
-    });
-  }
-
-  private class DefaultStreamedResponse implements StreamedResponse {
-    private final ChannelPipeline channelPipeline;
-    private final Status status;
-    private final Headers headers;
-
-    public DefaultStreamedResponse(ChannelPipeline p, Status status, Headers headers) {
-      this.channelPipeline = p;
-      this.status = status;
-      this.headers = headers;
-    }
-
-    @Override
-    public Status getStatus() {
-      return status;
-    }
-
-    @Override
-    public int getStatusCode() {
-      return status.getCode();
-    }
-
-    @Override
-    public Headers getHeaders() {
-      return headers;
-    }
-
-    @Override
-    public TransformablePublisher<ByteBuf> getBody() {
-      return Streams.transformable(new HttpContentPublisher(channelPipeline));
-    }
-
-    @Override
-    public void forwardTo(Response response) {
-      forwardTo(response, Action.noop());
-    }
-
-    @Override
-    public void forwardTo(Response response, Action<? super MutableHeaders> headerMutator) {
-      response.getHeaders().copy(this.headers);
-      response.getHeaders().remove(HttpHeaderConstants.CONTENT_LENGTH); // responses will always be chunked
-      try {
-        headerMutator.execute(response.getHeaders());
-      } catch (Exception e) {
-        throw uncheck(e);
-      }
-      response.getHeaders().set(HttpHeaderConstants.TRANSFER_ENCODING, HttpHeaderConstants.CHUNKED);
-
-      response.status(this.status);
-      response.sendStream(getBody());
-    }
-  }
-
-  private class HttpContentPublisher implements Publisher<ByteBuf> {
-    private Subscriber<? super ByteBuf> subscriber;
-    private final ChannelPipeline channelPipeline;
-    private final AtomicBoolean stopped = new AtomicBoolean();
-
-    public HttpContentPublisher(ChannelPipeline p) {
-      this.channelPipeline = p;
-    }
-
-    @Override
-    public void subscribe(Subscriber<? super ByteBuf> s) {
-      subscribedTo.compareAndSet(false, true);
-      subscriber = s;
-
-      channelPipeline.remove("httpResponseHandler");
-      channelPipeline.addLast("httpContentHandler", new SimpleChannelInboundHandler<HttpContent>(false) {
-        @Override
-        public void channelRead0(ChannelHandlerContext ctx, HttpContent msg) throws Exception {
-          subscriber.onNext(msg.content());
-
-          if (msg instanceof LastHttpContent && stopped.compareAndSet(false, true)) {
-            subscriber.onComplete();
+        if (write == null) { // the stream has not yet been subscribed to
+          if (hasContent || isLast) {
+            if (received == null) {
+              received = new ArrayList<>();
+            }
+            received.add(httpContent.touch());
+          } else {
+            httpContent.release();
           }
-        }
-
-        @Override
-        public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) throws Exception {
-          if (stopped.compareAndSet(false, true)) {
-            subscriber.onError(cause);
+          if (isLast) {
+            dispose(ctx.pipeline(), response);
           }
-
-          if (ctx.channel().isOpen()) {
-            ctx.close();
+        } else { // the stream has been subscribed to
+          if (hasContent) {
+            write.item(httpContent.content().touch("emitting to user code"));
+          } else {
+            httpContent.release();
           }
-        }
-      });
-
-      s.onSubscribe(new Subscription() {
-        @Override
-        public void request(long n) {
-          if (n < 1) {
-            throw new IllegalArgumentException("3.9 While the Subscription is not cancelled, Subscription.request(long n) MUST throw a java.lang.IllegalArgumentException if the argument is <= 0.");
-          }
-
-          if (!stopped.get()) {
-            if (n == Long.MAX_VALUE) {
-              channelPipeline.channel().config().setAutoRead(true);
-            } else {
-              for (int i = 0; i < n; i++) {
-                channelPipeline.channel().read();
-              }
+          if (isLast) {
+            dispose(ctx.pipeline(), response);
+            write.complete();
+          } else {
+            if (write.getRequested() > 0) {
+              ctx.read();
             }
           }
         }
+      }
+    }
 
-        @Override
-        public void cancel() {
-          stopped.set(true);
-          channelPipeline.channel().close();
-        }
-      });
+    @Override
+    public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) throws Exception {
+      cause = decorateException(cause);
+
+      if (write == null) {
+        error(downstream, cause);
+      } else {
+        write.error(cause);
+      }
+
+      forceDispose(ctx.pipeline());
+    }
+
+    class DefaultStreamedResponse implements StreamedResponse {
+      private final ChannelPipeline channelPipeline;
+      private final Status status;
+      private final Headers headers;
+
+      private DefaultStreamedResponse(ChannelPipeline channelPipeline) {
+        this.channelPipeline = channelPipeline;
+        this.headers = new NettyHeadersBackedHeaders(response.headers());
+        this.status = new DefaultStatus(response.status());
+      }
+
+      @Override
+      public Status getStatus() {
+        return status;
+      }
+
+      @Override
+      public int getStatusCode() {
+        return status.getCode();
+      }
+
+      @Override
+      public Headers getHeaders() {
+        return headers;
+      }
+
+      @Override
+      public TransformablePublisher<ByteBuf> getBody() {
+        return new BufferingPublisher<>(ByteBuf::release, write -> {
+          Handler.this.write = write;
+
+          if (received != null) {
+            for (HttpContent httpContent : received) {
+              if (httpContent.content().readableBytes() > 0) {
+                write.item(httpContent.content().touch("emitting to user code"));
+              } else {
+                httpContent.release();
+              }
+              if (httpContent instanceof LastHttpContent) {
+                dispose(channelPipeline, response);
+                write.complete();
+              }
+            }
+            received.clear();
+          }
+
+          return new Subscription() {
+            @Override
+            public void request(long n) {
+              channelPipeline.read();
+            }
+
+            @Override
+            public void cancel() {
+              forceDispose(channelPipeline);
+            }
+          };
+        });
+
+      }
+
+      @Override
+      public void forwardTo(Response response) {
+        forwardTo(response, Action.noop());
+      }
+
+      @Override
+      public void forwardTo(Response response, Action<? super MutableHeaders> headerMutator) {
+        MutableHeaders outgoingHeaders = response.getHeaders();
+        outgoingHeaders.copy(headers);
+        outgoingHeaders.remove(HttpHeaderNames.CONNECTION);
+        Exceptions.uncheck(() -> headerMutator.execute(outgoingHeaders));
+        response.status(status);
+
+        getBody().bindExec(ByteBuf::release).subscribe(new Subscriber<ByteBuf>() {
+
+          private Subscription subscription;
+          private Subscriber<? super ByteBuf> downstream;
+
+          @Override
+          public void onSubscribe(Subscription s) {
+            subscription = s;
+            subscription.request(1);
+          }
+
+          @Override
+          public void onNext(ByteBuf byteBuf) {
+            if (downstream == null) {
+              response.sendStream(s -> {
+                downstream = s;
+                downstream.onSubscribe(new Subscription() {
+
+                  private ByteBuf initial = byteBuf;
+
+                  @Override
+                  public void request(long n) {
+                    if (initial == null) {
+                      subscription.request(n);
+                    } else {
+                      ByteBuf initialRef = this.initial;
+                      this.initial = null;
+                      downstream.onNext(initialRef);
+                      n -= 1;
+                      if (n > 0) {
+                        subscription.request(1);
+                      }
+                    }
+                  }
+
+                  @Override
+                  public void cancel() {
+                    subscription.cancel();
+                    if (initial != null) {
+                      initial.release();
+                    }
+                  }
+                });
+              });
+            } else {
+              downstream.onNext(byteBuf);
+            }
+          }
+
+          @Override
+          public void onError(Throwable t) {
+            if (downstream == null) {
+              response.sendStream(s -> s.onError(t));
+            } else {
+              downstream.onError(t);
+            }
+          }
+
+          @Override
+          public void onComplete() {
+            if (downstream == null) {
+              response.send();
+            } else {
+              downstream.onComplete();
+            }
+          }
+        });
+      }
+
     }
   }
-
 }

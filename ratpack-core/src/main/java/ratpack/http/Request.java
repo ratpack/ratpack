@@ -27,12 +27,16 @@ import ratpack.exec.Promise;
 import ratpack.func.Block;
 import ratpack.registry.MutableRegistry;
 import ratpack.server.ServerConfig;
+import ratpack.server.ServerConfigBuilder;
 import ratpack.stream.Streams;
 import ratpack.stream.TransformablePublisher;
 import ratpack.util.MultiValueMap;
 import ratpack.util.Types;
 
+import javax.security.cert.X509Certificate;
+import java.time.Duration;
 import java.time.Instant;
+import java.util.Optional;
 import java.util.Set;
 import java.util.function.Supplier;
 
@@ -134,10 +138,25 @@ public interface Request extends MutableRegistry {
    * If the transmitted content is larger than provided {@link ServerConfig#getMaxContentLength()}, the given block will be invoked.
    * If the block completes successfully, the promise will be terminated.
    * If the block errors, the promise will carry the failure.
+   * <p>
+   * If the body is larger then {@link #getMaxContentLength()}, a {@link RequestBodyTooLargeException} will be propagated.
    *
    * @return the body of the request
    */
   Promise<TypedData> getBody();
+
+  /**
+   * Overrides the idle timeout for this connection.
+   * <p>
+   * The default is set as part of server config via {@link ServerConfigBuilder#idleTimeout(Duration)}.
+   * <p>
+   * The override strictly applies to only the request/response exchange that this request is involved in.
+   *
+   * @param idleTimeout the idle timeout ({@link Duration#ZERO} = no timeout, must not be negative, must not be null)
+   * @since 1.5
+   * @see ServerConfig#getIdleTimeout()
+   */
+  void setIdleTimeout(Duration idleTimeout);
 
   /**
    * The body of the request.
@@ -259,7 +278,7 @@ public interface Request extends MutableRegistry {
    *
    *           {@literal @}Override
    *           public void onNext(ByteBuf byteBuf) {
-   *             Promise.<Integer>of(down ->
+   *             Promise.<Integer>async(down ->
    *               out.write(byteBuf.nioBuffer(), written, null, down.completionHandler())
    *             ).onError(error -> {
    *               byteBuf.release();
@@ -392,16 +411,45 @@ public interface Request extends MutableRegistry {
   Instant getTimestamp();
 
   /**
-   * {@inheritDoc}
+   * Sets the allowed max content length for the request body.
+   * <p>
+   * This setting will be used when {@link #getBody()} or {@link #getBodyStream()} are called,
+   * and when implicitly reading the request body in order to respond (e.g. when issuing a response without trying to read the body).
+   *
+   * @param maxContentLength the maximum request body length in bytes
+   * @since 1.5
    */
-  @Override
-  <O> Request add(Class<? super O> type, O object);
+  void setMaxContentLength(long maxContentLength);
+
+  /**
+   * The max allowed content length for the request body.
+   *
+   * @see #setMaxContentLength(long)
+   * @return the maximum request body length in bytes
+   * @since 1.5
+   */
+  long getMaxContentLength();
+
+  /**
+   * The client's verified certificate if the connection was made with HTTPS
+   * and client authentication is enabled.
+   *
+   * @return the client's certificate
+   * @since 1.5
+   */
+  Optional<X509Certificate> getClientCertificate();
 
   /**
    * {@inheritDoc}
    */
   @Override
-  <O> Request add(TypeToken<? super O> type, O object);
+  <O> Request add(Class<O> type, O object);
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  <O> Request add(TypeToken<O> type, O object);
 
   /**
    * {@inheritDoc}

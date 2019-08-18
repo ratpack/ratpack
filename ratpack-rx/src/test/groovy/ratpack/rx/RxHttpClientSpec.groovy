@@ -16,12 +16,12 @@
 
 package ratpack.rx
 
+import ratpack.http.client.BaseHttpClientSpec
 import ratpack.http.client.HttpClient
-import ratpack.http.client.HttpClientSpec
 
 import static ratpack.rx.RxRatpack.observe
 
-class RxHttpClientSpec extends HttpClientSpec {
+class RxHttpClientSpec extends BaseHttpClientSpec {
 
   def setup() {
     RxRatpack.initialize()

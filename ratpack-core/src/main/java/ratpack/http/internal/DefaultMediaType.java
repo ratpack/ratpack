@@ -16,13 +16,13 @@
 
 package ratpack.http.internal;
 
+import com.github.benmanes.caffeine.cache.Caffeine;
+import com.github.benmanes.caffeine.cache.LoadingCache;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableListMultimap;
 import ratpack.http.MediaType;
-import ratpack.util.internal.BoundedConcurrentHashMap;
 
 import java.nio.charset.Charset;
-import java.util.concurrent.ConcurrentMap;
 
 public class DefaultMediaType implements MediaType {
 
@@ -34,26 +34,30 @@ public class DefaultMediaType implements MediaType {
 
   private static final int CACHE_SIZE = 1024;
 
-  private static final ConcurrentMap<String, MediaType> CACHE = new BoundedConcurrentHashMap<>(CACHE_SIZE, Runtime.getRuntime().availableProcessors());
+  private static final LoadingCache<String, MediaType> CACHE = Caffeine.newBuilder()
+    .maximumSize(CACHE_SIZE)
+    .build(DefaultMediaType::new);
 
   public static MediaType get(final String contentType) {
-    String trimmed = contentType;
-    if (trimmed == null) {
-      trimmed = "";
-    } else {
-      trimmed = trimmed.trim();
-    }
-
-    return CACHE.computeIfAbsent(trimmed, DefaultMediaType::new);
+    return CACHE.get(contentType == null ? "" : contentType);
   }
 
-  public DefaultMediaType(String value) {
-    if (value == null || value.trim().length() == 0) {
+  private DefaultMediaType(String value) {
+    value = value.trim();
+    if (value.length() == 0) {
       type = null;
       params = ImmutableListMultimap.of();
       string = "";
     } else {
-      com.google.common.net.MediaType mediaType = com.google.common.net.MediaType.parse(value.trim());
+      com.google.common.net.MediaType mediaType;
+      try {
+        mediaType = com.google.common.net.MediaType.parse(value);
+      } catch (IllegalArgumentException e) {
+        type = value;
+        string = value;
+        params = ImmutableListMultimap.of();
+        return;
+      }
       if (mediaType != null && mediaType.type() != null) {
         if (mediaType.subtype() != null) {
           type = mediaType.type() + "/" + mediaType.subtype();

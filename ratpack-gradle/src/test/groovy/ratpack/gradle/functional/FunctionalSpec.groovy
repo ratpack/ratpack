@@ -31,15 +31,24 @@ abstract class FunctionalSpec extends Specification {
   @Rule
   TemporaryFolder dir
 
+  String gradleVersion
+
   private static final String RATPACK_VERSION = FunctionalSpec.classLoader.getResource("ratpack/ratpack-version.txt").text.trim()
 
   GradleRunner runner(String... args) {
-    GradleRunner.create()
+    def runner = GradleRunner.create()
       .withProjectDir(dir.root)
-      .withDebug(true) // always run inline to save memory, especially on CI
       .forwardOutput()
       .withTestKitDir(getTestKitDir())
       .withArguments(args.toList())
+
+    if (gradleVersion) {
+      runner.withGradleVersion(gradleVersion)
+    }
+
+    runner
+
+
   }
 
   BuildResult run(String... args) {
@@ -91,7 +100,7 @@ abstract class FunctionalSpec extends Specification {
         }
         repositories { jcenter() }
         dependencies {
-          classpath 'com.github.jengelman.gradle.plugins:shadow:1.2.3'
+          classpath 'com.github.jengelman.gradle.plugins:shadow:4.0.3'
           classpath 'io.ratpack:ratpack-gradle:${RATPACK_VERSION}'
         }
       }
@@ -104,7 +113,12 @@ abstract class FunctionalSpec extends Specification {
         jcenter()
       }
       dependencies {
-        compile 'org.slf4j:slf4j-simple:1.7.12'
+        compile 'org.slf4j:slf4j-simple:1.7.25'
+      }
+      shadowJar {
+        // Needed in Gradle 5.1 due to breaking change in convention mapping
+        // Can be removed once Shadow 5.0.0 is available
+        classifier = 'all'
       }
     """
 

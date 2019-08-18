@@ -17,6 +17,8 @@
 package ratpack.server.internal;
 
 import com.google.common.collect.ImmutableSet;
+import io.netty.handler.ssl.JdkSslContext;
+import io.netty.handler.ssl.SslContext;
 import ratpack.api.Nullable;
 import ratpack.config.ConfigData;
 import ratpack.config.ConfigObject;
@@ -28,6 +30,7 @@ import ratpack.server.ServerConfig;
 import javax.net.ssl.SSLContext;
 import java.net.InetAddress;
 import java.net.URI;
+import java.time.Duration;
 import java.util.Optional;
 
 public class DefaultServerConfig extends DelegatingConfigData implements ServerConfig {
@@ -70,17 +73,34 @@ public class DefaultServerConfig extends DelegatingConfigData implements ServerC
   }
 
   @Override
+  public boolean isRegisterShutdownHook() {
+    return serverConfigData.isRegisterShutdownHook();
+  }
+
+  @Override
   public URI getPublicAddress() {
     return serverConfigData.getPublicAddress();
   }
 
   @Nullable
   @Override
+  @SuppressWarnings("deprecation")
   public SSLContext getSslContext() {
+    SslContext sslContext = serverConfigData.getSslContext();
+    if (sslContext instanceof JdkSslContext) {
+      return ((JdkSslContext) sslContext).context();
+    } else {
+      throw new UnsupportedOperationException("Cannot provide sslContext as JDK type");
+    }
+  }
+
+  @Override
+  public SslContext getNettySslContext() {
     return serverConfigData.getSslContext();
   }
 
   @Override
+  @SuppressWarnings("deprecation")
   public boolean isRequireClientSslAuth() {
     return serverConfigData.isRequireClientSslAuth();
   }
@@ -101,6 +121,21 @@ public class DefaultServerConfig extends DelegatingConfigData implements ServerC
   }
 
   @Override
+  public int getMaxInitialLineLength() {
+    return serverConfigData.getMaxInitialLineLength();
+  }
+
+  @Override
+  public int getMaxHeaderSize() {
+    return serverConfigData.getMaxHeaderSize();
+  }
+
+  @Override
+  public Duration getIdleTimeout() {
+    return serverConfigData.getIdleTimeout();
+  }
+
+  @Override
   public FileSystemBinding getBaseDir() throws NoBaseDirException {
     return baseDir.orElseThrow(() -> new NoBaseDirException("No base dir has been set"));
   }
@@ -118,6 +153,11 @@ public class DefaultServerConfig extends DelegatingConfigData implements ServerC
   @Override
   public Optional<Integer> getReceiveBufferSize() {
     return serverConfigData.getReceiveBufferSize();
+  }
+
+  @Override
+  public Optional<Integer> getConnectQueueSize() {
+    return serverConfigData.getConnectQueueSize();
   }
 
   @Override

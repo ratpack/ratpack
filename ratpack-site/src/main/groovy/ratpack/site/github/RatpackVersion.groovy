@@ -70,7 +70,9 @@ class RatpackVersion {
 
   String getManualDownloadUrl() {
     def label = released ? version : "$version-SNAPSHOT"
-    "http://oss.jfrog.org/artifactory/repo/io/ratpack/ratpack-manual/$label/ratpack-manual-${label}.zip"
+    def repo = released ? "libs-release" : "libs-snapshot"
+
+    return "https://oss.jfrog.org/artifactory/$repo/io/ratpack/ratpack-manual/$label/ratpack-manual-${label}.zip"
   }
 
   String getDescriptionHtml() {

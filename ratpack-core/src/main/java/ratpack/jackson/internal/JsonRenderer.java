@@ -19,42 +19,49 @@ package ratpack.jackson.internal;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.ObjectWriter;
+import com.google.common.reflect.TypeToken;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.ByteBufAllocator;
 import io.netty.buffer.ByteBufOutputStream;
 import ratpack.handling.Context;
 import ratpack.http.internal.HttpHeaderConstants;
 import ratpack.jackson.JsonRender;
+import ratpack.render.Renderer;
 import ratpack.render.RendererSupport;
+import ratpack.util.Types;
 
 import java.io.OutputStream;
 
 public class JsonRenderer extends RendererSupport<JsonRender> {
 
+  public static final TypeToken<Renderer<JsonRender>> TYPE = Types.intern(new TypeToken<Renderer<JsonRender>>() {});
+
+  public static final Renderer<JsonRender> INSTANCE = new JsonRenderer();
+
   @Override
-  public void render(Context context, JsonRender object) throws Exception {
+  public void render(Context ctx, JsonRender object) throws Exception {
     ObjectWriter writer = object.getObjectWriter();
     if (writer == null) {
-      writer = context.maybeGet(ObjectWriter.class)
-        .orElseGet(() -> context.get(ObjectMapper.class).writer());
+      writer = ctx.maybeGet(ObjectWriter.class)
+        .orElseGet(() -> ctx.get(ObjectMapper.class).writer());
     }
     Class<?> viewClass = object.getViewClass();
     if (viewClass != null) {
       writer = writer.withView(viewClass);
     }
 
-    ByteBuf buffer = context.get(ByteBufAllocator.class).buffer();
+    ByteBuf buffer = ctx.get(ByteBufAllocator.class).buffer();
     OutputStream outputStream = new ByteBufOutputStream(buffer);
 
     try {
       writer.writeValue(outputStream, object.getObject());
     } catch (JsonProcessingException e) {
       buffer.release();
-      context.error(e);
+      ctx.error(e);
       return;
     }
 
-    context.getResponse()
+    ctx.getResponse()
       .contentTypeIfNotSet(HttpHeaderConstants.JSON)
       .send(buffer);
   }

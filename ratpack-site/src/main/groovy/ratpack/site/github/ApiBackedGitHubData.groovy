@@ -73,7 +73,7 @@ class ApiBackedGitHubData implements GitHubData {
   }
 
   Promise<List<RatpackVersion>> getReleasedVersions() {
-    gitHubApi.milestones(state: "closed", sort: "due_date").map {
+    gitHubApi.milestones(state: "closed", sort: "due_date", direction: "desc").map {
       RatpackVersion.fromJson(it as JsonNode) as List
     }
   }

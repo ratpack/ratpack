@@ -18,6 +18,7 @@ package ratpack.config
 
 import com.google.common.base.Charsets
 import com.google.common.io.ByteSource
+import groovy.transform.Canonical
 import org.junit.Rule
 import org.junit.rules.TemporaryFolder
 import ratpack.func.Action
@@ -140,11 +141,35 @@ class ConfigDataCreateSpec extends RatpackGroovyDslSpec {
     ex.cause instanceof NoSuchFileException
   }
 
+  def "can load config from an object"() {
+    when:
+    def serviceConfigObj = new ServiceConfig(url: "http://example.com")
+    def serviceConfigData = ConfigData.of { it.object("myService", serviceConfigObj) }
+    def serviceConfig = serviceConfigData.get("/myService", ServiceConfig)
+
+    then:
+    serviceConfig == serviceConfigObj
+
+    when:
+    def appConfigObj = new MyAppConfig(name: "app", service: serviceConfigObj)
+    def configData = ConfigData.of { it
+      .object("app", appConfigObj)
+      .object("app.service", new ServiceConfig(url: "changed"))
+    }
+    def appConfig = configData.get("/app", MyAppConfig)
+
+    then:
+    appConfig.name == "app"
+    appConfig.service.url == "changed"
+  }
+
+  @Canonical
   static class MyAppConfig {
     String name
     ServiceConfig service
   }
 
+  @Canonical
   private static class ServiceConfig {
     String url
   }

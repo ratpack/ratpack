@@ -19,26 +19,41 @@ package ratpack.handling;
 import com.google.common.reflect.TypeToken;
 import org.reactivestreams.Publisher;
 import ratpack.api.NonBlocking;
+import ratpack.error.ClientErrorHandler;
+import ratpack.error.ServerErrorHandler;
 import ratpack.exec.Execution;
 import ratpack.exec.Promise;
 import ratpack.file.FileSystemBinding;
+import ratpack.file.MimeTypes;
 import ratpack.func.Action;
 import ratpack.handling.direct.DirectChannelAccess;
+import ratpack.http.ClientErrorException;
+import ratpack.http.MutableHeaders;
 import ratpack.http.Request;
 import ratpack.http.Response;
 import ratpack.http.TypedData;
+import ratpack.jackson.Jackson;
+import ratpack.jackson.JsonRender;
+import ratpack.parse.NoSuchParserException;
+import ratpack.parse.NullParseOpts;
 import ratpack.parse.Parse;
 import ratpack.parse.Parser;
+import ratpack.path.PathBinding;
 import ratpack.path.PathTokens;
 import ratpack.registry.NotInRegistryException;
 import ratpack.registry.Registry;
-import ratpack.render.NoSuchRendererException;
+import ratpack.render.*;
+import ratpack.server.PublicAddress;
 import ratpack.server.ServerConfig;
+import ratpack.stream.Streams;
 import ratpack.util.Types;
 
 import java.net.URI;
 import java.nio.file.Path;
+import java.time.Instant;
+import java.util.Arrays;
 import java.util.Date;
+import java.util.Optional;
 
 /**
  * The context of an individual {@link Handler} invocation.
@@ -57,18 +72,18 @@ import java.util.Date;
  * Arbitrary objects can be "pushed" into the context for use by <i>downstream</i> handlers.
  * <p>
  * There are some significant contextual objects that drive key infrastructure.
- * For example, error handling is based on informing the contextual {@link ratpack.error.ServerErrorHandler} of exceptions.
+ * For example, error handling is based on informing the contextual {@link ServerErrorHandler} of exceptions.
  * The error handling strategy for an application can be changed by pushing a new implementation of this interface into the context that is used downstream.
  * <p>
  * See {@link #insert(Handler...)} for more on how to do this.
  * <h4>Default contextual objects</h4>
  * <p>There is also a set of default objects that are made available via the Ratpack infrastructure:
  * <ul>
- * <li>A {@link ratpack.file.FileSystemBinding} that is the application {@link ratpack.server.ServerConfig#getBaseDir()}</li>
- * <li>A {@link ratpack.file.MimeTypes} implementation</li>
- * <li>A {@link ratpack.error.ServerErrorHandler}</li>
- * <li>A {@link ratpack.error.ClientErrorHandler}</li>
- * <li>A {@link ratpack.server.PublicAddress}</li>
+ * <li>A {@link FileSystemBinding} that is the application {@link ServerConfig#getBaseDir()}</li>
+ * <li>A {@link MimeTypes} implementation</li>
+ * <li>A {@link ServerErrorHandler}</li>
+ * <li>A {@link ClientErrorHandler}</li>
+ * <li>A {@link PublicAddress}</li>
  * <li>A {@link Redirector}</li>
  * </ul>
  */
@@ -227,44 +242,7 @@ public interface Context extends Registry {
 
   /**
    * Respond to the request based on the requested content type (i.e. the request Accept header).
-   * <p>
-   * This is useful when a given handler can provide content of more than one type (i.e. <a href="http://en.wikipedia.org/wiki/Content_negotiation">content negotiation</a>).
-   * <p>
-   * The handler to use will be selected based on parsing the "Accept" header, respecting quality weighting and wildcard matching.
-   * The order that types are specified is significant for wildcard matching.
-   * The earliest registered type that matches the wildcard will be used.
-   *
-   * <pre class="java">{@code
-   * import ratpack.test.embed.EmbeddedApp;
-   * import ratpack.http.client.ReceivedResponse;
-   *
-   * import static org.junit.Assert.*;
-   *
-   * public class Example {
-   *   public static void main(String[] args) throws Exception {
-   *     EmbeddedApp.fromHandler(ctx -> {
-   *       String message = "hello!";
-   *       ctx.byContent(m -> m
-   *         .json(() -> ctx.render("{\"msg\": \"" + message + "\"}"))
-   *         .html(() -> ctx.render("<p>" + message + "</p>"))
-   *       );
-   *     }).test(httpClient -> {
-   *       ReceivedResponse response = httpClient.requestSpec(s -> s.getHeaders().add("Accept", "application/json")).get();
-   *       assertEquals("{\"msg\": \"hello!\"}", response.getBody().getText());
-   *       assertEquals("application/json", response.getBody().getContentType().getType());
-   *
-   *       response = httpClient.requestSpec(s -> s.getHeaders().add("Accept", "text/plain; q=1.0, text/html; q=0.8, application/json; q=0.7")).get();
-   *       assertEquals("<p>hello!</p>", response.getBody().getText());
-   *       assertEquals("text/html", response.getBody().getContentType().getType());
-   *     });
-   *   }
-   * }
-   * }</pre>
-   * If there is no type registered, or if the client does not accept any of the given types, by default a {@code 406} will be issued with {@link Context#clientError(int)}.
-   * If you want a different behavior, use {@link ratpack.handling.ByContentSpec#noMatch}.
-   * <p>
-   * Only the last specified handler for a type will be used.
-   * That is, adding a subsequent handler for the same type will replace the previous.
+   * For more details, see {@link ByContentSpec}.
    *
    * @param action the specification of how to handle the request based on the clients preference of content type
    * @throws Exception any thrown by action
@@ -274,25 +252,31 @@ public interface Context extends Registry {
   // Shorthands for common service lookups
 
   /**
-   * Forwards the exception to the {@link ratpack.error.ServerErrorHandler} in this service.
+   * Handles any error thrown during request handling.
    * <p>
-   * The default configuration of Ratpack includes a {@link ratpack.error.ServerErrorHandler} in all contexts.
-   * A {@link NotInRegistryException} will only be thrown if a very custom service setup is being used.
+   * Uncaught exceptions that are thrown any time during request handling will end up here.
+   * <p>
+   * Forwards the exception to the {@link ServerErrorHandler} within the current registry.
+   * Add an implementation of this interface to the registry to handle errors.
+   * The default implementation is not suitable for production usage.
+   * <p>
+   * If the exception is-a {@link ClientErrorException},
+   * the {@link #clientError(int)} method will be called with the exception's status code
+   * instead of being forward to the server error handler.
    *
    * @param throwable The exception that occurred
-   * @throws NotInRegistryException if no {@link ratpack.error.ServerErrorHandler} can be found in the service
    */
   @NonBlocking
   void error(Throwable throwable);
 
   /**
-   * Forwards the error to the {@link ratpack.error.ClientErrorHandler} in this service.
+   * Forwards the error to the {@link ClientErrorHandler} in this service.
    *
-   * The default configuration of Ratpack includes a {@link ratpack.error.ClientErrorHandler} in all contexts.
-   * A {@link ratpack.registry.NotInRegistryException} will only be thrown if a very custom service setup is being used.
+   * The default configuration of Ratpack includes a {@link ClientErrorHandler} in all contexts.
+   * A {@link NotInRegistryException} will only be thrown if a very custom service setup is being used.
    *
    * @param statusCode The 4xx range status code that indicates the error type
-   * @throws NotInRegistryException if no {@link ratpack.error.ClientErrorHandler} can be found in the service
+   * @throws NotInRegistryException if no {@link ClientErrorHandler} can be found in the service
    */
   @NonBlocking
   void clientError(int statusCode) throws NotInRegistryException;
@@ -300,32 +284,65 @@ public interface Context extends Registry {
   /**
    * Render the given object, using the rendering framework.
    * <p>
-   * The first {@link ratpack.render.Renderer}, that is able to render the given object will be delegated to.
+   * The first {@link Renderer}, that is able to render the given object will be delegated to.
    * If the given argument is {@code null}, this method will have the same effect as {@link #clientError(int) clientError(404)}.
    * <p>
    * If no renderer can be found for the given type, a {@link NoSuchRendererException} will be given to {@link #error(Throwable)}.
    * <p>
-   * If a renderer throws an exception during its execution it will be wrapped in a {@link ratpack.render.RendererException} and given to {@link #error(Throwable)}.
+   * If a renderer throws an exception during its execution it will be wrapped in a {@link RendererException} and given to {@link #error(Throwable)}.
    * <p>
    * Ratpack has built in support for rendering the following types:
    * <ul>
-   * <li>{@link java.nio.file.Path}</li>
-   * <li>{@link java.lang.CharSequence}</li>
-   * <li>{@link ratpack.jackson.JsonRender} (Typically created via {@link ratpack.jackson.Jackson#json(Object)})</li>
+   * <li>{@link Path}</li>
+   * <li>{@link CharSequence}</li>
+   * <li>{@link JsonRender} (Typically created via {@link Jackson#json(Object)})</li>
    * <li>{@link Promise} (renders the promised value, using this {@code render()} method)</li>
-   * <li>{@link org.reactivestreams.Publisher} (converts the publisher to a promise using {@link ratpack.stream.Streams#toPromise(Publisher)} and renders it)</li>
-   * <li>{@link ratpack.render.Renderable} (Delegates to the {@link ratpack.render.Renderable#render(Context)} method of the object)</li>
+   * <li>{@link Publisher} (converts the publisher to a promise using {@link Streams#toPromise(Publisher)} and renders it)</li>
+   * <li>{@link Renderable} (Delegates to the {@link Renderable#render(Context)} method of the object)</li>
    * </ul>
    * <p>
-   * See {@link ratpack.render.Renderer} for more on how to contribute to the rendering framework.
+   * See {@link Renderer} for more on how to contribute to the rendering framework.
    * <p>
-   * The object-to-render will be decorated by all registered {@link ratpack.render.RenderableDecorator} whose type is exactly equal to the type of the object-to-render, before being passed to the selected renderer.
+   * The object-to-render will be decorated by all registered {@link RenderableDecorator} whose type is exactly equal to the type of the object-to-render, before being passed to the selected renderer.
    *
    * @param object The object-to-render
    * @throws NoSuchRendererException if no suitable renderer can be found
    */
   @NonBlocking
   void render(Object object) throws NoSuchRendererException;
+
+  /**
+   * Returns the request header with the specified name.
+   * <p>
+   * If there is more than value for the specified header, the first value is returned.
+   * <p>
+   * Shorthand for {@code getRequest().getHeaders().get(String)}.
+   *
+   * @param name the case insensitive name of the header to get retrieve the first value of
+   * @return the header value or {@code null} if there is no such header
+   * @since 1.4
+   */
+  default Optional<String> header(CharSequence name) {
+    return Optional.ofNullable(getRequest().getHeaders().get(name));
+  }
+
+  /**
+   * Sets a response header.
+   * <p>
+   * Any previously set values for the header will be removed.
+   * <p>
+   * Shorthand for {@code getResponse().getHeaders().set(CharSequence, Iterable)}.
+   *
+   * @param name the name of the header to set
+   * @param values the header values
+   * @return {@code this}
+   * @since 1.4
+   * @see MutableHeaders#set(CharSequence, Iterable)
+   */
+  default Context header(CharSequence name, Object... values) {
+    getResponse().getHeaders().set(name, Arrays.asList(values));
+    return this;
+  }
 
   /**
    * Sends a temporary redirect response (i.e. 302) to the client using the specified redirect location.
@@ -411,18 +428,37 @@ public interface Context extends Registry {
    * Convenience method for handling last-modified based HTTP caching.
    * <p>
    * The given date is the "last modified" value of the response.
-   * If the client sent an "If-Modified-Since" header that is of equal or greater value than date, a 304
-   * will be returned to the client. Otherwise, the given runnable will be executed (it should send a response)
+   * If the client sent an "If-Modified-Since" header that is of equal or greater value than date,
+   * a 304 will be returned to the client.
+   * Otherwise, the given runnable will be executed (it should send a response)
    * and the "Last-Modified" header will be set by this method.
    *
-   * @param date The effective last modified date of the response
-   * @param runnable The response sending action if the response needs to be sent
+   * @param lastModified the effective last modified date of the response
+   * @param serve the response sending action if the response needs to be sent
    */
   @NonBlocking
-  void lastModified(Date date, Runnable runnable);
+  default void lastModified(Date lastModified, Runnable serve) {
+    lastModified(lastModified.toInstant(), serve);
+  }
 
   /**
-   * Parse the request into the given type, using no options (or more specifically an instance of {@link ratpack.parse.NullParseOpts} as the options).
+   * Convenience method for handling last-modified based HTTP caching.
+   * <p>
+   * The given date is the "last modified" value of the response.
+   * If the client sent an "If-Modified-Since" header that is of equal or greater value than date,
+   * a 304 will be returned to the client.
+   * Otherwise, the given runnable will be executed (it should send a response)
+   * and the "Last-Modified" header will be set by this method.
+   *
+   * @param lastModified the effective last modified date of the response
+   * @param serve the response sending action if the response needs to be sent
+   * @since 1.4
+   */
+  @NonBlocking
+  void lastModified(Instant lastModified, Runnable serve);
+
+  /**
+   * Parse the request into the given type, using no options (or more specifically an instance of {@link NullParseOpts} as the options).
    * <p>
    * The code sample is functionally identical to the sample given for the {@link #parse(Parse)} variant…
    * <pre class="java">{@code
@@ -441,12 +477,12 @@ public interface Context extends Registry {
    *
    * @param type the type to parse to
    * @param <T> the type to parse to
-   * @return The parsed object
+   * @return a promise for the parsed object
    */
   <T> Promise<T> parse(Class<T> type);
 
   /**
-   * Parse the request into the given type, using no options (or more specifically an instance of {@link ratpack.parse.NullParseOpts} as the options).
+   * Parse the request into the given type, using no options (or more specifically an instance of {@link NullParseOpts} as the options).
    * <p>
    * The code sample is functionally identical to the sample given for the {@link #parse(Parse)} variant&hellip;
    * <pre class="java">{@code
@@ -466,7 +502,7 @@ public interface Context extends Registry {
    *
    * @param type the type to parse to
    * @param <T> the type to parse to
-   * @return The parsed object
+   * @return a promise for the parsed object
    */
   <T> Promise<T> parse(TypeToken<T> type);
 
@@ -477,7 +513,7 @@ public interface Context extends Registry {
    * @param options The parse options
    * @param <T> The type to parse to
    * @param <O> The type of the parse opts
-   * @return The parsed object
+   * @return a promise for the parsed object
    */
   <T, O> Promise<T> parse(Class<T> type, O options);
 
@@ -488,7 +524,7 @@ public interface Context extends Registry {
    * @param options The parse options
    * @param <T> The type to parse to
    * @param <O> The type of the parse opts
-   * @return The parsed object
+   * @return a promise for the parsed object
    */
   <T, O> Promise<T> parse(TypeToken<T> type, O options);
 
@@ -501,24 +537,24 @@ public interface Context extends Registry {
    * <p>
    * Parser resolution happens as follows:
    * <ol>
-   * <li>All {@link ratpack.parse.Parser parsers} are retrieved from the context registry (i.e. {@link #getAll(Class) getAll(Parser.class)});</li>
+   * <li>All {@link Parser parsers} are retrieved from the context registry (i.e. {@link #getAll(Class) getAll(Parser.class)});</li>
    * <li>Found parsers are checked (in order returned by {@code getAll()}) for compatibility with the options type;</li>
-   * <li>If a parser is found that is compatible, its {@link ratpack.parse.Parser#parse(Context, ratpack.http.TypedData, Parse)} method is called;</li>
+   * <li>If a parser is found that is compatible, its {@link Parser#parse(Context, TypedData, Parse)} method is called;</li>
    * <li>If the parser returns {@code null} the next parser will be tried, if it returns a value it will be returned by this method;</li>
-   * <li>If no compatible parser could be found, a {@link ratpack.parse.NoSuchParserException} will be thrown.</li>
+   * <li>If no compatible parser could be found, a {@link NoSuchParserException} will be thrown.</li>
    * </ol>
    *
    * <h3>Parser Compatibility</h3>
    * <p>
    * A parser is compatible if all of the following hold true:
    * <ul>
-   * <li>The opts of the given {@code parse} object is an {@code instanceof} its {@link ratpack.parse.Parser#getOptsType()}, or the opts are {@code null}.</li>
-   * <li>The {@link ratpack.parse.Parser#parse(Context, ratpack.http.TypedData, Parse)} method returns a non null value.</li>
+   * <li>The opts of the given {@code parse} object is an {@code instanceof} its {@link Parser#getOptsType()}, or the opts are {@code null}.</li>
+   * <li>The {@link Parser#parse(Context, TypedData, Parse)} method returns a non null value.</li>
    * </ul>
    *
    * <h3>Core Parsers</h3>
    * <p>
-   * Ratpack core provides parsers for {@link ratpack.form.Form}, and JSON (see {@link ratpack.jackson.Jackson}).
+   * Ratpack core provides parsers for {@link ratpack.form.Form}, and JSON (see {@link Jackson}).
    *
    * <h3>Example Usage</h3>
    * <pre class="java">{@code
@@ -537,10 +573,10 @@ public interface Context extends Registry {
    * @param parse The specification of how to parse the request
    * @param <T> The type of object the request is parsed into
    * @param <O> the type of the parse options object
-   * @return The parsed object
+   * @return a promise for the parsed object
    * @see #parse(Class)
    * @see #parse(Class, Object)
-   * @see ratpack.parse.Parser
+   * @see Parser
    */
   <T, O> Promise<T> parse(Parse<T, O> parse);
 
@@ -556,7 +592,7 @@ public interface Context extends Registry {
    * @param parse The specification of how to parse the request
    * @param <T> The type of object the request is parsed into
    * @param <O> The type of the parse options object
-   * @return The parsed object
+   * @return a promise for the parsed object
    * @see #parse(Parse)
    * @throws Exception any thrown by the parser
    */
@@ -572,24 +608,40 @@ public interface Context extends Registry {
   DirectChannelAccess getDirectChannelAccess();
 
   /**
-   * The contextual path tokens of the current {@link ratpack.path.PathBinding}.
+   * The current request path binding.
    * <p>
-   * Shorthand for {@code get(PathBinding.class).getPathTokens()}.
+   * The request path binding represents successful “matches” of the request path to handlers that
+   * only respond to certain kinds of request paths.
+   * Such handlers can be added with {@link Chain#path(String, Handler)}, {@link Chain#prefix(String, Action)}, {@link Chain#post(String, Handler)} etc.
    *
-   * @return The contextual path tokens of the current {@link ratpack.path.PathBinding}.
-   * @throws NotInRegistryException if there is no {@link ratpack.path.PathBinding} in the current service
+   * @return the current request path binding
+   * @since 1.4
    */
-  PathTokens getPathTokens() throws NotInRegistryException;
+  PathBinding getPathBinding();
 
   /**
-   * The contextual path tokens of the current {@link ratpack.path.PathBinding}.
+   * The contextual path tokens of the current {@link PathBinding}.
    * <p>
-   * Shorthand for {@code get(PathBinding.class).getAllPathTokens()}.
+   * Shorthand for {@code getPathBinding().getPathTokens()}.
    *
-   * @return The contextual path tokens of the current {@link ratpack.path.PathBinding}.
-   * @throws NotInRegistryException if there is no {@link ratpack.path.PathBinding} in the current service
+   * @return The contextual path tokens of the current {@link PathBinding}.
+   * @throws NotInRegistryException if there is no {@link PathBinding} in the current service
    */
-  PathTokens getAllPathTokens() throws NotInRegistryException;
+  default PathTokens getPathTokens() throws NotInRegistryException {
+    return getPathBinding().getTokens();
+  }
+
+  /**
+   * The contextual path tokens of the current {@link PathBinding}.
+   * <p>
+   * Shorthand for {@code getPathBinding().getAllPathTokens()}.
+   *
+   * @return The contextual path tokens of the current {@link PathBinding}.
+   * @throws NotInRegistryException if there is no {@link PathBinding} in the current service
+   */
+  default PathTokens getAllPathTokens() throws NotInRegistryException {
+    return getPathBinding().getAllTokens();
+  }
 
   /**
    * Registers a callback to be notified when the request for this context is “closed” (i.e. responded to).
@@ -599,16 +651,16 @@ public interface Context extends Registry {
   void onClose(Action<? super RequestOutcome> onClose);
 
   /**
-   * Gets the file relative to the contextual {@link ratpack.file.FileSystemBinding}.
+   * Gets the file relative to the contextual {@link FileSystemBinding}.
    * <p>
    * Shorthand for {@code get(FileSystemBinding.class).file(path)}.
    * <p>
-   * The default configuration of Ratpack includes a {@link ratpack.file.FileSystemBinding} in all contexts.
+   * The default configuration of Ratpack includes a {@link FileSystemBinding} in all contexts.
    * A {@link NotInRegistryException} will only be thrown if a very custom service setup is being used.
    *
-   * @param path The path to pass to the {@link ratpack.file.FileSystemBinding#file(String)} method.
-   * @return The file relative to the contextual {@link ratpack.file.FileSystemBinding}
-   * @throws NotInRegistryException if there is no {@link ratpack.file.FileSystemBinding} in the current service
+   * @param path The path to pass to the {@link FileSystemBinding#file(String)} method.
+   * @return The file relative to the contextual {@link FileSystemBinding}
+   * @throws NotInRegistryException if there is no {@link FileSystemBinding} in the current service
    */
   Path file(String path) throws NotInRegistryException;
 

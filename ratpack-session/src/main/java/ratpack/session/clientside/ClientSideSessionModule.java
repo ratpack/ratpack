@@ -20,8 +20,12 @@ import com.google.inject.Scopes;
 import com.google.inject.Singleton;
 import io.netty.util.CharsetUtil;
 import ratpack.guice.ConfigurableModule;
+import ratpack.session.SessionId;
 import ratpack.session.SessionStore;
-import ratpack.session.clientside.internal.*;
+import ratpack.session.clientside.internal.ClientSideSessionStore;
+import ratpack.session.clientside.internal.DefaultCrypto;
+import ratpack.session.clientside.internal.DefaultSigner;
+import ratpack.session.clientside.internal.NoCrypto;
 
 import javax.crypto.spec.SecretKeySpec;
 
@@ -98,20 +102,20 @@ import javax.crypto.spec.SecretKeySpec;
  * <p>
  * The max cookie size for a client is 4k so it's important to keep
  * this in mind when using the {@link ClientSideSessionModule}
- *
  * <p>
  * By default your session will be signed but not encrypted. This is because the <strong>secretKey</strong>
  * is not set by default. That is, your users will not be able to tamper with the
  * cookie but they can still read the key value pairs that you have set. If you want to render
  * the entire cookie unreadable make sure you set a <strong>secretKey</strong>
- *
  * <p>
  * When setting your own <strong>secretKey</strong> and <strong>cipherAlgorithm</strong>
  * make sure that the key length is acceptable according to the algorithm you have chosen.
- *
  * <p>
  * When working in multi instances environment the
  * {@code secretToken} has to be the same for every ratpack instance configuration.
+ * <p>
+ * If your application does not require a unique {@link SessionId} for other reasons,
+ * consider replacing the default implementation with {@link SessionId#empty()} to avoid setting the session ID header.
  */
 public class ClientSideSessionModule extends ConfigurableModule<ClientSideSessionConfig> {
 

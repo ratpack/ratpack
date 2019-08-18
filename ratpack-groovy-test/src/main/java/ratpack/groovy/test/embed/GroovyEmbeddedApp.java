@@ -18,10 +18,12 @@ package ratpack.groovy.test.embed;
 
 import groovy.lang.Closure;
 import groovy.lang.DelegatesTo;
+import ratpack.func.Action;
 import ratpack.groovy.Groovy;
 import ratpack.groovy.handling.GroovyChain;
 import ratpack.groovy.handling.GroovyContext;
 import ratpack.groovy.internal.ClosureUtil;
+import ratpack.groovy.internal.RatpackClosureConfigurer;
 import ratpack.groovy.server.GroovyRatpackServerSpec;
 import ratpack.groovy.test.embed.internal.DefaultGroovyEmbeddedApp;
 import ratpack.server.ServerConfig;
@@ -56,8 +58,46 @@ public interface GroovyEmbeddedApp extends EmbeddedApp {
     return embeddedApp instanceof GroovyEmbeddedApp ? (GroovyEmbeddedApp) embeddedApp : new DefaultGroovyEmbeddedApp(embeddedApp);
   }
 
+  /**
+   * Groovy version of {@link #of(Action)} that accepts {@link Closure} to configure the application.
+   * <p>
+   * The closure delegates to {@link GroovyRatpackServerSpec}.
+   *
+   * @param definition the application definition
+   * @return a Ratpack application
+   * @throws Exception
+   */
   static GroovyEmbeddedApp of(@DelegatesTo(value = GroovyRatpackServerSpec.class, strategy = Closure.DELEGATE_FIRST) Closure<?> definition) throws Exception {
     return from(EmbeddedApp.of(s -> ClosureUtil.configureDelegateFirst(GroovyRatpackServerSpec.from(s), definition)));
+  }
+
+  /**
+   * Creates an {@link EmbeddedApp} from the provided closure delegating to {@link ratpack.groovy.Groovy.Ratpack}.
+   * <p>
+   * <pre class="tested">
+   * import static ratpack.groovy.test.embed.GroovyEmbeddedApp.ratpack
+   *
+   * ratpack {
+   *   bindings {
+   *     bindInstance String, "root"
+   *   }
+   *   handlers {
+   *     get {
+   *       render get(String)
+   *     }
+   *   }
+   * } test {
+   *   assert getText() == "root"
+   * }
+   * </pre>
+   *
+   * @param script the application definition
+   * @return a  Ratpack application.
+   * @throws Exception
+   * @since 1.4
+   */
+  static GroovyEmbeddedApp ratpack(@DelegatesTo(value = Groovy.Ratpack.class, strategy = Closure.DELEGATE_FIRST) Closure<?> script) throws Exception {
+    return from(EmbeddedApp.of(new RatpackClosureConfigurer(script, true)));
   }
 
   static GroovyEmbeddedApp fromServer(ServerConfigBuilder serverConfig, @DelegatesTo(value = GroovyRatpackServerSpec.class, strategy = Closure.DELEGATE_FIRST) Closure<?> definition) {

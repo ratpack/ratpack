@@ -24,6 +24,9 @@ import com.fasterxml.jackson.databind.JsonDeserializer;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.fasterxml.jackson.databind.node.POJONode;
+import io.netty.handler.ssl.ClientAuth;
+import io.netty.handler.ssl.JdkSslContext;
+import io.netty.handler.ssl.SslContext;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import ratpack.file.FileSystemBinding;
@@ -35,18 +38,21 @@ import javax.net.ssl.SSLContext;
 import java.io.IOException;
 import java.net.InetAddress;
 import java.net.URI;
+import java.time.Duration;
 import java.util.Optional;
 import java.util.function.Supplier;
 
 public class ServerConfigDataDeserializer extends JsonDeserializer<ServerConfigData> {
   private static final Logger LOGGER = LoggerFactory.getLogger(ServerConfigDataDeserializer.class);
 
+  private final InetAddress address;
   private final int port;
   private final boolean development;
   private final URI publicAddress;
   private final Supplier<FileSystemBinding> baseDirSupplier;
 
-  public ServerConfigDataDeserializer(int port, boolean development, URI publicAddress, Supplier<FileSystemBinding> baseDirSupplier) {
+  public ServerConfigDataDeserializer(InetAddress address, int port, boolean development, URI publicAddress, Supplier<FileSystemBinding> baseDirSupplier) {
+    this.address = address;
     this.port = port;
     this.development = development;
     this.publicAddress = publicAddress;
@@ -57,18 +63,24 @@ public class ServerConfigDataDeserializer extends JsonDeserializer<ServerConfigD
   public ServerConfigData deserialize(JsonParser jp, DeserializationContext ctxt) throws IOException {
     ObjectCodec codec = jp.getCodec();
     ObjectNode serverNode = jp.readValueAsTree();
-    ServerConfigData data = new ServerConfigData(baseDirSupplier.get(), port, development, publicAddress);
+    ServerConfigData data = new ServerConfigData(baseDirSupplier.get(), address, port, development, publicAddress);
     if (serverNode.hasNonNull("port")) {
       data.setPort(parsePort(serverNode.get("port")));
     }
     if (serverNode.hasNonNull("address")) {
       data.setAddress(toValue(codec, serverNode.get("address"), InetAddress.class));
     }
+    if (serverNode.hasNonNull("idleTimeout")) {
+      data.setIdleTimeout(toValue(codec, serverNode.get("idleTimeout"), Duration.class));
+    }
     if (serverNode.hasNonNull("development")) {
       data.setDevelopment(serverNode.get("development").asBoolean(false));
     }
     if (serverNode.hasNonNull("threads")) {
       data.setThreads(serverNode.get("threads").asInt(ServerConfig.DEFAULT_THREADS));
+    }
+    if (serverNode.hasNonNull("registerShutdownHook")) {
+      data.setRegisterShutdownHook(serverNode.get("registerShutdownHook").asBoolean(true));
     }
     if (serverNode.hasNonNull("publicAddress")) {
       data.setPublicAddress(toValue(codec, serverNode.get("publicAddress"), URI.class));
@@ -79,11 +91,19 @@ public class ServerConfigDataDeserializer extends JsonDeserializer<ServerConfigD
     if (serverNode.hasNonNull("maxChunkSize")) {
       data.setMaxChunkSize(serverNode.get("maxChunkSize").asInt(ServerConfig.DEFAULT_MAX_CHUNK_SIZE));
     }
-    if (serverNode.hasNonNull("ssl")) {
-      data.setSslContext(toValue(codec, serverNode.get("ssl"), SSLContext.class));
+    if (serverNode.hasNonNull("maxInitialLineLength")) {
+      data.setMaxInitialLineLength(serverNode.get("maxInitialLineLength").asInt(ServerConfig.DEFAULT_MAX_INITIAL_LINE_LENGTH));
+    }
+    if (serverNode.hasNonNull("maxHeaderSize")) {
+      data.setMaxHeaderSize(serverNode.get("maxHeaderSize").asInt(ServerConfig.DEFAULT_MAX_HEADER_SIZE));
     }
     if (serverNode.hasNonNull("requireClientSslAuth")) {
       data.setRequireClientSslAuth(serverNode.get("requireClientSslAuth").asBoolean(false));
+    }
+    if (serverNode.hasNonNull("ssl")) {
+      data.setSslContext(toValue(codec, serverNode.get("ssl"), SslContext.class));
+    } else if (serverNode.hasNonNull("jdkSsl")) {
+      data.setSslContext(toJdkSslContext(data, toValue(codec, serverNode.get("jdkSsl"), SSLContext.class)));
     }
     if (serverNode.hasNonNull("baseDir")) {
       throw new IllegalStateException("baseDir value cannot be set via config, it must be set directly via ServerConfigBuilder.baseDir()");
@@ -100,8 +120,16 @@ public class ServerConfigDataDeserializer extends JsonDeserializer<ServerConfigD
     if (serverNode.hasNonNull("writeSpinCount")) {
       parseOptionalIntValue("writeSpinCount", serverNode.get("writeSpinCount")).ifPresent(data::setWriteSpinCount);
     }
+    if (serverNode.hasNonNull("connectQueueSize")) {
+      parseOptionalIntValue("connectQueueSize", serverNode.get("connectQueueSize")).ifPresent(data::setConnectQueueSize);
+    }
 
     return data;
+  }
+
+  @SuppressWarnings("deprecation")
+  private JdkSslContext toJdkSslContext(ServerConfigData data, SSLContext jdkSslContext) {
+    return new JdkSslContext(jdkSslContext, false, data.isRequireClientSslAuth() ? ClientAuth.REQUIRE : ClientAuth.NONE);
   }
 
   private int parsePort(JsonNode node) {

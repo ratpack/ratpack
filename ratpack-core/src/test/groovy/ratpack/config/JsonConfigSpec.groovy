@@ -120,4 +120,16 @@ class JsonConfigSpec extends BaseConfigSpec {
     then:
     thrown IllegalStateException
   }
+
+  def "handles empty json file"() {
+    def baseDir = tempFolder.newFolder("baseDir").toPath()
+    def configFile = tempFolder.newFile("baseDir/file.json").toPath()
+    configFile.text = ''
+
+    when:
+    ServerConfig.of { it.baseDir(baseDir).json(configFile) }
+
+    then:
+    noExceptionThrown()
+  }
 }

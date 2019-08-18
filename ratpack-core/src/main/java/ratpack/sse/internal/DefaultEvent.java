@@ -26,6 +26,7 @@ public class DefaultEvent<T> implements Event<T> {
   private String id;
   private String event;
   private String data;
+  private String comment;
 
   public DefaultEvent(T item) {
     this.item = item;
@@ -48,6 +49,9 @@ public class DefaultEvent<T> implements Event<T> {
 
   @Override
   public Event<T> id(String id) {
+    if (id.contains("\n")) {
+      throw new IllegalArgumentException("id must not contain \\n - '" + id + "'");
+    }
     this.id = id;
     return this;
   }
@@ -60,6 +64,9 @@ public class DefaultEvent<T> implements Event<T> {
 
   @Override
   public Event<T> event(String event) {
+    if (event.contains("\n")) {
+      throw new IllegalArgumentException("event must not contain \\n - '" + event + "'");
+    }
     this.event = event;
     return this;
   }
@@ -77,6 +84,12 @@ public class DefaultEvent<T> implements Event<T> {
   }
 
   @Override
+  public Event<T> comment(String comment) {
+    this.comment = comment;
+    return this;
+  }
+
+  @Override
   public String getId() {
     return id;
   }
@@ -89,5 +102,15 @@ public class DefaultEvent<T> implements Event<T> {
   @Override
   public String getData() {
     return data;
+  }
+
+  @Override
+  public String getComment() {
+    return comment;
+  }
+
+  @Override
+  public String toString() {
+    return "Event{id='" + id + '\'' + ", event='" + event + '\'' + ", data='" + data + '\'' + '}';
   }
 }

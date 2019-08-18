@@ -17,6 +17,7 @@
 apply plugin: "maven"
 apply from: "${rootDir}/gradle/pom.gradle"
 apply plugin: "signing"
+apply plugin: "artifactory"
 
 afterEvaluate {
   assert description: "Project $project.path is published, must have a description"
@@ -28,12 +29,18 @@ tasks.withType(Upload).matching { it.name != "install" }.all {
   }
 }
 
-tasks.withType(Upload) {
-  repositories.matching { it.name == "mavenInstaller" }.all {
-    beforeDeployment { deployment ->
-      if (!isSnapshot) {
+configurations {
+  pomSignature
+}
+
+if (!isSnapshot) {
+  tasks.withType(Upload) {
+    repositories.matching { it.name == "mavenInstaller" }.all {
+      beforeDeployment { deployment ->
         artifacts {
-          signatures signing.signPom(deployment)
+          pomSignature signing.signPom(deployment), {
+            extension = "pom.asc"
+          }
         }
       }
     }
@@ -42,12 +49,23 @@ tasks.withType(Upload) {
 
 signing {
   if (!isSnapshot) {
-    sign configurations.archives
+    sign configurations.published
   }
 }
 
-configurations.signatures.artifacts.all {
-  extension = toSignArtifact.extension + "." + extension
+project.afterEvaluate {
+  project.tasks.matching { t ->
+    t.name == "signPublished"
+  }.each {
+    it.signatures.each {
+      if (it.type == "jar.asc") {
+        it.extension = "jar.asc"
+      }
+      if (it.type == "zip.asc") {
+        it.extension = "zip.asc"
+      }
+    }
+  }
 }
 
 configurations {
@@ -68,7 +86,6 @@ configurations {
   }
 }
 
-apply plugin: "artifactory"
 artifactoryPublish { task ->
   rootProject.artifactory {
     publish {
@@ -80,6 +97,9 @@ artifactoryPublish { task ->
             password = ratpackBintrayApiKey
           }
         }
+      }
+      defaults {
+        publishConfigs('published', 'signatures', 'pomSignature')
       }
     }
   }
