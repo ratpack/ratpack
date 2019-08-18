@@ -91,7 +91,7 @@ tasks.withType(Test) {
 
   jvmArgs "-Xss320k", "-XX:MaxDirectMemorySize=64m"
   minHeapSize "256m"
-  maxHeapSize "512m"
+  maxHeapSize "768m"
 
   testLogging {
     exceptionFormat "full"
