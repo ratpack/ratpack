@@ -8,8 +8,8 @@ defaults: &defaults
     - image: circleci/openjdk:8-jdk
   environment:
     TERM: dumb
-    _JAVA_OPTIONS: -XX:+UnlockExperimentalVMOptions -XX:+UseCGroupMemoryLimitForHeap
-    GRADLE_OPTS: -Dorg.gradle.parallel.intra=true -Dorg.gradle.jvmargs="-Xmx1g"
+    _JAVA_OPTIONS: -XX:+UnlockExperimentalVMOptions -XX:+UseCGroupMemoryLimitForHeap -Xmx3g
+#    GRADLE_OPTS: -Dorg.gradle.parallel.intra=true -Dorg.gradle.jvmargs="-Xmx2g"
     JRUBY_OPTS: -Xmx512m
 
 version: 2
@@ -29,13 +29,20 @@ jobs:
             - v1-gradle
 
       - run:
+          name: Monitor memory
+          command: |
+            mkdir -p ~/mem/
+            FILE=~/mem/memory-usage-actual.txt; while true; do ps eo pid,%cpu,%mem,args,uname --sort=-%mem >> $FILE; echo "----------" >> $FILE; sleep 1; done;
+          background: true
+
+      - run:
           name: Download Gradle Dependencies
-          command: ./gradlew downloadDependencies
+          command: ./gradlew downloadDependencies --max-workers=1 --no-daemon
 
       # run sanity check
       - run:
           name: Run Sanity Check
-          command: ./gradlew sanityCheck --max-workers=2
+          command: ./gradlew sanityCheck --max-workers=1 --no-daemon
 
       - save_cache:
           paths:
@@ -45,7 +52,7 @@ jobs:
 
       - run:
           name: Test & Build
-          command: ./gradlew :ratpack-gradle:check :ratpack-site:check :ratpack-core:check build jacocoReport --continue --max-workers=2 -PpublishToSlack
+          command: ./gradlew :ratpack-gradle:check :ratpack-site:check :ratpack-core:check build jacocoReport --continue -PpublishToSlack --max-workers=1 --no-daemon
 
       - run:
           name: Save test results
@@ -64,6 +71,11 @@ jobs:
 
       - store_artifacts:
           path: ~/junit
+          prefix: tests
+
+      - store_artifacts:
+          path: ~/mem
+          prefix: memory
 
       - persist_to_workspace:
           root: ~/ratpack
