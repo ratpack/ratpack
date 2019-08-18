@@ -25,6 +25,8 @@ import ratpack.session.Session
 import ratpack.session.SessionId
 import ratpack.session.SessionModule
 import ratpack.session.SessionSpec
+import ratpack.session.clientside.internal.DefaultCrypto
+import ratpack.util.internal.InternalRatpackError
 
 import java.time.Duration
 
@@ -36,18 +38,21 @@ class ClientSideSessionSpec extends SessionSpec {
 
   final static SUPPORTED_ALGORITHMS = [
     "Blowfish",
-    "AES/CBC/NoPadding",
     "AES/CBC/PKCS5Padding",
-    "AES/ECB/NoPadding",
     "AES/ECB/PKCS5Padding",
-    "DES/CBC/NoPadding",
     "DES/CBC/PKCS5Padding",
-    "DES/ECB/NoPadding",
     "DES/ECB/PKCS5Padding",
-    "DESede/CBC/NoPadding",
     "DESede/CBC/PKCS5Padding",
-    "DESede/ECB/NoPadding",
     "DESede/ECB/PKCS5Padding"
+  ]
+
+  final static UNSUPPORTED_ALGORITHMS = [
+    "AES/CBC/NoPadding",
+    "AES/ECB/NoPadding",
+    "DES/CBC/NoPadding",
+    "DES/ECB/NoPadding",
+    "DESede/CBC/NoPadding",
+    "DESede/ECB/NoPadding"
   ]
 
   static int keyLength(String algorithm) {
@@ -343,6 +348,20 @@ class ClientSideSessionSpec extends SessionSpec {
 
     where:
     algorithm << SUPPORTED_ALGORITHMS
+  }
+
+  def "can not use algorithm #algorithm"() {
+    setup:
+    modules.clear()
+
+    when:
+    def crypto = new DefaultCrypto("key".bytes, algorithm)
+
+    then:
+    thrown InternalRatpackError
+
+    where:
+    algorithm << UNSUPPORTED_ALGORITHMS
   }
 
   def "changing the signing token invalidates the session"() {

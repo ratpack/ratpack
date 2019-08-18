@@ -20,6 +20,7 @@ import io.netty.buffer.ByteBuf;
 import io.netty.buffer.ByteBufAllocator;
 import io.netty.buffer.Unpooled;
 import ratpack.session.clientside.Crypto;
+import ratpack.util.internal.InternalRatpackError;
 
 import javax.crypto.*;
 import javax.crypto.spec.IvParameterSpec;
@@ -42,6 +43,9 @@ public class DefaultCrypto implements Crypto {
     this.algorithm = algorithm;
     this.isInitializationVectorRequired = parts.length > 1 && !parts[1].equalsIgnoreCase("ECB");
     this.hasPadding = parts.length <= 2 || !parts[2].equals("NoPadding");
+    if (!hasPadding) {
+      throw new InternalRatpackError("Session Crypto algorithm requires padding");
+    }
   }
 
   @Override
