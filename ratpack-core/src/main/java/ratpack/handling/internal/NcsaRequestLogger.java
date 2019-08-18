@@ -16,6 +16,7 @@
 
 package ratpack.handling.internal;
 
+import com.google.common.net.HostAndPort;
 import org.slf4j.Logger;
 import org.slf4j.Marker;
 import org.slf4j.MarkerFactory;
@@ -23,8 +24,10 @@ import ratpack.handling.RequestId;
 import ratpack.handling.RequestLogger;
 import ratpack.handling.RequestOutcome;
 import ratpack.handling.UserId;
+import ratpack.http.HttpMethod;
 import ratpack.http.Request;
 import ratpack.http.SentResponse;
+import ratpack.http.Status;
 import ratpack.http.internal.HttpHeaderConstants;
 
 import java.time.Instant;
@@ -32,8 +35,13 @@ import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.util.Locale;
 import java.util.Objects;
+import java.util.Optional;
 
 public class NcsaRequestLogger implements RequestLogger {
+
+  private static final DateTimeFormatter FORMATTER = DateTimeFormatter
+    .ofPattern("dd/MMM/yyyy:HH:mm:ss Z")
+    .withZone(ZoneId.systemDefault());
 
   public static final String ACCESS_MARKER_NAME ="access";
   public static final String STATUS_1XX_MARKER_NAME ="status-1xx";
