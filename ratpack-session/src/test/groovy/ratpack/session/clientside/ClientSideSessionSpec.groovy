@@ -359,6 +359,7 @@ class ClientSideSessionSpec extends SessionSpec {
 
     then:
     thrown InternalRatpackError
+    crypto == null
 
     where:
     algorithm << UNSUPPORTED_ALGORITHMS
