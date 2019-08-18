@@ -40,7 +40,9 @@ import ratpack.http.internal.DefaultStatus
 import ratpack.http.internal.HttpHeaderConstants
 import ratpack.http.internal.NettyHeadersBackedMutableHeaders
 import ratpack.registry.MutableRegistry
-import ratpack.registry.internal.SimpleMutableRegistry
+import ratpack.registry.internal.DefaultMutableRegistry
+import ratpack.server.internal.DefaultServerConfigBuilder
+import ratpack.server.internal.ServerEnvironment
 import spock.lang.Shared
 import spock.lang.Specification
 import spock.lang.Subject
@@ -126,6 +128,7 @@ class NcsaRequestLoggerSpec extends Specification {
    * It just validates that the testing logger configuration behaves as expected.
    * Which it doesn't. But anyway...
    */
+
   def 'logger configuration sanity checks'() {
     setup:
     def infoLogger = retrieveLogger(INFO_LOGGER_NAME)
@@ -285,19 +288,19 @@ class NcsaRequestLoggerSpec extends Specification {
 
 
     then:
-    if(inInfo) {
+    if (inInfo) {
       assert requestListAppender.getEvents().size() == 1
     } else {
       assert requestListAppender.getEvents().size() == 0
     }
 
-    if(inServerError) {
+    if (inServerError) {
       assert serverErrorRequestListAppender.getEvents().size() == 1
     } else {
       assert serverErrorRequestListAppender.getEvents().size() == 0
     }
 
-    if(inError) {
+    if (inError) {
       assert errorRequestListAppender.getEvents().size() == 1
     } else {
       assert errorRequestListAppender.getEvents().size() == 0
@@ -489,17 +492,17 @@ class NcsaRequestLoggerSpec extends Specification {
   }
 
   private static Level resolveExpectedLevel(int statusCode, boolean warnLogging) {
-    if(!warnLogging) {
+    if (!warnLogging) {
       return Level.INFO
     }
-    if(statusCode>=100 && statusCode<400) {
+    if (statusCode >= 100 && statusCode < 400) {
       return Level.INFO
     }
     return Level.WARN
   }
 
   private static createRequestOutcome(int statusCode) {
-    return createRequestOutcome('127.0.0.1', 'sfalken', TEST_TIMESTAMP, 'GET', 'wopr','HTTP/1.1', statusCode, 1337, 'request-id')
+    return createRequestOutcome('127.0.0.1', 'sfalken', TEST_TIMESTAMP, 'GET', 'wopr', 'HTTP/1.1', statusCode, 1337, 'request-id')
   }
 
   private static RequestOutcome createRequestOutcome(String host, String user, long timestamp, String httpMethod, String path, String httpVersion, int statusCode, long responseSize, String requestId) {
@@ -515,11 +518,13 @@ class NcsaRequestLoggerSpec extends Specification {
       '/' + path,                       // rawUri
       remoteSocket,                     // remoteSocket
       null,                             // localSocket
-      null,                             // serverConfig
-      null                              // bodyReader
+      new DefaultServerConfigBuilder(new ServerEnvironment([:], new Properties()), Impositions.none()).env().build(),  // serverConfig
+      null,                              // bodyReader
+      null,                   // idleTimeout
+      null,                // clientCertificate
     )
 
-    MutableRegistry registry = new SimpleMutableRegistry()
+    MutableRegistry registry = new DefaultMutableRegistry()
     if (user) {
       registry.add(UserId, new DefaultUserId(user))
     }
