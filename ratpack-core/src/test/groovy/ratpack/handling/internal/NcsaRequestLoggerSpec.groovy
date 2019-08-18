@@ -30,6 +30,7 @@ import org.slf4j.MarkerFactory
 import ratpack.handling.RequestId
 import ratpack.handling.RequestOutcome
 import ratpack.handling.UserId
+import ratpack.impose.Impositions
 import ratpack.http.MutableHeaders
 import ratpack.http.Request
 import ratpack.http.SentResponse
