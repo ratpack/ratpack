@@ -16,7 +16,7 @@
 
 package ratpack.gson;
 
-import ratpack.api.Nullable;
+import org.jetbrains.annotations.Nullable;;
 
 /**
  * A {@link ratpack.handling.Context#render renderable object wrapper} for rendering as JSON.

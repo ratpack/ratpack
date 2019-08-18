@@ -52,6 +52,7 @@ dependencies {
   compile commonDependencies.snakeyaml
   compile "com.fasterxml.jackson.datatype:jackson-datatype-jdk8:${commonVersions.jackson}"
   compile "com.fasterxml.jackson.datatype:jackson-datatype-jsr310:${commonVersions.jackson}"
+  compile commonDependencies.jetbrainsAnnotations
 
   testCompile 'org.apache.commons:commons-lang3:3.3.2'
 

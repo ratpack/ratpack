@@ -22,7 +22,7 @@ import com.google.inject.Module
 import com.google.inject.Provider
 import com.google.inject.Provides
 import com.google.inject.multibindings.OptionalBinder
-import ratpack.api.Nullable
+import org.jetbrains.annotations.Nullable;
 import ratpack.func.Action
 import ratpack.groovy.internal.ClosureUtil
 import ratpack.registry.Registry

@@ -19,7 +19,7 @@ package ratpack.groovy.handling.internal;
 import com.google.common.reflect.TypeToken;
 import groovy.lang.Closure;
 import ratpack.api.NonBlocking;
-import ratpack.api.Nullable;
+import org.jetbrains.annotations.Nullable;;
 import ratpack.exec.Execution;
 import ratpack.exec.Promise;
 import ratpack.func.Action;

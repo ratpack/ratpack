@@ -32,7 +32,7 @@ import io.netty.util.ReferenceCountUtil;
 import io.netty.util.ResourceLeakDetector;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import ratpack.api.Nullable;
+import org.jetbrains.annotations.Nullable;;
 import ratpack.exec.Blocking;
 import ratpack.exec.Promise;
 import ratpack.exec.Throttle;

@@ -19,7 +19,7 @@ package ratpack.health;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSortedMap;
 import com.google.common.collect.Iterables;
-import ratpack.api.Nullable;
+import org.jetbrains.annotations.Nullable;;
 import ratpack.exec.Promise;
 import ratpack.exec.Throttle;
 import ratpack.exec.util.ParallelBatch;

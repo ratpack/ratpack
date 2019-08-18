@@ -26,6 +26,7 @@ import java.lang.annotation.*;
  * <li>On a <b>field</b>, denotes that the field value may be null.
  * </ul>
  */
+@Deprecated
 @Documented
 @Retention(RetentionPolicy.RUNTIME)
 @Target({ElementType.PARAMETER, ElementType.METHOD, ElementType.FIELD})

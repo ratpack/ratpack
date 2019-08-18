@@ -28,7 +28,8 @@ dependencies {
   compile "io.netty:netty-transport-native-epoll:${commonVersions.netty}:linux-x86_64"
   compile "io.netty:netty-tcnative:${commonVersions.nettyTCNative}:linux-x86_64"
   compile "org.reactivestreams:reactive-streams:${commonVersions.reactiveStreams}"
-
+  compile commonDependencies.jetbrainsAnnotations
+  
   testCompile("org.reactivestreams:reactive-streams-tck:${commonVersions.reactiveStreams}") {
     exclude group: "junit", module: "junit"
     exclude group: "org.yaml", module: "snakeyaml"

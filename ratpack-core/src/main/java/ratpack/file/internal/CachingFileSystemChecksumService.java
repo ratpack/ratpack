@@ -16,7 +16,7 @@
 
 package ratpack.file.internal;
 
-import ratpack.api.Nullable;
+import org.jetbrains.annotations.Nullable;;
 
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;

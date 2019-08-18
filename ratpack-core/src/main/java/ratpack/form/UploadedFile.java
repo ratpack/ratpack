@@ -16,7 +16,7 @@
 
 package ratpack.form;
 
-import ratpack.api.Nullable;
+import org.jetbrains.annotations.Nullable;;
 import ratpack.http.TypedData;
 
 /**

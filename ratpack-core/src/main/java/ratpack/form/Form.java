@@ -16,7 +16,7 @@
 
 package ratpack.form;
 
-import ratpack.api.Nullable;
+import org.jetbrains.annotations.Nullable;;
 import ratpack.form.internal.DefaultFormParseOpts;
 import ratpack.parse.Parse;
 import ratpack.util.MultiValueMap;

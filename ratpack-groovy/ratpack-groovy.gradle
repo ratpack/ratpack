@@ -26,6 +26,8 @@ ext.apiLinks = [
 dependencies {
   compile project(":ratpack-core")
   compile project(":ratpack-guice")
+  compile commonDependencies.jetbrainsAnnotations
+
   testCompile project(":ratpack-test")
 }
 

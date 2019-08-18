@@ -16,7 +16,7 @@
 
 package ratpack.stream;
 
-import ratpack.api.Nullable;
+import org.jetbrains.annotations.Nullable;;
 
 /**
  * Represents an event emitted by a publisher.

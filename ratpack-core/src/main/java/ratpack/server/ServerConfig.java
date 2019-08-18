@@ -19,7 +19,7 @@ package ratpack.server;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.reflect.TypeToken;
 import io.netty.handler.ssl.SslContext;
-import ratpack.api.Nullable;
+import org.jetbrains.annotations.Nullable;;
 import ratpack.config.ConfigData;
 import ratpack.config.ConfigObject;
 import ratpack.file.FileSystemBinding;

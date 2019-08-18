@@ -21,4 +21,5 @@ apply from: "$rootDir/gradle/javaModule.gradle"
 dependencies {
   compile project(":ratpack-guice")
   compile 'com.google.code.gson:gson:2.8.5'
+  compile commonDependencies.jetbrainsAnnotations
 }

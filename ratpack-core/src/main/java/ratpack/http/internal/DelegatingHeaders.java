@@ -17,7 +17,7 @@
 package ratpack.http.internal;
 
 import io.netty.handler.codec.http.HttpHeaders;
-import ratpack.api.Nullable;
+import org.jetbrains.annotations.Nullable;;
 import ratpack.http.Headers;
 import ratpack.util.MultiValueMap;
 

@@ -25,6 +25,7 @@ dependencies {
   compile("com.squareup.retrofit2:converter-jackson:${commonVersions.retrofit}") {
     exclude group: "com.fasterxml.jackson.core", module: "jackson-databind"
   }
+  compile commonDependencies.jetbrainsAnnotations
 }
 
 ext.apiLinks = [

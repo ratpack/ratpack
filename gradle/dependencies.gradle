@@ -44,7 +44,8 @@ ext {
     snakeyaml        : "1.23",
     prometheusClient : "0.2.0",
     shadow           : "5.1.0",
-    commonsLang3     : "3.3.2"
+    commonsLang3     : "3.3.2",
+    jetbrainsAnnotations: "17.0.0"
   ]
 
   if (System.getenv('CI_GROOVY_VERSION')) {
@@ -102,6 +103,7 @@ ext {
         force = true
       })
     ],
-    commonsLang3: "org.apache.commons:commons-lang3:${commonVersions.commonsLang3}"
+    commonsLang3: "org.apache.commons:commons-lang3:${commonVersions.commonsLang3}",
+    jetbrainsAnnotations: "org.jetbrains:annotations:${commonVersions.jetbrainsAnnotations}"
   ]
 }
