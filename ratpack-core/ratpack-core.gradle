@@ -56,7 +56,7 @@ dependencies {
   testCompile 'org.apache.commons:commons-lang3:3.3.2'
 
   testCompile 'com.opencsv:opencsv:3.3'
-  testCompile "org.apache.logging.log4j:log4j-core:${commonVersions.log4j}:tests
+  testCompile "org.apache.logging.log4j:log4j-core:${commonVersions.log4j}:tests"
   testCompile('com.github.tomakehurst:wiremock:1.56') {
     exclude group: "org.slf4j", module: "slf4j-api"
     exclude group: "com.fasterxml.jackson.core", module: "jackson-annotations"
