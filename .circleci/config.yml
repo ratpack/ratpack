@@ -8,8 +8,8 @@ defaults: &defaults
     - image: circleci/openjdk:8-jdk
   environment:
     TERM: dumb
-    _JAVA_OPTIONS: -XX:+UnlockExperimentalVMOptions -XX:+UseCGroupMemoryLimitForHeap -Xmx2g
-    GRADLE_OPTS: -Dorg.gradle.parallel.intra=true -Dorg.gradle.jvmargs="-Xmx2g"
+    _JAVA_OPTIONS: -XX:+UnlockExperimentalVMOptions -XX:+UseCGroupMemoryLimitForHeap
+    GRADLE_OPTS: -Dorg.gradle.parallel.intra=false -Dorg.gradle.jvmargs="-Xmx1g"
     JRUBY_OPTS: -Xmx512m
 
 version: 2
