@@ -1,4 +1,4 @@
-description = "Integration with the HikariCP JDBC connection pool for Ratpack - http://brettwooldridge.github.io/HikariCP/"
+description = "Integration with the HikariCP JDBC connection pool for Ratpack - https://github.com/brettwooldridge/HikariCP"
 
 apply from: "$rootDir/gradle/javaModule.gradle"
 
