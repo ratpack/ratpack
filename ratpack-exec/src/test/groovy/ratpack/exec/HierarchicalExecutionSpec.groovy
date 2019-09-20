@@ -24,16 +24,16 @@ class HierarchicalExecutionSpec extends BaseExecutionSpec {
 
   def "current execution is parent during initializer of child"() {
     given:
-    counts(2)
+    counts(4)
 
     when:
     exec { e ->
       e.add("foo")
       Execution.fork()
-        .register { it.add(Execution.current().get(String) + "-bar") }
-        .onStart { events << "child-on-start"; events << Execution.current().get(String); sleep 500 }
+        .register { it.add(Execution.current().get(String) + "-bar"); latch.countDown() }
+        .onStart { events << "child-on-start"; events << Execution.current().get(String); latch.countDown() }
         .onComplete { events << "child-complete"; latch.countDown() }
-        .start { events << "child-start"; events << Execution.current().get(String) }
+        .start { events << "child-start"; events << Execution.current().get(String); latch.countDown() }
     }
 
     then:
