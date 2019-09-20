@@ -98,7 +98,7 @@ import javax.sql.DataSource;
  * }
  * }</pre>
  *
- * @see <a href="http://brettwooldridge.github.io/HikariCP/" target="_blank">HikariCP</a>
+ * @see <a href="https://github.com/brettwooldridge/HikariCP" target="_blank">HikariCP</a>
  * @see HikariConfig
  * @see ConfigurableModule
  */
