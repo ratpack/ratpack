@@ -25,15 +25,25 @@ class HierarchicalExecutionSpec extends BaseExecutionSpec {
   def "current execution is parent during initializer of child"() {
     given:
     counts(2)
+    def promised = new Promised<Void>()
 
     when:
     exec { e ->
+      e.onComplete {
+        promised.success(null)
+      }
+
       e.add("foo")
       Execution.fork()
         .register { it.add(Execution.current().get(String) + "-bar") }
         .onStart { events << "child-on-start"; events << Execution.current().get(String); sleep 500 }
         .onComplete { events << "child-complete"; latch.countDown() }
-        .start { events << "child-start"; events << Execution.current().get(String) }
+        .start {
+          promised.promise().then {
+            events << "child-start";
+            events << Execution.current().get(String)
+          }
+        }
     }
 
     then:
@@ -123,10 +133,10 @@ class HierarchicalExecutionSpec extends BaseExecutionSpec {
     exec {
       it.fork()
         .register {
-        it.add(ExecInitializer, {
-          events << (it.parent == Execution.current().ref).toString()
-        } as ExecInitializer)
-      }.start {
+          it.add(ExecInitializer, {
+            events << (it.parent == Execution.current().ref).toString()
+          } as ExecInitializer)
+        }.start {
         latch.countDown()
       }
     }
