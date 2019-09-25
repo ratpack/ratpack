@@ -40,7 +40,7 @@ class HierarchicalExecutionSpec extends BaseExecutionSpec {
         .onComplete { events << "child-complete"; latch.countDown() }
         .start {
           promised.promise().then {
-            events << "child-start";
+            events << "child-start"
             events << Execution.current().get(String)
           }
         }
