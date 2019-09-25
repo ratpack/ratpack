@@ -22,6 +22,8 @@ import org.gradle.api.logging.Logging;
 import java.io.Closeable;
 import java.io.IOException;
 import java.io.Serializable;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
 import java.net.URLClassLoader;
 
 public class DefaultRatpackAdapter implements RatpackAdapter, Serializable {
@@ -45,8 +47,23 @@ public class DefaultRatpackAdapter implements RatpackAdapter, Serializable {
       throw new IllegalStateException("already started");
     }
     started = true;
-    baseLoader = new URLClassLoader(spec.getClasspath(), null);
+
+    baseLoader = new URLClassLoader(spec.getClasspath(), maybeGetPlatformClassLoader());
     reload();
+  }
+
+  private static ClassLoader maybeGetPlatformClassLoader() {
+    try {
+      Method method = ClassLoader.class.getDeclaredMethod("getPlatformClassLoader");
+      Object result = method.invoke(null);
+      return (ClassLoader) result;
+    } catch (IllegalAccessException e) {
+      throw new RuntimeException(e);
+    } catch (InvocationTargetException e) {
+      throw new RuntimeException(e);
+    } catch (NoSuchMethodException e) {
+      return null;
+    }
   }
 
   @Override
