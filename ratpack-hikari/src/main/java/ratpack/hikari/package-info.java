@@ -15,6 +15,6 @@
  */
 
 /**
- * Provides integration with <a href="http://brettwooldridge.github.io/HikariCP/">HikariCP</a> library.
+ * Provides integration with <a href="https://github.com/brettwooldridge/HikariCP">HikariCP</a> library.
  */
 package ratpack.hikari;
