@@ -76,7 +76,7 @@ public class RatpackServerProxy {
     try {
       captureMethod = capturer.getMethod("capture", blockType);
     } catch (NoSuchMethodException e) {
-      throw new RuntimeException("Could not find capture() on ServerCapturer");
+      throw new RuntimeException("Could not find capture() on ServerCapturer", e);
     }
 
     final Method finalMain = main;
@@ -96,7 +96,7 @@ public class RatpackServerProxy {
     try {
       server = captureMethod.invoke(null, block);
     } catch (Exception e) {
-      throw new RuntimeException("Failed to invoke get() on ServerCapturer");
+      throw new RuntimeException("Failed to invoke get() on ServerCapturer", e);
     }
 
     if (server == null) {
