@@ -156,7 +156,7 @@ public class NettyHandlerAdapter extends ChannelInboundHandlerAdapter {
       channel.attr(CLIENT_CERT_KEY).get()
     );
 
-    HttpHeaders nettyHeaders = new DefaultHttpHeaders(false);
+    HttpHeaders nettyHeaders = new DefaultHttpHeaders();
     MutableHeaders responseHeaders = new NettyHeadersBackedMutableHeaders(nettyHeaders);
     AtomicBoolean transmitted = new AtomicBoolean(false);
 
