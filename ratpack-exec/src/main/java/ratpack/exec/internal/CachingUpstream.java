@@ -16,7 +16,6 @@
 
 package ratpack.exec.internal;
 
-import com.google.common.annotations.VisibleForTesting;
 import io.netty.util.internal.PlatformDependent;
 import ratpack.exec.*;
 import ratpack.func.Function;
@@ -33,10 +32,9 @@ public class CachingUpstream<T> implements Upstream<T> {
   private Upstream<? extends T> upstream;
 
   private final Clock clock;
-  private final AtomicReference<Cached<? extends T>> ref = new AtomicReference<>();
+  private final AtomicReference<Loading> loadingRef = new AtomicReference<>(new Loading());
   private final Function<? super ExecResult<T>, Duration> ttlFunc;
 
-  private final AtomicBoolean pending = new AtomicBoolean();
   private final AtomicBoolean draining = new AtomicBoolean();
   private final Queue<Downstream<? super T>> waiting = PlatformDependent.newMpscQueue();
 
@@ -44,8 +42,7 @@ public class CachingUpstream<T> implements Upstream<T> {
     this(upstream, ttl, Clock.systemUTC());
   }
 
-  @VisibleForTesting
-  CachingUpstream(Upstream<? extends T> upstream, Function<? super ExecResult<T>, Duration> ttl, Clock clock) {
+  private CachingUpstream(Upstream<? extends T> upstream, Function<? super ExecResult<T>, Duration> ttl, Clock clock) {
     this.upstream = upstream;
     this.ttlFunc = ttl;
     this.clock = clock;
@@ -54,25 +51,21 @@ public class CachingUpstream<T> implements Upstream<T> {
   private void tryDrain() {
     if (draining.compareAndSet(false, true)) {
       try {
-        Cached<? extends T> cached = ref.get();
-        if (needsFetch(cached)) {
-          if (pending.compareAndSet(false, true)) {
+        if (!waiting.isEmpty()) {
+          Loading loading = loadingRef.get();
+          LoadingState state = loading.getState();
+          if (state == LoadingState.INIT) {
+            startLoad(loading);
+          } else if (state == LoadingState.EXPIRED) {
+            Loading newLoading = new Loading();
+            loadingRef.compareAndSet(loading, newLoading);
+            startLoad(loadingRef.get());
+          } else if (state == LoadingState.LOADED) {
             Downstream<? super T> downstream = waiting.poll();
-            if (downstream == null) {
-              pending.set(false);
-            } else {
-              try {
-                yield(downstream);
-              } catch (Throwable e) {
-                receiveResult(downstream, ExecResult.of(Result.error(e)));
-              }
+            while (downstream != null) {
+              downstream.accept(loading.cached.result);
+              downstream = waiting.poll();
             }
-          }
-        } else {
-          Downstream<? super T> downstream = waiting.poll();
-          while (downstream != null) {
-            downstream.accept(cached.result);
-            downstream = waiting.poll();
           }
         }
       } finally {
@@ -80,47 +73,54 @@ public class CachingUpstream<T> implements Upstream<T> {
       }
     }
 
-    if (!waiting.isEmpty() && !pending.get() && needsFetch(ref.get())) {
+    if (!waiting.isEmpty() && loadingRef.get().getState() != LoadingState.PENDING) {
       tryDrain();
     }
   }
 
-  private boolean needsFetch(Cached<? extends T> cached) {
-    return cached == null || (cached.expireAt != null && cached.expireAt.isBefore(clock.instant()));
+  private void startLoad(Loading loading) {
+    if (loading.pending.compareAndSet(false, true)) {
+      Downstream<? super T> downstream = waiting.poll();
+      try {
+        yield(loading, downstream);
+      } catch (Throwable e) {
+        receiveResult(loading, downstream, ExecResult.of(Result.error(e)));
+      }
+    }
   }
 
-  private void yield(final Downstream<? super T> downstream) throws Exception {
+  private void yield(Loading loading, Downstream<? super T> downstream) throws Exception {
     upstream.connect(new Downstream<T>() {
       public void error(Throwable throwable) {
-        receiveResult(downstream, ExecResult.of(Result.<T>error(throwable)));
+        receiveResult(loading, downstream, ExecResult.of(Result.error(throwable)));
       }
 
       @Override
       public void success(T value) {
-        receiveResult(downstream, ExecResult.of(Result.success(value)));
+        receiveResult(loading, downstream, ExecResult.of(Result.success(value)));
       }
 
       @Override
       public void complete() {
-        receiveResult(downstream, CompleteExecResult.get());
+        receiveResult(loading, downstream, CompleteExecResult.get());
       }
     });
   }
 
   @Override
-  public void connect(Downstream<? super T> downstream) throws Exception {
-    Cached<? extends T> cached = this.ref.get();
-    if (needsFetch(cached)) {
+  public void connect(Downstream<? super T> downstream) {
+    Loading loading = this.loadingRef.get();
+    if (loading.getState() == LoadingState.LOADED) {
+      downstream.accept(loading.cached.result);
+    } else {
       Promise.<T>async(d -> {
         waiting.add(d);
         tryDrain();
       }).result(downstream::accept);
-    } else {
-      downstream.accept(cached.result);
     }
   }
 
-  private void receiveResult(Downstream<? super T> downstream, ExecResult<T> result) {
+  private void receiveResult(Loading loading, Downstream<? super T> downstream, ExecResult<T> result) {
     Duration ttl = Duration.ofSeconds(0);
     try {
       ttl = ttlFunc.apply(result);
@@ -136,22 +136,17 @@ public class CachingUpstream<T> implements Upstream<T> {
     Instant expiresAt;
     if (ttl.isNegative()) {
       expiresAt = null; // eternal
+      upstream = null; // release
     } else if (ttl.isZero()) {
       expiresAt = clock.instant().minus(Duration.ofSeconds(1));
     } else {
       expiresAt = clock.instant().plus(ttl);
     }
 
-    ref.set(new Cached<>(result, expiresAt));
-    pending.set(false);
-
+    loading.cached = new Cached<>(result, expiresAt);
     downstream.accept(result);
 
     tryDrain();
-
-    if (expiresAt == null) {
-      upstream = null; // release
-    }
   }
 
   private static class Cached<T> {
@@ -162,6 +157,35 @@ public class CachingUpstream<T> implements Upstream<T> {
       this.result = result;
       this.expireAt = expireAt;
     }
+  }
+
+  enum LoadingState {
+    INIT,
+    PENDING,
+    EXPIRED,
+    LOADED
+  }
+
+  private class Loading {
+    volatile Cached<T> cached;
+    final AtomicBoolean pending = new AtomicBoolean();
+
+    private LoadingState getState() {
+      if (cached == null) {
+        if (pending.get()) {
+          return LoadingState.PENDING;
+        } else {
+          return LoadingState.INIT;
+        }
+      } else {
+        if (cached.expireAt == null || cached.expireAt.isAfter(clock.instant())) {
+          return LoadingState.LOADED;
+        } else {
+          return LoadingState.EXPIRED;
+        }
+      }
+    }
+
   }
 
 }

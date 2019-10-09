@@ -23,8 +23,6 @@ import ratpack.test.exec.ExecHarness
 import spock.lang.AutoCleanup
 import spock.lang.Issue
 import spock.lang.Specification
-import spock.lang.Timeout
-import spock.lang.Unroll
 
 import java.time.Duration
 import java.util.concurrent.ConcurrentLinkedQueue
@@ -42,9 +40,9 @@ class PromiseCachingSpec extends Specification {
     execHarness.controller.fork()
       .onError(onError)
       .onComplete({
-      events << "complete"
-      latch.countDown()
-    })
+        events << "complete"
+        latch.countDown()
+      })
       .start { action.execute(it) }
     latch.await()
   }
@@ -75,10 +73,10 @@ class PromiseCachingSpec extends Specification {
       } start { forkedExecution ->
         cached.map { it + "-bar" }
           .then {
-          assert Execution.current().is(forkedExecution)
+            assert Execution.current().is(forkedExecution)
 
-          innerEvents << it
-        }
+            innerEvents << it
+          }
 
         Blocking.get { "next" }.cache().then {
           assert Execution.current().is(forkedExecution)
@@ -226,26 +224,14 @@ class PromiseCachingSpec extends Specification {
   }
 
   @Issue("https://github.com/ratpack/ratpack/issues/1369")
-  @Unroll("can cache multiple subscribers (#i)")
-  @Timeout(10)
-  def "can cache multiple subscribers"() {
-    given:
-    final List<Promise<Integer>> promises = []
-
+  def "cached promise can be yielded concurrently"() {
     when:
-    (0..100).each { i ->
-      final Promise<Integer> p = Promise.value(1).cache()
-
-      promises << p.map { v -> v + 1 }
-      promises << p.map { v -> v + 2 }
+    100_000.times { i ->
+      def p = [Promise.value(1).cache()] * 10
+      execHarness.yield { c -> ParallelBatch.of(p).yield() }.valueOrThrow
     }
 
     then:
-    ExecHarness.yieldSingle { c ->
-      ParallelBatch.of(promises).yield()
-    }.getValueOrThrow()
-
-    where:
-    i << (0..50)
+    noExceptionThrown()
   }
 }
