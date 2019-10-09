@@ -39,7 +39,7 @@ buildscript {
 }
 
 allprojects {
-  version = "1.7.5-SNAPSHOT"
+  version = "1.7.5"
 }
 
 ext {
