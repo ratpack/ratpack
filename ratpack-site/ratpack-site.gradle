@@ -151,7 +151,7 @@ dependencies {
 
 mainClassName = 'ratpack.site.SiteMain'
 
-jar {
+tasks.withType(Zip) {
   zip64 = true
 }
 
@@ -160,7 +160,6 @@ shadowJar {
     exclude(dependency("com.bertramlabs.plugins:sass-asset-pipeline:.*"))
     exclude(dependency("org.jruby:jruby-complete:.*"))
   }
-  zip64 = true
 }
 
 task downloadChromeDriver {
