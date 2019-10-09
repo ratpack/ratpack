@@ -151,7 +151,7 @@ dependencies {
 
 mainClassName = 'ratpack.site.SiteMain'
 
-tasks.withType(Jar) {
+tasks.withType(Zip) {
   zip64 = true
 }
 
