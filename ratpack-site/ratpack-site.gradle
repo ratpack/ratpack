@@ -151,6 +151,10 @@ dependencies {
 
 mainClassName = 'ratpack.site.SiteMain'
 
+jar {
+  zip64 = true
+}
+
 shadowJar {
   dependencies {
     exclude(dependency("com.bertramlabs.plugins:sass-asset-pipeline:.*"))
