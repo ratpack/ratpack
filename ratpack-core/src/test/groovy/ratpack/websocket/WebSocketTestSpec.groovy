@@ -16,6 +16,7 @@
 
 package ratpack.websocket
 
+import org.java_websocket.framing.Framedata
 import org.reactivestreams.Publisher
 import org.reactivestreams.Subscriber
 import ratpack.exec.ExecController
@@ -70,7 +71,7 @@ class WebSocketTestSpec extends RatpackGroovyDslSpec {
       text == "foo"
       openResult == 2
     }
-    client.received.poll(5, TimeUnit.SECONDS) == "FOO"
+    client.receivedText.poll(5, TimeUnit.SECONDS) == "FOO"
 
     when:
     client.closeBlocking()
@@ -88,7 +89,7 @@ class WebSocketTestSpec extends RatpackGroovyDslSpec {
     client?.closeBlocking()
   }
 
-  def RecordingWebSocketClient openWsClient() {
+  RecordingWebSocketClient openWsClient() {
     new RecordingWebSocketClient(new URI("ws://localhost:$server.bindPort"))
   }
 
@@ -139,7 +140,7 @@ class WebSocketTestSpec extends RatpackGroovyDslSpec {
 
     then:
     client.connectBlocking()
-    client.received.poll(5, TimeUnit.SECONDS) == "1"
+    client.receivedText.poll(5, TimeUnit.SECONDS) == "1"
 
     when:
     client.closeBlocking()
@@ -167,9 +168,9 @@ class WebSocketTestSpec extends RatpackGroovyDslSpec {
     client.connectBlocking()
 
     then:
-    client.received.poll(5, TimeUnit.SECONDS) == "foo-0"
-    client.received.poll(5, TimeUnit.SECONDS) == "foo-1"
-    client.received.poll(5, TimeUnit.SECONDS) == "foo-2"
+    client.receivedText.poll(5, TimeUnit.SECONDS) == "foo-0"
+    client.receivedText.poll(5, TimeUnit.SECONDS) == "foo-1"
+    client.receivedText.poll(5, TimeUnit.SECONDS) == "foo-2"
 
     then:
     client.waitForClose()
@@ -203,9 +204,9 @@ class WebSocketTestSpec extends RatpackGroovyDslSpec {
     client.connectBlocking()
 
     then:
-    client.received.poll(5, TimeUnit.SECONDS) == "foo-0"
-    client.received.poll(5, TimeUnit.SECONDS) == "foo-1"
-    client.received.poll(5, TimeUnit.SECONDS) == "foo-2"
+    client.receivedText.poll(5, TimeUnit.SECONDS) == "foo-0"
+    client.receivedText.poll(5, TimeUnit.SECONDS) == "foo-1"
+    client.receivedText.poll(5, TimeUnit.SECONDS) == "foo-2"
 
     then:
     client.waitForClose()
@@ -244,7 +245,7 @@ class WebSocketTestSpec extends RatpackGroovyDslSpec {
     client.connectBlocking()
 
     and:
-    client.received.poll(5, TimeUnit.SECONDS) == "foo"
+    client.receivedText.poll(5, TimeUnit.SECONDS) == "foo"
 
     cleanup:
     client?.closeBlocking()
@@ -280,6 +281,31 @@ class WebSocketTestSpec extends RatpackGroovyDslSpec {
 
     then:
     closed.get()
+  }
+
+  def "pong responses are sent immediately"() {
+    handlers {
+      get {
+        context.websocket {
+          null
+        } connect {
+
+        }
+      }
+    }
+
+    server.start()
+
+    when:
+    def client = openWsClient()
+    client.connectBlocking()
+    client.sendPing()
+
+    then:
+    client.receivedFragments.poll(5, TimeUnit.SECONDS).opcode == Framedata.Opcode.PONG
+
+    cleanup:
+    client.close()
   }
 
 }

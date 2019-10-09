@@ -61,10 +61,12 @@ class RatpackPlugin implements Plugin<Project> {
       run.conventionMapping.jvmArgs = { applicationPluginConvention.applicationDefaultJvmArgs }
     }
 
-    project.dependencies {
-      compile ratpackExtension.core
-      testCompile ratpackExtension.test
-    }
+    def configurationContainer = project.configurations
+    (configurationContainer.findByName("implementation") ?: configurationContainer.findByName("compile")).
+      dependencies.add(ratpackExtension.core)
+
+    (configurationContainer.findByName("testImplementation") ?: configurationContainer.findByName("testCompile")).
+      dependencies.add(ratpackExtension.test)
 
     Jar jarTask = project.tasks.jar as Jar
     def mainDistribution = project.extensions.getByType(DistributionContainer).getByName("main")

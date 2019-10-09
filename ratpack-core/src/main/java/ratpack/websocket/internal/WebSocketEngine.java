@@ -124,7 +124,7 @@ public class WebSocketEngine {
                 return;
               }
               if (frame instanceof PingWebSocketFrame) {
-                channel.write(new PongWebSocketFrame(frame.content()));
+                channel.writeAndFlush(new PongWebSocketFrame(frame.content()));
                 return;
               }
               if (frame instanceof TextWebSocketFrame) {
