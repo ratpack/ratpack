@@ -29,7 +29,7 @@ import java.util.stream.Stream
 class DefaultFileSystemBindingSpec extends Specification {
 
   static Stream<String> dupeDecode(String payload) {
-    String decoded = null;
+    String decoded = null
     try {
       decoded = URLDecoder.decode(payload)
     } catch(IllegalArgumentException ignored) {
@@ -39,9 +39,9 @@ class DefaultFileSystemBindingSpec extends Specification {
   }
 
   static Collection<String> payloadFor(String resource, String fileName) {
-    return DefaultFileSystemBindingSpec.class
+    return DefaultFileSystemBindingSpec
       .getResource(resource).text
-      .replaceAll("\\{FILE\\}", fileName)
+      .replaceAll("\\{FILE}", fileName)
       .split("\n")
       .toList()
       .stream()
