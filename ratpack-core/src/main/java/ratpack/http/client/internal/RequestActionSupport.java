@@ -19,10 +19,24 @@ package ratpack.http.client.internal;
 import com.google.common.net.HostAndPort;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
-import io.netty.channel.*;
+import io.netty.channel.Channel;
+import io.netty.channel.ChannelHandlerContext;
+import io.netty.channel.ChannelPipeline;
+import io.netty.channel.ConnectTimeoutException;
+import io.netty.channel.SimpleChannelInboundHandler;
 import io.netty.channel.pool.ChannelPool;
 import io.netty.handler.codec.PrematureChannelClosureException;
-import io.netty.handler.codec.http.*;
+import io.netty.handler.codec.http.DefaultFullHttpRequest;
+import io.netty.handler.codec.http.EmptyHttpHeaders;
+import io.netty.handler.codec.http.FullHttpRequest;
+import io.netty.handler.codec.http.HttpClientCodec;
+import io.netty.handler.codec.http.HttpContentDecompressor;
+import io.netty.handler.codec.http.HttpHeaderNames;
+import io.netty.handler.codec.http.HttpHeaderValues;
+import io.netty.handler.codec.http.HttpObject;
+import io.netty.handler.codec.http.HttpResponse;
+import io.netty.handler.codec.http.HttpUtil;
+import io.netty.handler.codec.http.HttpVersion;
 import io.netty.handler.ssl.SslContext;
 import io.netty.handler.ssl.SslContextBuilder;
 import io.netty.handler.ssl.SslHandler;
@@ -40,7 +54,11 @@ import ratpack.http.Status;
 import ratpack.http.client.HttpClientReadTimeoutException;
 import ratpack.http.client.ReceivedResponse;
 import ratpack.http.client.RequestSpec;
-import ratpack.http.internal.*;
+import ratpack.http.internal.ByteBufBackedTypedData;
+import ratpack.http.internal.DefaultMediaType;
+import ratpack.http.internal.DefaultStatus;
+import ratpack.http.internal.HttpHeaderConstants;
+import ratpack.http.internal.NettyHeadersBackedHeaders;
 
 import javax.net.ssl.SSLEngine;
 import javax.net.ssl.SSLException;
@@ -178,7 +196,7 @@ abstract class RequestActionSupport<T> implements Upstream<T> {
     dispose(channelPipeline, !HttpUtil.isKeepAlive(response));
   }
 
-  private void dispose(ChannelPipeline channelPipeline, boolean forceClose) {
+  protected void dispose(ChannelPipeline channelPipeline, boolean forceClose) {
     if (!disposed) {
       disposed = true;
       doDispose(channelPipeline, forceClose);
@@ -212,7 +230,11 @@ abstract class RequestActionSupport<T> implements Upstream<T> {
 
     p.addLast(CLIENT_CODEC_HANDLER_NAME, new HttpClientCodec(4096, 8192, requestConfig.responseMaxChunkSize, false));
 
-    p.addLast(READ_TIMEOUT_HANDLER_NAME, new ReadTimeoutHandler(requestConfig.readTimeout.toNanos(), TimeUnit.NANOSECONDS));
+    if (client.getPoolSize() > 0) {
+      p.addLast(READ_TIMEOUT_HANDLER_NAME, new PoolingReadTimeoutHandler(requestConfig.readTimeout.toNanos(), TimeUnit.NANOSECONDS));
+    } else {
+      p.addLast(READ_TIMEOUT_HANDLER_NAME, new ReadTimeoutHandler(requestConfig.readTimeout.toNanos(), TimeUnit.NANOSECONDS));
+    }
 
     p.addLast(REDIRECT_HANDLER_NAME, new SimpleChannelInboundHandler<HttpObject>(false) {
       boolean redirected;

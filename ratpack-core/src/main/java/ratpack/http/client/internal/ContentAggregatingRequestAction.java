@@ -17,6 +17,7 @@
 package ratpack.http.client.internal;
 
 import io.netty.buffer.ByteBuf;
+import io.netty.channel.Channel;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelPipeline;
 import io.netty.channel.SimpleChannelInboundHandler;
@@ -26,6 +27,7 @@ import ratpack.exec.Downstream;
 import ratpack.exec.Execution;
 import ratpack.exec.Upstream;
 import ratpack.func.Action;
+import ratpack.http.client.HttpClientReadTimeoutException;
 import ratpack.http.client.ReceivedResponse;
 import ratpack.http.client.RequestSpec;
 
@@ -62,7 +64,6 @@ class ContentAggregatingRequestAction extends RequestActionSupport<ReceivedRespo
       protected void channelRead0(ChannelHandlerContext ctx, FullHttpResponse response) throws Exception {
         response.touch();
         dispose(ctx.pipeline(), response);
-
         ByteBuf content = new ByteBufRef(response.content());
         execution.onComplete(() -> {
           if (content.refCnt() > 0) {
@@ -76,7 +77,11 @@ class ContentAggregatingRequestAction extends RequestActionSupport<ReceivedRespo
       public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) throws Exception {
         cause = decorateException(cause);
         error(downstream, cause);
-        forceDispose(ctx.pipeline());
+        if (client.getPoolSize() > 0 && cause instanceof HttpClientReadTimeoutException) {
+          dispose(ctx.pipeline(), false);
+        } else {
+          forceDispose(ctx.pipeline());
+        }
       }
     });
   }

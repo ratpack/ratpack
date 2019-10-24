@@ -24,27 +24,34 @@ import spock.lang.Unroll
 import java.time.Duration
 
 @Unroll
-class HttpClientIdleTimeoutSpec extends BaseHttpClientSpec {
+class HttpClientPoolingReadTimeoutSpec extends BaseHttpClientSpec {
 
-  def poolingIdleHttpClient = HttpClient.of {
-    it.poolSize(1)
-    it.idleTimeout(Duration.ofMillis(1500))
+  def nonPoolingReadTimeoutHttpClient = HttpClient.of {
+    it.poolSize(0)
+    it.readTimeout(Duration.ofMillis(500))
   }
 
-  def poolingHttpClient = HttpClient.of {
+  def poolingReadTimeoutHttpClient = HttpClient.of {
     it.poolSize(1)
+    // Somehow a read timeout is forcing a close request to the server
+    it.readTimeout(Duration.ofMillis(500))
   }
 
-  def "test client with idle timeout exceeded"() {
+  def "test non pooling client with read timeout exceeded"() {
     given:
     Channel channel1 = null
     Channel channel2 = null
+    def delay = Duration.ofMillis(1000)
+    def expectedStatus = 500
+    def expectedBody = "Read timeout (PT0.5S) waiting on HTTP server"
 
     when:
     otherApp {
       get("1") {
         channel1 = directChannelAccess.channel
-        render "ok"
+        context.execution.sleep(delay).then {
+          render "ok"
+        }
       }
       get("2") {
         channel2 = directChannelAccess.channel
@@ -58,10 +65,56 @@ class HttpClientIdleTimeoutSpec extends BaseHttpClientSpec {
     }
     handlers {
       get("1") {
-        render poolingIdleHttpClient.get("${otherAppUrl()}1".toString().toURI()).map { it.body.text }
+        nonPoolingReadTimeoutHttpClient.get("${otherAppUrl()}1".toString().toURI()).then { render it.body.text }
       }
       get("2") {
-        render poolingIdleHttpClient.get("${otherAppUrl()}2".toString().toURI()).map { it.body.text }
+        nonPoolingReadTimeoutHttpClient.get("${otherAppUrl()}2".toString().toURI()).then { render it.body.text }
+      }
+    }
+    def r1 = get("1")
+    def r2 = get("2")
+
+    then:
+    r1.statusCode == expectedStatus
+    r1.body.text.startsWith(expectedBody)
+    r2.statusCode == expectedStatus
+    r2.body.text.startsWith(expectedBody)
+    !channel1.open
+    !channel2.open
+  }
+
+  def "test pooling client with read timeout exceeded"() {
+    given:
+    Channel channel1 = null
+    Channel channel2 = null
+    def delay = Duration.ofMillis(1000)
+    def expectedStatus = 500
+    def expectedBody = "Read timeout (PT0.5S) waiting on HTTP server"
+
+    when:
+    otherApp {
+      get("1") {
+        channel1 = directChannelAccess.channel
+        context.execution.sleep(delay).then {
+          render "ok"
+        }
+      }
+      get("2") {
+        channel2 = directChannelAccess.channel
+        context.execution.sleep(delay).then {
+          render "ok"
+        }
+      }
+    }
+    bindings {
+      bindInstance(ServerErrorHandler, new TestServerErrorHandler())
+    }
+    handlers {
+      get("1") {
+        poolingReadTimeoutHttpClient.get("${otherAppUrl()}1".toString().toURI()).then { render it.body.text }
+      }
+      get("2") {
+        poolingReadTimeoutHttpClient.get("${otherAppUrl()}2".toString().toURI()).then { render it.body.text }
       }
     }
     def r1 = get("1")
@@ -69,65 +122,13 @@ class HttpClientIdleTimeoutSpec extends BaseHttpClientSpec {
     def r2 = get("2")
 
     then:
-    poolingIdleHttpClient.idleTimeout == Duration.ofMillis(1500)
-    r1.statusCode == 200
-    r1.body.text == "ok"
+    this.server.running
+    r1.statusCode == expectedStatus
+    r1.body.text.startsWith(expectedBody)
     r2.statusCode == expectedStatus
-    r2.body.text.contains(expectedBody)
-
-    channel1.equals(channel2) == reused
-    channel1.remoteAddress().equals(channel2.remoteAddress()) == reused
-
-    channel1.open ==  reused
-
-    where:
-    delay                  || expectedStatus || expectedBody || reused
-    Duration.ofMillis(0)    || 200            || "ok" || true
-    Duration.ofMillis(1750) || 200            || "ok" || false
-  }
-
-  def "test client without idle timeout"() {
-    given:
-    Channel channel1 = null
-    Channel channel2 = null
-
-    when:
-    otherApp {
-      get("1") {
-        channel1 = directChannelAccess.channel
-        render "ok"
-      }
-      get("2") {
-        channel2 = directChannelAccess.channel
-        context.execution.sleep(delay).then {
-          render "ok"
-        }
-      }
-    }
-    bindings {
-      bindInstance(ServerErrorHandler, new TestServerErrorHandler())
-    }
-    handlers {
-      get("1") {
-        render poolingHttpClient.get("${otherAppUrl()}1".toString().toURI()).map { it.body.text }
-      }
-      get("2") {
-        render poolingHttpClient.get("${otherAppUrl()}2".toString().toURI()).map { it.body.text }
-      }
-    }
-    def r1 = get("1")
-    def r2 = get("2")
-
-    then:
-    r1.statusCode == 200
-    r1.body.text == "ok"
-    r2.statusCode == expectedStatus
-    r2.body.text.contains(expectedBody)
-
-    where:
-    delay                  || expectedStatus || expectedBody
-    Duration.ofMillis(0)   || 200            || "ok"
-    Duration.ofMillis(1750) || 200            || "ok"
+    r2.body.text.startsWith(expectedBody)
+    channel1.open
+    channel2.open
   }
 
   class TestServerErrorHandler implements ServerErrorHandler {
