@@ -6,7 +6,15 @@ Library options include:
 
 * No-Op - discards all logs (default)
 * Log4J
+
+    Log4J allows a complete non blocking configuration by [making all loggers asynchronous](https://logging.apache.org/log4j/2.x/manual/async.html).
+    The most consistent way to achieve this is by providing the system property `-Dlog4j2.contextSelector=org.apache.logging.log4j.core.async.AsyncLoggerContextSelector`.
+    Log4J system properties can also be defined in the file `log4j2.component.properties` available in the classpath of the application. 
+    Read the [trade-offs](https://logging.apache.org/log4j/2.x/manual/async.html#Trade-offs) carefully, before setting this property. Log4J allows a [mixed
+    configuration](https://logging.apache.org/log4j/2.x/manual/async.html#MixedSync-Async) of synchronous and asynchronous loggers as well.
 * Logback - native SLF4J implementation with "zero memory and computational overhead"
+
+    Logback provides non blocking appenders around blocking ones. For details on how to configure them properly check out the [Logback manual](http://logback.qos.ch/manual/appenders.html#AsyncAppender)
 * Java Util Logging
 * Simple - logs messages at INFO level and higher to System.err
 * Jakarta Commons Logging
