@@ -18,17 +18,27 @@ package ratpack.http.client.internal;
 
 import io.netty.channel.Channel;
 import io.netty.channel.pool.AbstractChannelPoolHandler;
+import io.netty.handler.proxy.HttpProxyHandler;
+
+import java.net.InetSocketAddress;
+import java.net.SocketAddress;
 
 public class NoopSimpleChannelPoolHandler extends AbstractChannelPoolHandler implements InstrumentedChannelPoolHandler {
 
   private final String host;
+  private final ProxyInternal proxy;
 
-  public NoopSimpleChannelPoolHandler(HttpChannelKey channelKey) {
+  public NoopSimpleChannelPoolHandler(HttpChannelKey channelKey, ProxyInternal proxy) {
     this.host = channelKey.host;
+    this.proxy = proxy;
   }
 
   @Override
   public void channelCreated(Channel ch) throws Exception {
+    if (proxy != null && proxy.shouldProxy(host)) {
+      SocketAddress proxyAddress = new InetSocketAddress(proxy.getHost(), proxy.getPort());
+      ch.pipeline().addLast(new HttpProxyHandler(proxyAddress));
+    }
   }
 
   @Override

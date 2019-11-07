@@ -45,7 +45,7 @@ class InstrumentedFixedChannelPoolHandlerSpec extends Specification {
 
   void 'it should handle construction and listening to ChannelPool changes'() {
     when:
-    InstrumentedFixedChannelPoolHandler handler = new InstrumentedFixedChannelPoolHandler(channelKey, poolSize, Duration.ofSeconds(15))
+    InstrumentedFixedChannelPoolHandler handler = new InstrumentedFixedChannelPoolHandler(channelKey, poolSize, Duration.ofSeconds(15), null)
 
     then:
     assert handler.host == 'ratpack.io'

@@ -167,6 +167,13 @@ public interface HttpClient extends AutoCloseable {
   int getMaxResponseChunkSize();
 
   /**
+   * The configured proxy instance for the client.
+   * @return The configure proxy instance for the client
+   * @since 1.8.0
+   */
+  Proxy getProxy();
+
+  /**
    * Closes any pooled connections.
    *
    * @since 1.4
