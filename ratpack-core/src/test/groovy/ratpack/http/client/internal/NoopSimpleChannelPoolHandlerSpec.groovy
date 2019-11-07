@@ -31,7 +31,7 @@ class NoopSimpleChannelPoolHandlerSpec extends Specification {
 
   void 'it should handle construction and listening to ChannelPool changes'() {
     when:
-    NoopSimpleChannelPoolHandler handler = new NoopSimpleChannelPoolHandler(channelKey)
+    NoopSimpleChannelPoolHandler handler = new NoopSimpleChannelPoolHandler(channelKey, "", 80)
 
     then:
     assert handler.host == 'ratpack.io'

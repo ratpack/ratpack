@@ -185,4 +185,9 @@ public interface HttpClientSpec {
    * @since 1.6
    */
   HttpClientSpec enableMetricsCollection(boolean enableMetricsCollection);
+
+  HttpClientSpec proxyHost(String proxyHost);
+
+  HttpClientSpec proxyPort(int proxyPort);
+
 }

@@ -16,10 +16,14 @@
 
 package ratpack.http.client.internal;
 
+import com.google.common.base.Strings;
 import io.netty.channel.Channel;
 import io.netty.channel.pool.AbstractChannelPoolHandler;
+import io.netty.handler.proxy.HttpProxyHandler;
 import io.netty.handler.timeout.IdleStateHandler;
 
+import java.net.InetSocketAddress;
+import java.net.SocketAddress;
 import java.time.Duration;
 import java.util.concurrent.TimeUnit;
 
@@ -29,14 +33,22 @@ public class NoopFixedChannelPoolHandler extends AbstractChannelPoolHandler impl
 
   private final String host;
   private final Duration idleTimeout;
+  private final String proxyHost;
+  private int proxyPort;
 
-  public NoopFixedChannelPoolHandler(HttpChannelKey channelKey, Duration idleTimeout) {
+  public NoopFixedChannelPoolHandler(HttpChannelKey channelKey, Duration idleTimeout, String proxyHost, int proxyPort) {
     this.host = channelKey.host;
     this.idleTimeout = idleTimeout;
+    this.proxyHost = proxyHost;
+    this.proxyPort = proxyPort;
   }
 
   @Override
   public void channelCreated(Channel ch) throws Exception {
+    if (!Strings.isNullOrEmpty(proxyHost)) {
+      SocketAddress proxyAddress = new InetSocketAddress(proxyHost, proxyPort);
+      ch.pipeline().addLast(new HttpProxyHandler(proxyAddress));
+    }
   }
 
   @Override

@@ -26,8 +26,8 @@ public class InstrumentedFixedChannelPoolHandler extends NoopFixedChannelPoolHan
   private final LongAdder activeConnectionCount;
   private final int maxConnectionCount;
 
-  public InstrumentedFixedChannelPoolHandler(HttpChannelKey channelKey, int poolSize, Duration idleTimeout) {
-    super(channelKey, idleTimeout);
+  public InstrumentedFixedChannelPoolHandler(HttpChannelKey channelKey, int poolSize, Duration idleTimeout, String proxyHost, int proxyPort) {
+    super(channelKey, idleTimeout, proxyHost, proxyPort);
     this.activeConnectionCount = new LongAdder();
     this.maxConnectionCount = poolSize;
   }

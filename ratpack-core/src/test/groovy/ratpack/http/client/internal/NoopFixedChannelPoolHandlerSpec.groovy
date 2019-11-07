@@ -44,7 +44,7 @@ class NoopFixedChannelPoolHandlerSpec extends Specification {
 
   void 'it should handle construction and listening to ChannelPool changes'() {
     when:
-    NoopFixedChannelPoolHandler handler = new NoopFixedChannelPoolHandler(channelKey, Duration.ofSeconds(15))
+    NoopFixedChannelPoolHandler handler = new NoopFixedChannelPoolHandler(channelKey, Duration.ofSeconds(15), "", 80)
 
     then:
     assert handler.host == 'ratpack.io'

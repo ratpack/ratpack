@@ -88,16 +88,16 @@ public class DefaultHttpClient implements HttpClientInternal {
 
   private InstrumentedChannelPoolHandler getPoolingHandler(HttpChannelKey key) {
     if (spec.enableMetricsCollection) {
-      return new InstrumentedFixedChannelPoolHandler(key, getPoolSize(), getIdleTimeout());
+      return new InstrumentedFixedChannelPoolHandler(key, getPoolSize(), getIdleTimeout(), spec.proxyHost, spec.proxyPort);
     }
-    return new NoopFixedChannelPoolHandler(key, getIdleTimeout());
+    return new NoopFixedChannelPoolHandler(key, getIdleTimeout(), spec.proxyHost, spec.proxyPort);
   }
 
   private InstrumentedChannelPoolHandler getSimpleHandler(HttpChannelKey key) {
     if (spec.enableMetricsCollection) {
-      return new InstrumentedSimpleChannelPoolHandler(key);
+      return new InstrumentedSimpleChannelPoolHandler(key, spec.proxyHost, spec.proxyPort);
     }
-    return new NoopSimpleChannelPoolHandler(key);
+    return new NoopSimpleChannelPoolHandler(key, spec.proxyHost, spec.proxyPort);
   }
 
   @Override
@@ -192,6 +192,8 @@ public class DefaultHttpClient implements HttpClientInternal {
     private Action<? super HttpResponse> responseInterceptor = Action.noop();
     private Action<? super Throwable> errorInterceptor = Action.noop();
     private boolean enableMetricsCollection;
+    private String proxyHost = "";
+    private int proxyPort = 80;
 
     private Spec() {
     }
@@ -208,6 +210,8 @@ public class DefaultHttpClient implements HttpClientInternal {
       this.requestInterceptor = spec.requestInterceptor;
       this.responseInterceptor = spec.responseInterceptor;
       this.enableMetricsCollection = spec.enableMetricsCollection;
+      this.proxyHost = spec.proxyHost;
+      this.proxyPort = spec.proxyPort;
     }
 
     @Override
@@ -285,6 +289,18 @@ public class DefaultHttpClient implements HttpClientInternal {
     @Override
     public HttpClientSpec enableMetricsCollection(boolean enableMetricsCollection) {
       this.enableMetricsCollection = enableMetricsCollection;
+      return this;
+    }
+
+    @Override
+    public HttpClientSpec proxyHost(String proxyHost) {
+      this.proxyHost = proxyHost;
+      return this;
+    }
+
+    @Override
+    public HttpClientSpec proxyPort(int proxyPort) {
+      this.proxyPort = proxyPort;
       return this;
     }
   }
