@@ -1,0 +1,61 @@
+description = "Provides integration with the Micrometer library - https://micrometer.io/"
+
+apply from: "$rootDir/gradle/javaModule.gradle"
+
+dependencies {
+  implementation project(":ratpack-core")
+  implementation project(":ratpack-guice")
+
+  implementation "io.micrometer:micrometer-core:${commonVersions.micrometerMetrics}"
+
+  compileOnly("io.micrometer:micrometer-registry-appoptics:${commonVersions.micrometerMetrics}") {
+    exclude group: "org.slf4j", module: "slf4j-api"
+  }
+  compileOnly("io.micrometer:micrometer-registry-atlas:${commonVersions.micrometerMetrics}") {
+    exclude group: "org.slf4j", module: "slf4j-api"
+    exclude group: "com.fasterxml.jackson.core", module: "jackson-databind"
+    exclude group: "com.fasterxml.jackson.core", module: "jackson-core"
+  }
+  compileOnly("io.micrometer:micrometer-registry-datadog:${commonVersions.micrometerMetrics}") {
+    exclude group: "org.slf4j", module: "slf4j-api"
+  }
+  compileOnly("io.micrometer:micrometer-registry-dynatrace:${commonVersions.micrometerMetrics}") {
+    exclude group: "org.slf4j", module: "slf4j-api"
+  }
+  compileOnly("io.micrometer:micrometer-registry-elastic:${commonVersions.micrometerMetrics}") {
+    exclude group: "org.slf4j", module: "slf4j-api"
+  }
+  compileOnly("io.micrometer:micrometer-registry-humio:${commonVersions.micrometerMetrics}") {
+    exclude group: "org.slf4j", module: "slf4j-api"
+  }
+  compileOnly("io.micrometer:micrometer-registry-influx:${commonVersions.micrometerMetrics}") {
+    exclude group: "org.slf4j", module: "slf4j-api"
+  }
+  compileOnly("io.micrometer:micrometer-registry-kairos:${commonVersions.micrometerMetrics}") {
+    exclude group: "org.slf4j", module: "slf4j-api"
+  }
+  compileOnly("io.micrometer:micrometer-registry-new-relic:${commonVersions.micrometerMetrics}") {
+    exclude group: "org.slf4j", module: "slf4j-api"
+  }
+  compileOnly("io.micrometer:micrometer-registry-prometheus:${commonVersions.micrometerMetrics}")
+  compileOnly("io.micrometer:micrometer-registry-signalfx:${commonVersions.micrometerMetrics}") {
+    exclude group: "org.slf4j", module: "slf4j-api"
+  }
+  compileOnly("io.micrometer:micrometer-registry-statsd:${commonVersions.micrometerMetrics}")
+  compileOnly("io.micrometer:micrometer-registry-wavefront:${commonVersions.micrometerMetrics}") {
+    exclude group: "org.slf4j", module: "slf4j-api"
+    exclude group: "com.fasterxml.jackson.core", module: "jackson-databind"
+  }
+
+  // For easy migration from Dropwizard to Micrometer
+  compileOnly("io.dropwizard.metrics:metrics-annotation:${commonVersions.dropwizardMetrics}") {
+    exclude group: "org.slf4j", module: "slf4j-api"
+  }
+
+  testImplementation("io.dropwizard.metrics:metrics-annotation:${commonVersions.dropwizardMetrics}") {
+    exclude group: "org.slf4j", module: "slf4j-api"
+  }
+
+  testRuntimeOnly("io.micrometer:micrometer-registry-influx:${commonVersions.micrometerMetrics}")
+  testRuntimeOnly("io.micrometer:micrometer-registry-statsd:${commonVersions.micrometerMetrics}")
+}
