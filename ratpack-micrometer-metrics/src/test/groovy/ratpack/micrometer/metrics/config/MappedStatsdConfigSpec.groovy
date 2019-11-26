@@ -4,7 +4,7 @@ package ratpack.micrometer.metrics.config
 import io.micrometer.statsd.StatsdFlavor
 import spock.lang.Specification
 
-class MappedStatsdConfigTest extends Specification {
+class MappedStatsdConfigSpec extends Specification {
   def 'map flavor from string'() {
     given:
     def ratpackConfig = new RatpackStatsdConfig().flavor(input)
