@@ -3,7 +3,6 @@ package ratpack.micrometer.metrics;
 import io.micrometer.core.instrument.Tag;
 import io.micrometer.core.instrument.Tags;
 import org.apache.commons.lang3.StringUtils;
-import ratpack.api.Nullable;
 import ratpack.handling.Context;
 import ratpack.http.Request;
 import ratpack.http.Response;
@@ -13,12 +12,18 @@ import java.util.function.BiFunction;
 import java.util.regex.Pattern;
 
 public final class HandlerTags {
+  /**
+   * Not possible currently to tag with uri like we do with {@link #RECOMMENDED_HANDLER}, because
+   * we don't have access to the {@link Context} object in blocking executions inside path bindings
+   * containing path variables. Failing to tag with path binding (before variable substitution) would
+   * lead to a high cardinality tag on uri.
+   */
   public static final BiFunction<Request, Throwable, Tags> RECOMMENDED_BLOCKING_EXEC = (request, exception) -> Tags.of(
-    HandlerTags.method(request), HandlerTags.uri(request, null)
+    HandlerTags.method(request)
   );
 
   public static final BiFunction<Context, Throwable, Tags> RECOMMENDED_HANDLER = (context, exception) -> Tags.of(
-    HandlerTags.method(context.getRequest()), HandlerTags.uri(context.getRequest(), context.getResponse()),
+    HandlerTags.method(context.getRequest()), HandlerTags.uri(context),
     HandlerTags.exception(exception), HandlerTags.status(context.getResponse()), HandlerTags.outcome(context.getResponse()));
 
   private static final Tag URI_NOT_FOUND = Tag.of("uri", "NOT_FOUND");
@@ -66,12 +71,12 @@ public final class HandlerTags {
   /**
    * Creates a {@code uri} tag based on the URI of the given {@code request}. Falling back to {@code REDIRECTION} for 3xx responses,
    * {@code NOT_FOUND} for 404 responses, {@code root} for requests with no path info, and {@code UNKNOWN} for all other requests.
-   * @param request the request
-   * @param response the response
+   * @param context the request's context
    * @return the uri tag derived from the request
    */
-  public static Tag uri(Request request, @Nullable Response response) {
-    if (request != null) {
+  public static Tag uri(Context context) {
+    if (context.getRequest() != null) {
+      Response response = context.getResponse();
       if (response != null) {
         Status status = response.getStatus();
         if (status != null) {
@@ -83,7 +88,7 @@ public final class HandlerTags {
           }
         }
       }
-      String pathInfo = getPathInfo(request);
+      String pathInfo = getPathInfo(context);
       if (pathInfo.isEmpty()) {
         return URI_ROOT;
       } else {
@@ -93,8 +98,8 @@ public final class HandlerTags {
     return URI_UNKNOWN;
   }
 
-  private static String getPathInfo(Request request) {
-    String pathInfo = request.getPath();
+  private static String getPathInfo(Context context) {
+    String pathInfo = context.getPathBinding().getDescription();
     String uri = StringUtils.isNotBlank(pathInfo) ? pathInfo : "/";
     uri = MULTIPLE_SLASH_PATTERN.matcher(uri).replaceAll("/");
     uri = LEADING_SLASH_PATTERN.matcher(uri).replaceAll("");

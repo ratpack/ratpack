@@ -8,7 +8,6 @@ import io.micrometer.core.instrument.Tags
 import io.micrometer.core.instrument.simple.SimpleMeterRegistry
 import ratpack.exec.Blocking
 import ratpack.exec.Promise
-import ratpack.micrometer.metrics.HandlerTags
 import ratpack.micrometer.metrics.MicrometerMetricsModule
 import ratpack.test.internal.RatpackGroovyDslSpec
 import spock.lang.Shared
@@ -194,12 +193,12 @@ class MicrometerMetricsModuleSpec extends RatpackGroovyDslSpec {
     handlers { MeterRegistry registry ->
       meterRegistry = registry
 
-      all {
-        render ''
-      }
       prefix('foo') {
         path('bar') {
           render ''
+        }
+        path('baz/:id') { ctx ->
+          render ctx.getPathTokens().get('id')
         }
         all {
           render ''
@@ -211,23 +210,21 @@ class MicrometerMetricsModuleSpec extends RatpackGroovyDslSpec {
     // TODO how to detect 404s?
 //    1.times { get('unroutable') }
 
-    2.times { get() }
     2.times { get('foo') }
 
     2.times { get('foo/bar') }
     2.times { get('foo/bar/') }
     2.times { get('foo/bar///') }
     2.times { get('/foo/bar///') }
-    2.times { get('///foo/bar///') }
 
-    println meterRegistry.get('http.server.requests').timers().collect { it.id.getTag('uri') }.join(',')
+    get('/foo/baz/123')
 
     then:
-    meterRegistry?.get('http.server.requests')?.tag('uri', 'root')?.tags(successfulGetTags)
+    meterRegistry?.get('http.server.requests')?.tag('uri', 'foo')?.tags(successfulGetTags)
       ?.tag('custom', 'mycustom')
       ?.timer()?.count() == 2
-    meterRegistry?.get('http.server.requests')?.tag('uri', 'foo')?.tags(successfulGetTags)?.timer()?.count() == 2
-    meterRegistry?.get('http.server.requests')?.tag('uri', 'foo/bar')?.tags(successfulGetTags)?.timer()?.count() == 10
+    meterRegistry?.get('http.server.requests')?.tag('uri', 'foo/bar')?.tags(successfulGetTags)?.timer()?.count() == 8
+    meterRegistry?.get('http.server.requests')?.tag('uri', 'foo/baz/:id')?.tags(successfulGetTags)?.timer()?.count() == 1
 //    meterRegistry?.get('http.server.requests')?.tag('uri', 'NOT_FOUND')?.tags('outcome', 'CLIENT_ERROR')
 //      ?.timer()?.count() == 1
   }
@@ -284,9 +281,8 @@ class MicrometerMetricsModuleSpec extends RatpackGroovyDslSpec {
     2.times { get('foo') }
 
     then:
-    meterRegistry?.get('http.blocking.execution')?.tag('uri', 'foo')
+    meterRegistry?.get('http.blocking.execution')
       ?.tag('method', 'GET')
-      ?.tag('uri','foo')
       ?.tag('custom', 'mycustom')
       ?.timer()?.count() == 2
   }
