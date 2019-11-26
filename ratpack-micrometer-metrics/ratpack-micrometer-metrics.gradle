@@ -56,6 +56,8 @@ dependencies {
     exclude group: "org.slf4j", module: "slf4j-api"
   }
 
-  testRuntimeOnly("io.micrometer:micrometer-registry-influx:${commonVersions.micrometerMetrics}")
+  testRuntimeOnly("io.micrometer:micrometer-registry-influx:${commonVersions.micrometerMetrics}") {
+    exclude group: "org.slf4j", module: "slf4j-api"
+  }
   testRuntimeOnly("io.micrometer:micrometer-registry-statsd:${commonVersions.micrometerMetrics}")
 }
