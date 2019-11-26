@@ -7,6 +7,10 @@ configurations.all { configuration ->
     }
 
     eachDependency {
+      if (requested.name == "HdrHistogram" && requested.group == "org.hdrhistogram") {
+        useVersion "2.1.11"
+      }
+
       // JRuby (used by the manual) pulls in multiple versions of a few modules
       if (configuration.name == "jrubyExec") {
         if (requested.name == "jcodings" && requested.group == "org.jruby.jcodings") {
@@ -34,7 +38,7 @@ configurations.all { configuration ->
           it.selected.moduleVersion.group == "org.codehaus.groovy" &&
           it.selected.moduleVersion.name == "groovy" &&
           !configuration.name.startsWith("test") &&
-          project.name != "perf" && 
+          project.name != "perf" &&
           project.name != "ratpack-groovy" &&
           project.name != "ratpack-groovy-test" &&
           project.name != "ratpack-remote" &&
