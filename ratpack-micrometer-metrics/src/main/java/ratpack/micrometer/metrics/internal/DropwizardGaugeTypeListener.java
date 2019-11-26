@@ -6,14 +6,11 @@ import com.google.inject.spi.InjectionListener;
 import com.google.inject.spi.TypeEncounter;
 import com.google.inject.spi.TypeListener;
 import io.micrometer.core.instrument.MeterRegistry;
-import io.micrometer.core.instrument.Tag;
 import io.micrometer.core.instrument.Tags;
 
 import javax.inject.Inject;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
-
-import static ratpack.micrometer.metrics.internal.TagUtils.exception;
 
 /**
  * An implementation of TypeListener that collects {@link io.micrometer.core.instrument.Gauge} metrics for any valid method

@@ -7,10 +7,7 @@ import io.micrometer.core.instrument.Tags;
 import io.micrometer.core.instrument.binder.MeterBinder;
 import io.micrometer.core.instrument.config.MeterFilter;
 import ratpack.func.Action;
-import ratpack.func.Factory;
 import ratpack.handling.Context;
-import ratpack.handling.internal.ContentNegotiationHandler;
-import ratpack.http.Request;
 import ratpack.micrometer.metrics.config.*;
 
 import java.util.ArrayList;
@@ -53,12 +50,7 @@ public class MicrometerMetricsConfig {
    * Tags that will be added to {@link ratpack.handling.Handler} timings based on the original request and
    * the response.
    */
-  private BiFunction<Context, Throwable, Tags> handlerTags = HandlerTags.RECOMMENDED_HANDLER;
-
-  /**
-   * Tags that will be added to {@link ratpack.exec.Blocking#get(Factory)} timings based on the original request.
-   */
-  private BiFunction<Request, Throwable, Tags> blockingExecTags = HandlerTags.RECOMMENDED_BLOCKING_EXEC;
+  private BiFunction<Context, Throwable, Tags> handlerTags = HandlerTags.RECOMMENDED_TAGS;
 
   private RatpackAppOpticsConfig appOptics = new RatpackAppOpticsConfig();
   private RatpackAtlasConfig atlas = new RatpackAtlasConfig();
@@ -146,7 +138,7 @@ public class MicrometerMetricsConfig {
   /**
    * Configure tags that will be included in {@link ratpack.handling.Handler} timings based on the original
    * request and the response.
-   * @param handlerTags NOTE: You can extend a carefully curated set of tags from {@link HandlerTags#RECOMMENDED_HANDLER}.
+   * @param handlerTags NOTE: You can extend a carefully curated set of tags from {@link HandlerTags#RECOMMENDED_TAGS}.
    * @see #addHandlerTags(BiFunction) to add tags to the recommended list.
    */
   public MicrometerMetricsConfig handlerTags(BiFunction<Context, Throwable, Tags> handlerTags) {
@@ -163,28 +155,6 @@ public class MicrometerMetricsConfig {
     this.handlerTags = (context, throwable) -> Tags.concat(
       current.apply(context, throwable),
       additionalTags.apply(context, throwable)
-    );
-    return this;
-  }
-
-  public BiFunction<Request, Throwable, Tags> getBlockingExecTags() {
-    return blockingExecTags;
-  }
-
-  public MicrometerMetricsConfig blockingExecTags(BiFunction<Request, Throwable, Tags> blockingExecTags) {
-    this.blockingExecTags = blockingExecTags;
-    return this;
-  }
-
-  /**
-   * Add additional tags that will be included in {@link ratpack.exec.Blocking#get(Factory)} timings based on the original
-   * request.
-   */
-  public MicrometerMetricsConfig addBlockingExecTags(BiFunction<Request, Throwable, Tags> additionalTags) {
-    BiFunction<Request, Throwable, Tags> current = blockingExecTags;
-    this.blockingExecTags = (request, throwable) -> Tags.concat(
-      current.apply(request, throwable),
-      additionalTags.apply(request, throwable)
     );
     return this;
   }

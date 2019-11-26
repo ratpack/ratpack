@@ -5,7 +5,7 @@ import io.micrometer.core.instrument.Timer;
 import ratpack.exec.ExecInterceptor;
 import ratpack.exec.Execution;
 import ratpack.func.Block;
-import ratpack.http.Request;
+import ratpack.handling.Context;
 import ratpack.micrometer.metrics.BlockingExecTimingInterceptor;
 import ratpack.micrometer.metrics.MicrometerMetricsConfig;
 
@@ -23,17 +23,17 @@ public class DefaultBlockingExecTimingInterceptor implements BlockingExecTimingI
   @Override
   public void intercept(Execution execution, ExecInterceptor.ExecType type, Block executionSegment) throws Exception {
     if (type == ExecInterceptor.ExecType.BLOCKING) {
-      Optional<Request> requestOpt = execution.maybeGet(Request.class);
-      if (requestOpt.isPresent()) {
-        Request request = requestOpt.get();
+      Optional<Context> contextOpt = execution.maybeGet(Context.class);
+      if (contextOpt.isPresent()) {
+        Context context = contextOpt.get();
         Timer.Sample sample = Timer.start(meterRegistry);
         try {
           executionSegment.execute();
           sample.stop(meterRegistry.timer("http.blocking.execution",
-            config.getBlockingExecTags().apply(request, null)));
+            config.getHandlerTags().apply(context, null)));
         } catch(Exception e) {
           sample.stop(meterRegistry.timer("http.blocking.execution",
-            config.getBlockingExecTags().apply(request, e)));
+            config.getHandlerTags().apply(context, e)));
           throw e;
         }
       }

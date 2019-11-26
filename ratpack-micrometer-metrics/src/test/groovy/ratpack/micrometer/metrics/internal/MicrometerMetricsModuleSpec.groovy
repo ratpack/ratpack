@@ -261,7 +261,7 @@ class MicrometerMetricsModuleSpec extends RatpackGroovyDslSpec {
     bindings {
       module new MicrometerMetricsModule(), {
         it.additionalMeterRegistries(new SimpleMeterRegistry())
-        it.addBlockingExecTags { request, throwable -> Tags.of('custom', 'mycustom') }
+        it.addHandlerTags { context, throwable -> Tags.of('custom', 'mycustom') }
       }
     }
 
@@ -282,8 +282,9 @@ class MicrometerMetricsModuleSpec extends RatpackGroovyDslSpec {
 
     then:
     meterRegistry?.get('http.blocking.execution')
-      ?.tag('method', 'GET')
+      ?.tags(successfulGetTags)
       ?.tag('custom', 'mycustom')
+      ?.tag('uri', 'foo')
       ?.timer()?.count() == 2
   }
 }

@@ -12,17 +12,7 @@ import java.util.function.BiFunction;
 import java.util.regex.Pattern;
 
 public final class HandlerTags {
-  /**
-   * Not possible currently to tag with uri like we do with {@link #RECOMMENDED_HANDLER}, because
-   * we don't have access to the {@link Context} object in blocking executions inside path bindings
-   * containing path variables. Failing to tag with path binding (before variable substitution) would
-   * lead to a high cardinality tag on uri.
-   */
-  public static final BiFunction<Request, Throwable, Tags> RECOMMENDED_BLOCKING_EXEC = (request, exception) -> Tags.of(
-    HandlerTags.method(request)
-  );
-
-  public static final BiFunction<Context, Throwable, Tags> RECOMMENDED_HANDLER = (context, exception) -> Tags.of(
+  public static final BiFunction<Context, Throwable, Tags> RECOMMENDED_TAGS = (context, exception) -> Tags.of(
     HandlerTags.method(context.getRequest()), HandlerTags.uri(context),
     HandlerTags.exception(exception), HandlerTags.status(context.getResponse()), HandlerTags.outcome(context.getResponse()));
 

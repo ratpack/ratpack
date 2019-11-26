@@ -1,11 +1,7 @@
 package ratpack.micrometer.metrics.internal;
 
 import io.micrometer.core.instrument.MeterRegistry;
-import io.micrometer.core.instrument.Tag;
-import io.micrometer.core.instrument.Tags;
 import ratpack.handling.Context;
-import ratpack.http.SentResponse;
-import ratpack.micrometer.metrics.HandlerTags;
 import ratpack.micrometer.metrics.MicrometerMetricsConfig;
 import ratpack.micrometer.metrics.RequestTimingHandler;
 

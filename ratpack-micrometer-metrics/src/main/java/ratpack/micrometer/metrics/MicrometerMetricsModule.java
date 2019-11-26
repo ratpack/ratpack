@@ -2,24 +2,12 @@ package ratpack.micrometer.metrics;
 
 import com.codahale.metrics.annotation.Metered;
 import com.codahale.metrics.annotation.Timed;
-import com.google.inject.*;
+import com.google.inject.Provider;
 import com.google.inject.matcher.Matchers;
 import com.google.inject.multibindings.Multibinder;
-import io.micrometer.core.instrument.MeterRegistry;
-import io.micrometer.core.instrument.Metrics;
-import io.micrometer.core.instrument.binder.MeterBinder;
-import io.micrometer.core.instrument.binder.jvm.ClassLoaderMetrics;
-import io.micrometer.core.instrument.binder.jvm.JvmGcMetrics;
-import io.micrometer.core.instrument.binder.jvm.JvmMemoryMetrics;
-import io.micrometer.core.instrument.binder.jvm.JvmThreadMetrics;
-import io.micrometer.core.instrument.binder.system.FileDescriptorMetrics;
-import io.micrometer.core.instrument.binder.system.ProcessorMetrics;
-import io.micrometer.core.instrument.binder.system.UptimeMetrics;
 import ratpack.guice.ConfigurableModule;
 import ratpack.handling.HandlerDecorator;
 import ratpack.micrometer.metrics.internal.*;
-import ratpack.service.Service;
-import ratpack.service.StartEvent;
 
 import static com.google.inject.Scopes.SINGLETON;
 
