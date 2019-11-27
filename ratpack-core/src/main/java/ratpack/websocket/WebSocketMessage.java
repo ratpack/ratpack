@@ -16,9 +16,15 @@
 
 package ratpack.websocket;
 
+import io.netty.buffer.ByteBuf;
+
 public interface WebSocketMessage<T> {
 
   WebSocket getConnection();
+
+  boolean isBinary();
+
+  ByteBuf getContent();
 
   String getText();
 

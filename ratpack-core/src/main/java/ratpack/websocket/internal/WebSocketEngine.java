@@ -127,9 +127,9 @@ public class WebSocketEngine {
                 channel.writeAndFlush(new PongWebSocketFrame(frame.content()));
                 return;
               }
-              if (frame instanceof TextWebSocketFrame) {
-                TextWebSocketFrame textWebSocketFrame = (TextWebSocketFrame) frame;
-                handler.onMessage(new DefaultWebSocketMessage<>(webSocket, textWebSocketFrame.text(), openResult));
+              if (frame instanceof TextWebSocketFrame || frame instanceof BinaryWebSocketFrame) {
+                boolean binary = frame instanceof BinaryWebSocketFrame;
+                handler.onMessage(new DefaultWebSocketMessage<>(webSocket, binary, frame.content(), openResult));
                 frame.release();
               }
             }

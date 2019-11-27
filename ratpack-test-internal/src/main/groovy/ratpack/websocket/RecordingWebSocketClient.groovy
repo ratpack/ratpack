@@ -17,10 +17,13 @@
 package ratpack.websocket
 
 import groovy.transform.CompileStatic
+import io.netty.buffer.ByteBuf
+import io.netty.buffer.Unpooled
 import org.java_websocket.client.WebSocketClient
 import org.java_websocket.framing.Framedata
 import org.java_websocket.handshake.ServerHandshake
 
+import java.nio.ByteBuffer
 import java.util.concurrent.CountDownLatch
 import java.util.concurrent.LinkedBlockingQueue
 import java.util.concurrent.TimeUnit
@@ -29,6 +32,7 @@ import java.util.concurrent.TimeUnit
 class RecordingWebSocketClient extends WebSocketClient {
 
   final LinkedBlockingQueue<String> receivedText = new LinkedBlockingQueue<String>()
+  final LinkedBlockingQueue<ByteBuf> receivedBytes = new LinkedBlockingQueue<ByteBuf>()
   final LinkedBlockingQueue<Framedata> receivedFragments = new LinkedBlockingQueue<Framedata>()
 
   Exception exception
@@ -62,6 +66,11 @@ class RecordingWebSocketClient extends WebSocketClient {
   @Override
   void onMessage(String message) {
     receivedText.put message
+  }
+
+  @Override
+  void onMessage(ByteBuffer byteBuffer) {
+    receivedBytes.put Unpooled.wrappedBuffer(byteBuffer)
   }
 
   @Override

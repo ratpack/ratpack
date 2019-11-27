@@ -29,10 +29,27 @@ public interface WebSocket {
 
   boolean isOpen();
 
+  /**
+   * @deprecated please use {@link #sendText(String)}
+   */
+  @Deprecated
   @NonBlocking
   void send(String text);
 
+  /**
+   * @deprecated please use {@link #sendText(ByteBuf)} or {@link #sendBinary(ByteBuf)}
+   */
+  @Deprecated
   @NonBlocking
   void send(ByteBuf text);
+
+  @NonBlocking
+  void sendText(String text);
+
+  @NonBlocking
+  void sendText(ByteBuf text);
+
+  @NonBlocking
+  void sendBinary(ByteBuf text);
 
 }

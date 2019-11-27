@@ -16,6 +16,9 @@
 
 package ratpack.websocket
 
+import io.netty.buffer.ByteBufUtil
+import io.netty.buffer.Unpooled
+import io.netty.util.CharsetUtil
 import org.java_websocket.framing.Framedata
 import org.reactivestreams.Publisher
 import org.reactivestreams.Subscriber
@@ -52,7 +55,7 @@ class WebSocketTestSpec extends RatpackGroovyDslSpec {
             closing.set(it)
           } onMessage {
             serverReceived.put it
-            it.connection.send(it.text.toUpperCase())
+            it.connection.sendText(it.text.toUpperCase())
           }
         }
       }
@@ -306,6 +309,41 @@ class WebSocketTestSpec extends RatpackGroovyDslSpec {
 
     cleanup:
     client.close()
+  }
+
+  def "can send and receive binary frames"() {
+    given:
+    def serverReceived = new LinkedBlockingQueue<WebSocketMessage<?>>()
+    handlers {
+      get {
+        context.websocket({
+        } as Function) connect { spec ->
+          spec.onMessage { message ->
+            serverReceived.put message
+            def length = message.content.readableBytes()
+            message.connection.sendBinary(Unpooled.copyInt(length))
+          }
+        }
+      }
+    }
+
+    when:
+    server.start()
+    def client = openWsClient()
+
+    then:
+    def sentMessage = "foo"
+    def sentBytes = sentMessage.getBytes(CharsetUtil.UTF_8)
+    client.connectBlocking()
+    client.send(sentBytes)
+
+    and:
+    with(serverReceived.poll(5, TimeUnit.SECONDS)) {
+      binary
+      ByteBufUtil.getBytes(content) == sentBytes
+      text == sentMessage
+    }
+    client.receivedBytes.poll(5, TimeUnit.SECONDS).readInt() == sentBytes.length
   }
 
 }

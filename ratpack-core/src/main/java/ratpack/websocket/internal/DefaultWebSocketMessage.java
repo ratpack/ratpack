@@ -16,18 +16,22 @@
 
 package ratpack.websocket.internal;
 
+import io.netty.buffer.ByteBuf;
+import io.netty.util.CharsetUtil;
 import ratpack.websocket.WebSocket;
 import ratpack.websocket.WebSocketMessage;
 
 public class DefaultWebSocketMessage<T> implements WebSocketMessage<T> {
 
   private final WebSocket webSocket;
-  private final String text;
+  private final boolean binary;
+  private final ByteBuf content;
   private final T openResult;
 
-  public DefaultWebSocketMessage(WebSocket webSocket, String text, T openResult) {
+  public DefaultWebSocketMessage(WebSocket webSocket, boolean binary, ByteBuf content, T openResult) {
     this.webSocket = webSocket;
-    this.text = text;
+    this.binary = binary;
+    this.content = content;
     this.openResult = openResult;
   }
 
@@ -37,8 +41,18 @@ public class DefaultWebSocketMessage<T> implements WebSocketMessage<T> {
   }
 
   @Override
+  public boolean isBinary() {
+    return binary;
+  }
+
+  @Override
+  public ByteBuf getContent() {
+    return content;
+  }
+
+  @Override
   public String getText() {
-    return text;
+    return content.toString(CharsetUtil.UTF_8);
   }
 
   @Override
