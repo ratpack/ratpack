@@ -78,8 +78,11 @@ public final class HandlerTags {
           }
         }
       }
+
       String pathInfo = getPathInfo(context);
-      if (pathInfo.isEmpty()) {
+      if (context.getPathBinding().getBoundTo().isEmpty()) {
+        return URI_NOT_FOUND;
+      } else if (pathInfo.isEmpty()) {
         return URI_ROOT;
       } else {
         return Tag.of("uri", pathInfo);

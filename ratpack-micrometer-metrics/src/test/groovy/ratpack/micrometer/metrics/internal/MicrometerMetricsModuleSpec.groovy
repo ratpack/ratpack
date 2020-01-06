@@ -207,8 +207,7 @@ class MicrometerMetricsModuleSpec extends RatpackGroovyDslSpec {
     }
 
     when:
-    // TODO how to detect 404s?
-//    1.times { get('unroutable') }
+    1.times { get('unroutable') }
 
     2.times { get('foo') }
 
@@ -225,8 +224,8 @@ class MicrometerMetricsModuleSpec extends RatpackGroovyDslSpec {
       ?.timer()?.count() == 2
     meterRegistry?.get('http.server.requests')?.tag('uri', 'foo/bar')?.tags(successfulGetTags)?.timer()?.count() == 8
     meterRegistry?.get('http.server.requests')?.tag('uri', 'foo/baz/:id')?.tags(successfulGetTags)?.timer()?.count() == 1
-//    meterRegistry?.get('http.server.requests')?.tag('uri', 'NOT_FOUND')?.tags('outcome', 'CLIENT_ERROR')
-//      ?.timer()?.count() == 1
+    meterRegistry?.get('http.server.requests')?.tag('uri', 'NOT_FOUND')?.tags('outcome', 'CLIENT_ERROR')
+      ?.timer()?.count() == 1
   }
 
   def 'can collect default bound metrics'() {

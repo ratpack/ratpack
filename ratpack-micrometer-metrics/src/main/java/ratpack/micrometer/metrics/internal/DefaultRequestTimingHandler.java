@@ -18,10 +18,9 @@ public class DefaultRequestTimingHandler implements RequestTimingHandler {
 
   @Override
   public void handle(final Context context) {
-    context.onClose(outcome -> {
-      meterRegistry.timer("http.server.requests", config.getHandlerTags().apply(context, null))
-        .record(outcome.getDuration().toNanos(), TimeUnit.NANOSECONDS);
-    });
+    context.onClose(outcome -> meterRegistry
+      .timer("http.server.requests", config.getHandlerTags().apply(context, null))
+      .record(outcome.getDuration().toNanos(), TimeUnit.NANOSECONDS));
     context.next();
   }
 }
