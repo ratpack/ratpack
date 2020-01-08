@@ -24,6 +24,8 @@ import io.micrometer.core.instrument.binder.MeterBinder;
 import io.micrometer.core.instrument.config.MeterFilter;
 import ratpack.func.Action;
 import ratpack.handling.Context;
+import ratpack.http.client.HttpResponse;
+import ratpack.http.client.RequestSpec;
 import ratpack.micrometer.metrics.config.*;
 
 import java.util.ArrayList;
@@ -51,8 +53,9 @@ public class MicrometerMetricsConfig {
    */
   private Tags commonTags = Tags.empty();
 
-  private boolean requestTimingMetrics = true;
-  private boolean blockingTimingMetrics = true;
+  private boolean timingRequests = true;
+  private boolean timingClientRequests = true;
+  private boolean timingBlocking = true;
 
   /**
    * To provide {@link MeterRegistry} instances that will not be automatically configured by Ratpack.
@@ -67,6 +70,8 @@ public class MicrometerMetricsConfig {
    * the response.
    */
   private BiFunction<Context, Throwable, Tags> handlerTags = HandlerTags.RECOMMENDED_TAGS;
+
+  private BiFunction<RequestSpec, HttpResponse, Tags> clientRequestTags;
 
   private RatpackAppOpticsConfig appOptics = new RatpackAppOpticsConfig();
   private RatpackAtlasConfig atlas = new RatpackAtlasConfig();
@@ -99,21 +104,30 @@ public class MicrometerMetricsConfig {
     return this;
   }
 
-  public boolean isRequestTimingMetrics() {
-    return requestTimingMetrics;
+  public boolean isTimingClientRequests() {
+    return timingClientRequests;
   }
 
-  public MicrometerMetricsConfig requestTimingMetrics(boolean requestTimingMetrics) {
-    this.requestTimingMetrics = requestTimingMetrics;
+  public MicrometerMetricsConfig timeClientRequests(boolean timeClientRequests) {
+    this.timingClientRequests = timeClientRequests;
     return this;
   }
 
-  public boolean isBlockingTimingMetrics() {
-    return blockingTimingMetrics;
+  public boolean isTimingRequests() {
+    return timingRequests;
   }
 
-  public MicrometerMetricsConfig blockingTimingMetrics(boolean blockingTimingMetrics) {
-    this.blockingTimingMetrics = blockingTimingMetrics;
+  public MicrometerMetricsConfig timeRequests(boolean timingRequests) {
+    this.timingRequests = timingRequests;
+    return this;
+  }
+
+  public boolean isTimingBlocking() {
+    return timingBlocking;
+  }
+
+  public MicrometerMetricsConfig timeBlocking(boolean timeBlocking) {
+    this.timingBlocking = timeBlocking;
     return this;
   }
 
@@ -159,6 +173,23 @@ public class MicrometerMetricsConfig {
    */
   public MicrometerMetricsConfig handlerTags(BiFunction<Context, Throwable, Tags> handlerTags) {
     this.handlerTags = handlerTags;
+    return this;
+  }
+
+  public BiFunction<RequestSpec, HttpResponse, Tags> getClientRequestTags() {
+    return clientRequestTags;
+  }
+
+  /**
+   * Configure tags that will be included in {@link ratpack.http.client.HttpClient} timings based on the original
+   * request and the response.
+   * @param clientRequestTags Several out of the box tags are provided in {@link ClientRequestTags}. You should
+   *                          provide some means to extract a parameterized path binding from what you know about
+   *                          the paths of the downstream service. For example, add a tag for `/api/foo/{id}` when
+   *                          calling a downstream API with `/api/foo/1`.
+   */
+  public MicrometerMetricsConfig clientRequestTags(BiFunction<RequestSpec, HttpResponse, Tags> clientRequestTags) {
+    this.clientRequestTags = clientRequestTags;
     return this;
   }
 

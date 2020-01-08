@@ -21,13 +21,18 @@ import com.codahale.metrics.annotation.Timed;
 import com.google.inject.Provider;
 import com.google.inject.matcher.Matchers;
 import com.google.inject.multibindings.Multibinder;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import ratpack.guice.ConfigurableModule;
 import ratpack.handling.HandlerDecorator;
+import ratpack.http.client.HttpClient;
 import ratpack.micrometer.metrics.internal.*;
 
 import static com.google.inject.Scopes.SINGLETON;
 
 public class MicrometerMetricsModule extends ConfigurableModule<MicrometerMetricsConfig> {
+  private final Logger logger = LoggerFactory.getLogger(MicrometerMetricsModule.class);
+
   @Override
   protected void configure() {
     install(new MeterRegistryModule());
@@ -38,6 +43,13 @@ public class MicrometerMetricsModule extends ConfigurableModule<MicrometerMetric
     Multibinder.newSetBinder(binder(), HandlerDecorator.class).addBinding().toProvider(() -> HandlerDecorator.prepend(handlerProvider.get()));
 
     bindInterceptor(Matchers.any(), Matchers.annotatedWith(io.micrometer.core.annotation.Timed.class), injected(new TimedAnnotationMethodInterceptor()));
+
+    try {
+      bind(HttpClient.class).toInstance(HttpClient.of(injected(new HttpClientTimingAction())));
+    } catch (Exception e) {
+      logger.error("Unexpected error binding Micrometer HTTP client request metric support", e);
+    }
+
     bindListener(Matchers.any(), injected(new DropwizardGaugeTypeListener()));
 
     configureDropwizardMigration();

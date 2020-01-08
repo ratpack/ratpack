@@ -40,7 +40,7 @@ public class BlockingExecTimingInterceptorProvider implements Provider<BlockingE
 
   @Override
   public BlockingExecTimingInterceptor get() {
-    return config.isBlockingTimingMetrics() ? new DefaultBlockingExecTimingInterceptor(config, meterRegistry) : NOOP;
+    return config.isTimingBlocking() ? new DefaultBlockingExecTimingInterceptor(config, meterRegistry) : NOOP;
   }
 
 }

@@ -24,12 +24,12 @@ import ratpack.micrometer.metrics.RequestTimingHandler;
 import java.util.concurrent.TimeUnit;
 
 public class DefaultRequestTimingHandler implements RequestTimingHandler {
-  private final MicrometerMetricsConfig config;
   private final MeterRegistry meterRegistry;
+  private final MicrometerMetricsConfig config;
 
-  DefaultRequestTimingHandler(MicrometerMetricsConfig config, MeterRegistry meterRegistry) {
-    this.config = config;
+  DefaultRequestTimingHandler(MeterRegistry meterRegistry, MicrometerMetricsConfig config) {
     this.meterRegistry = meterRegistry;
+    this.config = config;
   }
 
   @Override

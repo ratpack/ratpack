@@ -40,6 +40,8 @@ public class RequestTimingHandlerProvider implements Provider<RequestTimingHandl
 
   @Override
   public RequestTimingHandler get() {
-    return config.isRequestTimingMetrics() ? new DefaultRequestTimingHandler(config, meterRegistry) : Context::next;
+    return config.isTimingRequests() ?
+      new DefaultRequestTimingHandler(meterRegistry, config) :
+      Context::next;
   }
 }

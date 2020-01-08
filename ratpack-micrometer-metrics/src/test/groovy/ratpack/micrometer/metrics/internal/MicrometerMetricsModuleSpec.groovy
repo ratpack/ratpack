@@ -24,6 +24,7 @@ import io.micrometer.core.instrument.Tags
 import io.micrometer.core.instrument.simple.SimpleMeterRegistry
 import ratpack.exec.Blocking
 import ratpack.exec.Promise
+import ratpack.http.client.HttpClient
 import ratpack.micrometer.metrics.MicrometerMetricsModule
 import ratpack.test.internal.RatpackGroovyDslSpec
 import spock.lang.Shared
