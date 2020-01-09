@@ -83,6 +83,7 @@ packageTemplateRatpack {
       throw new GradleException("Cannot publish lazybones template with a snapshot version: $version")
     }
   }
+  archiveFileName.set("ratpack-template-${project.version}.zip")
 }
 
 task writeTestConfig(type: WriteTestConfig) {

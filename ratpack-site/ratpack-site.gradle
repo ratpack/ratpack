@@ -57,7 +57,7 @@ ext {
     "1.4.0-rc-1", "1.4.0-rc-2", "1.4.0-rc-3", "1.4.0", "1.4.1", "1.4.2", "1.4.3", "1.4.4", "1.4.5", "1.4.6",
     "1.5.0-rc-1", "1.5.0-rc-2", "1.5.0-rc-3", "1.5.0", "1.5.1", "1.5.2", "1.5.3", "1.5.4",
     "1.6.0-rc-1", "1.6.0-rc-2", "1.6.0-rc-3", "1.6.0-rc-4", "1.6.0", "1.6.1",
-    "1.7.0", "1.7.1", "1.7.2", "1.7.3"
+    "1.7.0", "1.7.1", "1.7.2", "1.7.3", "1.7.4", "1.7.5"
   ]
 
   if (!isHeroku && !isCi) {
@@ -151,12 +151,15 @@ dependencies {
 
 mainClassName = 'ratpack.site.SiteMain'
 
+tasks.withType(Zip) {
+  zip64 = true
+}
+
 shadowJar {
   dependencies {
     exclude(dependency("com.bertramlabs.plugins:sass-asset-pipeline:.*"))
     exclude(dependency("org.jruby:jruby-complete:.*"))
   }
-  zip64 = true
 }
 
 task downloadChromeDriver {

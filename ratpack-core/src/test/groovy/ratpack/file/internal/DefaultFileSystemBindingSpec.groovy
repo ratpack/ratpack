@@ -21,27 +21,84 @@ import org.junit.rules.TemporaryFolder
 import ratpack.file.FileSystemBinding
 import spock.lang.Specification
 
+import java.nio.file.Files
+import java.nio.file.Path
 import java.nio.file.Paths
+import java.util.stream.Stream
 
 class DefaultFileSystemBindingSpec extends Specification {
 
+  static Stream<String> dupeDecode(String payload) {
+    String decoded = null
+    try {
+      decoded = URLDecoder.decode(payload)
+    } catch(IllegalArgumentException ignored) {
+      // noop
+    }
+    return Stream.of(payload, decoded).filter { it != null }.distinct()
+  }
+
+  static Collection<String> payloadFor(String resource, String fileName) {
+    return DefaultFileSystemBindingSpec
+      .getResource(resource).text
+      .replaceAll("\\{FILE}", fileName)
+      .split("\n")
+      .toList()
+      .stream()
+      .flatMap { dupeDecode(it) }
+      .distinct()
+      .collect()
+  }
+
+  static Collection<String> getPayloads(String fileName) {
+    return payloadFor("/ratpack/test/deep_traversal.txt", fileName) +
+      payloadFor("/ratpack/test/traversals-8-deep-exotic-encoding.txt", fileName)
+  }
+
+
   @Rule
   TemporaryFolder temporaryFolder
+  File newRoot
 
   FileSystemBinding binding
 
   def setup() {
-    binding = FileSystemBinding.of(temporaryFolder.root.toPath())
+    newRoot = temporaryFolder.newFile("new-root")
+    binding = FileSystemBinding.of(newRoot.toPath())
   }
 
   def "absolute paths are resolved relative"() {
+    File expected = new File(newRoot, "foo")
     expect:
-    binding.file("/foo") == temporaryFolder.newFile("foo").toPath()
+    binding.file("/foo") == expected.toPath()
   }
 
   def "files not in binding root returns null"() {
     expect:
-    binding.file("../../../etc/passwd") == null
+    binding.file("../../../../etc/passwd") == null
+  }
+
+  def "something hidden can't be found"() {
+    temporaryFolder.newFile("secret-file.txt")
+    expect:
+    binding.file("../secret-file.txt") == null
+  }
+
+  def "brute something hidden can't be found: #name"() {
+    temporaryFolder.newFile("secret-file.txt") << "Text"
+    // Sanity pre-test verification
+    assert Files.exists(newRoot.toPath().resolve("../secret-file.txt").normalize())
+    expect:
+    Path thePath = binding.file(traversal)
+    if (thePath == null) {
+      // The path may be resolvable.
+      return
+    }
+    // the file should never exist
+    !Files.exists(thePath)
+    where:
+    traversal << getPayloads("secret-file.txt")
+    name = traversal
   }
 
   def "non-absolute binding throws exception"() {

@@ -31,10 +31,12 @@ class RatpackGroovyPlugin implements Plugin<Project> {
 
     def ratpackExtension = project.extensions.getByType(RatpackExtension)
 
-    project.dependencies {
-      compile ratpackExtension.groovy
-      testCompile ratpackExtension.groovyTest
-    }
+    def configurationContainer = project.configurations
+    (configurationContainer.findByName("implementation") ?: configurationContainer.findByName("compile")).
+      dependencies.add(ratpackExtension.groovy)
+
+    (configurationContainer.findByName("testImplementation") ?: configurationContainer.findByName("testCompile")).
+      dependencies.add(ratpackExtension.groovyTest)
   }
 
 }
