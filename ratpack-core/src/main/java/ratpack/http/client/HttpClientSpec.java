@@ -185,4 +185,14 @@ public interface HttpClientSpec {
    * @since 1.6
    */
   HttpClientSpec enableMetricsCollection(boolean enableMetricsCollection);
+
+  /**
+   * Configure a HTTP proxy for outgoing calls from this client.
+   *
+   * @param proxy the proxy configuration
+   * @return {@code this}
+   * @since 1.8.0
+   */
+  HttpClientSpec proxy(Action<? super ProxySpec> proxy);
+
 }

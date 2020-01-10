@@ -24,8 +24,8 @@ public class InstrumentedSimpleChannelPoolHandler extends NoopSimpleChannelPoolH
 
   private final LongAdder activeConnectionCount;
 
-  public InstrumentedSimpleChannelPoolHandler(HttpChannelKey channelKey) {
-    super(channelKey);
+  public InstrumentedSimpleChannelPoolHandler(HttpChannelKey channelKey, ProxyInternal proxy) {
+    super(channelKey, proxy);
     this.activeConnectionCount = new LongAdder();
   }
 

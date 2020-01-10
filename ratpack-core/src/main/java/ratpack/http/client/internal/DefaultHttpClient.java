@@ -29,13 +29,9 @@ import ratpack.exec.Operation;
 import ratpack.exec.Promise;
 import ratpack.exec.internal.ExecControllerInternal;
 import ratpack.func.Action;
-import ratpack.http.client.HttpClient;
-import ratpack.http.client.HttpClientSpec;
-import ratpack.http.client.HttpResponse;
-import ratpack.http.client.ReceivedResponse;
-import ratpack.http.client.RequestSpec;
-import ratpack.http.client.StreamedResponse;
+import ratpack.http.client.*;
 import ratpack.server.ServerConfig;
+import ratpack.util.Exceptions;
 import ratpack.util.internal.TransportDetector;
 
 import java.net.URI;
@@ -81,23 +77,33 @@ public class DefaultHttpClient implements HttpClientInternal {
   };
 
   private final DefaultHttpClient.Spec spec;
+  private final ProxyInternal proxy;
 
   private DefaultHttpClient(DefaultHttpClient.Spec spec) {
     this.spec = spec;
+
+    if (spec.proxy != null) {
+      DefaultProxy.Spec proxySpec = new DefaultProxy.Spec();
+      Exceptions.uncheck(() -> spec.proxy.execute(proxySpec));
+      this.proxy = new DefaultProxy(proxySpec);
+    } else {
+      proxy = null;
+    }
   }
 
   private InstrumentedChannelPoolHandler getPoolingHandler(HttpChannelKey key) {
+
     if (spec.enableMetricsCollection) {
-      return new InstrumentedFixedChannelPoolHandler(key, getPoolSize(), getIdleTimeout());
+      return new InstrumentedFixedChannelPoolHandler(key, getPoolSize(), getIdleTimeout(), proxy);
     }
-    return new NoopFixedChannelPoolHandler(key, getIdleTimeout());
+    return new NoopFixedChannelPoolHandler(key, getIdleTimeout(), proxy);
   }
 
   private InstrumentedChannelPoolHandler getSimpleHandler(HttpChannelKey key) {
     if (spec.enableMetricsCollection) {
-      return new InstrumentedSimpleChannelPoolHandler(key);
+      return new InstrumentedSimpleChannelPoolHandler(key, proxy);
     }
-    return new NoopSimpleChannelPoolHandler(key);
+    return new NoopSimpleChannelPoolHandler(key, proxy);
   }
 
   @Override
@@ -156,6 +162,11 @@ public class DefaultHttpClient implements HttpClientInternal {
   }
 
   @Override
+  public Proxy getProxy() {
+    return proxy;
+  }
+
+  @Override
   public void close() {
     channelPoolMap.close();
   }
@@ -192,6 +203,7 @@ public class DefaultHttpClient implements HttpClientInternal {
     private Action<? super HttpResponse> responseInterceptor = Action.noop();
     private Action<? super Throwable> errorInterceptor = Action.noop();
     private boolean enableMetricsCollection;
+    private Action<? super ProxySpec> proxy;
 
     private Spec() {
     }
@@ -208,6 +220,7 @@ public class DefaultHttpClient implements HttpClientInternal {
       this.requestInterceptor = spec.requestInterceptor;
       this.responseInterceptor = spec.responseInterceptor;
       this.enableMetricsCollection = spec.enableMetricsCollection;
+      this.proxy = spec.proxy;
     }
 
     @Override
@@ -285,6 +298,12 @@ public class DefaultHttpClient implements HttpClientInternal {
     @Override
     public HttpClientSpec enableMetricsCollection(boolean enableMetricsCollection) {
       this.enableMetricsCollection = enableMetricsCollection;
+      return this;
+    }
+
+    @Override
+    public HttpClientSpec proxy(Action<? super ProxySpec> proxy) {
+      this.proxy = proxy;
       return this;
     }
   }
