@@ -24,13 +24,16 @@ buildscript {
   repositories {
     jcenter()
     gradlePluginPortal()
+    maven { url 'https://jitpack.io' }
   }
   dependencies {
-    classpath "com.github.robfletcher:compass-gradle-plugin:2.0.6"
     classpath "gradle.plugin.com.github.jengelman.gradle.plugins:gradle-processes:0.5.0"
     classpath "org.pegdown:pegdown:${commonVersions.pegdown}"
     classpath "com.eriwen:gradle-js-plugin:1.12.1"
     classpath "com.google.javascript:closure-compiler:v20150315"
+    // Use a patched version of gradle-compass that upgrades the jruby version to work around the shutdown of torquebox ruby gem proxy
+    classpath "com.github.johnrengelman:gradle-compass:fb492aa"
+    //classpath "com.github.robfletcher:compass-gradle-plugin:2.0.6"
   }
 }
 
@@ -42,7 +45,13 @@ apply plugin: "com.github.robfletcher.compass"
 apply plugin: "com.eriwen.gradle.js"
 
 jruby {
-  execVersion = '9.1.14.0'
+  jrubyVersion = '9.1.14.0'
+}
+
+repositories {
+  ruby.gems()
+  jcenter()
+  mavenCentral()
 }
 
 dependencies {
@@ -284,8 +293,8 @@ task compileManual {
   }
 }
 
-jruby {
-  gemInstallDir = file("${gradle.gradleUserHomeDir}/ruby-gems")
+jrubyPrepare {
+  outputDir file("${gradle.gradleUserHomeDir}/ruby-gems")
 }
 
 compass {
