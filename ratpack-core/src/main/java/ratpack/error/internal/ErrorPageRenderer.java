@@ -81,7 +81,7 @@ public abstract class ErrorPageRenderer {
         w.escape("Caused by: ");
       }
 
-      w.println(throwable.toString());
+      w.escapeln(throwable.toString());
       for (StackTraceElement ste : throwable.getStackTrace()) {
         String className = ste.getClassName();
         if (className.startsWith("ratpack")
@@ -119,6 +119,10 @@ public abstract class ErrorPageRenderer {
 
     BodyWriter escape(String string) {
       return print(HTML_ESCAPER.escape(string));
+    }
+
+    BodyWriter escapeln(String string) {
+      return println(HTML_ESCAPER.escape(string));
     }
   }
 
