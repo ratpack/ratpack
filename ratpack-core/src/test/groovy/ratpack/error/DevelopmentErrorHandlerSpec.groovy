@@ -16,9 +16,13 @@
 
 package ratpack.error
 
+import com.google.common.escape.Escaper
+import com.google.common.html.HtmlEscapers
 import ratpack.test.internal.RatpackGroovyDslSpec
 
 class DevelopmentErrorHandlerSpec extends RatpackGroovyDslSpec {
+
+  private static final Escaper HTML_ESCAPER = HtmlEscapers.htmlEscaper()
 
   def "debug error handler prints html info if client wants html"() {
     given:
@@ -96,4 +100,26 @@ class DevelopmentErrorHandlerSpec extends RatpackGroovyDslSpec {
       body.contentType.text
     }
   }
+
+  def "debug error handler properly escapes HTML characters"() {
+    given:
+    def payload = "<script>alert(1);</script>"
+    def e = new RuntimeException(payload)
+    requestSpec { it.headers.add("Accept", "text/html;q=1,text/plain;q=0.9") }
+
+    when:
+    serverConfig { development(true) }
+    handlers {
+      get("server") { error(e) }
+    }
+
+    then:
+    with(get("server")) {
+      statusCode == 500
+      body.text.startsWith("<!DOCTYPE html>")
+      !body.text.contains(payload)
+      body.text.contains(HTML_ESCAPER.escape(payload))
+      body.contentType.html
+      }
+    }
 }
