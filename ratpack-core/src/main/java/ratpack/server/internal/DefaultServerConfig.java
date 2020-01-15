@@ -19,7 +19,7 @@ package ratpack.server.internal;
 import com.google.common.collect.ImmutableSet;
 import io.netty.handler.ssl.JdkSslContext;
 import io.netty.handler.ssl.SslContext;
-import org.jetbrains.annotations.Nullable;;
+import org.jetbrains.annotations.Nullable;
 import ratpack.config.ConfigData;
 import ratpack.config.ConfigObject;
 import ratpack.config.internal.DelegatingConfigData;

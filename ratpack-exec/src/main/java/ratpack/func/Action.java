@@ -17,7 +17,7 @@
 package ratpack.func;
 
 import com.google.common.collect.ImmutableList;
-import org.jetbrains.annotations.Nullable;;
+import org.jetbrains.annotations.Nullable;
 import ratpack.exec.Promise;
 import ratpack.func.internal.ConditionalAction;
 import ratpack.util.Exceptions;

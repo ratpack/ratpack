@@ -16,7 +16,7 @@
 
 package ratpack.handling.internal;
 
-import org.jetbrains.annotations.Nullable;;
+import org.jetbrains.annotations.Nullable;
 import ratpack.handling.Chain;
 import ratpack.handling.Handler;
 import ratpack.registry.Registry;

@@ -17,7 +17,7 @@
 package ratpack.registry.internal;
 
 import com.google.common.reflect.TypeToken;
-import org.jetbrains.annotations.Nullable;;
+import org.jetbrains.annotations.Nullable;
 import ratpack.func.Function;
 import ratpack.registry.MutableRegistry;
 import ratpack.registry.NotInRegistryException;

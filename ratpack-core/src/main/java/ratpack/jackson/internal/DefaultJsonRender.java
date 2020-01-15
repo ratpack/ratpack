@@ -17,7 +17,7 @@
 package ratpack.jackson.internal;
 
 import com.fasterxml.jackson.databind.ObjectWriter;
-import org.jetbrains.annotations.Nullable;;
+import org.jetbrains.annotations.Nullable;
 import ratpack.jackson.JsonRender;
 
 public class DefaultJsonRender implements JsonRender {

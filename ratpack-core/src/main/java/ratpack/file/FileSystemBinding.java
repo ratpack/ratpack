@@ -17,7 +17,7 @@
 package ratpack.file;
 
 import com.google.common.reflect.TypeToken;
-import org.jetbrains.annotations.Nullable;;
+import org.jetbrains.annotations.Nullable;
 import ratpack.file.internal.DefaultFileSystemBinding;
 import ratpack.util.Types;
 

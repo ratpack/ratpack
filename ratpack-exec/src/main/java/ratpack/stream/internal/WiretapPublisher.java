@@ -19,7 +19,7 @@ package ratpack.stream.internal;
 import org.reactivestreams.Publisher;
 import org.reactivestreams.Subscriber;
 import org.reactivestreams.Subscription;
-import org.jetbrains.annotations.Nullable;;
+import org.jetbrains.annotations.Nullable;
 import ratpack.func.Action;
 import ratpack.stream.StreamEvent;
 import ratpack.stream.TransformablePublisher;

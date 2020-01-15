@@ -17,7 +17,7 @@
 package ratpack.gson.internal;
 
 import com.google.gson.Gson;
-import org.jetbrains.annotations.Nullable;;
+import org.jetbrains.annotations.Nullable;
 import ratpack.gson.GsonRender;
 
 public class DefaultGsonRender implements GsonRender {

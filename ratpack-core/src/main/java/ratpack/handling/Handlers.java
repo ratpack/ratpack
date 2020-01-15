@@ -16,7 +16,7 @@
 
 package ratpack.handling;
 
-import org.jetbrains.annotations.Nullable;;
+import org.jetbrains.annotations.Nullable;
 import ratpack.file.FileHandlerSpec;
 import ratpack.file.internal.DefaultFileHandlerSpec;
 import ratpack.file.internal.FileSystemBindingHandler;

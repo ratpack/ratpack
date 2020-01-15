@@ -19,7 +19,7 @@ package ratpack.retrofit.internal;
 import com.google.common.collect.ListMultimap;
 import io.netty.handler.codec.http.HttpHeaders;
 import io.netty.handler.codec.http.ReadOnlyHttpHeaders;
-import org.jetbrains.annotations.Nullable;;
+import org.jetbrains.annotations.Nullable;
 import ratpack.http.Headers;
 import ratpack.util.MultiValueMap;
 import ratpack.util.internal.ImmutableDelegatingMultiValueMap;

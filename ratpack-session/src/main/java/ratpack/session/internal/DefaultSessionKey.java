@@ -16,7 +16,7 @@
 
 package ratpack.session.internal;
 
-import org.jetbrains.annotations.Nullable;;
+import org.jetbrains.annotations.Nullable;
 import ratpack.session.SessionKey;
 
 public class DefaultSessionKey<T> implements SessionKey<T> {

@@ -19,7 +19,7 @@ package ratpack.service.internal;
 import com.google.common.base.Joiner;
 import com.google.common.collect.*;
 import org.slf4j.Logger;
-import org.jetbrains.annotations.Nullable;;
+import org.jetbrains.annotations.Nullable;
 import ratpack.exec.ExecController;
 import ratpack.func.Predicate;
 import ratpack.registry.Registry;

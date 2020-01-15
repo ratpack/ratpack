@@ -22,7 +22,7 @@ import groovy.lang.DelegatesTo;
 import groovy.lang.GroovySystem;
 import groovy.xml.MarkupBuilder;
 import io.netty.util.CharsetUtil;
-import org.jetbrains.annotations.Nullable;;
+import org.jetbrains.annotations.Nullable;
 import ratpack.file.FileSystemBinding;
 import ratpack.func.Action;
 import ratpack.func.Function;

@@ -17,7 +17,7 @@
 package ratpack.exec.internal;
 
 import io.netty.util.concurrent.FastThreadLocal;
-import org.jetbrains.annotations.Nullable;;
+import org.jetbrains.annotations.Nullable;
 import ratpack.exec.ExecController;
 import ratpack.exec.ExecutionException;
 import ratpack.exec.UnmanagedThreadException;

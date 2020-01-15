@@ -21,7 +21,7 @@ import com.google.common.reflect.TypeToken;
 import io.netty.buffer.ByteBuf;
 import io.netty.handler.codec.http.cookie.Cookie;
 import org.reactivestreams.Publisher;
-import org.jetbrains.annotations.Nullable;;
+import org.jetbrains.annotations.Nullable;
 import ratpack.exec.Blocking;
 import ratpack.exec.Promise;
 import ratpack.func.Block;

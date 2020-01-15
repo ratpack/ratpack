@@ -16,7 +16,7 @@
 
 package ratpack.parse;
 
-import org.jetbrains.annotations.Nullable;;
+import org.jetbrains.annotations.Nullable;
 import ratpack.handling.Context;
 import ratpack.http.TypedData;
 

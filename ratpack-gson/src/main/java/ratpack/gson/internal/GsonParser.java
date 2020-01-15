@@ -18,7 +18,7 @@ package ratpack.gson.internal;
 
 import com.google.common.reflect.TypeToken;
 import com.google.gson.Gson;
-import org.jetbrains.annotations.Nullable;;
+import org.jetbrains.annotations.Nullable;
 import ratpack.gson.GsonParseOpts;
 import ratpack.handling.Context;
 import ratpack.http.TypedData;

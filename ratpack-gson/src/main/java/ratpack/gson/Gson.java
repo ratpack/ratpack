@@ -21,7 +21,7 @@ import com.google.gson.JsonElement;
 import com.google.gson.stream.JsonWriter;
 import io.netty.buffer.Unpooled;
 import org.reactivestreams.Publisher;
-import org.jetbrains.annotations.Nullable;;
+import org.jetbrains.annotations.Nullable;
 import ratpack.func.Function;
 import ratpack.gson.internal.DefaultGsonParseOpts;
 import ratpack.gson.internal.DefaultGsonRender;

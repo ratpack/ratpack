@@ -17,7 +17,7 @@
 package ratpack.form.internal;
 
 import com.google.common.collect.ListMultimap;
-import org.jetbrains.annotations.Nullable;;
+import org.jetbrains.annotations.Nullable;
 import ratpack.form.Form;
 import ratpack.form.UploadedFile;
 import ratpack.util.MultiValueMap;

@@ -16,7 +16,7 @@
 
 package ratpack.session;
 
-import org.jetbrains.annotations.Nullable;;
+import org.jetbrains.annotations.Nullable;
 import ratpack.session.internal.DefaultSessionKey;
 import ratpack.util.Types;
 

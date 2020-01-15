@@ -18,7 +18,7 @@ package ratpack.test.http;
 
 import com.google.common.collect.ImmutableMultimap;
 import io.netty.handler.codec.http.cookie.Cookie;
-import org.jetbrains.annotations.Nullable;;
+import org.jetbrains.annotations.Nullable;
 import ratpack.func.Action;
 import ratpack.http.client.ReceivedResponse;
 import ratpack.http.client.RequestSpec;

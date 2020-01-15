@@ -16,7 +16,7 @@
 
 package ratpack.file.internal;
 
-import org.jetbrains.annotations.Nullable;;
+import org.jetbrains.annotations.Nullable;
 
 public interface FileSystemChecksumService {
 

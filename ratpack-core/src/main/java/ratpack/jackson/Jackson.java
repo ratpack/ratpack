@@ -23,7 +23,7 @@ import com.fasterxml.jackson.databind.ObjectWriter;
 import com.google.common.reflect.TypeToken;
 import io.netty.buffer.Unpooled;
 import org.reactivestreams.Publisher;
-import org.jetbrains.annotations.Nullable;;
+import org.jetbrains.annotations.Nullable;
 import ratpack.func.Function;
 import ratpack.http.ResponseChunks;
 import ratpack.http.internal.HttpHeaderConstants;
