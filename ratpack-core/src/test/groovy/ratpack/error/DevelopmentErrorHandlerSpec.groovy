@@ -120,6 +120,6 @@ class DevelopmentErrorHandlerSpec extends RatpackGroovyDslSpec {
       !body.text.contains(payload)
       body.text.contains(HTML_ESCAPER.escape(payload))
       body.contentType.html
-      }
     }
+  }
 }
