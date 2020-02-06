@@ -18,27 +18,25 @@ package ratpack.gradle;
 
 import org.gradle.internal.UncheckedException;
 
-import java.text.DateFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
-import java.util.Date;
 import java.util.TimeZone;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 public class GradleVersion implements Comparable<GradleVersion> {
-  private static final Pattern VERSION_PATTERN = Pattern.compile("((\\d+)(\\.\\d+)+)(-(\\p{Alpha}+)-(\\d+[a-z]?))?(-(\\d{14}([-+]\\d{4})?))?");
+
+  private static final Pattern VERSION_PATTERN = Pattern.compile("((\\d+)(\\.\\d+)+)(-(\\p{Alpha}+)-(\\w+))?(-(SNAPSHOT|\\d{14}([-+]\\d{4})?))?");
   private static final int STAGE_MILESTONE = 0;
+  private static final int STAGE_UNKNOWN = 1;
+  private static final int STAGE_PREVIEW = 2;
+  private static final int STAGE_RC = 3;
 
   private final String version;
   private final int majorPart;
-  private final String buildTime;
-  private final String commitId;
-  private final String buildNumber;
   private final Long snapshot;
   private final String versionPart;
   private final Stage stage;
-
 
   /**
    * Parses the given string into a GradleVersion.
@@ -46,14 +44,11 @@ public class GradleVersion implements Comparable<GradleVersion> {
    * @throws IllegalArgumentException On unrecognized version string.
    */
   public static GradleVersion version(String version) throws IllegalArgumentException {
-    return new GradleVersion(version, null, null, null);
+    return new GradleVersion(version);
   }
 
-  private GradleVersion(String version, Date buildTime, String buildNumber, String commitId) {
+  private GradleVersion(String version) {
     this.version = version;
-    this.buildNumber = buildNumber;
-    this.commitId = commitId;
-    this.buildTime = buildTime == null ? null : formatBuildTime(buildTime);
     Matcher matcher = VERSION_PATTERN.matcher(version);
     if (!matcher.matches()) {
       throw new IllegalArgumentException(String.format("'%s' is not a valid Gradle version string (examples: '1.0', '1.0-rc-1')", version));
@@ -62,65 +57,69 @@ public class GradleVersion implements Comparable<GradleVersion> {
     versionPart = matcher.group(1);
     majorPart = Integer.parseInt(matcher.group(2), 10);
 
-    if (matcher.group(4) != null) {
-      int stageNumber;
-      if (matcher.group(5).equals("milestone")) {
-        stageNumber = STAGE_MILESTONE;
-      } else if (matcher.group(5).equals("preview")) {
-        stageNumber = 2;
-      } else if (matcher.group(5).equals("rc")) {
-        stageNumber = 3;
-      } else {
-        stageNumber = 1;
-      }
-      String stageString = matcher.group(6);
-      stage = new Stage(stageNumber, stageString);
-    } else {
-      stage = null;
-    }
+    this.stage = parseStage(matcher);
+    this.snapshot = parseSnapshot(matcher);
+  }
 
-    if (matcher.group(8) != null) {
+  private Long parseSnapshot(Matcher matcher) {
+    if ("snapshot".equals(matcher.group(5)) || isCommitVersion(matcher)) {
+      return 0L;
+    } else if (matcher.group(8) == null) {
+      return null;
+    } else if ("SNAPSHOT".equals(matcher.group(8))) {
+      return 0L;
+    } else {
       try {
         if (matcher.group(9) != null) {
-          snapshot = new SimpleDateFormat("yyyyMMddHHmmssZ").parse(matcher.group(8)).getTime();
+          return new SimpleDateFormat("yyyyMMddHHmmssZ").parse(matcher.group(8)).getTime();
         } else {
           SimpleDateFormat format = new SimpleDateFormat("yyyyMMddHHmmss");
           format.setTimeZone(TimeZone.getTimeZone("UTC"));
-          snapshot = format.parse(matcher.group(8)).getTime();
+          return format.parse(matcher.group(8)).getTime();
         }
       } catch (ParseException e) {
         throw UncheckedException.throwAsUncheckedException(e);
       }
-    } else {
-      snapshot = null;
     }
   }
 
-  private String formatBuildTime(Date buildTime) {
-    DateFormat format = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss z");
-    format.setTimeZone(TimeZone.getTimeZone("UTC"));
-    return format.format(buildTime);
+  private Stage parseStage(Matcher matcher) {
+    if (matcher.group(4) == null || isCommitVersion(matcher)) {
+      return null;
+    } else if (isStage("milestone", matcher)) {
+      return Stage.from(STAGE_MILESTONE, matcher.group(6));
+    } else if (isStage("preview", matcher)) {
+      return Stage.from(STAGE_PREVIEW, matcher.group(6));
+    } else if (isStage("rc", matcher)) {
+      return Stage.from(STAGE_RC, matcher.group(6));
+    } else {
+      return Stage.from(STAGE_UNKNOWN, matcher.group(6));
+    }
+  }
+
+  private boolean isCommitVersion(Matcher matcher) {
+    return "commit".equals(matcher.group(5));
+  }
+
+  private boolean isStage(String stage, Matcher matcher) {
+    return stage.equals(matcher.group(5));
+  }
+
+  private String setOrParseCommitId(String commitId, Matcher matcher) {
+    if (commitId != null || !isCommitVersion(matcher)) {
+      return commitId;
+    } else {
+      return matcher.group(6);
+    }
   }
 
   @Override
   public String toString() {
-    return String.format("Gradle %s", version);
+    return "Gradle " + version;
   }
 
   public String getVersion() {
     return version;
-  }
-
-  public String getBuildTime() {
-    return buildTime;
-  }
-
-  public String getBuildNumber() {
-    return buildNumber;
-  }
-
-  public String getRevision() {
-    return commitId;
   }
 
   public boolean isSnapshot() {
@@ -129,7 +128,7 @@ public class GradleVersion implements Comparable<GradleVersion> {
 
   /**
    * The base version of this version. For pre-release versions, this is the target version.
-   *
+   * <p>
    * For example, the version base of '1.2-rc-1' is '1.2'.
    *
    * @return The version base
@@ -138,19 +137,14 @@ public class GradleVersion implements Comparable<GradleVersion> {
     if (stage == null && snapshot == null) {
       return this;
     }
-    if (stage != null && stage.stage == STAGE_MILESTONE) {
-      return version(versionPart + "-milestone-" + stage.number);
-    }
     return version(versionPart);
   }
 
   public GradleVersion getNextMajor() {
-    if (stage != null && stage.stage == STAGE_MILESTONE) {
-      return version(majorPart + ".0");
-    }
     return version((majorPart + 1) + ".0");
   }
 
+  @Override
   public int compareTo(GradleVersion gradleVersion) {
     String[] majorVersionParts = versionPart.split("\\.");
     String[] otherMajorVersionParts = gradleVersion.versionPart.split("\\.");
@@ -186,17 +180,14 @@ public class GradleVersion implements Comparable<GradleVersion> {
       return -1;
     }
 
-    if (snapshot != null && gradleVersion.snapshot != null) {
-      return snapshot.compareTo(gradleVersion.snapshot);
-    }
-    if (snapshot == null && gradleVersion.snapshot != null) {
-      return 1;
-    }
-    if (snapshot != null && gradleVersion.snapshot == null) {
-      return -1;
-    }
+    Long thisSnapshot = snapshot == null ? Long.MAX_VALUE : snapshot;
+    Long theirSnapshot = gradleVersion.snapshot == null ? Long.MAX_VALUE : gradleVersion.snapshot;
 
-    return 0;
+    if (thisSnapshot.equals(theirSnapshot)) {
+      return version.compareTo(gradleVersion.version);
+    } else {
+      return thisSnapshot.compareTo(theirSnapshot);
+    }
   }
 
   @Override
@@ -221,27 +212,34 @@ public class GradleVersion implements Comparable<GradleVersion> {
   }
 
   static final class Stage implements Comparable<Stage> {
+
     final int stage;
     final int number;
     final Character patchNo;
 
-    Stage(int stage, String number) {
+    private Stage(int stage, int number, Character patchNo) {
       this.stage = stage;
-      Matcher m = Pattern.compile("(\\d+)([a-z])?").matcher(number);
-      try {
-        m.matches();
-        this.number = Integer.parseInt(m.group(1));
-      } catch (Exception e) {
-        throw new RuntimeException("Invalid stage small number: " + number, e);
+      this.number = number;
+      this.patchNo = patchNo;
+    }
+
+    static Stage from(int stage, String stageString) {
+      Matcher m = Pattern.compile("(\\d+)([a-z])?").matcher(stageString);
+      int number;
+      if (m.matches()) {
+        number = Integer.parseInt(m.group(1));
+      } else {
+        return null;
       }
 
       if (m.groupCount() == 2 && m.group(2) != null) {
-        this.patchNo = m.group(2).charAt(0);
+        return new Stage(stage, number, m.group(2).charAt(0));
       } else {
-        this.patchNo = '_';
+        return new Stage(stage, number, '_');
       }
     }
 
+    @Override
     public int compareTo(Stage other) {
       if (stage > other.stage) {
         return 1;
