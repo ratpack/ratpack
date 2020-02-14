@@ -16,6 +16,7 @@
 
 package ratpack.http.client.internal;
 
+import com.google.common.collect.Iterables;
 import com.google.common.net.HostAndPort;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
@@ -166,8 +167,15 @@ abstract class RequestActionSupport<T> implements Upstream<T> {
     }
     int contentLength = requestConfig.body.readableBytes();
     if (contentLength > 0) {
-      requestConfig.headers.set(HttpHeaderConstants.CONTENT_LENGTH, Integer.toString(contentLength));
+      // See https://github.com/netty/netty/pull/9865/files#diff-bf7a179a319b29e0262d5badaf3770e0R634-R650
+      if (!isChunkedTransfer(requestConfig.headers)) {
+        requestConfig.headers.set(HttpHeaderConstants.CONTENT_LENGTH, Integer.toString(contentLength));
+      }
     }
+  }
+
+  private boolean isChunkedTransfer(Headers headers) {
+    return Iterables.any(headers.getAll(HttpHeaderNames.TRANSFER_ENCODING), HttpHeaderValues.CHUNKED::contentEqualsIgnoreCase);
   }
 
   protected void forceDispose(ChannelPipeline channelPipeline) {
