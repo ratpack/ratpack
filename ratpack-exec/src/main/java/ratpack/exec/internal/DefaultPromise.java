@@ -16,13 +16,18 @@
 
 package ratpack.exec.internal;
 
-import ratpack.exec.*;
+import ratpack.exec.Downstream;
+import ratpack.exec.Execution;
+import ratpack.exec.ExecutionException;
+import ratpack.exec.Promise;
+import ratpack.exec.Upstream;
 import ratpack.exec.util.retry.RetryPolicy;
 import ratpack.func.Action;
 import ratpack.func.BiAction;
 import ratpack.func.BiFunction;
 import ratpack.func.Block;
 import ratpack.func.Function;
+import ratpack.func.Predicate;
 import ratpack.util.Exceptions;
 
 import java.time.Duration;
@@ -130,41 +135,45 @@ public class DefaultPromise<T> implements Promise<T> {
     }));
   }
 
-  public static <T> void retry(RetryPolicy retryPolicy, Upstream<? extends T> up, Downstream<? super T> down, BiAction<? super Integer, ? super Throwable> onError) throws Exception {
+  public static <T> void retry(Predicate<? super Throwable> predicate, RetryPolicy retryPolicy, Upstream<? extends T> up, Downstream<? super T> down, BiAction<? super Integer, ? super Throwable> onError) throws Exception {
     up.connect(down.onError(e -> {
-      if (retryPolicy.isExhausted()) {
-        down.error(e);
-      } else {
-        Promise<Duration> delay;
-        try {
-          onError.execute(retryPolicy.attempts(), e);
-          delay = retryPolicy.delay();
-        } catch (Throwable errorHandlerError) {
-          if (errorHandlerError != e) {
-            errorHandlerError.addSuppressed(e);
+      if (predicate.apply(e)) {
+        if (retryPolicy.isExhausted()) {
+          down.error(e);
+        } else {
+          Promise<Duration> delay;
+          try {
+            onError.execute(retryPolicy.attempts(), e);
+            delay = retryPolicy.delay();
+          } catch (Throwable errorHandlerError) {
+            if (errorHandlerError != e) {
+              errorHandlerError.addSuppressed(e);
+            }
+            down.error(errorHandlerError);
+            return;
           }
-          down.error(errorHandlerError);
-          return;
+
+          delay.connect(new Downstream<Duration>() {
+            @Override
+            public void success(Duration value) {
+              Execution.sleep(value, () ->
+                retry(predicate, retryPolicy.increaseAttempt(), up, down, onError)
+              );
+            }
+
+            @Override
+            public void error(Throwable throwable) {
+              down.error(throwable);
+            }
+
+            @Override
+            public void complete() {
+              down.complete();
+            }
+          });
         }
-
-        delay.connect(new Downstream<Duration>() {
-          @Override
-          public void success(Duration value) {
-            Execution.sleep(value, () ->
-              retry(retryPolicy.increaseAttempt(), up, down, onError)
-            );
-          }
-
-          @Override
-          public void error(Throwable throwable) {
-            down.error(throwable);
-          }
-
-          @Override
-          public void complete() {
-            down.complete();
-          }
-        });
+      } else {
+        down.error(e);
       }
     }));
   }
