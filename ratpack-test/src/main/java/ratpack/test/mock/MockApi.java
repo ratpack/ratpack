@@ -105,7 +105,7 @@ import ratpack.util.Exceptions;
  *
  *     then:
  *     1 * remoteApi.handlerFactory.receive({
- *       it.method == HttMethod.GET
+ *       it.method == HttpMethod.GET
  *       it.path == ""
  *     } >> groovyHandler {
  *       render("remote ok")
