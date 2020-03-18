@@ -104,7 +104,7 @@ import ratpack.util.Exceptions;
  *     def resp = app.httpClient.get()
  *
  *     then:
- *     1 * remoteApi.handlerFactory.receive({
+ *     1 * remoteApi.handlerFactory.receive {
  *       it.method == HttpMethod.GET
  *       it.path == ""
  *     } >> groovyHandler {
