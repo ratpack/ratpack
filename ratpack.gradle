@@ -192,9 +192,9 @@ task jacocoReport(type: org.gradle.testing.jacoco.tasks.JacocoReport) {
 
   dependsOn projects*.test
 
-  sourceDirectories = files(projects*.sourceSets*.main*.allSource)
-  classDirectories = files(projects*.sourceSets*.main*.output)
-  executionData = files(projects*.jacocoTestReport*.executionData)
+  sourceDirectories.from(files(projects*.sourceSets*.main*.allSource))
+  classDirectories.from(files(projects*.sourceSets*.main*.output))
+  executionData.from(files(projects*.jacocoTestReport*.executionData))
 
   reports {
     html.enabled = true

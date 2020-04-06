@@ -119,9 +119,9 @@ task codeQuality {
 }
 
 jacocoTestReport {
-  additionalSourceDirs = files(sourceSets.main.allSource.srcDirs)
-  sourceDirectories = files(sourceSets.main.allSource.srcDirs)
-  classDirectories = files(sourceSets.main.output)
+  additionalSourceDirs.from(files(sourceSets.main.allSource.srcDirs))
+  sourceDirectories.from(files(sourceSets.main.allSource.srcDirs))
+  classDirectories.from(files(sourceSets.main.output))
   reports {
     html.enabled = true
     xml.enabled = true

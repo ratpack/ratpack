@@ -29,9 +29,11 @@ buildscript {
   dependencies {
     classpath "gradle.plugin.com.github.jengelman.gradle.plugins:gradle-processes:0.5.0"
     classpath "org.pegdown:pegdown:${commonVersions.pegdown}"
-    classpath "com.eriwen:gradle-js-plugin:1.12.1"
+    //classpath "com.eriwen:gradle-js-plugin:1.12.1"
+    // Use the master version of gradle-js-plugin since it fixes a Gradle 6 deprecation (from JitPack.io)
+    classpath "com.github.eriwen:gradle-js-plugin:d15f4ae"
     classpath "com.google.javascript:closure-compiler:v20150315"
-    // Use a patched version of gradle-compass that upgrades the jruby version to work around the shutdown of torquebox ruby gem proxy
+    // Use a patched version of gradle-compass that upgrades the jruby version to work around the shutdown of torquebox ruby gem proxy (from JitPack.io)
     classpath "com.github.johnrengelman:gradle-compass:fb492aa"
     //classpath "com.github.robfletcher:compass-gradle-plugin:2.0.6"
   }
