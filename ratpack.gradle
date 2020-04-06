@@ -35,6 +35,7 @@ buildscript {
 
     classpath "org.kt3k.gradle.plugin:coveralls-gradle-plugin:2.3.1"
     classpath "com.github.ben-manes:gradle-versions-plugin:0.17.0"
+    classpath 'org.owasp:dependency-check-gradle:5.2.1'
   }
 }
 
@@ -156,6 +157,7 @@ allprojects {
   apply plugin: "eclipse"
   apply from: "$rootDir/gradle/dependencyRules.gradle"
   apply plugin: "com.github.ben-manes.versions"
+  apply plugin: 'org.owasp.dependencycheck'
 
   repositories {
     jcenter()
