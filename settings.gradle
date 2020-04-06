@@ -33,6 +33,7 @@ include \
     "ratpack-rx",
     "ratpack-rx2",
     "ratpack-dropwizard-metrics",
+    "ratpack-micrometer-metrics",
     "ratpack-h2",
     "ratpack-thymeleaf",
     "ratpack-thymeleaf3",

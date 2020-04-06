@@ -72,6 +72,7 @@ ext {
     "ratpack-hystrix",
     "ratpack-jdbc-tx",
     "ratpack-manual",
+    "ratpack-micrometer-metrics",
     "ratpack-newrelic",
     "ratpack-pac4j",
     "ratpack-reactor",

@@ -1,0 +1,57 @@
+/*
+ * Copyright 2020 the original author or authors.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *    http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+package ratpack.micrometer.metrics.config;
+
+import io.micrometer.core.lang.NonNull;
+import io.micrometer.datadog.DatadogConfig;
+
+import javax.annotation.Nonnull;
+
+public class MappedDatadogConfig extends MappedStepRegistryConfig<RatpackDatadogConfig>
+		implements DatadogConfig {
+
+	MappedDatadogConfig(RatpackDatadogConfig config) {
+		super(config);
+	}
+
+	@Nonnull
+	@Override
+	public String apiKey() {
+		return get(RatpackDatadogConfig::getApiKey, DatadogConfig.super::apiKey);
+	}
+
+	@Override
+	public String applicationKey() {
+		return get(RatpackDatadogConfig::getApplicationKey, DatadogConfig.super::applicationKey);
+	}
+
+	@Override
+	public String hostTag() {
+		return get(RatpackDatadogConfig::getHostTag, DatadogConfig.super::hostTag);
+	}
+
+	@NonNull
+	@Override
+	public String uri() {
+		return get(RatpackDatadogConfig::getUri, DatadogConfig.super::uri);
+	}
+
+	@Override
+	public boolean descriptions() {
+		return get(RatpackDatadogConfig::isDescriptions, DatadogConfig.super::descriptions);
+	}
+}
