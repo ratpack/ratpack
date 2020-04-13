@@ -86,11 +86,11 @@ import static org.junit.Assert.assertEquals;
 public class Example {
   public static void main(String... args) throws Exception {
     File tmpFile = File.createTempFile("ratpack", "test");
-    Files.write(tmpFile, StandardCharsets.UTF_8).write("Hello World!");
+    Files.asCharSink(tmpFile, StandardCharsets.UTF_8).write("Hello World!");
     tmpFile.deleteOnExit();
 
     String content = ExecHarness.yieldSingle(e ->
-        Blocking.get(() -> Files.toString(tmpFile, StandardCharsets.UTF_8))
+        Blocking.get(() -> Files.asCharSource(tmpFile, StandardCharsets.UTF_8).read())
     ).getValueOrThrow();
 
     assertEquals("Hello World!", content);

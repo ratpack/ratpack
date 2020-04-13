@@ -111,7 +111,7 @@ import java.util.concurrent.locks.ReadWriteLock;
  *           ParallelBatch.of(requests).yield()
  *         ).getValueOrThrow();
  *
- *         assertEquals("foo", Files.toString(f.toFile(), Charset.defaultCharset()));
+ *         assertEquals("foo", Files.asCharSource(f.toFile(), Charset.defaultCharset()).read());
  *         assertEquals(400, results.size());
  *       });
  *     });
