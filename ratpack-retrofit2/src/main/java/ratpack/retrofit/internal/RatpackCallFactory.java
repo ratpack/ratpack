@@ -21,6 +21,7 @@ import okhttp3.Call;
 import okhttp3.Response;
 import okio.Buffer;
 import okio.BufferedSource;
+import okio.Timeout;
 import ratpack.exec.Promise;
 import ratpack.func.Factory;
 import ratpack.http.MutableHeaders;
@@ -83,6 +84,11 @@ public class RatpackCallFactory implements okhttp3.Call.Factory {
       }).then(r ->
         responseCallback.onResponse(thisCall, mapReceivedResponse(r))
       );
+    }
+
+    @Override
+    public Timeout timeout() {
+      return Timeout.NONE;
     }
 
     Promise<ReceivedResponse> promise() {
