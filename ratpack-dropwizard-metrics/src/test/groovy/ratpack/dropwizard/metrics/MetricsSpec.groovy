@@ -101,7 +101,7 @@ class MetricsSpec extends RatpackGroovyDslSpec {
     System.out = new PrintStream(output, true)
 
     def log = Mock(Logger) {
-      info(_, _, _) >> { args ->
+      info(_, _) >> { args ->
         println args
       }
 
@@ -604,7 +604,7 @@ class MetricsSpec extends RatpackGroovyDslSpec {
     System.out = new PrintStream(output, true)
 
     def log = Mock(Logger) {
-      info(_, _, _) >> { args ->
+      info(_, _) >> { args ->
         println args
       }
 
