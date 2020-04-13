@@ -106,8 +106,8 @@ public interface RatpackConsulConfig {
         clientConfig.with(Consul.builder()).build()
           .keyValueClient()
           .getValue(key, queryOptions)
-          .transform(v -> v.getValueAsString().or(""))
-          .or("").getBytes()
+          .map(v -> v.getValueAsString().orElse(""))
+          .orElse("").getBytes()
       )
     );
   }

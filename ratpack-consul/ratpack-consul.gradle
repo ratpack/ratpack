@@ -20,8 +20,22 @@ apply from: "$rootDir/gradle/javaModule.gradle"
 
 dependencies {
   compile project(":ratpack-core")
-  compile 'com.orbitz.consul:consul-client:0.12.6', {
+  compile 'com.orbitz.consul:consul-client:1.4.2', {
     exclude group: "com.google.guava", module: "guava"
     exclude group: "org.slf4j", module: "slf4j-api"
+    exclude group: "com.fasterxml.jackson.core", module: "jackson-core"
+    exclude group: "com.fasterxml.jackson.core", module: "jackson-databind"
+    exclude group: "com.fasterxml.jackson.core", module: "jackson-annotations"
+    exclude group: "com.fasterxml.jackson.datatype", module: "jackson-datatype-guava"
+    exclude group: "com.fasterxml.jackson.datatype", module: "jackson-datatype-jdk8"
+    exclude group: "com.squareup.okhttp3", module: "okhttp"
+    exclude group: "com.google.code.findbugs", module: "jsr305"
+    exclude group: "org.apache.commons", module: "commons-lang3"
+    exclude group: "com.squareup.retrofit2", module: "retrofit"
+    exclude group: "com.squareup.retrofit2", module: "converter-jackson"
+  }
+  compile "com.squareup.retrofit2:retrofit:${commonVersions.retrofit}"
+  compile("com.squareup.retrofit2:converter-jackson:${commonVersions.retrofit}") {
+    exclude group: "com.fasterxml.jackson.core", module: "jackson-databind"
   }
 }
