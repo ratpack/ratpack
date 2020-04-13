@@ -75,7 +75,9 @@ ext {
       exclude group: "org.codehaus.groovy", module: "groovy-all"
     }),
     groovy     : "org.codehaus.groovy:groovy-all:${commonVersions.groovy}",
-    guava      : "com.google.guava:guava:$commonVersions.guava",
+    guava      : dependencies.create("com.google.guava:guava:$commonVersions.guava", {
+      exclude group: "org.checkerframework", module: "checker-qual"
+    }),
     guice      : dependencies.create("com.google.inject:guice:$commonVersions.guice", {
       exclude group: "com.google.guava", module: "guava"
     }),
