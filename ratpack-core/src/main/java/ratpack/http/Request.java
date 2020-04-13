@@ -316,7 +316,7 @@ public interface Request extends MutableRegistry {
    *         ReceivedResponse response = http.request(requestSpec -> requestSpec.method("POST").getBody().text(string));
    *         Assert.assertEquals(response.getBody().getText(), "ok");
    *
-   *         String fileContents = Files.toString(file.toFile(), StandardCharsets.UTF_8);
+   *         String fileContents = Files.asCharSource(file.toFile(), StandardCharsets.UTF_8).read();
    *         Assert.assertEquals(fileContents, string);
    *       });
    *     });

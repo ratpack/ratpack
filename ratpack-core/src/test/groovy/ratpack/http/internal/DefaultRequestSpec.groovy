@@ -55,9 +55,9 @@ class DefaultRequestSpec extends RatpackGroovyDslSpec {
     request.uri == expectedUri
     request.query == expectedQuery
     request.path == expectedPath
-    request.remoteAddress.hostText == 'localhost'
+    request.remoteAddress.host == 'localhost'
     request.remoteAddress.port == 45678
-    request.localAddress.hostText == 'localhost'
+    request.localAddress.host == 'localhost'
     request.localAddress.port == 5050
 
     where:
