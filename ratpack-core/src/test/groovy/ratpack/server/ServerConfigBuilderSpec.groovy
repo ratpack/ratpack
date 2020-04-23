@@ -20,6 +20,7 @@ import ratpack.ssl.SSLContexts
 import spock.lang.Specification
 
 import javax.net.ssl.SSLContext
+import java.nio.file.Paths
 
 class ServerConfigBuilderSpec extends Specification {
 
@@ -213,5 +214,10 @@ class ServerConfigBuilderSpec extends Specification {
   def "set write spin count"() {
     expect:
     builder.writeSpinCount(2).build().writeSpinCount.get() == 2
+  }
+
+  def "set port file"() {
+    expect:
+    builder.portFile(Paths.get("test_port_file.txt")).build().portFile.get().toString() == "test_port_file.txt"
   }
 }

@@ -30,6 +30,7 @@ import ratpack.server.ServerConfig;
 import javax.net.ssl.SSLContext;
 import java.net.InetAddress;
 import java.net.URI;
+import java.nio.file.Path;
 import java.time.Duration;
 import java.util.Optional;
 
@@ -165,4 +166,8 @@ public class DefaultServerConfig extends DelegatingConfigData implements ServerC
     return serverConfigData.getWriteSpinCount();
   }
 
+  @Override
+  public Optional<Path> getPortFile() {
+    return serverConfigData.getPortFile();
+  }
 }

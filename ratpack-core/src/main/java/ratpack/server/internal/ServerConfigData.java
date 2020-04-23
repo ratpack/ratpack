@@ -24,6 +24,7 @@ import java.net.InetAddress;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.UnknownHostException;
+import java.nio.file.Path;
 import java.time.Duration;
 import java.util.Optional;
 
@@ -43,6 +44,7 @@ public class ServerConfigData {
   private Optional<Integer> receiveBufferSize = Optional.empty();
   private Optional<Integer> writeSpinCount = Optional.empty();
   private Optional<Integer> connectQueueSize = Optional.empty();
+  private Optional<Path> portFile = Optional.empty();
   private int maxChunkSize = ServerConfig.DEFAULT_MAX_CHUNK_SIZE;
   private int maxInitialLineLength = ServerConfig.DEFAULT_MAX_INITIAL_LINE_LENGTH;
   private int maxHeaderSize = ServerConfig.DEFAULT_MAX_HEADER_SIZE;
@@ -96,6 +98,10 @@ public class ServerConfigData {
 
   public Optional<Integer> getWriteSpinCount() {
     return writeSpinCount;
+  }
+
+  public Optional<Path> getPortFile() {
+    return portFile;
   }
 
   public void setPort(int port) {
@@ -160,6 +166,10 @@ public class ServerConfigData {
 
   public void setWriteSpinCount(int writeSpinCount) {
     this.writeSpinCount = Optional.of(writeSpinCount);
+  }
+
+  public void setPortFile(Path portFile) {
+    this.portFile = Optional.ofNullable(portFile);
   }
 
   public int getMaxInitialLineLength() {

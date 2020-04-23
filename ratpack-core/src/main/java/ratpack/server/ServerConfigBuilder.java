@@ -272,6 +272,15 @@ public interface ServerConfigBuilder extends ConfigDataBuilder {
   ServerConfigBuilder writeSpinCount(int writeSpinCount);
 
   /**
+   * The path where to store the bind port
+   *
+   * @param portFile the path file
+   * @return {@code this}
+   * @see ServerConfig#getPortFile()
+   */
+  ServerConfigBuilder portFile(Path portFile);
+
+  /**
    * The SSL context to use if the application serves content over HTTPS.
    *
    * @param sslContext the SSL context

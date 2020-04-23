@@ -57,7 +57,9 @@ import ratpack.util.Types;
 import ratpack.util.internal.TransportDetector;
 
 import javax.net.ssl.SSLEngine;
+import java.io.FileOutputStream;
 import java.net.InetSocketAddress;
+import java.nio.file.Path;
 import java.util.Optional;
 import java.util.concurrent.atomic.AtomicBoolean;
 
@@ -130,6 +132,13 @@ public class DefaultRatpackServer implements RatpackServer {
       boundAddress = (InetSocketAddress) channel.localAddress();
 
       String startMessage = String.format("Ratpack started %sfor %s://%s:%s", serverConfig.isDevelopment() ? "(development) " : "", getScheme(), getBindHost(), getBindPort());
+
+      if (serverConfig.getPortFile().isPresent()) {
+        final Path portFilePath = serverConfig.getPortFile().get();
+        FileOutputStream fout = new FileOutputStream(portFilePath.toFile());
+        fout.write(Integer.toString(getBindPort()).getBytes());
+        fout.close();
+      }
 
       if (Slf4jNoBindingDetector.isHasBinding()) {
         if (LOGGER.isInfoEnabled()) {

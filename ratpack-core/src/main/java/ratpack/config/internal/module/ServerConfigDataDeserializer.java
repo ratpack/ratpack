@@ -38,6 +38,7 @@ import javax.net.ssl.SSLContext;
 import java.io.IOException;
 import java.net.InetAddress;
 import java.net.URI;
+import java.nio.file.Path;
 import java.time.Duration;
 import java.util.Optional;
 import java.util.function.Supplier;
@@ -122,6 +123,9 @@ public class ServerConfigDataDeserializer extends JsonDeserializer<ServerConfigD
     }
     if (serverNode.hasNonNull("connectQueueSize")) {
       parseOptionalIntValue("connectQueueSize", serverNode.get("connectQueueSize")).ifPresent(data::setConnectQueueSize);
+    }
+    if (serverNode.hasNonNull("portFile")) {
+      data.setPortFile(toValue(codec, serverNode.get("portFile"), Path.class));
     }
 
     return data;
