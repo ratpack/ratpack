@@ -16,6 +16,8 @@
 
 package ratpack.exec
 
+import ratpack.handling.Context
+import ratpack.registry.RegistrySpec
 import ratpack.test.exec.ExecHarness
 import spock.lang.AutoCleanup
 import spock.lang.Specification
@@ -43,6 +45,27 @@ class OperationSpec extends Specification {
     then:
     noExceptionThrown()
     events == [1, 2, 3, 4]
+  }
+
+  def "An operation that needs execution context"() {
+
+    given: "a context"
+    Context context = Mock {
+      1 * get(Integer) >> 1
+    }
+    Closure<RegistrySpec> registry = { RegistrySpec registrySpec ->
+      registrySpec.add(context)
+    }
+
+    when: "executing with the registry"
+    exec.executeSingle(registry) { Execution execution ->
+        async(execution.current().get(Context).get(Integer))
+          .next { events << it }
+          .operation()
+    }
+
+    then:
+    events == [1]
   }
 
   private <T> Promise<T> async(T t) {
