@@ -17,6 +17,8 @@
 package ratpack.handling
 
 import org.slf4j.Logger
+import org.slf4j.Marker
+import org.slf4j.helpers.MessageFormatter
 import ratpack.http.client.ReceivedResponse
 import ratpack.test.internal.RatpackGroovyDslSpec
 
@@ -62,8 +64,8 @@ class RequestIdSpec extends RatpackGroovyDslSpec {
     given:
     def msgQueue = new ArrayBlockingQueue<String>(2)
     def logger = Mock(Logger) {
-      isInfoEnabled() >> true
-      info(_ as String) >> { String msg -> msgQueue << msg }
+      isInfoEnabled(_ as Marker) >> true
+      info(_ as Marker, _ as String, _ as Object[] ) >> { Marker marker, String msgPattern, Object[] params -> msgQueue << MessageFormatter.arrayFormat(msgPattern, params).message }
     }
 
     int count = 0

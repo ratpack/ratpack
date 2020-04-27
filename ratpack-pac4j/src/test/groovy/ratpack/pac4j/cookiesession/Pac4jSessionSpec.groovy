@@ -20,6 +20,8 @@ import org.pac4j.core.profile.UserProfile
 import org.pac4j.http.client.indirect.FormClient
 import org.pac4j.http.credentials.authenticator.test.SimpleTestUsernamePasswordAuthenticator
 import org.slf4j.Logger
+import org.slf4j.Marker
+import org.slf4j.helpers.MessageFormatter
 import ratpack.handling.RequestId
 import ratpack.handling.RequestLogger
 import ratpack.pac4j.RatpackPac4j
@@ -129,7 +131,8 @@ class Pac4jSessionSpec extends RatpackGroovyDslSpec {
   def "log user id in request log"() {
     def latch = new CountDownLatch(4)
     def logger = Mock(Logger) {
-      isInfoEnabled() >> true
+      isInfoEnabled(_ as Marker) >> true
+      4 * info(_ as Marker, _ as String, _ as Object[] ) >> { Marker marker, String msgPattern, Object[] params -> messages << MessageFormatter.arrayFormat(msgPattern, params).message; latch.countDown() }
     }
 
     given:

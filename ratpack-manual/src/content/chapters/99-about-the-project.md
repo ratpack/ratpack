@@ -97,6 +97,7 @@ The following people have provided significant contributions.
 * [Kristin Clemens](https://github.com/kristinclemens)
 * [Jonathan Leitschuh](https://github.com/JLLeitschuh)
 * [Roger Pereira](https://github.com/rogerpereira123)
+* [Michael Schlies](https://github.com/michaelschlies)
 
 ### Past project members
 
