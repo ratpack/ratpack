@@ -188,6 +188,11 @@ public class DefaultServerConfigBuilder implements ServerConfigBuilder {
   }
 
   @Override
+  public ServerConfigBuilder portFile(Path portFile) {
+    return addToServer(n -> n.put("portFile", portFile.toString()));
+  }
+
+  @Override
   @SuppressWarnings("deprecation")
   public ServerConfigBuilder ssl(SSLContext sslContext) {
     return addToServer(n -> n.putPOJO("jdkSsl", sslContext));

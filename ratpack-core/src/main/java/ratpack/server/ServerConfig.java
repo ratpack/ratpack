@@ -34,6 +34,7 @@ import ratpack.util.Types;
 import javax.net.ssl.SSLContext;
 import java.net.InetAddress;
 import java.net.URI;
+import java.nio.file.Path;
 import java.time.Duration;
 import java.util.Optional;
 
@@ -127,6 +128,8 @@ public interface ServerConfig extends ConfigData {
    * @return The port that the application should listen to requests on.
    */
   int getPort();
+
+  Optional<Path> getPortFile();
 
   /**
    * The address of the interface that the application should bind to.
