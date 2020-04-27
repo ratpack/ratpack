@@ -135,9 +135,9 @@ public class DefaultRatpackServer implements RatpackServer {
 
       if (serverConfig.getPortFile().isPresent()) {
         final Path portFilePath = serverConfig.getPortFile().get();
-        FileOutputStream fout = new FileOutputStream(portFilePath.toFile());
-        fout.write(Integer.toString(getBindPort()).getBytes());
-        fout.close();
+        try (FileOutputStream fout = new FileOutputStream(portFilePath.toFile())) {
+          fout.write(Integer.toString(getBindPort()).getBytes());
+        }
       }
 
       if (Slf4jNoBindingDetector.isHasBinding()) {

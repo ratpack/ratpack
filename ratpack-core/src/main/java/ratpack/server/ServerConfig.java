@@ -129,6 +129,14 @@ public interface ServerConfig extends ConfigData {
    */
   int getPort();
 
+  /**
+   * The path to write the port that the application is listening on.
+   * <p>
+   * Defaults to empty
+   *
+   * @return the optional path the the listening port will be written to.
+   * @since 1.8
+   */
   Optional<Path> getPortFile();
 
   /**
