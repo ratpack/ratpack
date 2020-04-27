@@ -19,6 +19,9 @@ package ratpack.exec
 import ratpack.test.exec.ExecHarness
 import spock.lang.Specification
 
+import java.util.concurrent.CountDownLatch
+import java.util.concurrent.TimeUnit
+
 class PromiseSpec extends Specification {
 
   def exec = ExecHarness.harness()
@@ -45,5 +48,27 @@ class PromiseSpec extends Specification {
     then:
     def e = thrown ExecutionException
     e.message.startsWith("Promise.then() can only be called on a compute thread")
+  }
+
+  def "can execute block on complete"() {
+    given:
+    def latch = new CountDownLatch(1)
+
+    when:
+    def result = exec.yield {
+      Promise.async { down ->
+        Execution.fork().start {
+          down.complete()
+        }
+      }.onComplete {
+        latch.countDown()
+      }
+    }
+
+    then:
+    latch.await(1, TimeUnit.SECONDS)
+    result.complete
+    !result.success
+    !result.error
   }
 }

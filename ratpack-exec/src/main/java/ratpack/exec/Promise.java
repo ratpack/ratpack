@@ -447,7 +447,7 @@ public interface Promise<T> {
   }
 
   /**
-   * Specifies the action to take if the an error occurs trying to produce the promised value.
+   * Specifies the action to take if an error occurs trying to produce the promised value.
    * <p>
    * If the given action throws an exception, the original exception will be rethrown with the exception thrown
    * by the action added to the suppressed exceptions list.
@@ -2521,6 +2521,28 @@ public interface Promise<T> {
     CompletableFuture<T> future = new CompletableFuture<>();
     onError(future::completeExceptionally).then(future::complete);
     return future;
+  }
+
+  /**
+   * Specifies the action to take if the Promise signals {@link complete} without emitting a value or an error.
+   * <p>
+   * If the given action throws an exception, the exception will be propagated to the Promise's {@link #onError}
+   * method.
+   *
+   * @param block the action to take if {@link Upstream} signals complete
+   * @return a promise with an action to execute on complete
+   * @since 1.8
+   */
+  default Promise<T> onComplete(Block block) {
+    return transform(up -> down ->
+      up.connect(down.onComplete(() -> {
+        try {
+          block.execute();
+        } catch (Throwable e) {
+          down.error(e);
+        }
+      }))
+    );
   }
 
   /**
