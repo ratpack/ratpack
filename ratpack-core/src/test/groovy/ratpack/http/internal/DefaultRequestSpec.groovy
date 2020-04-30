@@ -62,14 +62,26 @@ class DefaultRequestSpec extends RatpackGroovyDslSpec {
 
     where:
     inputUri                                       | expectedUri                                    | expectedQuery                  | expectedPath
+    "relative_path"                                | "/relative_path"                               | ""                             | "relative_path"
+    "relative_path?name={malformed"                | "/relative_path?name={malformed"               | "name={malformed"              | "relative_path"
     "/user/12345"                                  | "/user/12345"                                  | ""                             | "user/12345"
     "/user?name=fred"                              | "/user?name=fred"                              | "name=fred"                    | "user"
+    "/user?name={malformed}"                       | "/user?name={malformed}"                       | "name={malformed}"             | "user"
+    "/user?name=%7bok%7d"                          | "/user?name=%7bok%7d"                          | "name=%7bok%7d"                | "user"
+    "/user?name=%7bok%7d&a=b"                      | "/user?name=%7bok%7d&a=b"                      | "name=%7bok%7d&a=b"            | "user"
     "/article/search?text=gradle&max=25&offset=50" | "/article/search?text=gradle&max=25&offset=50" | "text=gradle&max=25&offset=50" | "article/search"
     "http://example.com"                           | "/"                                            | ""                             | ""
     "http://example.com?message=hello"             | "/?message=hello"                              | "message=hello"                | ""
     "http://example.com:8080/?message=hello"       | "/?message=hello"                              | "message=hello"                | ""
     "http://example.com:8080/user/12345"           | "/user/12345"                                  | ""                             | "user/12345"
+    "http://example.com/user?name={malformed}"     | "/user?name={malformed}"                       | "name={malformed}"             | "user"
+    "http://example.com/user?name=%7bok%7d"        | "/user?name=%7bok%7d"                          | "name=%7bok%7d"                | "user"
+    "http://example.com/user?name=%7bok%7d&a=b"    | "/user?name=%7bok%7d&a=b"                      | "name=%7bok%7d&a=b"            | "user"
     "https://example.com:8443/user?name=fred"      | "/user?name=fred"                              | "name=fred"                    | "user"
+    "file:/path/to/foo"                            | "/path/to/foo"                                 | ""                             | "path/to/foo"
+    "uri:opaque-component-here"                    | "/"                                            | ""                             | ""
+    "*"                                            | "*"                                            | ""                             | "*"
+    ""                                             | "/"                                            | ""                             | ""
   }
 
   def "It should detect an AJAX request"() {
