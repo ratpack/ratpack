@@ -16,7 +16,6 @@
 
 package ratpack.http.internal;
 
-import com.google.common.base.Strings;
 import com.google.common.collect.Iterables;
 import com.google.common.net.HostAndPort;
 import com.google.common.reflect.TypeToken;
