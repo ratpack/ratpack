@@ -44,7 +44,6 @@ import ratpack.util.internal.ImmutableDelegatingMultiValueMap;
 
 import javax.security.cert.X509Certificate;
 import java.net.InetSocketAddress;
-import java.net.URI;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.*;
@@ -151,24 +150,7 @@ public class DefaultRequest implements Request {
 
   public String getUri() {
     if (uri == null) {
-      if (rawUri.startsWith("/")) {
-        uri = rawUri;
-      } else {
-        URI parsed = URI.create(rawUri);
-        String path = parsed.getPath();
-        if (Strings.isNullOrEmpty(path)) {
-          path = "/";
-        }
-        StringBuilder sb = new StringBuilder();
-        sb.append(path);
-        if (parsed.getQuery() != null) {
-          sb.append("?").append(parsed.getQuery());
-        }
-        if (parsed.getFragment() != null) {
-          sb.append("#").append(parsed.getFragment());
-        }
-        uri = sb.toString();
-      }
+      uri = rawUriToAbsPath();
     }
     return uri;
   }
@@ -190,12 +172,16 @@ public class DefaultRequest implements Request {
   public String getPath() {
     if (path == null) {
       String uri = getUri();
-      String noSlash = uri.substring(1);
-      int i = noSlash.indexOf("?");
-      if (i < 0) {
-        path = noSlash;
+      if (uri.equals("*")) {
+        path = uri;
       } else {
-        path = noSlash.substring(0, i);
+        String noSlash = uri.substring(1);
+        int i = noSlash.indexOf("?");
+        if (i < 0) {
+          path = noSlash;
+        } else {
+          path = noSlash.substring(0, i);
+        }
       }
     }
 
@@ -397,5 +383,90 @@ public class DefaultRequest implements Request {
   // Implemented as static method (instead of public instance) so that it's not accidentally callable from dynamic languages
   public static void setDelegateRegistry(DefaultRequest request, MutableRegistry registry) {
     request.registry = registry;
+  }
+
+  private String rawUriToAbsPath() {
+    if (rawUri.startsWith("/")) {
+      return rawUri;
+    } else if (rawUri.isEmpty()) {
+      return "/";
+    } else if (rawUri.equals("*")) {
+      return "*";
+    } else {
+      //
+      // Request-URI    = "*" | absoluteURI | abs_path | authority
+      //
+      // 1. this can't be a CONNECT, so we can ignore the <authority> case
+      // 2. it also can't be an abs_path or "*", we've already checked those cases
+      //
+      // ... so this *SHOULD* be an absoluteURI.
+      //
+
+      int endOfScheme = rawUri.indexOf(':');
+      if (endOfScheme == -1) {
+        //
+        // okay, so: strictly speaking we SHOULD have an absoluteURI per the spec, but the
+        // specified URI here is actually a relative path. previous implementations of
+        // getUri() (e.g. the old logic using URI.create(...)) would accept the relative
+        // path as a valid URI but then would not properly convert it to an abs_path so
+        // things like getPath() would silently break. to be consistent with the code
+        // that's converting empty paths to an abs_path as "/" we convert a relative path
+        // to an absolute path by prepending "/".
+        //
+        return "/" + rawUri;
+      }
+
+      if (rawUri.startsWith("//", endOfScheme + 1)) {
+        // e.g. http://...
+
+        int startOfPath = startOfRawUriPath(endOfScheme);
+
+        if (startOfPath == -1) {
+          // e.g. http://abcdef
+
+          return "/";
+        } else if (rawUri.charAt(startOfPath) == '/') {
+          // e.g. http://abcdef/
+
+          return rawUri.substring(startOfPath);
+        } else {
+          // e.g. http://abcdef?qs=here
+          //      http://abcdef#fragment
+
+          return "/" + rawUri.substring(startOfPath);
+        }
+      } else if (rawUri.startsWith("/", endOfScheme + 1)) {
+        // e.g. uri:/absolute/path/here
+
+        return rawUri.substring(endOfScheme + 1);
+      } else {
+        // e.g. uri:opaque-stuff-here
+
+        //
+        // so this is technically a valid absoluteURI, but the
+        // opaque component is opaque: it doesn't necessarily represent
+        // a path! instead, it's some scheme-specific mystery blob.
+        //
+        // so what do we do here?
+        //
+        // let's treat this as an empty path and apply the same transform:
+        // return "/".
+        //
+
+        return "/";
+      }
+    }
+  }
+
+  private int startOfRawUriPath(int endOfScheme) {
+    int startOfPath = -1;
+    for (int i = endOfScheme + 3; i < rawUri.length(); i++) {
+      char c = rawUri.charAt(i);
+      if (c == '/' || c == '?' || c == '#') {
+        startOfPath = i;
+        break;
+      }
+    }
+    return startOfPath;
   }
 }
