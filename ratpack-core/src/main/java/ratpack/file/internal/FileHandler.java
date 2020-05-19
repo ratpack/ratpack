@@ -44,7 +44,10 @@ public class FileHandler implements Handler {
   public void handle(Context context) throws Exception {
     String path = context.getExecution().get(PathBindingStorage.TYPE).peek().getPastBinding();
     String decodedPath = decodeComponent(path, CharsetUtil.UTF_8);
-    Path asset = context.file(decodedPath);
+    Path asset = null;
+    if (!decodedPath.endsWith(".ratpack")) {
+      asset = context.file(decodedPath);
+    }
 
     if (asset == null) {
       context.clientError(404);

@@ -406,6 +406,20 @@ class StaticFileSpec extends RatpackGroovyDslSpec {
     getText("other") == "after"
   }
 
+  def "avoid to serve hidden .ratpack file"() {
+    given:
+    def file = write ".ratpack", "private content"
+
+    when:
+    handlers {
+      files()
+    }
+
+    then:
+    getText(".ratpack") == ""
+    response.statusCode == 404
+  }
+
   def "only serve files from within the binding root"() {
     setup:
     write("public/foo.txt", "bar")
