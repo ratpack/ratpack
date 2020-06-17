@@ -17,8 +17,8 @@
 package ratpack.handling.internal;
 
 import com.google.common.collect.Lists;
-import ratpack.func.Action;
-import ratpack.func.Function;
+import ratpack.exec.func.Action;
+import ratpack.exec.func.Function;
 import ratpack.handling.Handler;
 import ratpack.handling.Handlers;
 

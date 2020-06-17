@@ -19,9 +19,9 @@ package ratpack.health
 import groovy.json.JsonOutput
 import groovy.json.JsonSlurper
 import ratpack.exec.Promise
-import ratpack.func.Block
+import ratpack.exec.func.Block
 import ratpack.http.MediaType
-import ratpack.registry.Registry
+import ratpack.exec.registry.Registry
 import ratpack.render.Renderer
 import ratpack.test.internal.RatpackGroovyDslSpec
 

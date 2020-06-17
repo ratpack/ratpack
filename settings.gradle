@@ -47,7 +47,6 @@ include \
     "ratpack-retrofit2",
     "ratpack-jdbc-tx",
     "ratpack-consul",
-    "ratpack-base",
     "ratpack-exec",
     "ratpack-rocker",
     "ratpack-gson"

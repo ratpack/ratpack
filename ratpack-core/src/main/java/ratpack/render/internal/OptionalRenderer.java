@@ -20,7 +20,7 @@ import com.google.common.reflect.TypeToken;
 import ratpack.handling.Context;
 import ratpack.render.Renderer;
 import ratpack.render.RendererSupport;
-import ratpack.util.Types;
+import ratpack.exec.util.Types;
 
 import java.util.Optional;
 

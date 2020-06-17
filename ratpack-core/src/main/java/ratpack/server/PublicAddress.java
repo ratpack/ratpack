@@ -16,7 +16,7 @@
 
 package ratpack.server;
 
-import ratpack.func.Action;
+import ratpack.exec.func.Action;
 import ratpack.handling.Context;
 import ratpack.http.HttpUrlBuilder;
 import ratpack.server.internal.ConstantPublicAddress;

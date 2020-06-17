@@ -16,7 +16,7 @@
 
 package ratpack.exec
 
-import ratpack.func.Pair
+import ratpack.exec.func.Pair
 import ratpack.test.exec.ExecHarness
 import spock.lang.AutoCleanup
 import spock.lang.Specification

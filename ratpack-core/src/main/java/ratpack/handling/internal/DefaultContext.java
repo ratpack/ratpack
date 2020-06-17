@@ -29,8 +29,8 @@ import ratpack.exec.Execution;
 import ratpack.exec.Promise;
 import ratpack.file.FileSystemBinding;
 import ratpack.file.internal.ResponseTransmitter;
-import ratpack.func.Action;
-import ratpack.func.Function;
+import ratpack.exec.func.Action;
+import ratpack.exec.func.Function;
 import ratpack.handling.*;
 import ratpack.handling.direct.DirectChannelAccess;
 import ratpack.http.*;
@@ -43,13 +43,13 @@ import ratpack.path.InvalidPathEncodingException;
 import ratpack.path.PathBinding;
 import ratpack.path.internal.PathBindingStorage;
 import ratpack.path.internal.RootPathBinding;
-import ratpack.registry.NotInRegistryException;
-import ratpack.registry.Registry;
+import ratpack.exec.registry.NotInRegistryException;
+import ratpack.exec.registry.Registry;
 import ratpack.render.NoSuchRendererException;
 import ratpack.render.internal.RenderController;
 import ratpack.server.ServerConfig;
-import ratpack.util.Exceptions;
-import ratpack.util.Types;
+import ratpack.exec.util.Exceptions;
+import ratpack.exec.util.Types;
 
 import java.lang.reflect.UndeclaredThrowableException;
 import java.nio.file.Path;
@@ -58,7 +58,7 @@ import java.util.*;
 
 import static com.google.common.base.Throwables.getStackTraceAsString;
 import static io.netty.handler.codec.http.HttpHeaderNames.IF_MODIFIED_SINCE;
-import static ratpack.util.Exceptions.uncheck;
+import static ratpack.exec.util.Exceptions.uncheck;
 
 public class DefaultContext implements Context {
 

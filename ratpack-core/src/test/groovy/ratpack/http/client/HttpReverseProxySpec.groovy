@@ -18,13 +18,13 @@ package ratpack.http.client
 
 import io.netty.buffer.Unpooled
 import io.netty.handler.codec.http.HttpResponseStatus
-import ratpack.stream.Streams
+import ratpack.exec.stream.Streams
 
 import java.util.zip.GZIPInputStream
 
 import static ratpack.http.ResponseChunks.stringChunks
 import static ratpack.http.internal.HttpHeaderConstants.CONTENT_ENCODING
-import static ratpack.stream.Streams.publish
+import static ratpack.exec.stream.Streams.publish
 
 class HttpReverseProxySpec extends BaseHttpClientSpec {
 

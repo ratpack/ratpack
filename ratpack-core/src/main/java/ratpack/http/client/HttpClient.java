@@ -19,11 +19,11 @@ package ratpack.http.client;
 import io.netty.buffer.ByteBufAllocator;
 import org.reactivestreams.Publisher;
 import ratpack.exec.Promise;
-import ratpack.func.Action;
+import ratpack.exec.func.Action;
 import ratpack.http.client.internal.DefaultHttpClient;
-import ratpack.registry.Registry;
+import ratpack.exec.registry.Registry;
 import ratpack.server.ServerConfig;
-import ratpack.util.Exceptions;
+import ratpack.exec.util.Exceptions;
 
 import java.net.URI;
 import java.time.Duration;

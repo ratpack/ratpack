@@ -20,10 +20,10 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 import com.google.common.reflect.TypeToken;
 import groovy.lang.Closure;
-import ratpack.func.Action;
+import ratpack.exec.func.Action;
 import ratpack.handling.internal.Extractions;
-import ratpack.registry.Registry;
-import ratpack.registry.internal.TypeCaching;
+import ratpack.exec.registry.Registry;
+import ratpack.exec.registry.internal.TypeCaching;
 
 import java.util.Collections;
 import java.util.List;

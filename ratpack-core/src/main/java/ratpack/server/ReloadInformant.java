@@ -16,16 +16,17 @@
 
 package ratpack.server;
 
-import ratpack.registry.Registry;
+import ratpack.exec.func.Action;
+import ratpack.exec.registry.Registry;
 
 /**
  * Informs when the server should be reloaded, during {@link ServerConfig#isDevelopment() development}.
  * <p>
  * During development mode, all reload informants present in the server registry will be asked if the server should reload before serving each request.
- * The term “reload” here specifically refers to rebuilding the server definition by re-<i>executing</i> the function given to the {@link RatpackServer#of(ratpack.func.Action)} method that defined the server.
+ * The term “reload” here specifically refers to rebuilding the server definition by re-<i>executing</i> the function given to the {@link RatpackServer#of(Action)} method that defined the server.
  * <p>
  * Reload informants will never be queried concurrently so can be safely stateful.
- * Calls to {@link #shouldReload(ratpack.registry.Registry)} are serialised for any given informant, and informants are queried in sequence.
+ * Calls to {@link #shouldReload(Registry)} are serialised for any given informant, and informants are queried in sequence.
  * <p>
  * Reload informants are queried in the order they are returned by the server registry.
  * If an informant indicates that the server should reload, no further informants will be queried.
@@ -41,7 +42,7 @@ import ratpack.registry.Registry;
  * import ratpack.server.ReloadInformant;
  * import ratpack.server.ServerConfig;
  * import ratpack.test.embed.EmbeddedApp;
- * import ratpack.registry.Registry;
+ * import ratpack.exec.registry.Registry;
  *
  * import static org.junit.Assert.assertEquals;
  *

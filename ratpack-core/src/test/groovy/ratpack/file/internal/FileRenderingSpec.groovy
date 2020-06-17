@@ -16,7 +16,7 @@
 
 package ratpack.file.internal
 
-import ratpack.func.Action
+import ratpack.exec.func.Action
 import ratpack.http.client.ReceivedResponse
 import ratpack.http.client.RequestSpec
 import ratpack.http.internal.HttpHeaderDateFormat

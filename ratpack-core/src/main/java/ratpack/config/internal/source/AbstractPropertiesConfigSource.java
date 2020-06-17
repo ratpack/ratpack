@@ -22,8 +22,8 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.fasterxml.jackson.databind.node.TextNode;
 import ratpack.config.ConfigSource;
 import ratpack.file.FileSystemBinding;
-import ratpack.func.Function;
-import ratpack.func.Pair;
+import ratpack.exec.func.Function;
+import ratpack.exec.func.Pair;
 
 import java.util.Optional;
 import java.util.Properties;

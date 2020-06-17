@@ -16,13 +16,14 @@
 
 package ratpack.file;
 
+import ratpack.exec.func.Action;
 import ratpack.handling.Chain;
 import ratpack.path.PathBinding;
 
 /**
  * A specification for a handler that serves files from the file system.
  *
- * @see Chain#files(ratpack.func.Action)
+ * @see Chain#files(Action)
  */
 public interface FileHandlerSpec {
 

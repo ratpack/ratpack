@@ -16,13 +16,13 @@
 
 package ratpack.groovy.handling.internal;
 
-import ratpack.api.Nullable;
-import ratpack.func.Function;
+import ratpack.exec.api.Nullable;
+import ratpack.exec.func.Function;
 import ratpack.groovy.handling.GroovyChain;
 import ratpack.handling.Handler;
 import ratpack.handling.internal.DefaultChain;
 import ratpack.server.ServerConfig;
-import ratpack.registry.Registry;
+import ratpack.exec.registry.Registry;
 
 import java.util.List;
 

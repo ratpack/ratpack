@@ -22,6 +22,7 @@ import groovy.sql.Sql
 import org.h2.jdbcx.JdbcDataSource
 import ratpack.exec.Blocking
 import ratpack.exec.Promise
+import ratpack.exec.func.Factory
 import ratpack.test.exec.ExecHarness
 import spock.lang.Specification
 
@@ -32,7 +33,7 @@ class TransactionSpec extends Specification {
 
   DataSource ds = Transaction.dataSource(createDs())
   Sql sql = new Sql(ds)
-  ratpack.func.Factory<Connection> factory = ds.&getConnection
+  Factory<Connection> factory = ds.&getConnection
   def tx = Transaction.create(factory)
   def btx = Transaction.bound(factory)
 
@@ -55,7 +56,7 @@ class TransactionSpec extends Specification {
         ''')
   }
 
-  private <T> T run(ratpack.func.Factory<? extends Promise<T>> exec) {
+  private <T> T run(Factory<? extends Promise<T>> exec) {
     ExecHarness.yieldSingle {
       exec.create()
     }.valueOrThrow

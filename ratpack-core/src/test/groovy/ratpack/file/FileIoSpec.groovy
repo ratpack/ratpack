@@ -18,7 +18,7 @@ package ratpack.file
 
 import io.netty.buffer.ByteBufAllocator
 import io.netty.buffer.Unpooled
-import ratpack.stream.Streams
+import ratpack.exec.stream.Streams
 import ratpack.test.internal.RatpackGroovyDslSpec
 
 import java.nio.file.StandardOpenOption

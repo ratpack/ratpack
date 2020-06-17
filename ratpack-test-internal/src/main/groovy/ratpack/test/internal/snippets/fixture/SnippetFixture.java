@@ -16,7 +16,7 @@
 
 package ratpack.test.internal.snippets.fixture;
 
-import ratpack.func.Block;
+import ratpack.exec.func.Block;
 
 public class SnippetFixture {
 

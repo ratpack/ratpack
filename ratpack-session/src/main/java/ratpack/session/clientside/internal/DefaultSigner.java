@@ -20,7 +20,7 @@ import io.netty.buffer.ByteBuf;
 import io.netty.buffer.ByteBufAllocator;
 import io.netty.buffer.Unpooled;
 import ratpack.session.clientside.Signer;
-import ratpack.util.Exceptions;
+import ratpack.exec.util.Exceptions;
 
 import javax.crypto.Mac;
 import javax.crypto.spec.SecretKeySpec;

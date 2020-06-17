@@ -19,13 +19,13 @@ package ratpack.health;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSortedMap;
 import com.google.common.collect.Iterables;
-import ratpack.api.Nullable;
+import ratpack.exec.api.Nullable;
 import ratpack.exec.Promise;
 import ratpack.exec.Throttle;
 import ratpack.exec.util.ParallelBatch;
-import ratpack.func.Function;
-import ratpack.func.Pair;
-import ratpack.registry.Registry;
+import ratpack.exec.func.Function;
+import ratpack.exec.func.Pair;
+import ratpack.exec.registry.Registry;
 
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -213,7 +213,7 @@ public interface HealthCheck {
    * <pre class="java">{@code
    * import ratpack.test.exec.ExecHarness;
    * import ratpack.exec.Promise;
-   * import ratpack.registry.Registry;
+   * import ratpack.exec.registry.Registry;
    * import ratpack.health.HealthCheck;
    * import static org.junit.Assert.*;
    *

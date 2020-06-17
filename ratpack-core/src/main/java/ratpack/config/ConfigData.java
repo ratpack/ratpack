@@ -20,9 +20,9 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.common.reflect.TypeToken;
 import ratpack.config.internal.DefaultConfigDataBuilder;
-import ratpack.func.Action;
+import ratpack.exec.func.Action;
 import ratpack.server.internal.ServerEnvironment;
-import ratpack.util.Types;
+import ratpack.exec.util.Types;
 
 /**
  * Configuration data for the application, potentially built from many sources.

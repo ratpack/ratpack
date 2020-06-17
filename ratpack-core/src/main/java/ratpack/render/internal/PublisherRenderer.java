@@ -21,8 +21,8 @@ import org.reactivestreams.Publisher;
 import ratpack.handling.Context;
 import ratpack.render.Renderer;
 import ratpack.render.RendererSupport;
-import ratpack.stream.Streams;
-import ratpack.util.Types;
+import ratpack.exec.stream.Streams;
+import ratpack.exec.util.Types;
 
 public class PublisherRenderer extends RendererSupport<Publisher<?>> {
 

@@ -19,15 +19,15 @@ package ratpack.guice.internal;
 import com.google.common.collect.ImmutableList;
 import com.google.common.reflect.TypeToken;
 import com.google.inject.*;
-import ratpack.func.Action;
-import ratpack.func.Function;
-import ratpack.registry.internal.TypeCaching;
-import ratpack.util.Types;
+import ratpack.exec.func.Action;
+import ratpack.exec.func.Function;
+import ratpack.exec.registry.internal.TypeCaching;
+import ratpack.exec.util.Types;
 
 import java.util.Map;
 import java.util.concurrent.ConcurrentMap;
 
-import static ratpack.util.Exceptions.uncheck;
+import static ratpack.exec.util.Exceptions.uncheck;
 
 public abstract class GuiceUtil {
 

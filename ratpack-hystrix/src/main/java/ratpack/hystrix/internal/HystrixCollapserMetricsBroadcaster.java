@@ -18,13 +18,14 @@ package ratpack.hystrix.internal;
 
 import com.google.inject.Inject;
 import com.netflix.hystrix.HystrixCollapserMetrics;
+import ratpack.exec.stream.internal.MulticastPublisher;
 
 import java.util.Collection;
 
 /**
  * A message broadcaster for sending Hystrix collapser metrics to its subscribers.
  */
-public class HystrixCollapserMetricsBroadcaster extends ratpack.stream.internal.MulticastPublisher<Collection<HystrixCollapserMetrics>> {
+public class HystrixCollapserMetricsBroadcaster extends MulticastPublisher<Collection<HystrixCollapserMetrics>> {
 
   @Inject
   public HystrixCollapserMetricsBroadcaster(HystrixCollapserMetricsPeriodicPublisher publisher) {

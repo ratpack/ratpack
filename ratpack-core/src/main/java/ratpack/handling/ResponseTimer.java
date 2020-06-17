@@ -16,6 +16,7 @@
 
 package ratpack.handling;
 
+import ratpack.exec.func.Action;
 import ratpack.http.Request;
 import ratpack.http.Response;
 
@@ -75,7 +76,7 @@ public class ResponseTimer implements Handler {
   /**
    * Adds the number of milliseconds of elapsed time between {@link Request#getTimestamp()} and when the response is ready to be sent.
    * <p>
-   * The timer is stopped, and the header added, by {@link Response#beforeSend(ratpack.func.Action)}.
+   * The timer is stopped, and the header added, by {@link Response#beforeSend(Action)}.
    * This means that the time value is the elapsed time, commonly referred to as wall clock time, and not CPU time.
    * Similarly, it does not include the time to actually start sending data out over the socket.
    * It effectively times the application processing.

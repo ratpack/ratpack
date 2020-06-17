@@ -17,7 +17,7 @@
 package ratpack.server.internal;
 
 import ratpack.server.PublicAddress;
-import ratpack.util.Exceptions;
+import ratpack.exec.util.Exceptions;
 
 import java.net.URI;
 import java.net.URISyntaxException;

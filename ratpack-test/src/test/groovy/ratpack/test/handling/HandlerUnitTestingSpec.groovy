@@ -22,13 +22,13 @@ import ratpack.error.ServerErrorHandler
 import ratpack.exec.Blocking
 import ratpack.form.Form
 import ratpack.form.UploadedFile
-import ratpack.func.Action
+import ratpack.exec.func.Action
 import ratpack.groovy.internal.ClosureUtil
 import ratpack.groovy.test.handling.GroovyRequestFixture
 import ratpack.handling.Context
 import ratpack.handling.Handler
 import ratpack.handling.RequestOutcome
-import ratpack.registry.Registry
+import ratpack.exec.registry.Registry
 import ratpack.test.http.MultipartFormSpec
 import spock.lang.Specification
 import spock.util.concurrent.BlockingVariable

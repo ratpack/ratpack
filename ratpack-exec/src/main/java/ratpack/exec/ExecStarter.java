@@ -17,9 +17,9 @@
 package ratpack.exec;
 
 import io.netty.channel.EventLoop;
-import ratpack.api.NonBlocking;
-import ratpack.func.Action;
-import ratpack.registry.RegistrySpec;
+import ratpack.exec.api.NonBlocking;
+import ratpack.exec.func.Action;
+import ratpack.exec.registry.RegistrySpec;
 
 /**
  * Starts a new {@link Execution}.

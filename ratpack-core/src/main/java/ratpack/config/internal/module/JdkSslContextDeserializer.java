@@ -21,7 +21,7 @@ import com.fasterxml.jackson.databind.DeserializationContext;
 import com.fasterxml.jackson.databind.JsonDeserializer;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import ratpack.ssl.SSLContexts;
-import ratpack.util.Exceptions;
+import ratpack.exec.util.Exceptions;
 
 import javax.net.ssl.SSLContext;
 import java.io.IOException;

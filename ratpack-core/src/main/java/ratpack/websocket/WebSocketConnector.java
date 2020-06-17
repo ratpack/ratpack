@@ -16,7 +16,7 @@
 
 package ratpack.websocket;
 
-import ratpack.func.Action;
+import ratpack.exec.func.Action;
 
 public interface WebSocketConnector<T> {
 

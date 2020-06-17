@@ -30,7 +30,7 @@ import io.netty.util.ReferenceCountUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import ratpack.exec.ExecController;
-import ratpack.func.Action;
+import ratpack.exec.func.Action;
 import ratpack.handling.Handler;
 import ratpack.handling.Handlers;
 import ratpack.handling.internal.ChainHandler;
@@ -41,7 +41,7 @@ import ratpack.http.Headers;
 import ratpack.http.MutableHeaders;
 import ratpack.http.Response;
 import ratpack.http.internal.*;
-import ratpack.registry.Registry;
+import ratpack.exec.registry.Registry;
 import ratpack.render.internal.DefaultRenderController;
 import ratpack.server.ServerConfig;
 

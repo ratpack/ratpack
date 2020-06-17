@@ -19,10 +19,10 @@ package ratpack.impose;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Queues;
 import io.netty.util.concurrent.FastThreadLocal;
-import ratpack.func.Action;
-import ratpack.func.Factory;
-import ratpack.registry.Registry;
-import ratpack.util.Exceptions;
+import ratpack.exec.func.Action;
+import ratpack.exec.func.Factory;
+import ratpack.exec.registry.Registry;
+import ratpack.exec.util.Exceptions;
 
 import java.util.Deque;
 import java.util.Map;

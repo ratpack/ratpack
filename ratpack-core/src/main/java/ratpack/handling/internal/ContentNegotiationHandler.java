@@ -20,13 +20,13 @@ import com.google.common.base.Strings;
 import com.google.common.collect.Iterables;
 import io.netty.handler.codec.http.HttpHeaderNames;
 import io.netty.handler.codec.http.HttpHeaderValues;
-import ratpack.func.Action;
-import ratpack.func.Function;
+import ratpack.exec.func.Action;
+import ratpack.exec.func.Function;
 import ratpack.handling.ByContentSpec;
 import ratpack.handling.Context;
 import ratpack.handling.Handler;
 import ratpack.http.internal.MimeParse;
-import ratpack.registry.Registry;
+import ratpack.exec.registry.Registry;
 
 import java.util.*;
 

@@ -23,7 +23,7 @@ import io.netty.handler.codec.http.HttpHeaders
 import io.netty.util.CharsetUtil
 import ratpack.exec.Blocking
 import ratpack.exec.ExecController
-import ratpack.stream.Streams
+import ratpack.exec.stream.Streams
 import spock.lang.IgnoreIf
 import spock.util.concurrent.BlockingVariable
 import spock.util.concurrent.PollingConditions
@@ -34,7 +34,7 @@ import java.util.zip.GZIPInputStream
 import static ratpack.http.ResponseChunks.stringChunks
 import static ratpack.http.internal.HttpHeaderConstants.CONTENT_ENCODING
 import static ratpack.sse.ServerSentEvents.serverSentEvents
-import static ratpack.stream.Streams.publish
+import static ratpack.exec.stream.Streams.publish
 
 class HttpClientSmokeSpec extends BaseHttpClientSpec {
 

@@ -26,12 +26,12 @@ idea {
 
         node.append(new XmlParser().parseText("""
           <component name="NullableNotNullManager">
-            <option name="myDefaultNullable" value="ratpack.api.Nullable" />
+            <option name="myDefaultNullable" value="ratpack.exec.api.Nullable" />
             <option name="myDefaultNotNull" value="" />
             <option name="myNullables">
               <value>
                 <list size="1">
-                  <item index="0" class="java.lang.String" itemvalue="ratpack.api.Nullable" />
+                  <item index="0" class="java.lang.String" itemvalue="ratpack.exec.api.Nullable" />
                 </list>
               </value>
             </option>

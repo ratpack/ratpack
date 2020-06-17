@@ -16,10 +16,12 @@
 
 package ratpack.path;
 
+import ratpack.exec.func.Action;
+
 /**
  * A builder to generate a {@link PathBinder} from a list of tokens and literals.
  *
- * @see PathBinder#of(boolean, ratpack.func.Action)
+ * @see PathBinder#of(boolean, Action)
  * @see PathBinder#builder()
  */
 public interface PathBinderBuilder {

@@ -16,7 +16,7 @@
 
 package ratpack.service;
 
-import ratpack.func.Predicate;
+import ratpack.exec.func.Predicate;
 
 import static ratpack.service.internal.ServicesGraph.isOfType;
 import static ratpack.service.internal.ServicesGraph.unpackIfLegacy;

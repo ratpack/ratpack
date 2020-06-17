@@ -18,7 +18,7 @@ package ratpack.groovy.template.internal;
 
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.ByteBufAllocator;
-import ratpack.util.internal.IoUtils;
+import ratpack.exec.util.internal.IoUtils;
 
 import java.io.IOException;
 import java.nio.file.Path;

@@ -16,10 +16,10 @@
 
 package ratpack.server;
 
-import ratpack.api.Nullable;
-import ratpack.func.Action;
+import ratpack.exec.api.Nullable;
+import ratpack.exec.func.Action;
 import ratpack.impose.Impositions;
-import ratpack.registry.Registry;
+import ratpack.exec.registry.Registry;
 import ratpack.server.internal.DefaultRatpackServer;
 
 import java.util.Optional;

@@ -17,7 +17,7 @@
 package ratpack.rx
 
 import ratpack.exec.Execution
-import ratpack.registry.RegistrySpec
+import ratpack.exec.registry.RegistrySpec
 import ratpack.test.exec.ExecHarness
 import spock.lang.AutoCleanup
 import spock.lang.Ignore

@@ -16,7 +16,7 @@
 
 package ratpack.exec;
 
-import ratpack.registry.Registry;
+import ratpack.exec.registry.Registry;
 
 import java.util.Optional;
 

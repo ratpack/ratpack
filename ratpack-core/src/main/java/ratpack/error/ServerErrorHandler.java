@@ -17,10 +17,10 @@
 package ratpack.error;
 
 import com.google.common.reflect.TypeToken;
-import ratpack.api.NonBlocking;
+import ratpack.exec.api.NonBlocking;
 import ratpack.handling.Context;
 import ratpack.path.InvalidPathEncodingException;
-import ratpack.util.Types;
+import ratpack.exec.util.Types;
 
 /**
  * An object that can deal with errors that occur during the processing of an exchange.

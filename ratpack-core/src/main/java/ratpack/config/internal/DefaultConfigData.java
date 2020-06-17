@@ -26,7 +26,7 @@ import ratpack.config.ConfigData;
 import ratpack.config.ConfigObject;
 import ratpack.config.ConfigSource;
 import ratpack.file.FileSystemBinding;
-import ratpack.util.Exceptions;
+import ratpack.exec.util.Exceptions;
 
 import java.io.IOException;
 

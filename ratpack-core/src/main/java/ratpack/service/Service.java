@@ -16,9 +16,9 @@
 
 package ratpack.service;
 
-import ratpack.api.NonBlocking;
+import ratpack.exec.api.NonBlocking;
 import ratpack.exec.Blocking;
-import ratpack.func.Action;
+import ratpack.exec.func.Action;
 import ratpack.server.RatpackServer;
 
 /**
@@ -144,7 +144,7 @@ import ratpack.server.RatpackServer;
  * import ratpack.service.StartEvent;
  * import ratpack.service.StopEvent;
  * import ratpack.guice.Guice;
- * import ratpack.util.Types;
+ * import ratpack.exec.util.Types;
  * import javax.inject.Inject;
  *
  * import java.util.List;

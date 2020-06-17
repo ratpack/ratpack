@@ -25,8 +25,8 @@ import io.netty.handler.codec.http.cookie.ClientCookieEncoder;
 import io.netty.handler.codec.http.cookie.Cookie;
 import ratpack.exec.ExecController;
 import ratpack.exec.internal.DefaultExecController;
-import ratpack.func.Action;
-import ratpack.func.Function;
+import ratpack.exec.func.Action;
+import ratpack.exec.func.Function;
 import ratpack.http.HttpUrlBuilder;
 import ratpack.http.client.HttpClient;
 import ratpack.http.client.ReceivedResponse;
@@ -37,7 +37,7 @@ import ratpack.test.ApplicationUnderTest;
 import ratpack.test.http.TestHttpClient;
 import ratpack.test.internal.BlockingHttpClient;
 import ratpack.test.internal.TestByteBufAllocators;
-import ratpack.util.Exceptions;
+import ratpack.exec.util.Exceptions;
 
 import java.net.URI;
 import java.net.URISyntaxException;
@@ -46,7 +46,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
-import static ratpack.util.Exceptions.uncheck;
+import static ratpack.exec.util.Exceptions.uncheck;
 
 public class DefaultTestHttpClient implements TestHttpClient {
 

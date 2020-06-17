@@ -18,7 +18,7 @@ package ratpack.pac4j.openid
 
 import org.pac4j.core.profile.UserProfile
 import org.pac4j.openid.profile.yahoo.YahooOpenIdProfile
-import ratpack.func.Action
+import ratpack.exec.func.Action
 import ratpack.groovy.handling.GroovyChainAction
 import ratpack.http.client.ReceivedResponse
 import ratpack.http.client.RequestSpec

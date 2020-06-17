@@ -20,7 +20,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import ratpack.config.ConfigSource;
 import ratpack.file.FileSystemBinding;
-import ratpack.func.Action;
+import ratpack.exec.func.Action;
 
 /**
  * Decorator for a configuration source to apply an error handler.

@@ -17,7 +17,7 @@
 package ratpack.groovy.internal;
 
 import groovy.lang.Closure;
-import ratpack.func.Action;
+import ratpack.exec.func.Action;
 import ratpack.groovy.Groovy;
 import ratpack.groovy.internal.capture.RatpackDslBacking;
 import ratpack.groovy.internal.capture.RatpackDslClosures;

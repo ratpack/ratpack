@@ -19,7 +19,7 @@ package ratpack.file.internal;
 import ratpack.file.FileSystemBinding;
 import ratpack.file.checksummer.internal.Adler32Checksummer;
 import ratpack.file.checksummer.internal.MD5Checksummer;
-import ratpack.func.Function;
+import ratpack.exec.func.Function;
 import ratpack.server.ServerConfig;
 
 import java.io.InputStream;

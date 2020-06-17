@@ -19,7 +19,7 @@ package ratpack.file.internal;
 import com.google.common.collect.ImmutableList;
 import ratpack.file.BaseDirRequiredException;
 import ratpack.file.FileHandlerSpec;
-import ratpack.func.Action;
+import ratpack.exec.func.Action;
 import ratpack.handling.Handler;
 import ratpack.handling.Handlers;
 import ratpack.server.ServerConfig;

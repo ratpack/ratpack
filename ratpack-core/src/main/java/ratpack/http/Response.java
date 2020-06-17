@@ -22,9 +22,10 @@ import io.netty.handler.codec.http.HttpHeaderNames;
 import io.netty.handler.codec.http.HttpHeaderValues;
 import io.netty.handler.codec.http.cookie.Cookie;
 import org.reactivestreams.Publisher;
-import ratpack.api.NonBlocking;
-import ratpack.func.Action;
-import ratpack.util.Types;
+import ratpack.exec.api.NonBlocking;
+import ratpack.exec.func.Action;
+import ratpack.exec.stream.Streams;
+import ratpack.exec.util.Types;
 
 import java.nio.file.Path;
 import java.util.Set;
@@ -220,7 +221,7 @@ public interface Response {
    * Back pressure is applied to the given publisher based on the flow control of the network connection.
    * That is, items are requested from the publisher as they are able to be sent by the underlying Netty layer.
    * As such, the given publisher <b>MUST</b> respect back pressure.
-   * If this is not feasible, consider using {@link ratpack.stream.Streams#buffer(org.reactivestreams.Publisher)}.
+   * If this is not feasible, consider using {@link Streams#buffer(org.reactivestreams.Publisher)}.
    * <p>
    * The back pressure applied will be irregular, based on factors including:
    * <ul>

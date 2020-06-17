@@ -28,7 +28,7 @@ import ratpack.http.internal.HttpHeaderConstants;
 import ratpack.jackson.JsonRender;
 import ratpack.render.Renderer;
 import ratpack.render.RendererSupport;
-import ratpack.util.Types;
+import ratpack.exec.util.Types;
 
 import java.io.OutputStream;
 

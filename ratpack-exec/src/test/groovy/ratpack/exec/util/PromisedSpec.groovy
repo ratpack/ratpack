@@ -18,7 +18,7 @@ package ratpack.exec.util
 
 import ratpack.exec.Execution
 import ratpack.exec.Promise
-import ratpack.func.Action
+import ratpack.exec.func.Action
 import ratpack.test.exec.ExecHarness
 import spock.lang.AutoCleanup
 import spock.lang.Specification

@@ -20,7 +20,7 @@ import com.zaxxer.hikari.pool.HikariPool;
 import ratpack.exec.Blocking;
 import ratpack.exec.Promise;
 import ratpack.health.HealthCheck;
-import ratpack.registry.Registry;
+import ratpack.exec.registry.Registry;
 
 import java.sql.SQLException;
 import java.time.Duration;

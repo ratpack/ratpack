@@ -16,7 +16,7 @@
 
 package ratpack.test.internal.snippets.fixture
 
-import ratpack.func.Block
+import ratpack.exec.func.Block
 import ratpack.groovy.Groovy
 import ratpack.groovy.internal.ClosureUtil
 import ratpack.groovy.internal.capture.RatpackDslBacking

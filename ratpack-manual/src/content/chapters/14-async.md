@@ -109,7 +109,7 @@ public class Example {
 The function submitted as the blocking operation is executed asynchronously (i.e. the `Blocking.get()` method returns a promise instantly), in a separate thread pool.
 The result that it returns will processed back on a request processing (i.e. compute) thread.
 
-See the [Blocking#get()](api/ratpack/exec/Blocking.html#get-ratpack.func.Factory-) method for more details.
+See the [Blocking#get()](api/ratpack/exec/Blocking.html#get-ratpack.exec.func.Factory-) method for more details.
 
 ## Performing async operations
 

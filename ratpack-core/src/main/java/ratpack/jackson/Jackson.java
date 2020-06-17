@@ -23,17 +23,17 @@ import com.fasterxml.jackson.databind.ObjectWriter;
 import com.google.common.reflect.TypeToken;
 import io.netty.buffer.Unpooled;
 import org.reactivestreams.Publisher;
-import ratpack.api.Nullable;
-import ratpack.func.Function;
+import ratpack.exec.api.Nullable;
+import ratpack.exec.func.Function;
 import ratpack.http.ResponseChunks;
 import ratpack.http.internal.HttpHeaderConstants;
 import ratpack.jackson.internal.DefaultJsonParseOpts;
 import ratpack.jackson.internal.DefaultJsonRender;
 import ratpack.parse.Parse;
-import ratpack.registry.Registry;
-import ratpack.stream.StreamMapper;
-import ratpack.stream.Streams;
-import ratpack.stream.WriteStream;
+import ratpack.exec.registry.Registry;
+import ratpack.exec.stream.StreamMapper;
+import ratpack.exec.stream.Streams;
+import ratpack.exec.stream.WriteStream;
 
 import java.io.IOException;
 import java.io.OutputStream;
@@ -89,7 +89,7 @@ import java.io.OutputStream;
  * <pre class="java">{@code
  * import ratpack.test.embed.EmbeddedApp;
  * import ratpack.jackson.Jackson;
- * import ratpack.stream.Streams;
+ * import ratpack.exec.stream.Streams;
  * import ratpack.http.client.ReceivedResponse;
  * import com.fasterxml.jackson.databind.ObjectMapper;
  * import org.reactivestreams.Publisher;
@@ -158,7 +158,7 @@ import java.io.OutputStream;
  *
  * import java.util.List;
  *
- * import static ratpack.util.Types.listOf;
+ * import static ratpack.exec.util.Types.listOf;
  * import static ratpack.jackson.Jackson.jsonNode;
  * import static ratpack.jackson.Jackson.fromJson;
  * import static org.junit.Assert.*;
@@ -220,7 +220,7 @@ import java.io.OutputStream;
  *
  * import java.util.List;
  *
- * import static ratpack.util.Types.listOf;
+ * import static ratpack.exec.util.Types.listOf;
  * import static org.junit.Assert.*;
  *
  * public class Example {
@@ -496,7 +496,7 @@ public abstract class Jackson {
    * import ratpack.test.embed.EmbeddedApp;
    * import ratpack.jackson.Jackson;
    * import ratpack.http.client.ReceivedResponse;
-   * import ratpack.stream.Streams;
+   * import ratpack.exec.stream.Streams;
    * import com.fasterxml.jackson.databind.ObjectMapper;
    * import org.reactivestreams.Publisher;
    *

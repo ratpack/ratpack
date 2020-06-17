@@ -30,15 +30,15 @@ import ratpack.handling.Context;
 import ratpack.handling.Handler;
 import ratpack.pac4j.RatpackPac4j;
 import ratpack.path.PathBinding;
-import ratpack.registry.Registry;
+import ratpack.exec.registry.Registry;
 import ratpack.server.PublicAddress;
 import ratpack.session.SessionData;
-import ratpack.util.Types;
+import ratpack.exec.util.Types;
 
 import java.util.List;
 import java.util.Optional;
 
-import static ratpack.util.Exceptions.uncheck;
+import static ratpack.exec.util.Exceptions.uncheck;
 
 @Deprecated
 public class Pac4jAuthenticator implements Handler {

@@ -16,7 +16,7 @@
 
 package ratpack.http.client
 
-import ratpack.func.Action
+import ratpack.exec.func.Action
 import ratpack.http.internal.HttpHeaderConstants
 
 class HttpClientRedirectionSpec extends BaseHttpClientSpec {

@@ -16,7 +16,7 @@
 
 package ratpack.server;
 
-import ratpack.registry.Registry;
+import ratpack.exec.registry.Registry;
 
 /**
  * Deprecated, replaced by {@link ratpack.service.StopEvent}.

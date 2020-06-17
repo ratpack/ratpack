@@ -18,12 +18,12 @@ package ratpack.sse;
 
 import io.netty.buffer.ByteBufAllocator;
 import ratpack.exec.Promise;
-import ratpack.func.Action;
+import ratpack.exec.func.Action;
 import ratpack.http.client.HttpClient;
 import ratpack.http.client.RequestSpec;
 import ratpack.sse.internal.DefaultServerSentEventStreamClient;
-import ratpack.stream.TransformablePublisher;
-import ratpack.util.Exceptions;
+import ratpack.exec.stream.TransformablePublisher;
+import ratpack.exec.util.Exceptions;
 
 import java.net.URI;
 

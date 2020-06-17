@@ -19,15 +19,15 @@ package ratpack.handling.internal;
 import com.google.common.base.Joiner;
 import com.google.common.collect.Collections2;
 import com.google.common.collect.Maps;
-import ratpack.func.Action;
-import ratpack.func.Block;
+import ratpack.exec.func.Action;
+import ratpack.exec.func.Block;
 import ratpack.handling.ByMethodSpec;
 import ratpack.handling.Context;
 import ratpack.handling.Handler;
 import ratpack.handling.Handlers;
 import ratpack.http.HttpMethod;
 import ratpack.http.internal.HttpHeaderConstants;
-import ratpack.registry.Registry;
+import ratpack.exec.registry.Registry;
 
 import java.util.ArrayList;
 import java.util.Collections;

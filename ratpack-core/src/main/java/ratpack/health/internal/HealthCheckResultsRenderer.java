@@ -25,7 +25,7 @@ import ratpack.health.HealthCheckResults;
 import ratpack.http.internal.HttpHeaderConstants;
 import ratpack.render.Renderer;
 import ratpack.render.RendererSupport;
-import ratpack.util.Types;
+import ratpack.exec.util.Types;
 
 import java.io.BufferedOutputStream;
 import java.io.OutputStreamWriter;

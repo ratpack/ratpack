@@ -64,7 +64,7 @@ import com.google.common.reflect.TypeToken;
 
 import java.util.List;
 
-import static ratpack.util.Types.listOf;
+import static ratpack.exec.util.Types.listOf;
 import static ratpack.jackson.Jackson.jsonNode;
 import static ratpack.jackson.Jackson.fromJson;
 import static org.junit.Assert.*;
@@ -124,7 +124,7 @@ import com.google.common.reflect.TypeToken;
 
 import java.util.List;
 
-import static ratpack.util.Types.listOf;
+import static ratpack.exec.util.Types.listOf;
 import static org.junit.Assert.*;
 
 public class Example {

@@ -16,13 +16,13 @@
 package ratpack.dropwizard.metrics;
 
 import ratpack.dropwizard.metrics.internal.DefaultRequestTimingHandler;
-import ratpack.func.Action;
+import ratpack.exec.func.Action;
 
 import java.time.Duration;
 import java.util.Map;
 import java.util.Optional;
 
-import static ratpack.util.Exceptions.uncheck;
+import static ratpack.exec.util.Exceptions.uncheck;
 
 /**
  * The configuration object for {@link DropwizardMetricsModule}.
@@ -102,7 +102,7 @@ public class DropwizardMetricsConfig {
 
   /**
    * @return this
-   * @see #byteBufAllocator(ratpack.func.Action)
+   * @see #byteBufAllocator(Action)
    * @since 1.6
    */
   public DropwizardMetricsConfig byteBufAllocator() {
@@ -207,7 +207,7 @@ public class DropwizardMetricsConfig {
   }
 
   /**
-   * @see #jmx(ratpack.func.Action)
+   * @see #jmx(Action)
    * @return this
    */
   public DropwizardMetricsConfig jmx() {
@@ -241,7 +241,7 @@ public class DropwizardMetricsConfig {
   }
 
   /**
-   * @see #console(ratpack.func.Action)
+   * @see #console(Action)
    * @return this
    */
   public DropwizardMetricsConfig console() {
@@ -275,7 +275,7 @@ public class DropwizardMetricsConfig {
   }
 
   /**
-   * @see #slf4j(ratpack.func.Action)
+   * @see #slf4j(Action)
    * @return this
    */
   public DropwizardMetricsConfig slf4j() {
@@ -309,7 +309,7 @@ public class DropwizardMetricsConfig {
   }
 
   /**
-   * @see #webSocket(ratpack.func.Action)
+   * @see #webSocket(Action)
    * @return this
    */
   public DropwizardMetricsConfig webSocket() {
@@ -398,7 +398,7 @@ public class DropwizardMetricsConfig {
 
   /**
    * @return this
-   * @see #httpClient(ratpack.func.Action)
+   * @see #httpClient(Action)
    * @since 1.6
    */
   public DropwizardMetricsConfig httpClient() {

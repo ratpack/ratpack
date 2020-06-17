@@ -16,7 +16,7 @@
 
 package ratpack.service;
 
-import ratpack.registry.Registry;
+import ratpack.exec.registry.Registry;
 
 /**
  * A start event.

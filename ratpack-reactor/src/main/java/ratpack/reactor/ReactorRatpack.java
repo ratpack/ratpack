@@ -19,15 +19,16 @@ package ratpack.reactor;
 import org.reactivestreams.Publisher;
 import org.reactivestreams.Subscription;
 import ratpack.exec.*;
-import ratpack.func.Action;
+import ratpack.exec.func.Action;
+import ratpack.exec.func.Function;
 import ratpack.reactor.internal.BlockingExecutorBackedScheduler;
 import ratpack.reactor.internal.DefaultSchedulers;
 import ratpack.reactor.internal.ErrorHandler;
 import ratpack.reactor.internal.ExecControllerBackedScheduler;
-import ratpack.registry.RegistrySpec;
-import ratpack.stream.Streams;
-import ratpack.stream.TransformablePublisher;
-import ratpack.util.Exceptions;
+import ratpack.exec.registry.RegistrySpec;
+import ratpack.exec.stream.Streams;
+import ratpack.exec.stream.TransformablePublisher;
+import ratpack.exec.util.Exceptions;
 import reactor.core.CoreSubscriber;
 import reactor.core.Scannable;
 import reactor.core.publisher.Flux;
@@ -131,7 +132,7 @@ public abstract class ReactorRatpack {
    * <p>
    * The returned observable emits the promise's single value if it succeeds, and emits the error (i.e. via {@code onError()}) if it fails.
    * <p>
-   * This method works well as a method reference to the {@link Promise#to(ratpack.func.Function)} method.
+   * This method works well as a method reference to the {@link Promise#to(Function)} method.
    * <pre class="java">{@code
    * import ratpack.reactor.ReactorRatpack;
    * import ratpack.exec.Promise;
@@ -212,7 +213,7 @@ public abstract class ReactorRatpack {
    * <p>
    * The returned Single emits the promise's single value if it succeeds, and emits the error (i.e. via {@code onError()}) if it fails.
    * <p>
-   * This method works well as a method reference to the {@link Promise#to(ratpack.func.Function)} method.
+   * This method works well as a method reference to the {@link Promise#to(Function)} method.
    * <pre class="java">{@code
    * import ratpack.reactor.ReactorRatpack;
    * import ratpack.exec.Promise;
@@ -374,7 +375,7 @@ public abstract class ReactorRatpack {
    * <p>
    * <pre class="java">{@code
    * import ratpack.reactor.ReactorRatpack;
-   * import ratpack.stream.Streams;
+   * import ratpack.exec.stream.Streams;
    * import ratpack.test.exec.ExecHarness;
    * import reactor.core.publisher.Flux;
    * import java.util.List;
@@ -464,7 +465,7 @@ public abstract class ReactorRatpack {
    * This is different than <code>forkEach</code> which modifies where the downstream is executed.
    * <p>
    * <pre class="java">{@code
-   * import ratpack.func.Pair;
+   * import ratpack.exec.func.Pair;
    * import ratpack.reactor.ReactorRatpack;
    * import ratpack.test.exec.ExecHarness;
    * <p>
@@ -522,7 +523,7 @@ public abstract class ReactorRatpack {
    * <p>
    * <pre class="java">{@code
    * import ratpack.exec.Execution;
-   * import ratpack.registry.RegistrySpec;
+   * import ratpack.exec.registry.RegistrySpec;
    * import ratpack.reactor.ReactorRatpack;
    * import ratpack.test.exec.ExecHarness;
    * <p>
@@ -572,7 +573,7 @@ public abstract class ReactorRatpack {
    * <p>
    * <pre class="java">{@code
    * import ratpack.reactor.ReactorRatpack;
-   * import ratpack.util.Exceptions;
+   * import ratpack.exec.util.Exceptions;
    * import ratpack.test.exec.ExecHarness;
    * <p>
    * import reactor.core.publisher.Flux;

@@ -23,7 +23,7 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 import io.netty.handler.ssl.SslContext;
 import io.netty.handler.ssl.SslContextBuilder;
 import ratpack.ssl.internal.SslContexts;
-import ratpack.util.Exceptions;
+import ratpack.exec.util.Exceptions;
 
 import javax.net.ssl.KeyManagerFactory;
 import java.io.IOException;

@@ -22,7 +22,7 @@ import io.remotecontrol.result.Result;
 import io.remotecontrol.result.impl.DefaultResultFactory;
 import io.remotecontrol.server.MultiTypeReceiver;
 import io.remotecontrol.server.Receiver;
-import ratpack.registry.RegistrySpec;
+import ratpack.exec.registry.RegistrySpec;
 
 import java.io.IOException;
 import java.io.InputStream;

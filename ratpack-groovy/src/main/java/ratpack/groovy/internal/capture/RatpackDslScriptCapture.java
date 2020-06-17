@@ -18,8 +18,8 @@ package ratpack.groovy.internal.capture;
 
 import groovy.lang.Binding;
 import groovy.lang.Script;
-import ratpack.func.BiFunction;
-import ratpack.func.Function;
+import ratpack.exec.func.BiFunction;
+import ratpack.exec.func.Function;
 import ratpack.groovy.Groovy;
 import ratpack.groovy.script.internal.ScriptEngine;
 

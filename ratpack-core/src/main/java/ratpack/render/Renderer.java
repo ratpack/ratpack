@@ -18,9 +18,9 @@ package ratpack.render;
 
 import com.google.common.reflect.TypeParameter;
 import com.google.common.reflect.TypeToken;
-import ratpack.api.NonBlocking;
+import ratpack.exec.api.NonBlocking;
 import ratpack.handling.Context;
-import ratpack.util.Types;
+import ratpack.exec.util.Types;
 
 import java.util.function.BiConsumer;
 

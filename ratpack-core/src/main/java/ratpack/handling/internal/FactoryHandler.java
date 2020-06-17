@@ -16,7 +16,7 @@
 
 package ratpack.handling.internal;
 
-import ratpack.func.Factory;
+import ratpack.exec.func.Factory;
 import ratpack.handling.Context;
 import ratpack.handling.Handler;
 

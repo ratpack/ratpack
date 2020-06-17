@@ -21,7 +21,7 @@ import com.google.common.reflect.TypeToken;
 import ratpack.exec.Promise;
 import ratpack.handling.Context;
 import ratpack.render.*;
-import ratpack.util.Types;
+import ratpack.exec.util.Types;
 
 import java.util.Iterator;
 

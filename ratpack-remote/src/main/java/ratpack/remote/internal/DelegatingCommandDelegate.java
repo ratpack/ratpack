@@ -17,9 +17,9 @@
 package ratpack.remote.internal;
 
 import com.google.common.reflect.TypeToken;
-import ratpack.func.Function;
-import ratpack.registry.Registry;
-import ratpack.registry.RegistrySpec;
+import ratpack.exec.func.Function;
+import ratpack.exec.registry.Registry;
+import ratpack.exec.registry.RegistrySpec;
 import ratpack.remote.CommandDelegate;
 
 import java.util.Optional;

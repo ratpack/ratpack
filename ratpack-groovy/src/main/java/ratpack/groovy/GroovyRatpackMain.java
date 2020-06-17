@@ -16,10 +16,11 @@
 
 package ratpack.groovy;
 
+import ratpack.exec.func.Action;
 import ratpack.server.RatpackServer;
 
 /**
- * A boilerplate entry point, which combines {@link RatpackServer#start(ratpack.func.Action)} and {@link Groovy.Script#app()}.
+ * A boilerplate entry point, which combines {@link RatpackServer#start(Action)} and {@link Groovy.Script#app()}.
  * <p>
  * This can be be used as the main class, when defining your Ratpack app as a Groovy script.
  * The application arguments will be available as {@code this.args} (as a {@code String[]}) in the script.

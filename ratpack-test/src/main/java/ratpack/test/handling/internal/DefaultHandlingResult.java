@@ -24,10 +24,10 @@ import io.netty.handler.codec.http.cookie.Cookie;
 import io.netty.util.CharsetUtil;
 import org.reactivestreams.Subscriber;
 import org.slf4j.LoggerFactory;
-import ratpack.api.Nullable;
+import ratpack.exec.api.Nullable;
 import ratpack.exec.ExecController;
 import ratpack.file.internal.ResponseTransmitter;
-import ratpack.func.Action;
+import ratpack.exec.func.Action;
 import ratpack.handling.Context;
 import ratpack.handling.Handler;
 import ratpack.handling.RequestOutcome;
@@ -39,7 +39,7 @@ import ratpack.http.MutableHeaders;
 import ratpack.http.Response;
 import ratpack.http.Status;
 import ratpack.http.internal.*;
-import ratpack.registry.Registry;
+import ratpack.exec.registry.Registry;
 import ratpack.render.internal.RenderController;
 import ratpack.server.Stopper;
 import ratpack.test.handling.HandlerExceptionNotThrownException;
@@ -55,7 +55,7 @@ import java.util.Set;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
-import static ratpack.util.Exceptions.uncheck;
+import static ratpack.exec.util.Exceptions.uncheck;
 
 public class DefaultHandlingResult implements HandlingResult {
 

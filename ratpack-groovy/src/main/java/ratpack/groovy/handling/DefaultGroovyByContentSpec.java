@@ -16,7 +16,7 @@
 
 package ratpack.groovy.handling;
 
-import ratpack.func.Block;
+import ratpack.exec.func.Block;
 import ratpack.handling.ByContentSpec;
 import ratpack.handling.Handler;
 

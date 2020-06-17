@@ -15,7 +15,7 @@ For information about delegation, see the [Handlers chapter](handlers.html).
 
 ## Contextual objects
 
-The context is a [registry](api/ratpack/registry/Registry.html).
+The context is a [registry](api/ratpack/exec/registry/Registry.html).
 It provides access to via-type-lookup of objects that were made available upstream in the handler pipeline.
 This is the mechanism for inter-handler collaboration in Ratpack.
 
@@ -23,7 +23,7 @@ Consider the following example:
 
 ```language-java
 import ratpack.test.embed.EmbeddedApp;
-import ratpack.registry.Registry;
+import ratpack.exec.registry.Registry;
 
 import static org.junit.Assert.assertEquals;
 
@@ -96,7 +96,7 @@ The benefit of avoiding duplication is obvious.
 What's slightly more subtle is that the decoupling makes testing easier when the downstream handlers are not implemented as anonymous classes (see the [Testing chapter](testing.html) for for information).
 
 At `(1)` we are also using contextual objects.
-The [`prefix()`](api/ratpack/handling/Chain.html#prefix-java.lang.String-ratpack.func.Action-) chain method binds on a request path, potentially capturing tokens.
+The [`prefix()`](api/ratpack/handling/Chain.html#prefix-java.lang.String-ratpack.exec.func.Action-) chain method binds on a request path, potentially capturing tokens.
 If the binding is successful, a [`PathBinding`](api/ratpack/path/PathBinding.html) object is registered with the context that describes the binding result.
 This includes any path tokens that were captured as part of the binding.
 In the case above, we are capturing the second path component as the `id`.
@@ -128,9 +128,9 @@ In the case where a file cannot be resolved from within the application's root, 
 
 The context object mechanism supports partitioning application logic by providing different objects to different partitions.
 This is because objects registered with context are implicitly scoped, depending on how they were registered.
-Objects registered with the [`next()`](api/ratpack/handling/Context.html#next-ratpack.registry.Registry-) methods are available to all downstream handlers that
+Objects registered with the [`next()`](api/ratpack/handling/Context.html#next-ratpack.exec.registry.Registry-) methods are available to all downstream handlers that
 were part of the same insertion (i.e. [`context.insert()`](api/ratpack/handling/Context.html#insert-ratpack.handling.Handler...-) including and nested insertions.
-Objects registered with the [`insert()`](api/ratpack/handling/Context.html#insert-ratpack.registry.Registry-ratpack.handling.Handler...-) methods are available to the inserted handlers and
+Objects registered with the [`insert()`](api/ratpack/handling/Context.html#insert-ratpack.exec.registry.Registry-ratpack.handling.Handler...-) methods are available to the inserted handlers and
 nested insertions.
 
 A typical use for this is using different error handling strategies for different parts of your application.

@@ -19,8 +19,8 @@ package ratpack.exec.internal;
 import ratpack.exec.Downstream;
 import ratpack.exec.Operation;
 import ratpack.exec.Promise;
-import ratpack.func.Action;
-import ratpack.func.Block;
+import ratpack.exec.func.Action;
+import ratpack.exec.func.Block;
 
 public class DefaultOperation implements Operation {
 

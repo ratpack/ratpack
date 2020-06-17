@@ -20,7 +20,7 @@ import org.java_websocket.framing.Framedata
 import org.reactivestreams.Publisher
 import org.reactivestreams.Subscriber
 import ratpack.exec.ExecController
-import ratpack.func.Function
+import ratpack.exec.func.Function
 import ratpack.test.internal.RatpackGroovyDslSpec
 import spock.util.concurrent.BlockingVariable
 
@@ -29,8 +29,8 @@ import java.util.concurrent.CountDownLatch
 import java.util.concurrent.LinkedBlockingQueue
 import java.util.concurrent.TimeUnit
 
-import static ratpack.stream.Streams.periodically
-import static ratpack.stream.Streams.publish
+import static ratpack.exec.stream.Streams.periodically
+import static ratpack.exec.stream.Streams.publish
 import static ratpack.websocket.WebSockets.websocket
 import static ratpack.websocket.WebSockets.websocketBroadcast
 

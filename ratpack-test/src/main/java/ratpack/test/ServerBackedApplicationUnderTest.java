@@ -16,7 +16,7 @@
 
 package ratpack.test;
 
-import ratpack.func.Factory;
+import ratpack.exec.func.Factory;
 import ratpack.impose.ForceDevelopmentImposition;
 import ratpack.impose.ForceServerListenPortImposition;
 import ratpack.impose.Impositions;
@@ -26,7 +26,7 @@ import ratpack.server.RatpackServer;
 import java.net.URI;
 import java.net.URISyntaxException;
 
-import static ratpack.util.Exceptions.uncheck;
+import static ratpack.exec.util.Exceptions.uncheck;
 
 /**
  * An {@link ApplicationUnderTest} implementation that manages a {@link RatpackServer}.

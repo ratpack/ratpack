@@ -16,8 +16,8 @@
 
 package ratpack.handling;
 
-import ratpack.func.Action;
-import ratpack.registry.Registry;
+import ratpack.exec.func.Action;
+import ratpack.exec.registry.Registry;
 
 /**
  * Decorates a handler, effectively wrapping it.
@@ -30,7 +30,7 @@ import ratpack.registry.Registry;
  * import ratpack.handling.Handler;
  * import ratpack.handling.HandlerDecorator;
  * import ratpack.handling.Context;
- * import ratpack.util.Types;
+ * import ratpack.exec.util.Types;
  * import ratpack.test.embed.EmbeddedApp;
  * import static org.junit.Assert.*;
  *
@@ -78,7 +78,7 @@ import ratpack.registry.Registry;
  * import ratpack.handling.Handler;
  * import ratpack.handling.HandlerDecorator;
  * import ratpack.handling.Context;
- * import ratpack.registry.Registry;
+ * import ratpack.exec.registry.Registry;
  * import ratpack.test.embed.EmbeddedApp;
 
  * import ratpack.guice.Guice;

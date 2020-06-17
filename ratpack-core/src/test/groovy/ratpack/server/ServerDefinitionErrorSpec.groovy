@@ -17,7 +17,7 @@
 package ratpack.server
 
 import ratpack.handling.Handler
-import ratpack.registry.Registry
+import ratpack.exec.registry.Registry
 import ratpack.server.internal.ServerEnvironment
 import ratpack.test.ServerBackedApplicationUnderTest
 import ratpack.test.http.TestHttpClient

@@ -18,14 +18,15 @@ package ratpack.retrofit;
 
 import com.google.common.base.Preconditions;
 import ratpack.exec.Execution;
-import ratpack.func.Action;
-import ratpack.func.Factory;
+import ratpack.exec.func.Action;
+import ratpack.exec.registry.NotInRegistryException;
+import ratpack.exec.func.Factory;
 import ratpack.handling.Context;
 import ratpack.http.client.HttpClient;
 import ratpack.retrofit.internal.RatpackCallAdapterFactory;
 import ratpack.retrofit.internal.RatpackCallFactory;
 import ratpack.retrofit.internal.ReceivedResponseConverterFactory;
-import ratpack.util.Exceptions;
+import ratpack.exec.util.Exceptions;
 import retrofit2.Retrofit;
 import retrofit2.converter.scalars.ScalarsConverterFactory;
 
@@ -147,7 +148,7 @@ public abstract class RatpackRetrofit {
      *   <li>{@link Context} in the current {@link Execution}</li>
      * </ul>
      * <p>
-     * If no {@link HttpClient} is found, a {@link ratpack.registry.NotInRegistryException} is thrown.
+     * If no {@link HttpClient} is found, a {@link NotInRegistryException} is thrown.
      *
      * @param clientFactory a factory that generates a HttpClient to be used
      * @return {@code this}

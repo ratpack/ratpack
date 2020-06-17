@@ -16,7 +16,7 @@
 
 package ratpack.server
 
-import ratpack.func.Action
+import ratpack.exec.func.Action
 import ratpack.groovy.test.embed.GroovyEmbeddedApp
 import ratpack.handling.Handler
 import ratpack.http.client.RequestSpec

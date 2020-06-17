@@ -20,8 +20,8 @@ import com.google.common.base.Predicates;
 import com.google.common.collect.Iterables;
 import com.google.common.reflect.TypeToken;
 import ratpack.handling.Context;
-import ratpack.util.Types;
-import ratpack.util.internal.InternalRatpackError;
+import ratpack.exec.util.Types;
+import ratpack.exec.util.internal.InternalRatpackError;
 
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
@@ -89,7 +89,7 @@ public abstract class RendererSupport<T> implements Renderer<T> {
       this.type = rawType;
     } else if (type instanceof ParameterizedType) {
       Iterable<Type> typeArgs = Arrays.asList(((ParameterizedType) type).getActualTypeArguments());
-      if (Iterables.any(typeArgs, Predicates.not((t) -> t.getTypeName().equals("?")))) {
+      if (Iterables.any(typeArgs, Predicates.not(t -> t.getTypeName().equals("?")))) {
         throw new IllegalArgumentException("Invalid renderable type " + type + ": due to type erasure, type parameter T of RendererSupport must be a Class or a parameterized type with '?' for all type variables (e.g. List<?>)");
       }
       this.type = Types.cast(typeToken.getRawType());

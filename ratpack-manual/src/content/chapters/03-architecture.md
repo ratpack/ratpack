@@ -6,7 +6,7 @@ This chapter describes Ratpack applications at a high level.
 
 Ratpack is strongly typed.
 Beyond being implemented in Java, a strongly typed language, its API embraces types.
-For example, the notion of a [`Registry`](api/ratpack/registry/Registry.html) is used extensively in Ratpack.
+For example, the notion of a [`Registry`](api/ratpack/exec/registry/Registry.html) is used extensively in Ratpack.
 A `Registry` can be thought of as a map that uses types as keys.
 
 This may be of most interest to Ratpack users implementing their applications in Groovy.
@@ -74,7 +74,7 @@ This is no different in concept to plain dependency injection.
 
 While we have used the Guice integration in the above example, this approach is not tied to Guice (Guice is not part of Ratpack's core API).
 Another dependency injection container (such as Spring) could easily be used, or no container at all.
-Any source of objects can be adapted to Ratpack's [`Registry`](api/ratpack/registry/Registry.html) interface (there is also [a builder](api/ratpack/registry/RegistryBuilder.html)).
+Any source of objects can be adapted to Ratpack's [`Registry`](api/ratpack/exec/registry/Registry.html) interface (there is also [a builder](api/ratpack/exec/registry/RegistryBuilder.html)).
 
 ## Services & business logic
 

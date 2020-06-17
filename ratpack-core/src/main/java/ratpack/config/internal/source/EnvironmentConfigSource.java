@@ -27,9 +27,9 @@ import ratpack.config.ConfigDataBuilder;
 import ratpack.config.ConfigSource;
 import ratpack.config.EnvironmentParser;
 import ratpack.file.FileSystemBinding;
-import ratpack.func.Function;
-import ratpack.func.Pair;
-import ratpack.func.Predicate;
+import ratpack.exec.func.Function;
+import ratpack.exec.func.Pair;
+import ratpack.exec.func.Predicate;
 import ratpack.server.internal.ServerEnvironment;
 
 import java.util.List;

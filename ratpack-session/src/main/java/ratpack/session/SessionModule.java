@@ -24,14 +24,14 @@ import com.google.inject.name.Names;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.ByteBufAllocator;
 import io.netty.util.AsciiString;
-import ratpack.func.Action;
+import ratpack.exec.func.Action;
 import ratpack.guice.BindingsSpec;
 import ratpack.guice.ConfigurableModule;
 import ratpack.guice.RequestScoped;
 import ratpack.http.Request;
 import ratpack.http.Response;
 import ratpack.session.internal.*;
-import ratpack.util.Types;
+import ratpack.exec.util.Types;
 
 import javax.inject.Named;
 import java.io.Serializable;

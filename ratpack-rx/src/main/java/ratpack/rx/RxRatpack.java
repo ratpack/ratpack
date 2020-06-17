@@ -18,13 +18,14 @@ package ratpack.rx;
 
 import org.reactivestreams.Publisher;
 import ratpack.exec.*;
-import ratpack.func.Action;
-import ratpack.registry.RegistrySpec;
+import ratpack.exec.func.Action;
+import ratpack.exec.func.Function;
+import ratpack.exec.registry.RegistrySpec;
 import ratpack.rx.internal.DefaultSchedulers;
 import ratpack.rx.internal.ExecControllerBackedScheduler;
-import ratpack.stream.Streams;
-import ratpack.stream.TransformablePublisher;
-import ratpack.util.Exceptions;
+import ratpack.exec.stream.Streams;
+import ratpack.exec.stream.TransformablePublisher;
+import ratpack.exec.util.Exceptions;
 import rx.Observable;
 import rx.RxReactiveStreams;
 import rx.Scheduler;
@@ -133,7 +134,7 @@ public abstract class RxRatpack {
    * <p>
    * The returned observable emits the promise's single value if it succeeds, and emits the error (i.e. via {@code onError()}) if it fails.
    * <p>
-   * This method works well as a method reference to the {@link Promise#to(ratpack.func.Function)} method.
+   * This method works well as a method reference to the {@link Promise#to(Function)} method.
    * <pre class="java">{@code
    * import ratpack.exec.Promise;
    * import ratpack.test.exec.ExecHarness;
@@ -503,7 +504,7 @@ public abstract class RxRatpack {
    * It is sometimes more convenient to use {@link #publisher(Observable.OnSubscribe)} over this method.
    *
    * <pre class="java">{@code
-   * import ratpack.stream.Streams;
+   * import ratpack.exec.stream.Streams;
    * import ratpack.test.exec.ExecHarness;
    * import rx.Observable;
    * import java.util.List;
@@ -545,7 +546,7 @@ public abstract class RxRatpack {
    * It is intended to be used in conjunction with the {@link Observable#extend} method as a method reference.
    *
    * <pre class="java">{@code
-   * import ratpack.stream.Streams;
+   * import ratpack.exec.stream.Streams;
    * import ratpack.test.exec.ExecHarness;
    * import rx.Observable;
    * import java.util.List;
@@ -635,7 +636,7 @@ public abstract class RxRatpack {
    * This is different than <code>forkEach</code> which modifies where the downstream is executed.
    *
    * <pre class="java">{@code
-   * import ratpack.func.Pair;
+   * import ratpack.exec.func.Pair;
    * import ratpack.test.exec.ExecHarness;
    *
    * import rx.Observable;
@@ -694,7 +695,7 @@ public abstract class RxRatpack {
    *
    * <pre class="java">{@code
    * import ratpack.exec.Execution;
-   * import ratpack.registry.RegistrySpec;
+   * import ratpack.exec.registry.RegistrySpec;
    * import ratpack.test.exec.ExecHarness;
    *
    * import rx.Observable;
@@ -743,7 +744,7 @@ public abstract class RxRatpack {
    * Parallelize an observable by creating a new Ratpack execution for each element.
    *
    * <pre class="java">{@code
-   * import ratpack.util.Exceptions;
+   * import ratpack.exec.util.Exceptions;
    * import ratpack.test.exec.ExecHarness;
    *
    * import rx.Observable;
@@ -903,7 +904,7 @@ public abstract class RxRatpack {
 
 
     private <T> Observable.OnSubscribe<T> executionBackedOnSubscribe(final Observable.OnSubscribe<T> onSubscribe) {
-      return (subscriber) -> onSubscribe.call(new ExecutionBackedSubscriber<>(subscriber));
+      return subscriber -> onSubscribe.call(new ExecutionBackedSubscriber<>(subscriber));
     }
   }
 

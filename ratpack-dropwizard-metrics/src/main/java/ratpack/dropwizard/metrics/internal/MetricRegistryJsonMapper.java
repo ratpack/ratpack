@@ -22,7 +22,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.ByteBufAllocator;
 import io.netty.buffer.ByteBufOutputStream;
-import ratpack.func.Function;
+import ratpack.exec.func.Function;
 
 import java.io.OutputStream;
 import java.util.concurrent.TimeUnit;

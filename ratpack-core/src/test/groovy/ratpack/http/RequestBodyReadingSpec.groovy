@@ -18,7 +18,7 @@ package ratpack.http
 
 import ratpack.exec.Blocking
 import ratpack.http.client.RequestSpec
-import ratpack.registry.Registry
+import ratpack.exec.registry.Registry
 import ratpack.test.internal.RatpackGroovyDslSpec
 import ratpack.test.internal.SimpleErrorHandler
 import spock.util.concurrent.BlockingVariable

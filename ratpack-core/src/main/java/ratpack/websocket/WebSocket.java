@@ -17,7 +17,7 @@
 package ratpack.websocket;
 
 import io.netty.buffer.ByteBuf;
-import ratpack.api.NonBlocking;
+import ratpack.exec.api.NonBlocking;
 
 public interface WebSocket {
 

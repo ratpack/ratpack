@@ -18,7 +18,7 @@ package ratpack.path.internal;
 
 import com.google.common.collect.ImmutableMap;
 import ratpack.path.PathTokens;
-import ratpack.util.internal.DefaultTypeCoercingMap;
+import ratpack.exec.util.internal.DefaultTypeCoercingMap;
 
 public class DefaultPathTokens extends DefaultTypeCoercingMap<String> implements PathTokens {
 

@@ -16,7 +16,7 @@
 
 package ratpack.exec
 
-import ratpack.func.Block
+import ratpack.exec.func.Block
 
 import java.time.Duration
 

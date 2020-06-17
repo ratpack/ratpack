@@ -18,14 +18,14 @@ package ratpack.sse;
 
 import io.netty.buffer.ByteBufAllocator;
 import org.reactivestreams.Publisher;
-import ratpack.func.Action;
+import ratpack.exec.func.Action;
 import ratpack.handling.Context;
 import ratpack.http.Response;
 import ratpack.http.internal.HttpHeaderConstants;
 import ratpack.render.Renderable;
 import ratpack.sse.internal.DefaultEvent;
 import ratpack.sse.internal.ServerSentEventEncoder;
-import ratpack.stream.Streams;
+import ratpack.exec.stream.Streams;
 
 /**
  * A {@link ratpack.handling.Context#render(Object) renderable} object for streaming server side events.
@@ -44,7 +44,7 @@ import ratpack.stream.Streams;
  * import java.util.Objects;
  *
  * import static ratpack.sse.ServerSentEvents.serverSentEvents;
- * import static ratpack.stream.Streams.periodically;
+ * import static ratpack.exec.stream.Streams.periodically;
  *
  * import static java.util.stream.Collectors.joining;
  *

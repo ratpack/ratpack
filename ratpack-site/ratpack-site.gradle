@@ -104,6 +104,7 @@ dependencies {
   compile project(":ratpack-newrelic")
   compile "org.pegdown:pegdown:${commonVersions.pegdown}"
 
+  //TODO-v2: latest version of this is 3.1.0, but we've changed packages so its broken.
   compile('com.bertramlabs.plugins:ratpack-asset-pipeline:2.6.1') {
     exclude group: "org.slf4j", module: "slf4j-api"
     exclude group: "io.ratpack", module: "ratpack-guice"

@@ -24,7 +24,7 @@ import com.google.common.io.ByteSource;
 import com.google.common.io.Resources;
 import ratpack.config.ConfigSource;
 import ratpack.file.FileSystemBinding;
-import ratpack.util.internal.Paths2;
+import ratpack.exec.util.internal.Paths2;
 
 import java.io.InputStream;
 import java.net.URL;

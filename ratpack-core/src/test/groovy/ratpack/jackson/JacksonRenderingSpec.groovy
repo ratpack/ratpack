@@ -20,7 +20,7 @@ import com.fasterxml.jackson.annotation.JsonView
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.google.common.base.StandardSystemProperty
 import groovy.transform.Canonical
-import ratpack.stream.Streams
+import ratpack.exec.stream.Streams
 import ratpack.test.internal.RatpackGroovyDslSpec
 
 import java.time.Duration

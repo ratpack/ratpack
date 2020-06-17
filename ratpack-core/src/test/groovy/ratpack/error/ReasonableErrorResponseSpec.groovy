@@ -18,7 +18,7 @@ package ratpack.error
 
 import ratpack.exec.ExecInterceptor
 import ratpack.exec.Execution
-import ratpack.func.Block
+import ratpack.exec.func.Block
 import ratpack.handling.Context
 import ratpack.test.internal.RatpackGroovyDslSpec
 

@@ -21,7 +21,7 @@ import com.google.inject.ConfigurationException;
 import com.google.inject.Injector;
 import com.google.inject.Key;
 import com.google.inject.TypeLiteral;
-import ratpack.registry.internal.CachingBackedRegistry;
+import ratpack.exec.registry.internal.CachingBackedRegistry;
 
 import java.util.Optional;
 

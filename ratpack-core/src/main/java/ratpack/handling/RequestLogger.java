@@ -18,7 +18,7 @@ package ratpack.handling;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import ratpack.func.Action;
+import ratpack.exec.func.Action;
 import ratpack.handling.internal.NcsaRequestLogger;
 
 /**

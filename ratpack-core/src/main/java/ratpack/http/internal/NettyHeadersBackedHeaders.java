@@ -19,8 +19,8 @@ package ratpack.http.internal;
 import com.google.common.collect.ImmutableMap;
 import io.netty.handler.codec.http.HttpHeaders;
 import ratpack.http.Headers;
-import ratpack.util.MultiValueMap;
-import ratpack.util.internal.ImmutableDelegatingMultiValueMap;
+import ratpack.exec.util.MultiValueMap;
+import ratpack.exec.util.internal.ImmutableDelegatingMultiValueMap;
 
 import java.text.ParseException;
 import java.util.Date;

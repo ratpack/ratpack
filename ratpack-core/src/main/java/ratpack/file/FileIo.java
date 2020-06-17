@@ -27,8 +27,8 @@ import ratpack.exec.Operation;
 import ratpack.exec.Promise;
 import ratpack.file.internal.FileReadingPublisher;
 import ratpack.file.internal.FileWritingSubscriber;
-import ratpack.stream.TransformablePublisher;
-import ratpack.stream.bytebuf.ByteBufStreams;
+import ratpack.exec.stream.TransformablePublisher;
+import ratpack.exec.stream.bytebuf.ByteBufStreams;
 
 import java.nio.channels.AsynchronousFileChannel;
 import java.nio.channels.CompletionHandler;

@@ -16,7 +16,7 @@
 
 package ratpack.server.internal;
 
-import ratpack.func.Action;
+import ratpack.exec.func.Action;
 import ratpack.server.RatpackServerSpec;
 import ratpack.server.ServerConfig;
 import ratpack.server.ServerConfigBuilder;

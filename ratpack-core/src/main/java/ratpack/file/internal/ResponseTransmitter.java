@@ -19,7 +19,7 @@ package ratpack.file.internal;
 import io.netty.buffer.ByteBuf;
 import io.netty.handler.codec.http.HttpResponseStatus;
 import org.reactivestreams.Subscriber;
-import ratpack.func.Action;
+import ratpack.exec.func.Action;
 import ratpack.handling.RequestOutcome;
 
 import java.nio.file.Path;

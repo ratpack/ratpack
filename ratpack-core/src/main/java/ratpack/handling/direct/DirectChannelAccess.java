@@ -17,7 +17,7 @@
 package ratpack.handling.direct;
 
 import io.netty.channel.Channel;
-import ratpack.func.Action;
+import ratpack.exec.func.Action;
 
 /**
  * Provides direct access to the underlying Netty {@link io.netty.channel.Channel}.

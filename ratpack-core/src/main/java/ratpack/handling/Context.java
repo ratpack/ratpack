@@ -18,14 +18,14 @@ package ratpack.handling;
 
 import com.google.common.reflect.TypeToken;
 import org.reactivestreams.Publisher;
-import ratpack.api.NonBlocking;
+import ratpack.exec.api.NonBlocking;
 import ratpack.error.ClientErrorHandler;
 import ratpack.error.ServerErrorHandler;
 import ratpack.exec.Execution;
 import ratpack.exec.Promise;
 import ratpack.file.FileSystemBinding;
 import ratpack.file.MimeTypes;
-import ratpack.func.Action;
+import ratpack.exec.func.Action;
 import ratpack.handling.direct.DirectChannelAccess;
 import ratpack.http.ClientErrorException;
 import ratpack.http.MutableHeaders;
@@ -40,13 +40,13 @@ import ratpack.parse.Parse;
 import ratpack.parse.Parser;
 import ratpack.path.PathBinding;
 import ratpack.path.PathTokens;
-import ratpack.registry.NotInRegistryException;
-import ratpack.registry.Registry;
+import ratpack.exec.registry.NotInRegistryException;
+import ratpack.exec.registry.Registry;
 import ratpack.render.*;
 import ratpack.server.PublicAddress;
 import ratpack.server.ServerConfig;
-import ratpack.stream.Streams;
-import ratpack.util.Types;
+import ratpack.exec.stream.Streams;
+import ratpack.exec.util.Types;
 
 import java.net.URI;
 import java.nio.file.Path;
@@ -144,7 +144,7 @@ public interface Context extends Registry {
    * The given registry is appended to the existing.
    * This means that it can shadow objects previously available.
    * <pre class="java">{@code
-   * import ratpack.registry.Registry;
+   * import ratpack.exec.registry.Registry;
    * import ratpack.test.embed.EmbeddedApp;
    *
    * import static org.junit.Assert.assertEquals;

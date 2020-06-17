@@ -60,7 +60,7 @@ Likewise, if you have default settings that you wanted to be able to override vi
 
 ### Error Handling
 
-As shown in the [ConfigDataBuilder docs](api/ratpack/config/ConfigDataBuilder.html), [`onError`](api/ratpack/config/ConfigDataBuilder.html#onError-ratpack.func.Action-) can be used to customize the behavior when an error is encountered while loading data from a config source.
+As shown in the [ConfigDataBuilder docs](api/ratpack/config/ConfigDataBuilder.html), [`onError`](api/ratpack/config/ConfigDataBuilder.html#onError-ratpack.exec.func.Action-) can be used to customize the behavior when an error is encountered while loading data from a config source.
 Most commonly, this is used to make configuration sources optional by ignoring load exceptions.
 
 ### Object Mapper

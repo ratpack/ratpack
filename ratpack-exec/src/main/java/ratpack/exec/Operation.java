@@ -16,12 +16,12 @@
 
 package ratpack.exec;
 
-import ratpack.api.NonBlocking;
+import ratpack.exec.api.NonBlocking;
 import ratpack.exec.internal.DefaultOperation;
-import ratpack.func.Action;
-import ratpack.func.Block;
-import ratpack.func.Factory;
-import ratpack.func.Function;
+import ratpack.exec.func.Action;
+import ratpack.exec.func.Block;
+import ratpack.exec.func.Factory;
+import ratpack.exec.func.Function;
 
 import java.util.Optional;
 

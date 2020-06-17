@@ -24,14 +24,14 @@ import ratpack.exec.Execution;
 import ratpack.http.Headers;
 import ratpack.http.Request;
 import ratpack.server.PublicAddress;
-import ratpack.util.Exceptions;
-import ratpack.util.internal.ProtocolUtil;
+import ratpack.exec.util.Exceptions;
+import ratpack.exec.util.internal.ProtocolUtil;
 
 import java.net.URI;
 import java.net.URISyntaxException;
 
 import static ratpack.http.internal.HttpHeaderConstants.*;
-import static ratpack.util.internal.ProtocolUtil.HTTPS_SCHEME;
+import static ratpack.exec.util.internal.ProtocolUtil.HTTPS_SCHEME;
 
 public class InferringPublicAddress implements PublicAddress {
 

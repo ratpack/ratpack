@@ -16,7 +16,7 @@
 
 package ratpack.gson;
 
-import ratpack.api.Nullable;
+import ratpack.exec.api.Nullable;
 
 /**
  * A {@link ratpack.handling.Context#render renderable object wrapper} for rendering as JSON.

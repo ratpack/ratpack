@@ -24,10 +24,10 @@ import ratpack.http.TypedData;
 import ratpack.parse.Parse;
 import ratpack.parse.Parser;
 import ratpack.parse.ParserSupport;
-import ratpack.util.MultiValueMap;
-import ratpack.util.Types;
+import ratpack.exec.util.MultiValueMap;
+import ratpack.exec.util.Types;
 
-import static ratpack.util.MultiValueMap.empty;
+import static ratpack.exec.util.MultiValueMap.empty;
 
 public class FormParser extends ParserSupport<FormParseOpts> {
 

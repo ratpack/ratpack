@@ -23,7 +23,7 @@ import okio.Buffer;
 import okio.BufferedSource;
 import okio.Timeout;
 import ratpack.exec.Promise;
-import ratpack.func.Factory;
+import ratpack.exec.func.Factory;
 import ratpack.http.MutableHeaders;
 import ratpack.http.client.HttpClient;
 import ratpack.http.client.ReceivedResponse;
@@ -33,7 +33,7 @@ import java.io.IOException;
 import java.util.List;
 import java.util.Map;
 
-import static ratpack.util.Exceptions.uncheck;
+import static ratpack.exec.util.Exceptions.uncheck;
 
 public class RatpackCallFactory implements okhttp3.Call.Factory {
 
@@ -55,9 +55,9 @@ public class RatpackCallFactory implements okhttp3.Call.Factory {
   static class RatpackCall implements Call {
 
     private final Request request;
-    private final ratpack.func.Factory<? extends HttpClient> clientFactory;
+    private final ratpack.exec.func.Factory<? extends HttpClient> clientFactory;
 
-    public RatpackCall(Request request, ratpack.func.Factory<? extends HttpClient> clientFactory) {
+    public RatpackCall(Request request, ratpack.exec.func.Factory<? extends HttpClient> clientFactory) {
       this.request = request;
       this.clientFactory = clientFactory;
     }

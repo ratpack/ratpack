@@ -18,8 +18,8 @@ package ratpack.test.http;
 
 import com.google.common.collect.ImmutableMultimap;
 import io.netty.handler.codec.http.cookie.Cookie;
-import ratpack.api.Nullable;
-import ratpack.func.Action;
+import ratpack.exec.api.Nullable;
+import ratpack.exec.func.Action;
 import ratpack.http.client.ReceivedResponse;
 import ratpack.http.client.RequestSpec;
 import ratpack.test.ApplicationUnderTest;
@@ -48,7 +48,7 @@ public interface TestHttpClient {
    * The settings provided can be overridden on a per request basis via {@link ratpack.test.http.TestHttpClient#requestSpec}.
    *
    * @param applicationUnderTest the Ratpack application to make requests against
-   * @param requestConfigurer a {@link ratpack.func.Action} that will set up the {@link ratpack.http.client.RequestSpec} for all requests made through this instance of TestHttpClient
+   * @param requestConfigurer a {@link Action} that will set up the {@link ratpack.http.client.RequestSpec} for all requests made through this instance of TestHttpClient
    * @return a http client which is configured to make requests against the provided ApplicationUnderTest
    */
   static TestHttpClient testHttpClient(ApplicationUnderTest applicationUnderTest, @Nullable Action<? super RequestSpec> requestConfigurer) {
@@ -61,7 +61,7 @@ public interface TestHttpClient {
   ApplicationUnderTest getApplicationUnderTest();
 
   /**
-   * @param requestAction an {@link ratpack.func.Action} that will act on the {@link ratpack.http.client.RequestSpec} this is used to configure details of the next request
+   * @param requestAction an {@link Action} that will act on the {@link ratpack.http.client.RequestSpec} this is used to configure details of the next request
    * @return this
    */
   TestHttpClient requestSpec(Action<? super RequestSpec> requestAction);

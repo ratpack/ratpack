@@ -22,7 +22,7 @@ import io.netty.handler.timeout.IdleStateHandler
 import io.netty.util.concurrent.GenericFutureListener
 import ratpack.exec.Execution
 import ratpack.http.ConnectionClosedException
-import ratpack.stream.Streams
+import ratpack.exec.stream.Streams
 import ratpack.test.internal.RatpackGroovyDslSpec
 import spock.util.concurrent.BlockingVariable
 
