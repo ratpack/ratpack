@@ -17,7 +17,7 @@
 package ratpack.groovy.test.embed.internal;
 
 import ratpack.groovy.test.embed.GroovyEmbeddedApp;
-import ratpack.server.RatpackServer;
+import ratpack.core.server.RatpackServer;
 import ratpack.test.embed.EmbeddedApp;
 import ratpack.test.http.TestHttpClient;
 

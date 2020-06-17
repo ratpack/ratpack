@@ -17,8 +17,8 @@
 package ratpack.thymeleaf.internal;
 
 import org.thymeleaf.TemplateEngine;
-import ratpack.handling.Context;
-import ratpack.render.RendererSupport;
+import ratpack.core.handling.Context;
+import ratpack.core.render.RendererSupport;
 import ratpack.thymeleaf.Template;
 
 import javax.inject.Inject;

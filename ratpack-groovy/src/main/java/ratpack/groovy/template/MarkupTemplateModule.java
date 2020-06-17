@@ -22,8 +22,8 @@ import groovy.text.markup.TemplateConfiguration;
 import ratpack.groovy.template.internal.CachingTemplateResolver;
 import ratpack.groovy.template.internal.MarkupTemplateRenderer;
 import ratpack.guice.ConfigurableModule;
-import ratpack.render.Renderer;
-import ratpack.server.ServerConfig;
+import ratpack.core.render.Renderer;
+import ratpack.core.server.ServerConfig;
 
 import javax.inject.Singleton;
 import java.nio.file.Path;

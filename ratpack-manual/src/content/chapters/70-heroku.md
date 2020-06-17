@@ -64,7 +64,7 @@ There are several ways to configure the environment for applications deployed to
 You may want to use these mechanisms to set environment variables and/or JVM system properties to configure your application.
 
 The application entry points that are used when using the `ratpack` and `ratpack-groovy` Gradle plugins support using
-JVM system properties to contribute to the [`ServerConfig`](api/ratpack/server/ServerConfig.html) (see the [launching chapter](launching.html) chapter for more detail).
+JVM system properties to contribute to the [`ServerConfig`](api/ratpack/core/server/ServerConfig.html) (see the [launching chapter](launching.html) chapter for more detail).
 The starter scripts created by the Ratpack Gradle plugins, support the standard `JAVA_OPTS` environment variable and an app specific `«PROJECT_NAME»_OPTS` environment variable.
 If your application name was `foo-Bar`, then the environment variable would be named `FOO_BAR_OPTS`.
 

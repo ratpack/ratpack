@@ -16,7 +16,7 @@
 
 package ratpack.remote;
 
-import ratpack.handling.HandlerDecorator;
+import ratpack.core.handling.HandlerDecorator;
 import ratpack.remote.internal.RemoteControlHandler;
 
 public abstract class RemoteControl {

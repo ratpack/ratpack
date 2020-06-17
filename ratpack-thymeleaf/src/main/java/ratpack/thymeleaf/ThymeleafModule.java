@@ -28,7 +28,7 @@ import org.thymeleaf.resourceresolver.IResourceResolver;
 import org.thymeleaf.templateresolver.ITemplateResolver;
 import org.thymeleaf.templateresolver.TemplateResolver;
 import ratpack.guice.ConfigurableModule;
-import ratpack.server.ServerConfig;
+import ratpack.core.server.ServerConfig;
 import ratpack.thymeleaf.internal.FileSystemBindingThymeleafResourceResolver;
 import ratpack.thymeleaf.internal.ThymeleafTemplateRenderer;
 

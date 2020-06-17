@@ -19,8 +19,8 @@ package ratpack.groovy.handling;
 import groovy.lang.Closure;
 import groovy.lang.DelegatesTo;
 import ratpack.exec.func.Block;
-import ratpack.handling.ByMethodSpec;
-import ratpack.handling.Handler;
+import ratpack.core.handling.ByMethodSpec;
+import ratpack.core.handling.Handler;
 
 /**
  * A Groovy oriented multi-method handler builder.

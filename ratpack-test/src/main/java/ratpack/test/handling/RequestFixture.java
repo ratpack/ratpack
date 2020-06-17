@@ -17,18 +17,18 @@
 package ratpack.test.handling;
 
 import com.google.common.net.HostAndPort;
-import ratpack.error.ClientErrorHandler;
-import ratpack.error.ServerErrorHandler;
+import ratpack.core.error.ClientErrorHandler;
+import ratpack.core.error.ServerErrorHandler;
 import ratpack.exec.func.Action;
 import ratpack.exec.func.Factory;
-import ratpack.handling.Chain;
-import ratpack.handling.Context;
-import ratpack.handling.Handler;
-import ratpack.http.Request;
-import ratpack.http.Response;
+import ratpack.core.handling.Chain;
+import ratpack.core.handling.Context;
+import ratpack.core.handling.Handler;
+import ratpack.core.http.Request;
+import ratpack.core.http.Response;
 import ratpack.exec.registry.RegistrySpec;
-import ratpack.server.ServerConfig;
-import ratpack.server.ServerConfigBuilder;
+import ratpack.core.server.ServerConfig;
+import ratpack.core.server.ServerConfigBuilder;
 import ratpack.test.handling.internal.DefaultRequestFixture;
 import ratpack.test.http.MultipartFileSpec;
 import ratpack.test.http.MultipartFormSpec;
@@ -51,8 +51,8 @@ public interface RequestFixture {
    * Unit test a single {@link Handler}.
    *
    * <pre class="java">{@code
-   * import ratpack.handling.Context;
-   * import ratpack.handling.Handler;
+   * import ratpack.core.handling.Context;
+   * import ratpack.core.handling.Handler;
    * import ratpack.test.handling.RequestFixture;
    * import ratpack.test.handling.HandlingResult;
    *
@@ -98,7 +98,7 @@ public interface RequestFixture {
    *
    * <pre class="java">{@code
    * import ratpack.exec.func.Action;
-   * import ratpack.handling.Chain;
+   * import ratpack.core.handling.Chain;
    * import ratpack.test.handling.RequestFixture;
    * import ratpack.test.handling.HandlingResult;
    *

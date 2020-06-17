@@ -23,8 +23,8 @@ import io.netty.util.CharsetUtil
 import org.reactivestreams.Subscriber
 import org.reactivestreams.tck.SubscriberBlackboxVerification
 import org.reactivestreams.tck.TestEnvironment
-import ratpack.websocket.WebSocket
-import ratpack.websocket.internal.WebsocketBroadcastSubscriber
+import ratpack.core.websocket.WebSocket
+import ratpack.core.websocket.internal.WebsocketBroadcastSubscriber
 
 import static org.mockito.Mockito.mock
 

@@ -16,10 +16,10 @@
 
 package ratpack.groovy
 
-import ratpack.error.ServerErrorHandler
-import ratpack.error.internal.DefaultDevelopmentErrorHandler
+import ratpack.core.error.ServerErrorHandler
+import ratpack.core.error.internal.DefaultDevelopmentErrorHandler
 import ratpack.exec.func.Action
-import ratpack.handling.Chain
+import ratpack.core.handling.Chain
 import ratpack.test.internal.RatpackGroovyDslSpec
 
 class GroovySpec extends RatpackGroovyDslSpec {

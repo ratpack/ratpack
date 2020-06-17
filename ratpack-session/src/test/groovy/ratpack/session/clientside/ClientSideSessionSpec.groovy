@@ -17,10 +17,10 @@
 package ratpack.session.clientside
 
 import com.google.inject.AbstractModule
-import ratpack.http.MutableHeaders
-import ratpack.http.client.RequestSpec
-import ratpack.http.internal.HttpHeaderConstants
-import ratpack.server.ServerConfig
+import ratpack.core.http.MutableHeaders
+import ratpack.core.http.client.RequestSpec
+import ratpack.core.http.internal.HttpHeaderConstants
+import ratpack.core.server.ServerConfig
 import ratpack.session.Session
 import ratpack.session.SessionId
 import ratpack.session.SessionModule

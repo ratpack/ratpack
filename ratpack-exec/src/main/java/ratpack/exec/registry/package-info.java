@@ -17,8 +17,8 @@
 /**
  * Registries hold objects that can be retrieved via type, and are a key aspect of Ratpack applications.
  * <p>
- * Registries are primarily used for inter {@link ratpack.handling.Handler} communication in request processing.
- * The {@link ratpack.handling.Context} object that handles operate on implements the {@link ratpack.exec.registry.Registry} interface.
+ * Registries are primarily used for inter {@link ratpack.core.handling.Handler} communication in request processing.
+ * The {@link ratpack.core.handling.Context} object that handles operate on implements the {@link ratpack.exec.registry.Registry} interface.
  * <p>
  * See {@link ratpack.exec.registry.Registry} for examples of how registries are used by handlers.
  *

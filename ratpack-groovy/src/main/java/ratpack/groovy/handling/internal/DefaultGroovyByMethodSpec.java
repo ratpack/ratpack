@@ -20,8 +20,8 @@ import groovy.lang.Closure;
 import ratpack.exec.func.Block;
 import ratpack.groovy.Groovy;
 import ratpack.groovy.handling.GroovyByMethodSpec;
-import ratpack.handling.ByMethodSpec;
-import ratpack.handling.Handler;
+import ratpack.core.handling.ByMethodSpec;
+import ratpack.core.handling.Handler;
 
 public class DefaultGroovyByMethodSpec implements GroovyByMethodSpec {
 

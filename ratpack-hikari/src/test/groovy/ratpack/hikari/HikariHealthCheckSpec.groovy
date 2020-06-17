@@ -18,7 +18,7 @@ package ratpack.hikari
 
 import com.zaxxer.hikari.HikariDataSource
 import com.zaxxer.hikari.pool.HikariPool
-import ratpack.health.HealthCheckHandler
+import ratpack.core.health.HealthCheckHandler
 import ratpack.test.internal.RatpackGroovyDslSpec
 
 import javax.inject.Inject

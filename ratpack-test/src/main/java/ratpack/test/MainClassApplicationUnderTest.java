@@ -16,8 +16,9 @@
 
 package ratpack.test;
 
-import ratpack.server.RatpackServer;
-import ratpack.server.internal.ServerCapturer;
+import ratpack.core.impose.ImpositionsSpec;
+import ratpack.core.server.RatpackServer;
+import ratpack.core.server.internal.ServerCapturer;
 
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
@@ -27,7 +28,7 @@ import java.lang.reflect.Modifier;
  * An application under test fixture that can be used to test a server started by a “main” method.
  *
  * <pre class="java">{@code
- * import ratpack.server.RatpackServer;
+ * import ratpack.core.server.RatpackServer;
  * import ratpack.test.MainClassApplicationUnderTest;
  *
  * import static org.junit.Assert.assertEquals;
@@ -54,7 +55,7 @@ import java.lang.reflect.Modifier;
  * <p>
  * Note that this type implements {@link CloseableApplicationUnderTest}, and should be closed when no longer needed.
  *
- * @see #addImpositions(ratpack.impose.ImpositionsSpec)
+ * @see #addImpositions(ImpositionsSpec)
  * @see ServerBackedApplicationUnderTest
  */
 public class MainClassApplicationUnderTest extends ServerBackedApplicationUnderTest {

@@ -20,7 +20,7 @@ import groovy.lang.Closure;
 import groovy.lang.GroovySystem;
 import ratpack.exec.func.Action;
 import ratpack.groovy.Groovy;
-import ratpack.server.RatpackServer;
+import ratpack.core.server.RatpackServer;
 
 import java.nio.file.Path;
 import java.util.concurrent.locks.Lock;

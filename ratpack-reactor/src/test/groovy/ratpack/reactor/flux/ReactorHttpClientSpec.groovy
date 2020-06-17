@@ -17,7 +17,7 @@
 package ratpack.reactor.flux
 
 import ratpack.http.client.BaseHttpClientSpec
-import ratpack.http.client.HttpClient
+import ratpack.core.http.client.HttpClient
 import ratpack.reactor.ReactorRatpack
 
 import java.util.function.Function

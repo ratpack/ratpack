@@ -37,7 +37,7 @@ import javax.crypto.spec.SecretKeySpec;
  * <h3>Example usage</h3>
  * <pre class="java">{@code
  * import ratpack.guice.Guice;
- * import ratpack.http.client.ReceivedResponse;
+ * import ratpack.core.http.client.ReceivedResponse;
  * import ratpack.session.Session;
  * import ratpack.session.SessionKey;
  * import ratpack.session.SessionModule;

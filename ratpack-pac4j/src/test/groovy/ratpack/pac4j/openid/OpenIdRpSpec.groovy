@@ -20,8 +20,8 @@ import org.pac4j.core.profile.UserProfile
 import org.pac4j.openid.profile.yahoo.YahooOpenIdProfile
 import ratpack.exec.func.Action
 import ratpack.groovy.handling.GroovyChainAction
-import ratpack.http.client.ReceivedResponse
-import ratpack.http.client.RequestSpec
+import ratpack.core.http.client.ReceivedResponse
+import ratpack.core.http.client.RequestSpec
 import ratpack.pac4j.RatpackPac4j
 import ratpack.session.SessionModule
 import ratpack.test.internal.RatpackGroovyDslSpec
@@ -30,7 +30,7 @@ import spock.lang.AutoCleanup
 import static io.netty.handler.codec.http.HttpHeaderNames.LOCATION
 import static io.netty.handler.codec.http.HttpResponseStatus.FOUND
 import static io.netty.handler.codec.http.HttpResponseStatus.UNAUTHORIZED
-import static ratpack.http.internal.HttpHeaderConstants.*
+import static ratpack.core.http.internal.HttpHeaderConstants.*
 import static ratpack.pac4j.RatpackPac4j.DEFAULT_AUTHENTICATOR_PATH
 
 /**

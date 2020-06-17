@@ -15,7 +15,7 @@ package my.app;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import ratpack.server.RatpackServer;
+import ratpack.core.server.RatpackServer;
 
 import static ratpack.spring.Spring.spring;
 
@@ -68,7 +68,7 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.context.annotation.Bean;
 
 import ratpack.exec.func.Action;
-import ratpack.handling.Chain;
+import ratpack.core.handling.Chain;
 import ratpack.spring.config.EnableRatpack;
 
 @SpringBootApplication
@@ -117,7 +117,7 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.context.annotation.Bean;
 
 import ratpack.exec.func.Action;
-import ratpack.handling.Chain;
+import ratpack.core.handling.Chain;
 import ratpack.thymeleaf.ThymeleafModule;
 import ratpack.spring.config.EnableRatpack;
 

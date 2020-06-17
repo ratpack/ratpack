@@ -16,12 +16,9 @@
 
 package ratpack.test;
 
+import ratpack.core.impose.*;
 import ratpack.exec.func.Factory;
-import ratpack.impose.ForceDevelopmentImposition;
-import ratpack.impose.ForceServerListenPortImposition;
-import ratpack.impose.Impositions;
-import ratpack.impose.ImpositionsSpec;
-import ratpack.server.RatpackServer;
+import ratpack.core.server.RatpackServer;
 
 import java.net.URI;
 import java.net.URISyntaxException;
@@ -129,9 +126,9 @@ public abstract class ServerBackedApplicationUnderTest implements CloseableAppli
    * Adds impositions to be imposed on the server while it is being created and starting.
    *
    * <pre class="java">{@code
-   * import ratpack.server.RatpackServer;
-   * import ratpack.impose.ImpositionsSpec;
-   * import ratpack.impose.ServerConfigImposition;
+   * import ratpack.core.server.RatpackServer;
+   * import ratpack.core.impose.ImpositionsSpec;
+   * import ratpack.core.impose.ServerConfigImposition;
    * import ratpack.test.MainClassApplicationUnderTest;
    *
    * import static java.util.Collections.singletonMap;
@@ -170,10 +167,10 @@ public abstract class ServerBackedApplicationUnderTest implements CloseableAppli
    *
    * @param impositions the spec to add impositions to
    * @see Impositions
-   * @see ratpack.impose.ServerConfigImposition
-   * @see ratpack.impose.ForceDevelopmentImposition
-   * @see ratpack.impose.ForceServerListenPortImposition
-   * @see ratpack.impose.UserRegistryImposition
+   * @see ServerConfigImposition
+   * @see ForceDevelopmentImposition
+   * @see ForceServerListenPortImposition
+   * @see UserRegistryImposition
    * @since 1.2
    */
   protected void addImpositions(ImpositionsSpec impositions) {

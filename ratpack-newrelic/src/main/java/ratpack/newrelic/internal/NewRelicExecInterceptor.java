@@ -20,7 +20,7 @@ import com.newrelic.api.agent.Trace;
 import ratpack.exec.ExecInterceptor;
 import ratpack.exec.Execution;
 import ratpack.exec.func.Block;
-import ratpack.handling.Context;
+import ratpack.core.handling.Context;
 import ratpack.newrelic.NewRelicTransaction;
 
 public class NewRelicExecInterceptor implements ExecInterceptor {

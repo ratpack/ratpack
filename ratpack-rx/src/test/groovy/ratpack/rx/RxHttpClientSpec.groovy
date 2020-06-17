@@ -17,7 +17,7 @@
 package ratpack.rx
 
 import ratpack.http.client.BaseHttpClientSpec
-import ratpack.http.client.HttpClient
+import ratpack.core.http.client.HttpClient
 
 import static ratpack.rx.RxRatpack.observe
 

@@ -22,8 +22,8 @@ import ratpack.groovy.internal.ClosureUtil
 import ratpack.groovy.internal.capture.RatpackDslBacking
 import ratpack.groovy.internal.capture.RatpackDslClosures
 import ratpack.guice.Guice
-import ratpack.server.RatpackServer
-import ratpack.server.ServerConfig
+import ratpack.core.server.RatpackServer
+import ratpack.core.server.ServerConfig
 
 class GroovyScriptRatpackDslFixture extends GroovyScriptFixture {
 

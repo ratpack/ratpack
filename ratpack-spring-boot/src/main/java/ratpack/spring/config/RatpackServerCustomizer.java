@@ -20,8 +20,8 @@ import java.util.List;
 
 import ratpack.exec.func.Action;
 import ratpack.guice.BindingsSpec;
-import ratpack.handling.Chain;
-import ratpack.server.ServerConfigBuilder;
+import ratpack.core.handling.Chain;
+import ratpack.core.server.ServerConfigBuilder;
 
 public interface RatpackServerCustomizer {
 

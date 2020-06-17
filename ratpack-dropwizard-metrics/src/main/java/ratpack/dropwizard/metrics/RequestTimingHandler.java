@@ -16,7 +16,7 @@
 
 package ratpack.dropwizard.metrics;
 
-import ratpack.handling.Handler;
+import ratpack.core.handling.Handler;
 
 /**
  * @since 1.2

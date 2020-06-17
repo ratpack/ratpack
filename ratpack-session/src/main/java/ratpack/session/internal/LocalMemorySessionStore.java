@@ -20,6 +20,7 @@ import com.google.common.cache.Cache;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
 import io.netty.util.AsciiString;
+import ratpack.core.server.StopEvent;
 import ratpack.exec.Operation;
 import ratpack.exec.Promise;
 import ratpack.session.SessionStore;
@@ -71,7 +72,7 @@ public class LocalMemorySessionStore implements SessionStore {
   }
 
   @Override
-  public void onStop(@SuppressWarnings("deprecation") ratpack.server.StopEvent event) throws Exception {
+  public void onStop(@SuppressWarnings("deprecation") StopEvent event) throws Exception {
     cache.invalidateAll();
   }
 

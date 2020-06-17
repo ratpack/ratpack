@@ -24,31 +24,32 @@ import com.google.inject.matcher.AbstractMatcher;
 import com.google.inject.matcher.Matchers;
 import io.netty.buffer.ByteBufAllocator;
 import org.aopalliance.intercept.MethodInterceptor;
+import ratpack.core.server.internal.ServerRegistry;
 import ratpack.exec.api.Blocks;
-import ratpack.error.ClientErrorHandler;
-import ratpack.error.ServerErrorHandler;
+import ratpack.core.error.ClientErrorHandler;
+import ratpack.core.error.ServerErrorHandler;
 import ratpack.exec.ExecController;
 import ratpack.exec.ExecInitializer;
 import ratpack.exec.Execution;
-import ratpack.file.FileSystemBinding;
-import ratpack.file.MimeTypes;
-import ratpack.file.internal.FileRenderer;
-import ratpack.form.internal.FormParser;
+import ratpack.core.file.FileSystemBinding;
+import ratpack.core.file.MimeTypes;
+import ratpack.core.file.internal.FileRenderer;
+import ratpack.core.form.internal.FormParser;
 import ratpack.guice.ExecutionScoped;
 import ratpack.guice.RequestScoped;
-import ratpack.handling.Redirector;
-import ratpack.http.Request;
-import ratpack.http.Response;
-import ratpack.http.client.HttpClient;
+import ratpack.core.handling.Redirector;
+import ratpack.core.http.Request;
+import ratpack.core.http.Response;
+import ratpack.core.http.client.HttpClient;
 import ratpack.exec.registry.Registry;
-import ratpack.render.internal.CharSequenceRenderer;
-import ratpack.render.internal.PromiseRenderer;
-import ratpack.render.internal.PublisherRenderer;
-import ratpack.render.internal.RenderableRenderer;
-import ratpack.server.PublicAddress;
-import ratpack.server.RatpackServer;
-import ratpack.server.ServerConfig;
-import ratpack.sse.ServerSentEventStreamClient;
+import ratpack.core.render.internal.CharSequenceRenderer;
+import ratpack.core.render.internal.PromiseRenderer;
+import ratpack.core.render.internal.PublisherRenderer;
+import ratpack.core.render.internal.RenderableRenderer;
+import ratpack.core.server.PublicAddress;
+import ratpack.core.server.RatpackServer;
+import ratpack.core.server.ServerConfig;
+import ratpack.core.sse.ServerSentEventStreamClient;
 
 import java.lang.reflect.Method;
 import java.util.List;
@@ -56,7 +57,7 @@ import java.util.Optional;
 
 /**
  * Expose bindings for objects in the base registry.
- * This should be kept in sync with the base registry assembled in {@link ratpack.server.internal.ServerRegistry}.
+ * This should be kept in sync with the base registry assembled in {@link ServerRegistry}.
  */
 public class RatpackBaseRegistryModule extends AbstractModule {
 

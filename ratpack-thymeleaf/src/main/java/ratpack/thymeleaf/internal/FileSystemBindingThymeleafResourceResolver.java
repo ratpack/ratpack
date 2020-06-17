@@ -18,7 +18,7 @@ package ratpack.thymeleaf.internal;
 
 import org.thymeleaf.TemplateProcessingParameters;
 import org.thymeleaf.resourceresolver.IResourceResolver;
-import ratpack.file.FileSystemBinding;
+import ratpack.core.file.FileSystemBinding;
 
 import java.io.IOException;
 import java.io.InputStream;

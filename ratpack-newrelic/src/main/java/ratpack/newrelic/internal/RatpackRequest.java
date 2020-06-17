@@ -18,7 +18,7 @@ package ratpack.newrelic.internal;
 
 import com.google.common.collect.Iterables;
 import com.newrelic.api.agent.HeaderType;
-import ratpack.http.Request;
+import ratpack.core.http.Request;
 
 import java.util.Collections;
 import java.util.Enumeration;

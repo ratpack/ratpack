@@ -17,10 +17,10 @@ package ratpack.site.assets.internal;
 
 
 import asset.pipeline.ratpack.internal.AssetProperties;
-import ratpack.file.MimeTypes;
-import ratpack.handling.Context;
-import ratpack.handling.Handler;
-import ratpack.path.PathBinding;
+import ratpack.core.file.MimeTypes;
+import ratpack.core.handling.Context;
+import ratpack.core.handling.Handler;
+import ratpack.core.path.PathBinding;
 import ratpack.site.assets.AssetPipelineModule;
 
 import java.nio.charset.Charset;

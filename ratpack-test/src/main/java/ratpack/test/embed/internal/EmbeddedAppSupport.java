@@ -16,7 +16,7 @@
 
 package ratpack.test.embed.internal;
 
-import ratpack.server.RatpackServer;
+import ratpack.core.server.RatpackServer;
 import ratpack.test.embed.EmbeddedApp;
 
 import static ratpack.exec.util.Exceptions.uncheck;

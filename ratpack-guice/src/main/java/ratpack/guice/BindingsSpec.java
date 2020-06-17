@@ -26,7 +26,7 @@ import ratpack.exec.func.Action;
 import ratpack.guice.internal.GuiceUtil;
 import ratpack.exec.registry.RegistrySpec;
 import ratpack.exec.registry.internal.TypeCaching;
-import ratpack.server.ServerConfig;
+import ratpack.core.server.ServerConfig;
 import ratpack.exec.util.Types;
 
 import java.util.function.Supplier;

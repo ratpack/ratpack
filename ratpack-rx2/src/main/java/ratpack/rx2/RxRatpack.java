@@ -78,7 +78,7 @@ public abstract class RxRatpack {
    * <p>
    * For a Java application, a convenient place to call this is in the handler factory implementation.
    * <pre class="java">{@code
-   * import ratpack.error.ServerErrorHandler;
+   * import ratpack.core.error.ServerErrorHandler;
    * import ratpack.rx2.RxRatpack;
    * import ratpack.test.embed.EmbeddedApp;
    * import io.reactivex.Observable;

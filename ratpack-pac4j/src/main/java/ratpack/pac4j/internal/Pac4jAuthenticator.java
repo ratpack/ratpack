@@ -26,12 +26,12 @@ import org.pac4j.core.exception.TechnicalException;
 import org.pac4j.core.profile.UserProfile;
 import ratpack.exec.Blocking;
 import ratpack.exec.Promise;
-import ratpack.handling.Context;
-import ratpack.handling.Handler;
+import ratpack.core.handling.Context;
+import ratpack.core.handling.Handler;
 import ratpack.pac4j.RatpackPac4j;
-import ratpack.path.PathBinding;
+import ratpack.core.path.PathBinding;
 import ratpack.exec.registry.Registry;
-import ratpack.server.PublicAddress;
+import ratpack.core.server.PublicAddress;
 import ratpack.session.SessionData;
 import ratpack.exec.util.Types;
 

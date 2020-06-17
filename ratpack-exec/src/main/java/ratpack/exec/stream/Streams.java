@@ -42,7 +42,7 @@ import java.util.concurrent.atomic.AtomicInteger;
  * <p><a href="http://www.reactive-streams.org/">http://www.reactive-streams.org</a></p>
  * </blockquote>
  * <p>
- * Ratpack uses the Reactive Streams API when consuming streams of data (e.g {@link ratpack.http.Response#sendStream(Publisher)}).
+ * Ratpack uses the Reactive Streams API when consuming streams of data (e.g {@link ratpack.core.http.Response#sendStream(Publisher)}).
  * </p>
  * <p>
  * This class provides some useful reactive utilities that integrate other parts of the Ratpack API with Reactive Stream types.

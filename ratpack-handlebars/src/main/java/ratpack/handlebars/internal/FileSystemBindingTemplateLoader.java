@@ -18,7 +18,7 @@ package ratpack.handlebars.internal;
 
 import com.github.jknack.handlebars.io.AbstractTemplateLoader;
 import com.github.jknack.handlebars.io.TemplateSource;
-import ratpack.file.FileSystemBinding;
+import ratpack.core.file.FileSystemBinding;
 
 import java.io.IOException;
 import java.nio.file.Files;

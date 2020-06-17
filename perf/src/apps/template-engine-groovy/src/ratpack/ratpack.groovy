@@ -10,7 +10,7 @@ import static ratpack.thymeleaf.Template.thymeleafTemplate
 import ratpack.perf.incl.*
 
 <% if (patch >= 14) { %>
-  import ratpack.handling.ResponseTimer
+  import ratpack.core.handling.ResponseTimer
 <% } %>
 
 ratpack {

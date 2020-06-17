@@ -16,7 +16,7 @@
 
 package ratpack.guice
 
-import ratpack.error.ClientErrorHandler
+import ratpack.core.error.ClientErrorHandler
 import ratpack.test.internal.RatpackGroovyDslSpec
 
 class GuiceBoundClientErrorHandlerSpec extends RatpackGroovyDslSpec {

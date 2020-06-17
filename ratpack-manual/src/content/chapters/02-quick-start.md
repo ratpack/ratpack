@@ -92,7 +92,7 @@ Create the file `src/main/java/my/app/Main.java`, with the following content:
 ```language-java hello-world
 package my.app;
 
-import ratpack.server.RatpackServer;
+import ratpack.core.server.RatpackServer;
 
 public class Main {
   public static void main(String... args) throws Exception {
@@ -111,7 +111,7 @@ or by importing the project into your IDE and executing the `my.app.Main` class.
 
 When run, the server will be available via `http://localhost:5050/`.
 
-The [`handlers()` method](api/ratpack/server/RatpackServerSpec.html#handlers-ratpack.exec.func.Action-) takes a function that receives a [`Chain`](api/ratpack/handling/Chain.html) object.
+The [`handlers()` method](api/ratpack/core/server/RatpackServerSpec.html#handlers-ratpack.exec.func.Action-) takes a function that receives a [`Chain`](api/ratpack/core/handling/Chain.html) object.
 The “Handler Chain API” is used to build the response handling strategy.
 
 The Ratpack Gradle plugin supports [Gradle's Continuous Build feature](https://docs.gradle.org/current/userguide/continuous_build.html).

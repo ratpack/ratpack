@@ -25,8 +25,8 @@ import javassist.bytecode.ClassFile;
 import ratpack.groovy.handling.GroovyContext;
 import ratpack.groovy.internal.ClosureInvoker;
 import ratpack.groovy.internal.ClosureUtil;
-import ratpack.handling.Context;
-import ratpack.handling.internal.DescribingHandler;
+import ratpack.core.handling.Context;
+import ratpack.core.handling.internal.DescribingHandler;
 
 public class ClosureBackedHandler implements DescribingHandler {
 

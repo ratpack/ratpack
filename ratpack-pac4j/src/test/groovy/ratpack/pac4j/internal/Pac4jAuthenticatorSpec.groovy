@@ -24,11 +24,11 @@ import org.pac4j.http.profile.creator.AuthenticatorProfileCreator
 import ratpack.exec.Blocking
 import ratpack.exec.Execution
 import ratpack.exec.Promise
-import ratpack.handling.Context
+import ratpack.core.handling.Context
 import ratpack.pac4j.RatpackPac4j
-import ratpack.path.PathBinding
-import ratpack.server.PublicAddress
-import ratpack.server.internal.ConstantPublicAddress
+import ratpack.core.path.PathBinding
+import ratpack.core.server.PublicAddress
+import ratpack.core.server.internal.ConstantPublicAddress
 import ratpack.session.SessionModule
 import ratpack.test.exec.ExecHarness
 import ratpack.test.internal.RatpackGroovyDslSpec

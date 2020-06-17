@@ -23,9 +23,9 @@ import ratpack.groovy.handling.GroovyChain
 import ratpack.groovy.internal.ClosureUtil
 import ratpack.guice.BindingsSpec
 import ratpack.guice.Guice
-import ratpack.server.RatpackServer
-import ratpack.server.ServerConfig
-import ratpack.server.ServerConfigBuilder
+import ratpack.core.server.RatpackServer
+import ratpack.core.server.ServerConfig
+import ratpack.core.server.ServerConfigBuilder
 import ratpack.test.embed.EmbeddedApp
 
 abstract class RatpackGroovyDslSpec extends EmbeddedBaseDirRatpackSpec {

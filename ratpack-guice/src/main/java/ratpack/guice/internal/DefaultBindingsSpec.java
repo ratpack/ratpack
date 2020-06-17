@@ -21,7 +21,7 @@ import com.google.inject.Module;
 import ratpack.exec.func.Action;
 import ratpack.guice.BindingsSpec;
 import ratpack.guice.ConfigurableModule;
-import ratpack.server.ServerConfig;
+import ratpack.core.server.ServerConfig;
 
 import java.util.List;
 

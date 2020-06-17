@@ -20,7 +20,7 @@ import com.google.common.collect.ListMultimap;
 import io.netty.handler.codec.http.HttpHeaders;
 import io.netty.handler.codec.http.ReadOnlyHttpHeaders;
 import ratpack.exec.api.Nullable;
-import ratpack.http.Headers;
+import ratpack.core.http.Headers;
 import ratpack.exec.util.MultiValueMap;
 import ratpack.exec.util.internal.ImmutableDelegatingMultiValueMap;
 

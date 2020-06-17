@@ -19,7 +19,7 @@ package ratpack.thymeleaf3.internal;
 import org.thymeleaf.IEngineConfiguration;
 import org.thymeleaf.templateresolver.AbstractConfigurableTemplateResolver;
 import org.thymeleaf.templateresource.ITemplateResource;
-import ratpack.file.FileSystemBinding;
+import ratpack.core.file.FileSystemBinding;
 
 import java.nio.charset.Charset;
 import java.nio.file.Path;

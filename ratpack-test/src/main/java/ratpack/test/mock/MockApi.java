@@ -16,7 +16,9 @@
 
 package ratpack.test.mock;
 
-import ratpack.server.RatpackServer;
+import ratpack.core.handling.Handler;
+import ratpack.core.http.Request;
+import ratpack.core.server.RatpackServer;
 import ratpack.test.embed.EmbeddedApp;
 import ratpack.test.handling.HandlerFactory;
 import ratpack.exec.util.Exceptions;
@@ -28,8 +30,8 @@ import ratpack.exec.util.Exceptions;
  * {@link MockApi} provides functionality similar to <a href="http://wiremock.org/" target="_blank">WireMock</a> and
  * <a href="https://betamax.readthedocs.io/en/latest/index.html" target="_blank">BetaMax</a>.
  * <pre class="java">{@code
- * import ratpack.http.HttpMethod;
- * import ratpack.http.client.HttpClient;
+ * import ratpack.core.http.HttpMethod;
+ * import ratpack.core.http.client.HttpClient;
  * import ratpack.test.embed.EmbeddedApp;
  * import ratpack.test.handling.HandlerFactory;
  * import ratpack.test.mock.MockApi;
@@ -78,8 +80,8 @@ import ratpack.exec.util.Exceptions;
  * verifying the invocations of the mock {@code HandlerFactory}.
  * <pre class="groovy">{@code
  * import ratpack.groovy.test.embed.GroovyEmbeddedApp
- * import ratpack.http.HttpMethod
- * import ratpack.http.client.HttpClient
+ * import ratpack.core.http.HttpMethod
+ * import ratpack.core.http.client.HttpClient
  * import spock.lang.Specification
  *
  * import static ratpack.groovy.Groovy.groovyHandler
@@ -148,7 +150,7 @@ public class MockApi implements EmbeddedApp {
 
   /**
    * Creates an embedded Ratpack server which delegates handling to the provided factory.
-   * @param factory a factory that generates a {@link ratpack.handling.Handler} based on the incoming {@link ratpack.http.Request}
+   * @param factory a factory that generates a {@link Handler} based on the incoming {@link Request}
    * @return an embedded Ratpack app which delegates all requests to the provided factory.
    * @see EmbeddedApp
    */

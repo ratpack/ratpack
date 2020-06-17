@@ -17,8 +17,8 @@
 package ratpack.groovy.handling
 
 import ratpack.groovy.Groovy
-import ratpack.server.RatpackServer
-import ratpack.server.ServerConfig
+import ratpack.core.server.RatpackServer
+import ratpack.core.server.ServerConfig
 import ratpack.test.embed.EmbeddedApp
 import ratpack.test.embed.internal.EmbeddedAppSupport
 import ratpack.test.internal.RatpackGroovyScriptAppSpec

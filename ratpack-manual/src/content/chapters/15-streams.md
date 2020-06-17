@@ -25,12 +25,12 @@ Back pressure allows the data producer to match its rate of production with what
    
 For more info on the importance of back pressure, please see the documentation from the [Reactive Streams](http://www.reactive-streams.org) project.
  
-Streaming a response always occurs via the [`Response.sendStream()`](api/ratpack/http/Response.html#sendStream-org.reactivestreams.Publisher-) method.
+Streaming a response always occurs via the [`Response.sendStream()`](api/ratpack/core/http/Response.html#sendStream-org.reactivestreams.Publisher-) method.
 See the documentation for this method for more precise semantics of what back pressure means when streaming data.
  
 ## Chunked transfer encoding
 
-Ratpack supports [chunked transfer encoding](http://en.wikipedia.org/wiki/Chunked_transfer_encoding) for arbitrary data streams by way of the [`ResponseChunks`](api/ratpack/http/ResponseChunks.html) renderable type.
+Ratpack supports [chunked transfer encoding](http://en.wikipedia.org/wiki/Chunked_transfer_encoding) for arbitrary data streams by way of the [`ResponseChunks`](api/ratpack/core/http/ResponseChunks.html) renderable type.
 
 ## Server-sent events
 
@@ -38,6 +38,6 @@ Ratpack supports [server-sent events](https://developer.mozilla.org/en-US/docs/S
 
 ## Websockets
 
-Ratpack supports streaming data over [websockets](http://en.wikipedia.org/wiki/WebSocket) by way of the [`WebSockets.websocketBroadcast()`](api/ratpack/websocket/WebSockets.html#websocketBroadcast-ratpack.handling.Context-org.reactivestreams.Publisher-) method.
+Ratpack supports streaming data over [websockets](http://en.wikipedia.org/wiki/WebSocket) by way of the [`WebSockets.websocketBroadcast()`](api/ratpack/core/websocket/WebSockets.html#websocketBroadcast-ratpack.core.handling.Context-org.reactivestreams.Publisher-) method.
  
-Ratpack also supports bidirectional websocket communication via the other websocket-opening methods of the [`WebSockets`](api/ratpack/websocket/WebSockets.html) class.   
+Ratpack also supports bidirectional websocket communication via the other websocket-opening methods of the [`WebSockets`](api/ratpack/core/websocket/WebSockets.html) class.   

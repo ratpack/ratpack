@@ -16,7 +16,7 @@
 
 package ratpack.lazybones.fixture
 
-class TestConfig extends ratpack.config.TestConfig {
+class TestConfig extends ratpack.core.config.TestConfig {
 
   File getTemplateDirectory() {
     new File(testConfigProperties["template.path"])

@@ -81,7 +81,7 @@ public interface ExecController extends AutoCloseable {
   /**
    * The number of threads that will be used for computation.
    * <p>
-   * This is determined by the {@link ratpack.server.ServerConfig#getThreads()} value of the launch config that created this controller.
+   * This is determined by the {@link ratpack.core.server.ServerConfig#getThreads()} value of the launch config that created this controller.
    *
    * @return the number of threads that will be used for computation
    */
@@ -93,7 +93,7 @@ public interface ExecController extends AutoCloseable {
    * This method returns immediately, not waiting for the actual shutdown to occur.
    * <p>
    * Generally, the only time it is necessary to call this method is when using an exec controller directly during testing.
-   * Calling {@link ratpack.server.RatpackServer#stop()} will inherently call this method.
+   * Calling {@link ratpack.core.server.RatpackServer#stop()} will inherently call this method.
    */
   @Override
   void close();

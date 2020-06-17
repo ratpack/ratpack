@@ -19,7 +19,7 @@ package ratpack.gson
 import com.google.common.reflect.TypeToken
 import com.google.gson.GsonBuilder
 import com.google.gson.JsonElement
-import ratpack.http.client.RequestSpec
+import ratpack.core.http.client.RequestSpec
 import ratpack.test.internal.RatpackGroovyDslSpec
 
 import static Gson.jsonElement

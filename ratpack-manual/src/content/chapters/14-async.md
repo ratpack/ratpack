@@ -66,8 +66,8 @@ The API methods cannot be called on a request processing thread because they wil
 Instead, we need to use the “blocking” API…
 
 ```language-java
-import ratpack.handling.InjectionHandler;
-import ratpack.handling.Context;
+import ratpack.core.handling.InjectionHandler;
+import ratpack.core.handling.Context;
 import ratpack.exec.Blocking;
 
 import ratpack.test.handling.RequestFixture;

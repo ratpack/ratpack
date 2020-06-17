@@ -16,7 +16,7 @@
 
 package ratpack.groovy.template
 
-import ratpack.http.internal.HttpHeaderConstants
+import ratpack.core.http.internal.HttpHeaderConstants
 import ratpack.test.internal.RatpackGroovyDslSpec
 
 import static io.netty.handler.codec.http.HttpHeaders.Names.CONTENT_TYPE

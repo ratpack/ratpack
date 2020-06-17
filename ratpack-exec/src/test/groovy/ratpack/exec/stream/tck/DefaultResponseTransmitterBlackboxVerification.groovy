@@ -26,7 +26,7 @@ import io.netty.handler.codec.http.HttpResponseStatus
 import org.reactivestreams.Subscriber
 import org.reactivestreams.tck.SubscriberBlackboxVerification
 import org.reactivestreams.tck.TestEnvironment
-import ratpack.server.internal.DefaultResponseTransmitter
+import ratpack.core.server.internal.DefaultResponseTransmitter
 
 import java.time.Clock
 import java.util.concurrent.atomic.AtomicBoolean

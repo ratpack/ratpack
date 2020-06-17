@@ -17,9 +17,9 @@
 package ratpack.groovy.handling
 
 import ratpack.groovy.Groovy
-import ratpack.impose.ForceServerListenPortImposition
-import ratpack.impose.Impositions
-import ratpack.server.RatpackServer
+import ratpack.core.impose.ForceServerListenPortImposition
+import ratpack.core.impose.Impositions
+import ratpack.core.server.RatpackServer
 import ratpack.test.embed.EmbeddedApp
 import ratpack.test.embed.internal.EmbeddedAppSupport
 import ratpack.test.internal.RatpackGroovyScriptAppSpec
@@ -299,7 +299,7 @@ class GroovyScriptAppSpec extends RatpackGroovyScriptAppSpec {
   def "defining a class inside for ratpack.groovy"() {
     when:
     script """
-      import ratpack.server.*
+      import ratpack.core.server.*
       import ratpack.groovy.Groovy.Ratpack
 
       import org.slf4j.*

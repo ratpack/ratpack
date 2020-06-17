@@ -15,6 +15,6 @@
  */
 
 /**
- * Groovy specific extensions to classes in the {@code ratpack.handling} package.
+ * Groovy specific extensions to classes in the {@code ratpack.core.handling} package.
  */
 package ratpack.groovy.handling;

@@ -46,9 +46,9 @@ The following are messages emitted by Java 9+ that are expected.
   at io.netty.util.ConstantPool.(ConstantPool.java:32)  
   at io.netty.util.AttributeKey$1.(AttributeKey.java:27)  
   at io.netty.util.AttributeKey.(AttributeKey.java:27)  
-  at ratpack.server.internal.DefaultRatpackServer.(DefaultRatpackServer.java:69)  
-  at ratpack.server.RatpackServer.of(RatpackServer.java:81)  
-  at ratpack.server.RatpackServer.start(RatpackServer.java:92)  
+  at ratpack.core.server.internal.DefaultRatpackServer.(DefaultRatpackServer.java:69)  
+  at ratpack.core.server.RatpackServer.of(RatpackServer.java:81)  
+  at ratpack.core.server.RatpackServer.start(RatpackServer.java:92)  
   at ratpack.groovy.GroovyRatpackMain.main(GroovyRatpackMain.java:38)  
   11:04:44.484 [main] DEBUG i.n.u.i.PlatformDependent0 - java.nio.Bits.unaligned: available, true  
   11:04:44.485 [main] DEBUG i.n.u.i.PlatformDependent0 - jdk.internal.misc.Unsafe.allocateUninitializedArray(int): unavailable  
@@ -64,9 +64,9 @@ The following are messages emitted by Java 9+ that are expected.
   at io.netty.util.ConstantPool.(ConstantPool.java:32)  
   at io.netty.util.AttributeKey$1.(AttributeKey.java:27)  
   at io.netty.util.AttributeKey.(AttributeKey.java:27)  
-  at ratpack.server.internal.DefaultRatpackServer.(DefaultRatpackServer.java:69)  
-  at ratpack.server.RatpackServer.of(RatpackServer.java:81)  
-  at ratpack.server.RatpackServer.start(RatpackServer.java:92)  
+  at ratpack.core.server.internal.DefaultRatpackServer.(DefaultRatpackServer.java:69)  
+  at ratpack.core.server.RatpackServer.of(RatpackServer.java:81)  
+  at ratpack.core.server.RatpackServer.start(RatpackServer.java:92)  
   at ratpack.groovy.GroovyRatpackMain.main(GroovyRatpackMain.java:38)  
   11:04:44.485 [main] DEBUG i.n.u.i.PlatformDependent0 - java.nio.DirectByteBuffer.(long, int): unavailable  
   11:04:44.485 [main] DEBUG i.n.u.internal.PlatformDependent - sun.misc.Unsafe: available  

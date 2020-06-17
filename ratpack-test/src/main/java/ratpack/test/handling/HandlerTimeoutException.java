@@ -16,10 +16,12 @@
 
 package ratpack.test.handling;
 
+import ratpack.core.handling.Handler;
+
 /**
  * Thrown when a handler under test takes too long to produce a result.
  *
- * @see RequestFixture#handle(ratpack.handling.Handler)
+ * @see RequestFixture#handle(Handler)
  */
 public class HandlerTimeoutException extends RuntimeException {
 

@@ -16,12 +16,12 @@
 
 package ratpack.groovy
 
-import ratpack.impose.ForceServerListenPortImposition
-import ratpack.impose.Impositions
+import ratpack.core.impose.ForceServerListenPortImposition
+import ratpack.core.impose.Impositions
 import ratpack.exec.registry.Registry
-import ratpack.server.RatpackServer
-import ratpack.server.StartupFailureException
-import ratpack.server.internal.ServerCapturer
+import ratpack.core.server.RatpackServer
+import ratpack.core.server.StartupFailureException
+import ratpack.core.server.internal.ServerCapturer
 
 class ScriptBackedServer implements RatpackServer {
 

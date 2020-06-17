@@ -27,11 +27,11 @@ import java.util.function.Supplier;
 /**
  * An object registry.
  * <p>
- * Registries are primarily used for inter {@link ratpack.handling.Handler} communication in request processing.
- * The {@link ratpack.handling.Context} object that handlers operate on implements the {@link Registry} interface.
+ * Registries are primarily used for inter {@link ratpack.core.handling.Handler} communication in request processing.
+ * The {@link ratpack.core.handling.Context} object that handlers operate on implements the {@link Registry} interface.
  * <pre class="tested">
- * import ratpack.handling.Handler;
- * import ratpack.handling.Context;
+ * import ratpack.core.handling.Handler;
+ * import ratpack.core.handling.Context;
  * import ratpack.exec.registry.Registry;
  *
  * import static org.junit.Assert.assertTrue;
@@ -59,7 +59,7 @@ import java.util.function.Supplier;
  * import ratpack.test.handling.HandlingResult;
  * import ratpack.test.handling.RequestFixture;
  *
- * import static ratpack.handling.Handlers.chain;
+ * import static ratpack.core.handling.Handlers.chain;
  * import static ratpack.exec.func.Action.noop;
  *
  * import static org.junit.Assert.assertEquals;

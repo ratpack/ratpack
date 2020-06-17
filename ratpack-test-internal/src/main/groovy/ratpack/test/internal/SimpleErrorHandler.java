@@ -16,8 +16,8 @@
 
 package ratpack.test.internal;
 
-import ratpack.error.ServerErrorHandler;
-import ratpack.handling.Context;
+import ratpack.core.error.ServerErrorHandler;
+import ratpack.core.handling.Context;
 
 public class SimpleErrorHandler implements ServerErrorHandler {
 

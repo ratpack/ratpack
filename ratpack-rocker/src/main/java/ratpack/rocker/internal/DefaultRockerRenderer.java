@@ -26,9 +26,9 @@ import io.netty.buffer.CompositeByteBuf;
 import io.netty.buffer.Unpooled;
 import io.netty.buffer.UnpooledByteBufAllocator;
 import io.netty.util.AsciiString;
-import ratpack.handling.Context;
-import ratpack.render.RendererException;
-import ratpack.render.RendererSupport;
+import ratpack.core.handling.Context;
+import ratpack.core.render.RendererException;
+import ratpack.core.render.RendererSupport;
 import ratpack.rocker.RockerRenderer;
 
 import java.util.List;

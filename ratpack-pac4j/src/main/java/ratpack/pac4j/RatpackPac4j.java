@@ -32,15 +32,15 @@ import ratpack.exec.Downstream;
 import ratpack.exec.Operation;
 import ratpack.exec.Promise;
 import ratpack.exec.func.Block;
-import ratpack.handling.Chain;
-import ratpack.handling.Context;
-import ratpack.handling.Handler;
-import ratpack.handling.UserId;
-import ratpack.http.Request;
+import ratpack.core.handling.Chain;
+import ratpack.core.handling.Context;
+import ratpack.core.handling.Handler;
+import ratpack.core.handling.UserId;
+import ratpack.core.http.Request;
 import ratpack.pac4j.internal.Pac4jAuthenticator;
 import ratpack.pac4j.internal.Pac4jSessionKeys;
 import ratpack.pac4j.internal.RatpackWebContext;
-import ratpack.path.PathBinding;
+import ratpack.core.path.PathBinding;
 import ratpack.exec.registry.Registry;
 import ratpack.session.Session;
 import ratpack.exec.util.Types;
@@ -233,7 +233,7 @@ public class RatpackPac4j {
    * import org.pac4j.http.client.indirect.IndirectBasicAuthClient;
    * import org.pac4j.http.credentials.authenticator.test.SimpleTestUsernamePasswordAuthenticator;
    * import ratpack.guice.Guice;
-   * import ratpack.http.client.ReceivedResponse;
+   * import ratpack.core.http.client.ReceivedResponse;
    * import ratpack.session.SessionModule;
    * import ratpack.test.embed.EmbeddedApp;
    *
@@ -312,7 +312,7 @@ public class RatpackPac4j {
    * import org.pac4j.http.client.indirect.IndirectBasicAuthClient;
    * import org.pac4j.http.credentials.authenticator.test.SimpleTestUsernamePasswordAuthenticator;
    * import ratpack.guice.Guice;
-   * import ratpack.http.client.ReceivedResponse;
+   * import ratpack.core.http.client.ReceivedResponse;
    * import ratpack.session.SessionModule;
    * import ratpack.test.embed.EmbeddedApp;
    *
@@ -417,7 +417,7 @@ public class RatpackPac4j {
    * import org.pac4j.http.client.indirect.IndirectBasicAuthClient;
    * import org.pac4j.http.credentials.authenticator.test.SimpleTestUsernamePasswordAuthenticator;
    * import ratpack.guice.Guice;
-   * import ratpack.http.client.ReceivedResponse;
+   * import ratpack.core.http.client.ReceivedResponse;
    * import ratpack.session.SessionModule;
    * import ratpack.test.embed.EmbeddedApp;
    *

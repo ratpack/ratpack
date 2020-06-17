@@ -7,7 +7,7 @@ This allows application code to remain agnostic about the underlying API design 
 behavioral aspects of interfacing with the API.
 
 Retrofit clients generated using the [`RatpackRetrofit`](api/ratpack/retrofit/RatpackRetrofit.html) class are backed with
-Ratpack's [`HttpClient`](api/ratpack/http/client/HttpClient.html) and are capable of interfacing with 
+Ratpack's [`HttpClient`](api/ratpack/core/http/client/HttpClient.html) and are capable of interfacing with 
 Ratpack's [`Promise`](api/ratpack/exec/Promise.html) construct as a return type.
 
 By using the `ratpack-retrofit2` integration, developers can gain the benefit of isolating the API constructs as
@@ -78,13 +78,13 @@ It supports adapting to `Promise` when the promised value is the following types
 
 * Simple scalars (`Integer`, `String`, `Long`, etc.)
 * Retrofit [`Response`](https://square.github.io/retrofit/2.x/retrofit/retrofit2/Response.html)
-* Ratpack [`ReceivedResponse`](api/ratpack/http/client/ReceivedResponse.html)
+* Ratpack [`ReceivedResponse`](api/ratpack/core/http/client/ReceivedResponse.html)
 
 The following example shows the 3 variations configured for the same endpoint.
 
 ```language-java
 import ratpack.exec.Promise;
-import ratpack.http.client.ReceivedResponse;
+import ratpack.core.http.client.ReceivedResponse;
 import retrofit2.Response;
 import retrofit2.http.GET;
 
@@ -173,7 +173,7 @@ import retrofit2.Retrofit;
 
 import java.util.List;
 
-import static ratpack.jackson.Jackson.json;
+import static ratpack.core.jackson.Jackson.json;
 import static org.junit.Assert.*;
 
   

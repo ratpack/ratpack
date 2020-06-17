@@ -1,7 +1,7 @@
 package perf;
 
-import ratpack.handling.*;
-import ratpack.server.*;
+import ratpack.core.handling.*;
+import ratpack.core.server.*;
 import ratpack.perf.incl.*;
 
 public class Main {

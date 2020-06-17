@@ -17,9 +17,9 @@ package ratpack.site.assets;
 
 import asset.pipeline.AssetPipelineConfigHolder;
 import asset.pipeline.fs.FileSystemAssetResolver;
-import ratpack.file.FileSystemBinding;
-import ratpack.service.Service;
-import ratpack.service.StartEvent;
+import ratpack.core.file.FileSystemBinding;
+import ratpack.core.service.Service;
+import ratpack.core.service.StartEvent;
 
 import java.io.InputStream;
 import java.nio.file.Files;

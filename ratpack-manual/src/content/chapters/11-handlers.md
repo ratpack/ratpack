@@ -4,13 +4,13 @@ This chapter introduces handlers, which are the fundamental components of a Ratp
 
 ## What is a handler?
 
-Conceptually, a handler ([`Handler`](api/ratpack/handling/Handler.html)) is just a function that acts on a handling context ([`Context`](api/ratpack/handling/Context.html)).
+Conceptually, a handler ([`Handler`](api/ratpack/core/handling/Handler.html)) is just a function that acts on a handling context ([`Context`](api/ratpack/core/handling/Context.html)).
 
 The “hello world” handler looks like this…
 
 ```language-java
-import ratpack.handling.Handler;
-import ratpack.handling.Context;
+import ratpack.core.handling.Handler;
+import ratpack.core.handling.Context;
 
 public class Example implements Handler {
   public void handle(Context context) {
@@ -40,8 +40,8 @@ Consider a handler that routes to one of two different handlers based on the req
 This can be implemented as…
 
 ```language-groovy tested
-import ratpack.handling.Handler;
-import ratpack.handling.Context;
+import ratpack.core.handling.Handler;
+import ratpack.core.handling.Context;
 
 public class FooHandler implements Handler {
   public void handle(Context context) {
@@ -72,14 +72,14 @@ public class Router implements Handler {
 }
 ```
 
-The key to delegation is the [`context.insert()`](api/ratpack/handling/Context.html#insert-ratpack.handling.Handler...-) method that passes control to one or more linked handlers.
-The [`context.next()`](api/ratpack/handling/Context.html#next--) method passes control to the next linked handler.
+The key to delegation is the [`context.insert()`](api/ratpack/core/handling/Context.html#insert-ratpack.core.handling.Handler...-) method that passes control to one or more linked handlers.
+The [`context.next()`](api/ratpack/core/handling/Context.html#next--) method passes control to the next linked handler.
 
 Consider the following…
 
 ```language-groovy tested
-import ratpack.handling.Handler;
-import ratpack.handling.Context;
+import ratpack.core.handling.Handler;
+import ratpack.core.handling.Context;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -125,8 +125,8 @@ The last handler is _always_ an internal handler that issues a HTTP 404 client e
 Consider that inserted handlers can themselves insert more handlers…
 
 ```language-groovy tested
-import ratpack.handling.Handler;
-import ratpack.handling.Context;
+import ratpack.core.handling.Handler;
+import ratpack.core.handling.Context;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -192,15 +192,15 @@ Read on.
 
 ## Building handler chains
 
-A chain ([`Chain`](api/ratpack/handling/Chain.html)) is a builder for composing (or _chaining_) handlers.
+A chain ([`Chain`](api/ratpack/core/handling/Chain.html)) is a builder for composing (or _chaining_) handlers.
 The chain itself doesn't respond to a request, but instead passes a request around to it's attached handlers.
 
 Consider again the Foo-Bar router example…
 
 ```language-groovy tested
-import ratpack.handling.Chain
-import ratpack.handling.Handler;
-import ratpack.handling.Context;
+import ratpack.core.handling.Chain
+import ratpack.core.handling.Handler;
+import ratpack.core.handling.Context;
 import ratpack.exec.func.Action;
 
 public class FooHandler implements Handler {
@@ -240,31 +240,31 @@ Instead it is a powerful tool built from the more flexible tool, the handler.
 ### Adding Handlers and Chains
 
 So the chain can most simply be thought of as a list of handlers.
-The most basic way to add a handler to the chain's list is the [`all(Handler)`](api/ratpack/handling/Chain.html#all-ratpack.handling.Handler-) method.
+The most basic way to add a handler to the chain's list is the [`all(Handler)`](api/ratpack/core/handling/Chain.html#all-ratpack.core.handling.Handler-) method.
 The word "all" represents that all requests reaching this point in the chain will flow through the given handler.
 
 If we stretch our minds a little and think of the chain as a handler (one that is just specialized in inserting handlers), then it also stands to reason that we can add additional chains to a chain.
-In fact, we can, and to match the `all(Handler)` method, you may use the [`insert(Action<Chain>)`](api/ratpack/handling/Chain.html#insert-ratpack.exec.func.Action-) method.
+In fact, we can, and to match the `all(Handler)` method, you may use the [`insert(Action<Chain>)`](api/ratpack/core/handling/Chain.html#insert-ratpack.exec.func.Action-) method.
 Likewise, this inserts a chain through which all requests are routed.
 
 Now, the chain wouldn't be very useful if it just handled a list of handlers, calling each in a row, so there are also several methods than can perform conditional inserts of handlers and chains:
 
-* [`path(String,Handler)`](api/ratpack/handling/Chain.html#path-java.lang.String-ratpack.handling.Handler-), used in the previous example, is particularly useful for routing to different handlers based upon the request path.
-  It also comes in a [`path(Handler)`](api/ratpack/handling/Chain.html#path-ratpack.handling.Handler-) flavor to easily match the empty "" path.
-* [`onlyIf(Predicate<Context>, Handler)`](api/ratpack/handling/Chain.html#onlyIf-ratpack.exec.func.Predicate-ratpack.handling.Handler-) can be used to route based upon a programmatic behavior.
-* [`host(String, Action<Chain>)`](api/ratpack/handling/Chain.html#host-java.lang.String-ratpack.exec.func.Action-) inserts another chain when a request has a specific Host header value.
-* [`when(Predicate<Context>, Action<Chain>)`](api/ratpack/handling/Chain.html#when-ratpack.exec.func.Predicate-ratpack.exec.func.Action-) will insert a chain when a programmatic behavior is met.
+* [`path(String,Handler)`](api/ratpack/core/handling/Chain.html#path-java.lang.String-ratpack.core.handling.Handler-), used in the previous example, is particularly useful for routing to different handlers based upon the request path.
+  It also comes in a [`path(Handler)`](api/ratpack/core/handling/Chain.html#path-ratpack.core.handling.Handler-) flavor to easily match the empty "" path.
+* [`onlyIf(Predicate<Context>, Handler)`](api/ratpack/core/handling/Chain.html#onlyIf-ratpack.exec.func.Predicate-ratpack.core.handling.Handler-) can be used to route based upon a programmatic behavior.
+* [`host(String, Action<Chain>)`](api/ratpack/core/handling/Chain.html#host-java.lang.String-ratpack.exec.func.Action-) inserts another chain when a request has a specific Host header value.
+* [`when(Predicate<Context>, Action<Chain>)`](api/ratpack/core/handling/Chain.html#when-ratpack.exec.func.Predicate-ratpack.exec.func.Action-) will insert a chain when a programmatic behavior is met.
 
 ### Registry
 
-TODO (A technical definition can be found on the [`Chain`](api/ratpack/handling/Chain.html) javadocs)
+TODO (A technical definition can be found on the [`Chain`](api/ratpack/core/handling/Chain.html) javadocs)
 
 ### Path Bindings
 
 (i.e. /player/:id )
 
-TODO (A technical definition can be found on the [`Chain`](api/ratpack/handling/Chain.html) javadocs)
+TODO (A technical definition can be found on the [`Chain`](api/ratpack/core/handling/Chain.html) javadocs)
 
 ### Path and Method Bindings
 
-TODO (A technical definition can be found on the [`Chain`](api/ratpack/handling/Chain.html) javadocs)
+TODO (A technical definition can be found on the [`Chain`](api/ratpack/core/handling/Chain.html) javadocs)

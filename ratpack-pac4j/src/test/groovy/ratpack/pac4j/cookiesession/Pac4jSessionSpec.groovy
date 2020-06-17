@@ -20,8 +20,8 @@ import org.pac4j.core.profile.UserProfile
 import org.pac4j.http.client.indirect.FormClient
 import org.pac4j.http.credentials.authenticator.test.SimpleTestUsernamePasswordAuthenticator
 import org.slf4j.Logger
-import ratpack.handling.RequestId
-import ratpack.handling.RequestLogger
+import ratpack.core.handling.RequestId
+import ratpack.core.handling.RequestLogger
 import ratpack.pac4j.RatpackPac4j
 import ratpack.session.SessionModule
 import ratpack.test.internal.RatpackGroovyDslSpec

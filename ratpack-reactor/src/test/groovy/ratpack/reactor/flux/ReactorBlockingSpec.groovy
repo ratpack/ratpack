@@ -16,7 +16,7 @@
 
 package ratpack.reactor.flux
 
-import ratpack.error.ServerErrorHandler
+import ratpack.core.error.ServerErrorHandler
 import ratpack.exec.Blocking
 import ratpack.reactor.ReactorRatpack
 import ratpack.test.internal.RatpackGroovyDslSpec

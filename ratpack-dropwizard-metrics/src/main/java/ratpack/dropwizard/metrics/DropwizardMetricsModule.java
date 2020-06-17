@@ -36,10 +36,10 @@ import io.prometheus.client.dropwizard.DropwizardExports;
 import ratpack.dropwizard.metrics.internal.*;
 import ratpack.exec.func.Action;
 import ratpack.guice.ConfigurableModule;
-import ratpack.handling.HandlerDecorator;
-import ratpack.service.Service;
-import ratpack.service.StartEvent;
-import ratpack.service.StopEvent;
+import ratpack.core.handling.HandlerDecorator;
+import ratpack.core.service.Service;
+import ratpack.core.service.StartEvent;
+import ratpack.core.service.StopEvent;
 
 import javax.inject.Inject;
 
@@ -81,7 +81,7 @@ import static java.util.concurrent.TimeUnit.SECONDS;
  * <h2>External Configuration</h2>
  * <p>
  * The module can also be configured via external configuration using the
- * <a href="http://www.ratpack.io/manual/current/api/ratpack/config/ConfigData.html" target="_blank">ratpack-config</a> extension.
+ * <a href="http://www.ratpack.io/manual/current/api/ratpack/core/config/ConfigData.html" target="_blank">ratpack-config</a> extension.
  * For example, to enable the capturing and reporting of metrics to jmx via an external property file which can be overridden with
  * system properties one would write: (Groovy DSL)
  *
@@ -89,7 +89,7 @@ import static java.util.concurrent.TimeUnit.SECONDS;
  * import com.google.common.collect.ImmutableMap
  * import ratpack.dropwizard.metrics.DropwizardMetricsModule
  * import ratpack.dropwizard.metrics.DropwizardMetricsConfig
- * import ratpack.config.ConfigData
+ * import ratpack.core.config.ConfigData
  * import static ratpack.groovy.Groovy.ratpack
  *
  * ratpack {
