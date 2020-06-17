@@ -17,7 +17,7 @@
 package ratpack.server
 
 import ratpack.groovy.Groovy
-import ratpack.registry.Registry
+import ratpack.exec.registry.Registry
 import ratpack.test.ServerBackedApplicationUnderTest
 import spock.lang.Specification
 

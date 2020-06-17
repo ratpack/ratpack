@@ -16,9 +16,9 @@
 
 package ratpack.server.internal;
 
-import ratpack.func.Function;
+import ratpack.exec.func.Function;
 import ratpack.handling.Handler;
-import ratpack.registry.Registry;
+import ratpack.exec.registry.Registry;
 import ratpack.server.RatpackServerSpec;
 import ratpack.server.ServerConfig;
 

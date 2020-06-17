@@ -21,7 +21,7 @@ import com.google.common.io.ByteSource
 import groovy.transform.Canonical
 import org.junit.Rule
 import org.junit.rules.TemporaryFolder
-import ratpack.func.Action
+import ratpack.exec.func.Action
 import ratpack.server.ServerConfig
 import ratpack.server.Service
 import ratpack.server.StartEvent

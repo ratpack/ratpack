@@ -20,7 +20,7 @@ import com.google.inject.Inject;
 import com.netflix.hystrix.HystrixCollapserMetrics;
 import ratpack.exec.ExecController;
 import ratpack.hystrix.HystrixModule;
-import ratpack.stream.internal.PeriodicPublisher;
+import ratpack.exec.stream.internal.PeriodicPublisher;
 
 import java.time.Duration;
 import java.util.Collection;

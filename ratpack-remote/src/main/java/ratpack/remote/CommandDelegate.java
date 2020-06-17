@@ -16,8 +16,8 @@
 
 package ratpack.remote;
 
-import ratpack.registry.Registry;
-import ratpack.registry.RegistrySpec;
+import ratpack.exec.registry.Registry;
+import ratpack.exec.registry.RegistrySpec;
 
 /**
  * The delegate object for commands.

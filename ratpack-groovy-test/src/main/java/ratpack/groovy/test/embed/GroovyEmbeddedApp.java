@@ -18,7 +18,7 @@ package ratpack.groovy.test.embed;
 
 import groovy.lang.Closure;
 import groovy.lang.DelegatesTo;
-import ratpack.func.Action;
+import ratpack.exec.func.Action;
 import ratpack.groovy.Groovy;
 import ratpack.groovy.handling.GroovyChain;
 import ratpack.groovy.handling.GroovyContext;

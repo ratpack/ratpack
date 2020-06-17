@@ -20,9 +20,9 @@ import com.google.common.reflect.TypeToken;
 import io.netty.channel.EventLoop;
 import ratpack.exec.internal.DefaultExecution;
 import ratpack.exec.internal.ExecThreadBinding;
-import ratpack.func.Action;
-import ratpack.func.Block;
-import ratpack.registry.MutableRegistry;
+import ratpack.exec.func.Action;
+import ratpack.exec.func.Block;
+import ratpack.exec.registry.MutableRegistry;
 
 import java.time.Duration;
 import java.util.Optional;

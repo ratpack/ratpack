@@ -16,20 +16,20 @@
 
 package ratpack.site;
 
-import asset.pipeline.ratpack.AssetPipelineModule;
 import com.google.common.base.Joiner;
 import com.google.common.collect.FluentIterable;
 import ratpack.dropwizard.metrics.DropwizardMetricsModule;
-import ratpack.func.Block;
-import ratpack.func.Pair;
+import ratpack.exec.func.Block;
+import ratpack.exec.func.Pair;
 import ratpack.groovy.template.MarkupTemplateModule;
 import ratpack.groovy.template.TextTemplateModule;
 import ratpack.guice.Guice;
 import ratpack.newrelic.NewRelicModule;
-import ratpack.registry.Registry;
+import ratpack.exec.registry.Registry;
 import ratpack.rx2.RxRatpack;
 import ratpack.server.BaseDir;
 import ratpack.server.RatpackServer;
+import ratpack.site.assets.AssetPipelineModule;
 import ratpack.site.github.GitHubData;
 import ratpack.site.github.RatpackVersion;
 import ratpack.site.github.RatpackVersions;
@@ -48,6 +48,8 @@ public class SiteMain {
         .registry(
           Guice.registry(s -> s
               .module(NewRelicModule.class)
+            // TODO-v2: this breaks with the package renames, inlined the code to make it work
+//              .module(new AssetPipelineModule())
               .module(new AssetPipelineModule())
               .module(new DropwizardMetricsModule(), c ->
                   c.csv(csv -> csv.enable(false))

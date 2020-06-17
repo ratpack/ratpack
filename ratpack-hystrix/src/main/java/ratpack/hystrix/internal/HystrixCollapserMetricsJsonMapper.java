@@ -21,7 +21,7 @@ import com.fasterxml.jackson.core.JsonGenerator;
 import com.netflix.hystrix.HystrixCollapserKey;
 import com.netflix.hystrix.HystrixCollapserMetrics;
 import com.netflix.hystrix.util.HystrixRollingNumberEvent;
-import ratpack.func.Function;
+import ratpack.exec.func.Function;
 
 import java.io.StringWriter;
 

@@ -19,11 +19,11 @@ package ratpack.sse.internal
 import io.netty.util.CharsetUtil
 import org.reactivestreams.Publisher
 import ratpack.exec.Result
-import ratpack.func.Action
+import ratpack.exec.func.Action
 import ratpack.sse.Event
 import ratpack.sse.ServerSentEvents
-import ratpack.stream.Streams
-import ratpack.stream.internal.CollectingSubscriber
+import ratpack.exec.stream.Streams
+import ratpack.exec.stream.internal.CollectingSubscriber
 import ratpack.test.internal.RatpackGroovyDslSpec
 import ratpack.test.internal.TestByteBufAllocators
 

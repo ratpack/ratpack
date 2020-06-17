@@ -39,8 +39,8 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import static io.netty.handler.codec.http.HttpHeaderNames.SEC_WEBSOCKET_KEY;
 import static io.netty.handler.codec.http.HttpHeaderNames.SEC_WEBSOCKET_VERSION;
 import static io.netty.handler.codec.http.HttpMethod.valueOf;
-import static ratpack.util.Exceptions.toException;
-import static ratpack.util.Exceptions.uncheck;
+import static ratpack.exec.util.Exceptions.toException;
+import static ratpack.exec.util.Exceptions.uncheck;
 
 public class WebSocketEngine {
 

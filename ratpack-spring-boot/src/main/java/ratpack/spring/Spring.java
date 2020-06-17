@@ -18,7 +18,7 @@ package ratpack.spring;
 
 import org.springframework.beans.factory.ListableBeanFactory;
 import org.springframework.boot.builder.SpringApplicationBuilder;
-import ratpack.registry.Registry;
+import ratpack.exec.registry.Registry;
 import ratpack.spring.internal.SpringRegistryBacking;
 
 /**

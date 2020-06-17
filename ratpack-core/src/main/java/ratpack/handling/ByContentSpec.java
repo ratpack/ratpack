@@ -16,7 +16,8 @@
 
 package ratpack.handling;
 
-import ratpack.func.Block;
+import ratpack.exec.func.Action;
+import ratpack.exec.func.Block;
 
 /**
  * A specification of how to respond to a request, based on the requested content type (i.e. the request's Accept header).
@@ -64,7 +65,7 @@ import ratpack.func.Block;
  * Only the last specified handler for a type will be used.
  * That is, adding a subsequent handler for the same type will replace the previous.
  *
- * @see Context#byContent(ratpack.func.Action)
+ * @see Context#byContent(Action)
  * @see <a href="http://tools.ietf.org/html/rfc7231#section-5.3.2">RFC 7231: Accept</a>
  * @see <a href="http://tools.ietf.org/html/rfc7231#section-6.5.6">RFC 7231: 406 Not Acceptable</a>
  */

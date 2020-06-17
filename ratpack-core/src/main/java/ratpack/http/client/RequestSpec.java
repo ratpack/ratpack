@@ -20,9 +20,9 @@ import io.netty.buffer.ByteBuf;
 import io.netty.handler.codec.http.HttpHeaderNames;
 import io.netty.handler.ssl.SslContext;
 import io.netty.handler.ssl.SslContextBuilder;
-import ratpack.func.Action;
-import ratpack.func.Factory;
-import ratpack.func.Function;
+import ratpack.exec.func.Action;
+import ratpack.exec.func.Factory;
+import ratpack.exec.func.Function;
 import ratpack.http.HttpMethod;
 import ratpack.http.MutableHeaders;
 
@@ -404,7 +404,7 @@ public interface RequestSpec {
     /**
      * Specifies the {@code "Content-Type"} of the request.
      * <p>
-     * Call this method has the same effect as using {@link #getHeaders()} or {@link #headers(ratpack.func.Action)} to set the {@code "Content-Type"} header.
+     * Call this method has the same effect as using {@link #getHeaders()} or {@link #headers(Action)} to set the {@code "Content-Type"} header.
      *
      * @param contentType the value of the Content-Type header
      * @return this

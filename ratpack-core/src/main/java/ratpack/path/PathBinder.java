@@ -16,7 +16,7 @@
 
 package ratpack.path;
 
-import ratpack.func.Action;
+import ratpack.exec.func.Action;
 import ratpack.handling.Chain;
 import ratpack.handling.Handler;
 import ratpack.handling.Handlers;

@@ -16,7 +16,7 @@
 
 package ratpack.server.internal;
 
-import ratpack.registry.Registry;
+import ratpack.exec.registry.Registry;
 import ratpack.server.ReloadInformant;
 
 import java.nio.file.Files;
@@ -24,7 +24,7 @@ import java.nio.file.Path;
 import java.nio.file.attribute.FileTime;
 import java.util.concurrent.atomic.AtomicReference;
 
-import static ratpack.util.Exceptions.uncheck;
+import static ratpack.exec.util.Exceptions.uncheck;
 
 public class FileBackedReloadInformant implements ReloadInformant {
   private final Path file;

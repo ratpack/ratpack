@@ -20,9 +20,9 @@ import com.google.common.reflect.TypeToken;
 import org.slf4j.MDC;
 import ratpack.exec.ExecInterceptor;
 import ratpack.exec.Execution;
-import ratpack.func.Action;
-import ratpack.func.Block;
-import ratpack.util.Types;
+import ratpack.exec.func.Action;
+import ratpack.exec.func.Block;
+import ratpack.exec.util.Types;
 
 import java.util.HashMap;
 import java.util.Map;

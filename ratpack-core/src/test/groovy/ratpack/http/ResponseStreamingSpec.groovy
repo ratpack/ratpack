@@ -23,8 +23,8 @@ import org.reactivestreams.Subscriber
 import org.reactivestreams.Subscription
 import ratpack.exec.Execution
 import ratpack.http.client.HttpClient
-import ratpack.stream.StreamEvent
-import ratpack.stream.Streams
+import ratpack.exec.stream.StreamEvent
+import ratpack.exec.stream.Streams
 import ratpack.test.internal.RatpackGroovyDslSpec
 import spock.util.concurrent.BlockingVariable
 import spock.util.concurrent.PollingConditions
@@ -34,7 +34,7 @@ import java.time.Instant
 import java.util.concurrent.ConcurrentLinkedQueue
 
 import static ratpack.http.ResponseChunks.stringChunks
-import static ratpack.stream.Streams.publish
+import static ratpack.exec.stream.Streams.publish
 
 class ResponseStreamingSpec extends RatpackGroovyDslSpec {
 

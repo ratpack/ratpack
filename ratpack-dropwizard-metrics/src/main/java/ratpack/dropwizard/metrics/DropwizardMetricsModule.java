@@ -34,6 +34,7 @@ import io.netty.buffer.UnpooledByteBufAllocator;
 import io.prometheus.client.CollectorRegistry;
 import io.prometheus.client.dropwizard.DropwizardExports;
 import ratpack.dropwizard.metrics.internal.*;
+import ratpack.exec.func.Action;
 import ratpack.guice.ConfigurableModule;
 import ratpack.handling.HandlerDecorator;
 import ratpack.service.Service;
@@ -49,7 +50,7 @@ import static java.util.concurrent.TimeUnit.SECONDS;
  * An extension module that provides support for Dropwizard Metrics.
  * <p>
  * To use it one has to register the module and enable the required functionality by chaining the various configuration
- * options.  For example, to enable the capturing and reporting of metrics to {@link DropwizardMetricsConfig#jmx(ratpack.func.Action)}
+ * options.  For example, to enable the capturing and reporting of metrics to {@link DropwizardMetricsConfig#jmx(Action)}
  * one would write: (Groovy DSL)
  *
  * <pre class="groovy-ratpack-dsl">

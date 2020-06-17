@@ -16,8 +16,8 @@
 
 package ratpack.impose;
 
-import ratpack.func.Function;
-import ratpack.registry.Registry;
+import ratpack.exec.func.Function;
+import ratpack.exec.registry.Registry;
 import ratpack.server.RatpackServerSpec;
 
 /**

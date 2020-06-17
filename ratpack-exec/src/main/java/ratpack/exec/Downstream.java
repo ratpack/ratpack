@@ -19,8 +19,9 @@ package ratpack.exec;
 import com.google.common.util.concurrent.FutureCallback;
 import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
-import ratpack.func.Action;
-import ratpack.func.Block;
+import ratpack.exec.func.Action;
+import ratpack.exec.func.Block;
+import ratpack.exec.func.Function;
 
 import java.nio.channels.CompletionHandler;
 import java.util.concurrent.CompletionStage;
@@ -32,7 +33,7 @@ import java.util.concurrent.CompletionStage;
  * Once connected, an upstream will invoke only one of either the {@link #success}, {@link #error} or {@link #complete} methods exactly once.
  *
  * @param <T> the type of value emitted downstream
- * @see Promise#transform(ratpack.func.Function)
+ * @see Promise#transform(Function)
  */
 public interface Downstream<T> {
 

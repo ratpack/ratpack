@@ -17,8 +17,8 @@
 package ratpack.exec;
 
 import io.netty.channel.EventLoop;
-import ratpack.func.Action;
-import ratpack.registry.RegistrySpec;
+import ratpack.exec.func.Action;
+import ratpack.exec.registry.RegistrySpec;
 
 /**
  * A specification for an {@link Execution}.

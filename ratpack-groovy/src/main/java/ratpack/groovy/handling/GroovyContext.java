@@ -18,7 +18,7 @@ package ratpack.groovy.handling;
 
 import groovy.lang.Closure;
 import groovy.lang.DelegatesTo;
-import ratpack.func.Action;
+import ratpack.exec.func.Action;
 import ratpack.groovy.handling.internal.DefaultGroovyContext;
 import ratpack.handling.Context;
 import ratpack.handling.RequestOutcome;

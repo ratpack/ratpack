@@ -22,8 +22,8 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.reflect.TypeToken;
 import org.springframework.beans.factory.BeanFactoryUtils;
 import org.springframework.beans.factory.ListableBeanFactory;
-import ratpack.registry.RegistryBacking;
-import ratpack.util.Types;
+import ratpack.exec.registry.RegistryBacking;
+import ratpack.exec.util.Types;
 
 public class SpringRegistryBacking implements RegistryBacking {
   private final ListableBeanFactory beanFactory;

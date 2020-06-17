@@ -38,9 +38,9 @@ See [`DropwizardMetricsModule`](api/ratpack/dropwizard/metrics/DropwizardMetrics
 
 Ratpack supports metric reporters for the following outputs:
 
-* [JMX](api/ratpack/dropwizard/metrics/DropwizardMetricsConfig.html#jmx-ratpack.func.Action-)
-* [Console](api/ratpack/dropwizard/metrics/DropwizardMetricsConfig.html#console-ratpack.func.Action-)
-* [CSV](api/ratpack/dropwizard/metrics/DropwizardMetricsConfig.html#csv-ratpack.func.Action-)
-* [Websockets](api/ratpack/dropwizard/metrics/DropwizardMetricsConfig.html#webSocket-ratpack.func.Action-)
+* [JMX](api/ratpack/dropwizard/metrics/DropwizardMetricsConfig.html#jmx-ratpack.exec.func.Action-)
+* [Console](api/ratpack/dropwizard/metrics/DropwizardMetricsConfig.html#console-ratpack.exec.func.Action-)
+* [CSV](api/ratpack/dropwizard/metrics/DropwizardMetricsConfig.html#csv-ratpack.exec.func.Action-)
+* [Websockets](api/ratpack/dropwizard/metrics/DropwizardMetricsConfig.html#webSocket-ratpack.exec.func.Action-)
 
 For an example of how to consume real-time metrics with websockets, see the [example-books](https://github.com/ratpack/example-books/blob/master/src/ratpack/ratpack.groovy) project.

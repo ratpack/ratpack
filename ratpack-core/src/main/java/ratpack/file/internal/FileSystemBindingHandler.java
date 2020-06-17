@@ -23,7 +23,7 @@ import ratpack.file.FileSystemBinding;
 import ratpack.handling.Context;
 import ratpack.handling.Handler;
 import ratpack.handling.internal.ChainHandler;
-import ratpack.registry.Registry;
+import ratpack.exec.registry.Registry;
 import ratpack.server.ServerConfig;
 
 import java.util.concurrent.ExecutionException;

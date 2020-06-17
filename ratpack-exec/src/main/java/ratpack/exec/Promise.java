@@ -16,28 +16,28 @@
 
 package ratpack.exec;
 
-import ratpack.api.NonBlocking;
+import ratpack.exec.api.NonBlocking;
 import ratpack.exec.internal.CachingUpstream;
 import ratpack.exec.internal.DefaultExecution;
 import ratpack.exec.internal.DefaultPromise;
 import ratpack.exec.util.Promised;
 import ratpack.exec.util.retry.RetryPolicy;
 
-import ratpack.func.Action;
-import ratpack.func.BiAction;
-import ratpack.func.BiFunction;
-import ratpack.func.Block;
-import ratpack.func.Factory;
-import ratpack.func.Function;
-import ratpack.func.Pair;
-import ratpack.func.Predicate;
-import ratpack.util.Exceptions;
+import ratpack.exec.func.Action;
+import ratpack.exec.func.BiAction;
+import ratpack.exec.func.BiFunction;
+import ratpack.exec.func.Block;
+import ratpack.exec.func.Factory;
+import ratpack.exec.func.Function;
+import ratpack.exec.func.Pair;
+import ratpack.exec.func.Predicate;
+import ratpack.exec.util.Exceptions;
 
 import java.time.Duration;
 import java.util.Objects;
 import java.util.concurrent.CompletableFuture;
 
-import static ratpack.func.Action.ignoreArg;
+import static ratpack.exec.func.Action.ignoreArg;
 
 /**
  * A promise for a single value.
@@ -2284,7 +2284,7 @@ public interface Promise<T> {
    * <pre class="java">{@code
    * import ratpack.exec.Blocking;
    * import ratpack.exec.Promise;
-   * import ratpack.func.Pair;
+   * import ratpack.exec.func.Pair;
    * import ratpack.test.exec.ExecHarness;
    *
    * import java.util.concurrent.CyclicBarrier;

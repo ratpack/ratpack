@@ -24,7 +24,7 @@ import ratpack.groovy.test.embed.GroovyEmbeddedApp
 import ratpack.handling.Context
 import ratpack.http.client.HttpClient
 import ratpack.http.client.ReceivedResponse
-import ratpack.registry.RegistrySpec
+import ratpack.exec.registry.RegistrySpec
 import ratpack.server.ServerConfig
 import ratpack.test.embed.EmbeddedApp
 import ratpack.test.exec.ExecHarness

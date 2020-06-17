@@ -17,7 +17,7 @@
 package ratpack.exec;
 
 import ratpack.exec.internal.DefaultResult;
-import ratpack.util.Exceptions;
+import ratpack.exec.util.Exceptions;
 
 /**
  * The result of an asynchronous operation, which may be an error.

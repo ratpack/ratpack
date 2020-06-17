@@ -19,7 +19,7 @@ package ratpack.spring.config.internal;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.annotation.AnnotationAwareOrderComparator;
 import org.springframework.stereotype.Component;
-import ratpack.func.Action;
+import ratpack.exec.func.Action;
 import ratpack.handling.Chain;
 import ratpack.handling.Handler;
 import ratpack.handling.Handlers;

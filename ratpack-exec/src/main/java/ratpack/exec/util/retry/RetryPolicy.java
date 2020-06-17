@@ -17,6 +17,7 @@
 package ratpack.exec.util.retry;
 
 import ratpack.exec.Promise;
+import ratpack.exec.func.BiAction;
 
 import java.time.Duration;
 
@@ -67,7 +68,7 @@ import java.time.Duration;
  * }
  * }</pre>
  *
- * @see Promise#retry(RetryPolicy, ratpack.func.BiAction)
+ * @see Promise#retry(RetryPolicy, BiAction)
  * @since 1.7
  */
 public interface RetryPolicy {

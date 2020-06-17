@@ -16,6 +16,7 @@
 
 package ratpack.handling;
 
+import ratpack.exec.func.Action;
 import ratpack.http.Request;
 import ratpack.http.SentResponse;
 
@@ -25,7 +26,7 @@ import java.time.Instant;
 /**
  * The outcome of processing a request.
  *
- * @see Context#onClose(ratpack.func.Action)
+ * @see Context#onClose(Action)
  */
 @SuppressWarnings("UnusedDeclaration")
 public interface RequestOutcome {

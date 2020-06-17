@@ -25,7 +25,7 @@ import ratpack.bytebuf.ByteBufRef;
 import ratpack.exec.Downstream;
 import ratpack.exec.Execution;
 import ratpack.exec.Upstream;
-import ratpack.func.Action;
+import ratpack.exec.func.Action;
 import ratpack.http.client.ReceivedResponse;
 import ratpack.http.client.RequestSpec;
 

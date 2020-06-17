@@ -17,7 +17,7 @@
 package ratpack.path;
 
 import com.google.common.reflect.TypeToken;
-import ratpack.util.Types;
+import ratpack.exec.util.Types;
 
 /**
  * A path binding represents some kind of "match" on the path of a request.

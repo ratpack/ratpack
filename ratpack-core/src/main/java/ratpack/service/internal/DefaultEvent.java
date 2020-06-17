@@ -16,7 +16,7 @@
 
 package ratpack.service.internal;
 
-import ratpack.registry.Registry;
+import ratpack.exec.registry.Registry;
 import ratpack.service.StartEvent;
 import ratpack.service.StopEvent;
 

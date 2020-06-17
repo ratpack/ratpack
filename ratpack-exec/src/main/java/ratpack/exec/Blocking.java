@@ -20,8 +20,8 @@ import io.netty.channel.EventLoop;
 import ratpack.exec.internal.DefaultExecution;
 import ratpack.exec.internal.DefaultPromise;
 import ratpack.exec.internal.ExecThreadBinding;
-import ratpack.func.Block;
-import ratpack.func.Factory;
+import ratpack.exec.func.Block;
+import ratpack.exec.func.Factory;
 
 import java.util.Iterator;
 import java.util.concurrent.CompletableFuture;
@@ -100,7 +100,7 @@ public abstract class Blocking {
    * import ratpack.exec.ExecResult;
    * import ratpack.exec.Blocking;
    * import ratpack.exec.Promise;
-   * import ratpack.func.Factory;
+   * import ratpack.exec.func.Factory;
    *
    * import static org.junit.Assert.assertEquals;
    *

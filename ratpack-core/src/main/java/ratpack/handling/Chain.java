@@ -18,13 +18,13 @@ package ratpack.handling;
 
 import io.netty.handler.codec.http.HttpHeaderNames;
 import ratpack.file.FileHandlerSpec;
-import ratpack.func.Action;
-import ratpack.func.Predicate;
-import ratpack.registry.Registry;
-import ratpack.registry.RegistrySpec;
+import ratpack.exec.func.Action;
+import ratpack.exec.func.Predicate;
+import ratpack.exec.registry.Registry;
+import ratpack.exec.registry.RegistrySpec;
 import ratpack.server.RatpackServerSpec;
 import ratpack.server.ServerConfig;
-import ratpack.util.Exceptions;
+import ratpack.exec.util.Exceptions;
 
 import java.util.Optional;
 
@@ -41,7 +41,7 @@ import java.util.Optional;
  * <li>Delegate to the {@link Context#next() next handler}.</li>
  * </ol>
  * <p>
- * Methods like {@link Handlers#chain(ServerConfig, ratpack.func.Action)} take a function that acts on a {@code Chain}, and return a {@link Handler}.
+ * Methods like {@link Handlers#chain(ServerConfig, Action)} take a function that acts on a {@code Chain}, and return a {@link Handler}.
  * The returned handler effectively just performs an insert of the handlers added to the chain during the action..
  * <p>
  * It is very common to use this API to declare the handlers for an application as part of startup via the {@link RatpackServerSpec#handlers(Action)} method.
@@ -464,7 +464,7 @@ public interface Chain {
    * matches the given {@code path} exactly.
    * <p>
    * Nesting {@code path} handlers will not work due to the exact matching, use a combination of {@code path}
-   * and {@code prefix} instead.  See {@link Chain#prefix(String, ratpack.func.Action)} for details.
+   * and {@code prefix} instead.  See {@link Chain#prefix(String, Action)} for details.
    * <pre>
    *   // this will not work
    *   path("person/:id") {
@@ -546,7 +546,7 @@ public interface Chain {
   /**
    * Inserts the given nested handler chain.
    * <p>
-   * Shorter form of {@link #all(Handler)} handler}({@link #chain(ratpack.func.Action) chain}({@code action}).
+   * Shorter form of {@link #all(Handler)} handler}({@link #chain(Action) chain}({@code action}).
    *
    * @param action the handler chain to insert
    * @return this
@@ -827,7 +827,7 @@ public interface Chain {
   }
 
   /**
-   * Adds a handler that inserts the given handler chain with the given registry via {@link Context#insert(ratpack.registry.Registry, Handler...)}.
+   * Adds a handler that inserts the given handler chain with the given registry via {@link Context#insert(Registry, Handler...)}.
    *
    * @param registry the registry to insert
    * @param action the definition of the handler chain
@@ -843,7 +843,7 @@ public interface Chain {
   }
 
   /**
-   * Adds a handler that inserts the given handler chain with a registry built by the given action via {@link Context#insert(ratpack.registry.Registry, Handler...)}.
+   * Adds a handler that inserts the given handler chain with a registry built by the given action via {@link Context#insert(Registry, Handler...)}.
    *
    * @param registryAction the definition of the registry to insert]
    * @param action the definition of the handler chain

@@ -16,7 +16,7 @@
 
 package ratpack.exec.internal;
 
-import ratpack.func.Block;
+import ratpack.exec.func.Block;
 
 public interface ContinuationStream {
 

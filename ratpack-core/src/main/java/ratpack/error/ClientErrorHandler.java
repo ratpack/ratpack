@@ -18,7 +18,7 @@ package ratpack.error;
 
 import com.google.common.reflect.TypeToken;
 import ratpack.handling.Context;
-import ratpack.util.Types;
+import ratpack.exec.util.Types;
 
 /**
  * The client error handler deals with errors that are due to the client doing something wrong.

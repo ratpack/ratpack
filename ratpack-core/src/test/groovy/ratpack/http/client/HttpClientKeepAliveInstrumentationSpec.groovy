@@ -21,7 +21,7 @@ import io.netty.channel.Channel
 import ratpack.exec.Blocking
 import ratpack.exec.ExecController
 import ratpack.exec.Execution
-import ratpack.stream.Streams
+import ratpack.exec.stream.Streams
 import spock.util.concurrent.BlockingVariable
 import spock.util.concurrent.PollingConditions
 

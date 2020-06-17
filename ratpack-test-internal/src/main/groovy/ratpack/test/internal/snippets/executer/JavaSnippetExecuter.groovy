@@ -18,7 +18,7 @@ package ratpack.test.internal.snippets.executer
 
 import groovy.transform.CompileStatic
 import groovy.util.logging.Slf4j
-import ratpack.func.Block
+import ratpack.exec.func.Block
 import ratpack.test.internal.snippets.TestCodeSnippet
 import ratpack.test.internal.snippets.fixture.SnippetFixture
 

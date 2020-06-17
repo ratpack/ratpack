@@ -20,8 +20,8 @@ import ratpack.exec.Blocking;
 import ratpack.exec.Downstream;
 import ratpack.exec.Operation;
 import ratpack.exec.Promise;
-import ratpack.func.Action;
-import ratpack.func.Factory;
+import ratpack.exec.func.Action;
+import ratpack.exec.func.Factory;
 import ratpack.jdbctx.Transaction;
 
 import java.sql.Connection;

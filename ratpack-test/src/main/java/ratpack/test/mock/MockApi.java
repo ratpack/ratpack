@@ -19,7 +19,7 @@ package ratpack.test.mock;
 import ratpack.server.RatpackServer;
 import ratpack.test.embed.EmbeddedApp;
 import ratpack.test.handling.HandlerFactory;
-import ratpack.util.Exceptions;
+import ratpack.exec.util.Exceptions;
 
 /**
  * A test harness for simulating behavior of remote APIs by starting an {@link EmbeddedApp} that will

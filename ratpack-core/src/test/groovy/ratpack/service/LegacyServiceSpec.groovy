@@ -17,7 +17,7 @@
 package ratpack.service
 
 import ratpack.exec.Operation
-import ratpack.func.Predicate
+import ratpack.exec.func.Predicate
 import ratpack.server.StartupFailureException
 import ratpack.test.internal.RatpackGroovyDslSpec
 

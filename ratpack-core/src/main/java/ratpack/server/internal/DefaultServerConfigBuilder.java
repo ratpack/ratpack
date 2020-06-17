@@ -32,8 +32,9 @@ import ratpack.config.internal.DefaultConfigDataBuilder;
 import ratpack.config.internal.module.JdkSslContextDeserializer;
 import ratpack.config.internal.module.NettySslContextDeserializer;
 import ratpack.config.internal.module.ServerConfigDataDeserializer;
+import ratpack.exec.func.Function;
 import ratpack.file.FileSystemBinding;
-import ratpack.func.Action;
+import ratpack.exec.func.Action;
 import ratpack.impose.ForceDevelopmentImposition;
 import ratpack.impose.ForceServerListenPortImposition;
 import ratpack.impose.Impositions;
@@ -222,7 +223,7 @@ public class DefaultServerConfigBuilder implements ServerConfigBuilder {
   }
 
   @Override
-  public ServerConfigBuilder env(String prefix, ratpack.func.Function<String, String> mapFunc) {
+  public ServerConfigBuilder env(String prefix, Function<String, String> mapFunc) {
     configDataBuilder.env(prefix, mapFunc);
     return this;
   }

@@ -16,11 +16,11 @@
 
 package ratpack.server.internal;
 
-import ratpack.func.Action;
-import ratpack.func.Function;
+import ratpack.exec.func.Action;
+import ratpack.exec.func.Function;
 import ratpack.handling.Handler;
 import ratpack.handling.Handlers;
-import ratpack.registry.Registry;
+import ratpack.exec.registry.Registry;
 import ratpack.server.RatpackServerSpec;
 import ratpack.server.ServerConfig;
 
@@ -59,8 +59,8 @@ public final class RatpackServerDefinition {
 
   private static class SpecImpl implements RatpackServerSpec {
     private ServerConfig serverConfig;
-    private Function<? super Registry, ? extends Registry> registry = (r) -> Registry.empty();
-    private Function<? super Registry, ? extends Handler> handler = (r) -> Handlers.notFound();
+    private Function<? super Registry, ? extends Registry> registry = r -> Registry.empty();
+    private Function<? super Registry, ? extends Handler> handler = r -> Handlers.notFound();
 
     @Override
     public RatpackServerSpec registry(Function<? super Registry, ? extends Registry> registry) {

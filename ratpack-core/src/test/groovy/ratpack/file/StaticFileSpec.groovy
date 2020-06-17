@@ -20,7 +20,7 @@ import com.google.common.net.UrlEscapers
 import com.google.inject.AbstractModule
 import com.google.inject.multibindings.Multibinder
 import org.apache.commons.lang3.RandomStringUtils
-import ratpack.func.Action
+import ratpack.exec.func.Action
 import ratpack.handling.HandlerDecorator
 import ratpack.http.client.ReceivedResponse
 import ratpack.http.client.RequestSpec

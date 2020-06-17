@@ -16,7 +16,7 @@
 
 package ratpack.handling.internal;
 
-import ratpack.func.Predicate;
+import ratpack.exec.func.Predicate;
 import ratpack.handling.Context;
 import ratpack.handling.Handler;
 

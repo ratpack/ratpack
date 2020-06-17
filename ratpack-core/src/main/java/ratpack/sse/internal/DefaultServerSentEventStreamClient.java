@@ -17,12 +17,12 @@
 package ratpack.sse.internal;
 
 import ratpack.exec.Promise;
-import ratpack.func.Action;
+import ratpack.exec.func.Action;
 import ratpack.http.client.HttpClient;
 import ratpack.http.client.RequestSpec;
 import ratpack.sse.Event;
 import ratpack.sse.ServerSentEventStreamClient;
-import ratpack.stream.TransformablePublisher;
+import ratpack.exec.stream.TransformablePublisher;
 
 import java.net.URI;
 

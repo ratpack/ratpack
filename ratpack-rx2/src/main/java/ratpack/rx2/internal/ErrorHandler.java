@@ -20,7 +20,7 @@ import io.reactivex.exceptions.OnErrorNotImplementedException;
 import io.reactivex.exceptions.UndeliverableException;
 import io.reactivex.functions.Consumer;
 import ratpack.exec.Promise;
-import ratpack.func.Action;
+import ratpack.exec.func.Action;
 
 public class ErrorHandler implements Consumer<Throwable> {
   @Override

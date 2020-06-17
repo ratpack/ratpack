@@ -17,8 +17,8 @@
 package ratpack.config.internal.source;
 
 import ratpack.config.EnvironmentParser;
-import ratpack.func.Function;
-import ratpack.func.Pair;
+import ratpack.exec.func.Function;
+import ratpack.exec.func.Pair;
 
 import java.util.List;
 import java.util.stream.Stream;

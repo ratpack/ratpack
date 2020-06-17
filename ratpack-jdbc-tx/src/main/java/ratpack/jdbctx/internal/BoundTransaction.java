@@ -18,7 +18,7 @@ package ratpack.jdbctx.internal;
 
 import ratpack.exec.Operation;
 import ratpack.exec.Promise;
-import ratpack.func.Factory;
+import ratpack.exec.func.Factory;
 import ratpack.jdbctx.Transaction;
 import ratpack.jdbctx.TransactionException;
 

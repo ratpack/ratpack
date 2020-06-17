@@ -28,8 +28,8 @@ import spock.lang.AutoCleanup
 import spock.lang.Specification
 
 import static ratpack.http.internal.HttpHeaderConstants.*
-import static ratpack.util.internal.ProtocolUtil.HTTPS_SCHEME
-import static ratpack.util.internal.ProtocolUtil.HTTP_SCHEME
+import static ratpack.exec.util.internal.ProtocolUtil.HTTPS_SCHEME
+import static ratpack.exec.util.internal.ProtocolUtil.HTTP_SCHEME
 
 class PublicAddressSpec extends Specification {
 

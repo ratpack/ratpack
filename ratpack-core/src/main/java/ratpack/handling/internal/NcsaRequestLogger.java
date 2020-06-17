@@ -27,7 +27,7 @@ import ratpack.http.Request;
 import ratpack.http.SentResponse;
 import ratpack.http.Status;
 import ratpack.http.internal.HttpHeaderConstants;
-import ratpack.util.Types;
+import ratpack.exec.util.Types;
 
 import java.time.Instant;
 import java.time.ZoneId;

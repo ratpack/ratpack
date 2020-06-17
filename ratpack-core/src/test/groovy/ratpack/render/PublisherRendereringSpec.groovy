@@ -18,7 +18,7 @@
 package ratpack.render
 
 import ratpack.error.ServerErrorHandler
-import ratpack.stream.Streams
+import ratpack.exec.stream.Streams
 import ratpack.test.internal.RatpackGroovyDslSpec
 
 class PublisherRendereringSpec extends RatpackGroovyDslSpec {

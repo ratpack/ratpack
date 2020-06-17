@@ -109,7 +109,7 @@ If not configured, the default value is 5050.
 
 ### Registry
 
-A [`registry`](api/ratpack/registry/Registry.html) is a store of objects stored by type.
+A [`registry`](api/ratpack/exec/registry/Registry.html) is a store of objects stored by type.
 There may be many different registries within an application, but all applications are backed by a “server registry”.
 A server registry is just the name given to the registry that backs the application and is defined at launch time.
 
@@ -117,7 +117,7 @@ A server registry is just the name given to the registry that backs the applicat
 
 The server [handler](handlers.html) receives all incoming HTTP requests.
 Handlers are composable, and very few applications are actually comprised of only one handler.
-The server handler for most applications is a composite handler, typically created by using the [`handlers(Action)`](api/ratpack/server/RatpackServerSpec.html#handlers-ratpack.func.Action-) method,
+The server handler for most applications is a composite handler, typically created by using the [`handlers(Action)`](api/ratpack/server/RatpackServerSpec.html#handlers-ratpack.exec.func.Action-) method,
 that uses the [`Chain`](api/ratpack/handling/Chain.html) DSL to create the composite handler.
 
 ### Start and stop actions

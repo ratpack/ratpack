@@ -17,7 +17,7 @@
 package ratpack.handling.internal;
 
 import com.google.common.reflect.TypeToken;
-import ratpack.util.Types;
+import ratpack.exec.util.Types;
 
 class ThrowableHolder {
 

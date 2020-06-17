@@ -18,7 +18,7 @@ package ratpack.path.internal;
 
 import com.google.common.reflect.TypeToken;
 import ratpack.path.PathBinding;
-import ratpack.util.Types;
+import ratpack.exec.util.Types;
 
 import java.util.ArrayDeque;
 

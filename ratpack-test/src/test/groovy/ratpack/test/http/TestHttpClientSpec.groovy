@@ -16,7 +16,7 @@
 
 package ratpack.test.http
 
-import ratpack.func.Action
+import ratpack.exec.func.Action
 import ratpack.test.internal.RatpackGroovyDslSpec
 
 class TestHttpClientSpec extends RatpackGroovyDslSpec {

@@ -6,7 +6,7 @@ Ratpack provides support for serving static files as responses.
 
 Ratpack applications have a notion of a [“base dir”](launching.html#base_dir), which is specified at launch time.
 This is effectively root of the filesystem as far as the application is concerned.
-Files from the base dir can be served, using the [`Chain.files()`](api/ratpack/handling/Chain.html#files-ratpack.func.Action-) method.
+Files from the base dir can be served, using the [`Chain.files()`](api/ratpack/handling/Chain.html#files-ratpack.exec.func.Action-) method.
 
 ```language-java
 import ratpack.test.embed.EmbeddedApp;
@@ -75,7 +75,7 @@ public class Example {
 
 If the file returned by `Context.file()` doesn't exist, a `404` will be issued.
 
-Responses are timestamped and compressed in exactly the same manner as described for the [`Chain.files()`](api/ratpack/handling/Chain.html#files-ratpack.func.Action-) method. 
+Responses are timestamped and compressed in exactly the same manner as described for the [`Chain.files()`](api/ratpack/handling/Chain.html#files-ratpack.exec.func.Action-) method. 
 
 ## Advanced Asset serving with “Asset Pipeline”
 

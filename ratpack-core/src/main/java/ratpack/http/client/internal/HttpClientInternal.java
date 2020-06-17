@@ -16,7 +16,7 @@
 
 package ratpack.http.client.internal;
 
-import ratpack.func.Action;
+import ratpack.exec.func.Action;
 import ratpack.http.client.HttpClient;
 import ratpack.http.client.HttpResponse;
 import ratpack.http.client.RequestSpec;

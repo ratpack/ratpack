@@ -16,12 +16,13 @@
 
 package ratpack.handling;
 
-import ratpack.func.Block;
+import ratpack.exec.func.Action;
+import ratpack.exec.func.Block;
 
 /**
  * A specification of how to respond to a request, based on the requested method.
  *
- * @see Context#byMethod(ratpack.func.Action)
+ * @see Context#byMethod(Action)
  */
 public interface ByMethodSpec {
 

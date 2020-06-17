@@ -19,7 +19,7 @@ package ratpack.server.internal;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import ratpack.server.ServerConfig;
-import ratpack.util.internal.Environment;
+import ratpack.exec.util.internal.Environment;
 
 import java.net.InetAddress;
 import java.net.URI;

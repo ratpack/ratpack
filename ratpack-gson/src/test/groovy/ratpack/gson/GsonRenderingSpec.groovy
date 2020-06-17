@@ -18,7 +18,7 @@ package ratpack.gson
 
 import com.google.common.base.StandardSystemProperty
 import com.google.gson.GsonBuilder
-import ratpack.stream.Streams
+import ratpack.exec.stream.Streams
 import ratpack.test.internal.RatpackGroovyDslSpec
 
 import java.time.Duration

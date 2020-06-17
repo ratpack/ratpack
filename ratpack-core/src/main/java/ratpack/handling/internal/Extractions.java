@@ -17,7 +17,7 @@
 package ratpack.handling.internal;
 
 import com.google.common.reflect.TypeToken;
-import ratpack.registry.Registry;
+import ratpack.exec.registry.Registry;
 
 import java.util.List;
 import java.util.Optional;

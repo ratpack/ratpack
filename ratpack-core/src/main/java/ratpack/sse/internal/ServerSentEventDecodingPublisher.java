@@ -21,9 +21,9 @@ import io.netty.buffer.ByteBufAllocator;
 import org.reactivestreams.Publisher;
 import org.reactivestreams.Subscriber;
 import org.reactivestreams.Subscription;
-import ratpack.func.Action;
+import ratpack.exec.func.Action;
 import ratpack.sse.Event;
-import ratpack.stream.internal.BufferingPublisher;
+import ratpack.exec.stream.internal.BufferingPublisher;
 
 public class ServerSentEventDecodingPublisher extends BufferingPublisher<Event<?>> {
 

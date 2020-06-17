@@ -16,8 +16,8 @@
 
 package ratpack.groovy.internal;
 
-import ratpack.func.BiFunction;
-import ratpack.func.Factory;
+import ratpack.exec.func.BiFunction;
+import ratpack.exec.func.Factory;
 import ratpack.handling.Context;
 import ratpack.handling.Handler;
 import ratpack.reload.internal.ReloadableFileBackedFactory;

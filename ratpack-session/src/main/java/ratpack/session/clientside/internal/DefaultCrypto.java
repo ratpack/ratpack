@@ -20,7 +20,7 @@ import io.netty.buffer.ByteBuf;
 import io.netty.buffer.ByteBufAllocator;
 import io.netty.buffer.Unpooled;
 import ratpack.session.clientside.Crypto;
-import ratpack.util.internal.InternalRatpackError;
+import ratpack.exec.util.internal.InternalRatpackError;
 
 import javax.crypto.*;
 import javax.crypto.spec.IvParameterSpec;

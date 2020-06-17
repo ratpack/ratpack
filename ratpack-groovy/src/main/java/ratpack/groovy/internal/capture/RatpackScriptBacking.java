@@ -17,8 +17,8 @@
 package ratpack.groovy.internal.capture;
 
 import groovy.lang.Closure;
-import ratpack.func.Action;
-import ratpack.func.Block;
+import ratpack.exec.func.Action;
+import ratpack.exec.func.Block;
 import ratpack.groovy.internal.StandaloneScriptBacking;
 
 public abstract class RatpackScriptBacking {

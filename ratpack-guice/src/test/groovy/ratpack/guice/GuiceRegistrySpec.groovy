@@ -22,11 +22,11 @@ import com.google.inject.Module
 import com.google.inject.Provider
 import com.google.inject.Provides
 import com.google.inject.multibindings.OptionalBinder
-import ratpack.api.Nullable
-import ratpack.func.Action
+import ratpack.exec.api.Nullable
+import ratpack.exec.func.Action
 import ratpack.groovy.internal.ClosureUtil
-import ratpack.registry.Registry
-import ratpack.registry.RegistrySpec
+import ratpack.exec.registry.Registry
+import ratpack.exec.registry.RegistrySpec
 import ratpack.server.ServerConfig
 import ratpack.test.internal.registry.RegistryContractSpec
 

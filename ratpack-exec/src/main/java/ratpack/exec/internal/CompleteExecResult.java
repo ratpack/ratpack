@@ -17,7 +17,7 @@
 package ratpack.exec.internal;
 
 import ratpack.exec.ExecResult;
-import ratpack.util.Types;
+import ratpack.exec.util.Types;
 
 public class CompleteExecResult<T> implements ExecResult<T> {
 

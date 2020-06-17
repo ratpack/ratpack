@@ -20,15 +20,15 @@ import groovy.lang.Closure;
 import groovy.lang.DelegatesTo;
 import org.codehaus.groovy.runtime.DefaultGroovyMethods;
 import ratpack.file.FileHandlerSpec;
-import ratpack.func.Action;
-import ratpack.func.Predicate;
+import ratpack.exec.func.Action;
+import ratpack.exec.func.Predicate;
 import ratpack.groovy.handling.internal.DefaultGroovyChain;
 import ratpack.groovy.internal.ClosureUtil;
 import ratpack.handling.Chain;
 import ratpack.handling.Context;
 import ratpack.handling.Handler;
-import ratpack.registry.Registry;
-import ratpack.registry.RegistrySpec;
+import ratpack.exec.registry.Registry;
+import ratpack.exec.registry.RegistrySpec;
 
 import static ratpack.groovy.Groovy.chainAction;
 import static ratpack.groovy.Groovy.groovyHandler;
@@ -156,7 +156,7 @@ public interface GroovyChain extends Chain {
    * Creates a {@code List} of {@code Handler} from the given {@code Closure} and adds a {@code Handler} to this {@code GroovyChain} that
    * changes the {@link ratpack.file.FileSystemBinding} for the {@code Handler} list.
    * <p>
-   * See {@link GroovyChain#fileSystem(String, ratpack.func.Action)} for more details.
+   * See {@link GroovyChain#fileSystem(String, Action)} for more details.
    *
    * @param path the relative {@code path} to the new file system binding point
    * @param handlers the definition of the handler chain
@@ -282,7 +282,7 @@ public interface GroovyChain extends Chain {
    * @param handler the handler to delegate to
    * @return this {@code GroovyChain}
    * @throws Exception any thrown by {@code closure}
-   * @see #host(String, ratpack.func.Action)
+   * @see #host(String, Action)
    */
   default GroovyChain host(String hostName, @DelegatesTo(value = GroovyChain.class, strategy = Closure.DELEGATE_FIRST) Closure<?> handler) throws Exception {
     return host(hostName, chainAction(handler));
@@ -567,7 +567,7 @@ public interface GroovyChain extends Chain {
    * this {@code GroovyChain} that delegates to the {@code Handler} list if the relative path starts with the given
    * {@code prefix}.
    * <p>
-   * See {@link Chain#prefix(String, ratpack.func.Action)} for more details.
+   * See {@link Chain#prefix(String, Action)} for more details.
    *
    * @param prefix the relative path to match on
    * @param chain the definition of the chain to delegate to

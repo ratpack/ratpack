@@ -18,8 +18,8 @@ package ratpack.handling
 
 import groovy.transform.TupleConstructor
 import ratpack.error.ServerErrorHandler
-import ratpack.registry.NotInRegistryException
-import ratpack.registry.Registry
+import ratpack.exec.registry.NotInRegistryException
+import ratpack.exec.registry.Registry
 import ratpack.test.internal.RatpackGroovyDslSpec
 import ratpack.test.internal.SimpleErrorHandler
 

@@ -19,7 +19,7 @@ package ratpack.session;
 import io.netty.util.AsciiString;
 import ratpack.exec.Operation;
 import ratpack.exec.Promise;
-import ratpack.func.Action;
+import ratpack.exec.func.Action;
 import ratpack.http.Response;
 
 import java.io.Serializable;

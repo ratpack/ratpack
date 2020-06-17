@@ -23,17 +23,17 @@ import io.netty.util.concurrent.DefaultThreadFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import ratpack.exec.*;
-import ratpack.func.Action;
-import ratpack.func.Block;
-import ratpack.registry.RegistrySpec;
-import ratpack.util.internal.InternalRatpackError;
-import ratpack.util.internal.TransportDetector;
+import ratpack.exec.func.Action;
+import ratpack.exec.func.Block;
+import ratpack.exec.registry.RegistrySpec;
+import ratpack.exec.util.internal.InternalRatpackError;
+import ratpack.exec.util.internal.TransportDetector;
 
 import java.util.Queue;
 import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicBoolean;
 
-import static ratpack.func.Action.noop;
+import static ratpack.exec.func.Action.noop;
 
 public class DefaultExecController implements ExecControllerInternal {
 

@@ -21,8 +21,8 @@ import io.netty.buffer.ByteBufAllocator;
 import org.reactivestreams.Subscriber;
 import ratpack.exec.Blocking;
 import ratpack.exec.Promise;
-import ratpack.stream.TransformablePublisher;
-import ratpack.stream.internal.ManagedSubscription;
+import ratpack.exec.stream.TransformablePublisher;
+import ratpack.exec.stream.internal.ManagedSubscription;
 
 import java.nio.channels.AsynchronousFileChannel;
 import java.nio.channels.CompletionHandler;

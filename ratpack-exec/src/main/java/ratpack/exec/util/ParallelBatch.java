@@ -21,9 +21,9 @@ import ratpack.exec.Execution;
 import ratpack.exec.Operation;
 import ratpack.exec.Promise;
 import ratpack.exec.util.internal.DefaultParallelBatch;
-import ratpack.func.Action;
-import ratpack.func.BiAction;
-import ratpack.stream.TransformablePublisher;
+import ratpack.exec.func.Action;
+import ratpack.exec.func.BiAction;
+import ratpack.exec.stream.TransformablePublisher;
 
 import java.util.Arrays;
 import java.util.List;
@@ -105,7 +105,7 @@ public interface ParallelBatch<T> extends Batch<T> {
    * import org.junit.Assert;
    * import ratpack.exec.Promise;
    * import ratpack.exec.util.ParallelBatch;
-   * import ratpack.func.Pair;
+   * import ratpack.exec.func.Pair;
    * import ratpack.test.exec.ExecHarness;
    *
    * import java.util.Arrays;

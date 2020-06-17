@@ -16,14 +16,14 @@
 
 package ratpack.websocket.internal;
 
-import ratpack.func.Action;
-import ratpack.func.Function;
+import ratpack.exec.func.Action;
+import ratpack.exec.func.Function;
 import ratpack.websocket.WebSocket;
 import ratpack.websocket.WebSocketClose;
 import ratpack.websocket.WebSocketMessage;
 import ratpack.websocket.WebSocketHandler;
 
-import static ratpack.util.Exceptions.uncheck;
+import static ratpack.exec.util.Exceptions.uncheck;
 
 public class BuiltWebSocketHandler<T> implements WebSocketHandler<T> {
 

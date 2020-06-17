@@ -201,7 +201,7 @@ Consider again the Foo-Bar router example…
 import ratpack.handling.Chain
 import ratpack.handling.Handler;
 import ratpack.handling.Context;
-import ratpack.func.Action;
+import ratpack.exec.func.Action;
 
 public class FooHandler implements Handler {
     public void handle(Context context) {
@@ -244,16 +244,16 @@ The most basic way to add a handler to the chain's list is the [`all(Handler)`](
 The word "all" represents that all requests reaching this point in the chain will flow through the given handler.
 
 If we stretch our minds a little and think of the chain as a handler (one that is just specialized in inserting handlers), then it also stands to reason that we can add additional chains to a chain.
-In fact, we can, and to match the `all(Handler)` method, you may use the [`insert(Action<Chain>)`](api/ratpack/handling/Chain.html#insert-ratpack.func.Action-) method.
+In fact, we can, and to match the `all(Handler)` method, you may use the [`insert(Action<Chain>)`](api/ratpack/handling/Chain.html#insert-ratpack.exec.func.Action-) method.
 Likewise, this inserts a chain through which all requests are routed.
 
 Now, the chain wouldn't be very useful if it just handled a list of handlers, calling each in a row, so there are also several methods than can perform conditional inserts of handlers and chains:
 
 * [`path(String,Handler)`](api/ratpack/handling/Chain.html#path-java.lang.String-ratpack.handling.Handler-), used in the previous example, is particularly useful for routing to different handlers based upon the request path.
   It also comes in a [`path(Handler)`](api/ratpack/handling/Chain.html#path-ratpack.handling.Handler-) flavor to easily match the empty "" path.
-* [`onlyIf(Predicate<Context>, Handler)`](api/ratpack/handling/Chain.html#onlyIf-ratpack.func.Predicate-ratpack.handling.Handler-) can be used to route based upon a programmatic behavior.
-* [`host(String, Action<Chain>)`](api/ratpack/handling/Chain.html#host-java.lang.String-ratpack.func.Action-) inserts another chain when a request has a specific Host header value.
-* [`when(Predicate<Context>, Action<Chain>)`](api/ratpack/handling/Chain.html#when-ratpack.func.Predicate-ratpack.func.Action-) will insert a chain when a programmatic behavior is met.
+* [`onlyIf(Predicate<Context>, Handler)`](api/ratpack/handling/Chain.html#onlyIf-ratpack.exec.func.Predicate-ratpack.handling.Handler-) can be used to route based upon a programmatic behavior.
+* [`host(String, Action<Chain>)`](api/ratpack/handling/Chain.html#host-java.lang.String-ratpack.exec.func.Action-) inserts another chain when a request has a specific Host header value.
+* [`when(Predicate<Context>, Action<Chain>)`](api/ratpack/handling/Chain.html#when-ratpack.exec.func.Predicate-ratpack.exec.func.Action-) will insert a chain when a programmatic behavior is met.
 
 ### Registry
 

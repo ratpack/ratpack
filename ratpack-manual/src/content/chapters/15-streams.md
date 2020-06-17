@@ -14,7 +14,7 @@ From the Reactive Streams site:
 Ratpack uses the Reactive Streams API, opposed to a proprietary API, to allow users to choose their reactive toolkit of choice.
 Reactive toolkits such as [RxJava](rxjava.html) and [Reactor](https://github.com/reactor/reactor) will support bridging to the Reactive Streams API in the near future.
 However, it is not required to use a specialist reactive library if your needs are modest.
-Ratpack provides some useful utilities for dealing with streams via its [`Streams`](api/ratpack/stream/Streams.html) class.
+Ratpack provides some useful utilities for dealing with streams via its [`Streams`](api/ratpack/exec/stream/Streams.html) class.
 
 ### Back pressure
 

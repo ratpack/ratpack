@@ -20,10 +20,10 @@ import org.h2.jdbcx.JdbcDataSource;
 import org.junit.Assert;
 import ratpack.exec.Blocking;
 import ratpack.exec.Operation;
-import ratpack.func.Block;
+import ratpack.exec.func.Block;
 import ratpack.jdbctx.Transaction;
 import ratpack.test.exec.ExecHarness;
-import ratpack.util.Exceptions;
+import ratpack.exec.util.Exceptions;
 
 import javax.sql.DataSource;
 import java.sql.Connection;

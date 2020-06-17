@@ -16,8 +16,8 @@
 
 package ratpack.websocket.internal;
 
-import ratpack.func.Action;
-import ratpack.func.Function;
+import ratpack.exec.func.Action;
+import ratpack.exec.func.Function;
 import ratpack.handling.Context;
 import ratpack.server.ServerConfig;
 import ratpack.websocket.*;

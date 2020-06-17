@@ -16,9 +16,11 @@
 
 package ratpack.exec;
 
+import ratpack.exec.func.Action;
+import ratpack.exec.func.Predicate;
 import ratpack.exec.internal.CompleteExecResult;
 import ratpack.exec.internal.ResultBackedExecResult;
-import ratpack.registry.Registry;
+import ratpack.exec.registry.Registry;
 
 /**
  * The result of an execution.
@@ -30,7 +32,7 @@ public interface ExecResult<T> extends Result<T> {
   /**
    * Is the result that the execution completed without a value being returned.
    * <p>
-   * This can happen if the promise was {@link ratpack.exec.Promise#route(ratpack.func.Predicate, ratpack.func.Action) routed} instead of being returned to the caller,
+   * This can happen if the promise was {@link ratpack.exec.Promise#route(Predicate, Action) routed} instead of being returned to the caller,
    * or if the promise failed and the error was handled “upstream”.
    * In such a case, the code under test handled the promised value.
    * As the promise producing code dealt with the value, the tests will have to examine the side affects of this occurring.

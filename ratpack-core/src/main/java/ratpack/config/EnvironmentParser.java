@@ -16,7 +16,8 @@
 
 package ratpack.config;
 
-import ratpack.func.Pair;
+import ratpack.exec.func.Function;
+import ratpack.exec.func.Pair;
 
 import java.util.List;
 import java.util.stream.Stream;
@@ -26,7 +27,7 @@ import java.util.stream.Stream;
  * The methods are called in order:
  *
  * <ol>
- *   <li>{@link #filter(ratpack.func.Pair)}</li>
+ *   <li>{@link #filter(Pair)}</li>
  *   <li>{@link #tokenize(String)}</li>
  *   <li>{@link #map(String)}</li>
  * </ol>
@@ -40,7 +41,7 @@ public interface EnvironmentParser {
    * @return a stream containing the desired entries (if any) for this entry
    * @throws Exception any
    *
-   * @see Pair#mapLeft(ratpack.func.Function)
+   * @see Pair#mapLeft(Function)
    */
   Stream<Pair<String, String>> filter(Pair<String, String> entry) throws Exception;
 

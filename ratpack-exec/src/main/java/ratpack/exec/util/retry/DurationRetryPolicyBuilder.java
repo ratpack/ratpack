@@ -16,12 +16,14 @@
 
 package ratpack.exec.util.retry;
 
+import ratpack.exec.func.Action;
+
 import java.time.Clock;
 import java.time.Duration;
 
 /**
  * Builds a {@link DurationRetryPolicy}
- * @see DurationRetryPolicy#of(ratpack.func.Action)
+ * @see DurationRetryPolicy#of(Action)
  * @since 1.7
  */
 public interface DurationRetryPolicyBuilder {

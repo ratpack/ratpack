@@ -18,9 +18,9 @@ package ratpack.handling.direct.internal;
 
 import io.netty.channel.Channel;
 import ratpack.handling.direct.DirectChannelAccess;
-import ratpack.func.Action;
+import ratpack.exec.func.Action;
 
-import static ratpack.util.Exceptions.uncheck;
+import static ratpack.exec.util.Exceptions.uncheck;
 
 public class DefaultDirectChannelAccess implements DirectChannelAccess {
 

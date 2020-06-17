@@ -26,7 +26,7 @@ import ratpack.session.SessionId
 import ratpack.session.SessionModule
 import ratpack.session.SessionSpec
 import ratpack.session.clientside.internal.DefaultCrypto
-import ratpack.util.internal.InternalRatpackError
+import ratpack.exec.util.internal.InternalRatpackError
 
 import java.time.Duration
 
@@ -433,13 +433,13 @@ class ClientSideSessionSpec extends SessionSpec {
         }
       }
     }
-    
+
     then:
     getText() == "ok"
     def values = get().headers.getAll("Set-Cookie")
     values.findAll { it.contains("ratpack_lat") }.size() == 1
   }
-  
+
   def "can disable session ID"() {
     given:
     modules << new AbstractModule() {

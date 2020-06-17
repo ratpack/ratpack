@@ -19,7 +19,7 @@ package ratpack.site
 import groovy.util.logging.Slf4j
 import ratpack.site.crawl.Crawler
 import ratpack.site.crawl.PrettyPrintCollection
-import ratpack.util.RatpackVersion
+import ratpack.exec.util.RatpackVersion
 import spock.lang.Specification
 
 @Slf4j

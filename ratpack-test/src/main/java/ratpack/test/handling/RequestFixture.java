@@ -19,13 +19,14 @@ package ratpack.test.handling;
 import com.google.common.net.HostAndPort;
 import ratpack.error.ClientErrorHandler;
 import ratpack.error.ServerErrorHandler;
-import ratpack.func.Action;
+import ratpack.exec.func.Action;
+import ratpack.exec.func.Factory;
 import ratpack.handling.Chain;
 import ratpack.handling.Context;
 import ratpack.handling.Handler;
 import ratpack.http.Request;
 import ratpack.http.Response;
-import ratpack.registry.RegistrySpec;
+import ratpack.exec.registry.RegistrySpec;
 import ratpack.server.ServerConfig;
 import ratpack.server.ServerConfigBuilder;
 import ratpack.test.handling.internal.DefaultRequestFixture;
@@ -96,7 +97,7 @@ public interface RequestFixture {
    * Unit test a {@link Handler} chain.
    *
    * <pre class="java">{@code
-   * import ratpack.func.Action;
+   * import ratpack.exec.func.Action;
    * import ratpack.handling.Chain;
    * import ratpack.test.handling.RequestFixture;
    * import ratpack.test.handling.HandlingResult;
@@ -240,7 +241,7 @@ public interface RequestFixture {
    * Note that any handlers <i>{@link Context#insert inserted}</i> by the handler under test will be invoked.
    * If the last inserted handler delegates to the next handler, the handling will terminate with a result indicating that the effective result was delegating to the next handler.
    * <p>
-   * This method blocks until a result is achieved, even if the handler performs an asynchronous operation (such as performing {@link ratpack.exec.Blocking#get(ratpack.func.Factory) blocking IO}).
+   * This method blocks until a result is achieved, even if the handler performs an asynchronous operation (such as performing {@link ratpack.exec.Blocking#get(Factory) blocking IO}).
    * As such, a time limit on the execution is imposed which by default is 5 seconds.
    * The time limit can be changed via the {@link #timeout(int)} method.
    * If the time limit is reached, a {@link HandlerTimeoutException} is thrown.

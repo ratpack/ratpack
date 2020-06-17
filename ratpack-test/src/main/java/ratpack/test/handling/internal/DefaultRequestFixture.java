@@ -29,8 +29,8 @@ import ratpack.error.ServerErrorHandler;
 import ratpack.exec.ExecController;
 import ratpack.exec.Promise;
 import ratpack.exec.internal.DefaultExecController;
-import ratpack.func.Action;
-import ratpack.func.Block;
+import ratpack.exec.func.Action;
+import ratpack.exec.func.Block;
 import ratpack.handling.Chain;
 import ratpack.handling.Handler;
 import ratpack.handling.Handlers;
@@ -41,23 +41,23 @@ import ratpack.impose.Impositions;
 import ratpack.path.internal.DefaultPathBinding;
 import ratpack.path.internal.PathBindingStorage;
 import ratpack.path.internal.RootPathBinding;
-import ratpack.registry.Registry;
-import ratpack.registry.RegistryBuilder;
-import ratpack.registry.RegistrySpec;
+import ratpack.exec.registry.Registry;
+import ratpack.exec.registry.RegistryBuilder;
+import ratpack.exec.registry.RegistrySpec;
 import ratpack.server.RatpackServer;
 import ratpack.server.ServerConfig;
 import ratpack.server.ServerConfigBuilder;
 import ratpack.server.internal.RequestBodyReader;
 import ratpack.server.internal.ServerRegistry;
-import ratpack.stream.Streams;
-import ratpack.stream.TransformablePublisher;
+import ratpack.exec.stream.Streams;
+import ratpack.exec.stream.TransformablePublisher;
 import ratpack.test.handling.HandlerTimeoutException;
 import ratpack.test.handling.HandlingResult;
 import ratpack.test.handling.RequestFixture;
 import ratpack.test.http.MultipartFileSpec;
 import ratpack.test.http.internal.DefaultMultipartForm;
 import ratpack.test.http.MultipartFormSpec;
-import ratpack.util.Exceptions;
+import ratpack.exec.util.Exceptions;
 
 import java.net.InetSocketAddress;
 import java.time.Instant;
@@ -69,7 +69,7 @@ import static io.netty.buffer.Unpooled.buffer;
 import static io.netty.buffer.Unpooled.unreleasableBuffer;
 
 /**
- * @see ratpack.test.handling.RequestFixture#handle(ratpack.handling.Handler, ratpack.func.Action)
+ * @see ratpack.test.handling.RequestFixture#handle(ratpack.handling.Handler, Action)
  */
 @SuppressWarnings("UnusedDeclaration")
 public class DefaultRequestFixture implements RequestFixture {

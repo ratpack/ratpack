@@ -17,7 +17,7 @@
 package ratpack.http;
 
 import com.google.common.collect.ImmutableListMultimap;
-import ratpack.api.Nullable;
+import ratpack.exec.api.Nullable;
 
 /**
  * A structured value for a Content-Type header value.

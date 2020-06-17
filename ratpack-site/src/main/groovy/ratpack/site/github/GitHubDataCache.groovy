@@ -18,7 +18,7 @@ package ratpack.site.github
 
 import com.google.common.collect.Maps
 import ratpack.exec.Promise
-import ratpack.util.Types
+import ratpack.exec.util.Types
 
 import java.time.Duration
 import java.util.concurrent.ConcurrentMap

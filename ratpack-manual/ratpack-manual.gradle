@@ -124,7 +124,7 @@ task configureApi() {
         }
 
         if (it.name == "ratpack-exec") {
-          packages = packages - ["ratpack.util", "ratpack.util.internal", "ratpack.func"]
+          packages = packages - ["ratpack.exec.util", "ratpack.exec.util.internal", "ratpack.exec.func"]
         }
         options.group it.name, packages
       }

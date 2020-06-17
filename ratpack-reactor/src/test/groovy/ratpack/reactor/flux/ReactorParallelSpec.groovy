@@ -18,7 +18,7 @@ package ratpack.reactor.flux
 
 import ratpack.exec.Execution
 import ratpack.reactor.ReactorRatpack
-import ratpack.registry.RegistrySpec
+import ratpack.exec.registry.RegistrySpec
 import ratpack.test.exec.ExecHarness
 import reactor.core.publisher.Flux
 import spock.lang.AutoCleanup

@@ -17,9 +17,10 @@
 package ratpack.file;
 
 import com.google.common.reflect.TypeToken;
-import ratpack.api.Nullable;
+import ratpack.exec.api.Nullable;
+import ratpack.exec.func.Action;
 import ratpack.file.internal.DefaultFileSystemBinding;
-import ratpack.util.Types;
+import ratpack.exec.util.Types;
 
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -32,7 +33,7 @@ import java.util.Objects;
  * <p>
  * The file system binding is used by asset serving handlers, among other places.
  *
- * @see ratpack.handling.Chain#files(ratpack.func.Action)
+ * @see ratpack.handling.Chain#files(Action)
  */
 public interface FileSystemBinding {
 

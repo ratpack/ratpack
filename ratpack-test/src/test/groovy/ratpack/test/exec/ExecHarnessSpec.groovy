@@ -19,7 +19,7 @@ package ratpack.test.exec
 
 import ratpack.exec.ExecutionException
 import ratpack.exec.Promise
-import ratpack.func.Action
+import ratpack.exec.func.Action
 import spock.lang.AutoCleanup
 import spock.lang.Specification
 

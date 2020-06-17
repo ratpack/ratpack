@@ -19,9 +19,9 @@ package ratpack.render;
 import com.google.common.reflect.TypeParameter;
 import com.google.common.reflect.TypeToken;
 import ratpack.exec.Promise;
-import ratpack.func.Action;
+import ratpack.exec.func.Action;
 import ratpack.handling.Context;
-import ratpack.registry.RegistrySpec;
+import ratpack.exec.registry.RegistrySpec;
 
 import java.util.function.BiFunction;
 
@@ -156,7 +156,7 @@ public interface RenderableDecorator<T> {
    * @return a registration action
    */
   default Action<RegistrySpec> register() {
-    return (registrySpec) -> registrySpec.add(typeOf(getType()), this);
+    return registrySpec -> registrySpec.add(typeOf(getType()), this);
   }
 
 }

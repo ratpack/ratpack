@@ -2,7 +2,7 @@
 
 The `ratpack-guice` extension provides integration with [Google Guice](https://code.google.com/p/google-guice/).
 The primary feature of this extension is to allow the server registry to be built by Guice.
-That is, a Guice [`Injector`](http://google.github.io/guice/api-docs/4.0/javadoc/?com/google/inject/Injector.html) can be presented as a Ratpack [Registry](api/?ratpack/registry/Registry.html).
+That is, a Guice [`Injector`](http://google.github.io/guice/api-docs/4.0/javadoc/?com/google/inject/Injector.html) can be presented as a Ratpack [Registry](api/?ratpack/exec/registry/Registry.html).
 This allows the wiring of the application to be specified by Guice modules and bindings, but still allowing the registry to be the common integration layer between different Ratpack extensions at runtime.
 
 The `ratpack-guice` module as of @ratpack-version@ is built against (and depends on) Guice @versions-guice@ (and [the multibindings extension](https://github.com/google/guice/wiki/Multibindings)).

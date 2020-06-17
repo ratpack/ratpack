@@ -18,7 +18,7 @@ package ratpack.config.internal;
 
 import com.google.common.reflect.TypeToken;
 import ratpack.config.ConfigObject;
-import ratpack.util.Types;
+import ratpack.exec.util.Types;
 
 public class DefaultConfigObject<T> implements ConfigObject<T> {
 

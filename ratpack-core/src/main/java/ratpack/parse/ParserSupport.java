@@ -30,7 +30,7 @@ import com.google.common.reflect.TypeToken;
  * import ratpack.parse.Parse;
  * import ratpack.parse.ParserSupport;
  * import ratpack.parse.ParseException;
- * import ratpack.util.Types;
+ * import ratpack.exec.util.Types;
  *
  * import java.io.UnsupportedEncodingException;
  *

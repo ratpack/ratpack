@@ -19,8 +19,8 @@ package ratpack.consul;
 import com.google.common.io.ByteSource;
 import com.orbitz.consul.Consul;
 import com.orbitz.consul.option.QueryOptions;
-import ratpack.func.Action;
-import ratpack.util.Exceptions;
+import ratpack.exec.func.Action;
+import ratpack.exec.util.Exceptions;
 
 /**
  * Integration for retrieving values from a <a href="https://www.consul.io/">Consul</a> Key-Value store as {@link com.google.common.io.ByteSource} to be used

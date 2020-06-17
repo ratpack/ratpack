@@ -30,7 +30,7 @@ import ratpack.exec.Operation;
 import ratpack.exec.Promise;
 import ratpack.http.Response;
 import ratpack.session.*;
-import ratpack.util.Types;
+import ratpack.exec.util.Types;
 
 import java.io.*;
 import java.util.*;

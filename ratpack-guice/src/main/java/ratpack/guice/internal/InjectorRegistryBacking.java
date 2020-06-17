@@ -22,7 +22,7 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.reflect.TypeToken;
 import com.google.inject.Injector;
 import com.google.inject.Provider;
-import ratpack.registry.RegistryBacking;
+import ratpack.exec.registry.RegistryBacking;
 
 public class InjectorRegistryBacking implements RegistryBacking {
   private final Injector injector;

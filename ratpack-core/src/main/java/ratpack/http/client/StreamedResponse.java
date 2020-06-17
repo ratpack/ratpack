@@ -17,17 +17,17 @@
 package ratpack.http.client;
 
 import io.netty.buffer.ByteBuf;
-import ratpack.func.Action;
+import ratpack.exec.func.Action;
 import ratpack.http.MutableHeaders;
 import ratpack.http.Response;
-import ratpack.stream.TransformablePublisher;
+import ratpack.exec.stream.TransformablePublisher;
 
 /**
  * A received response to a http client request with streamed response content.
  * <p>
  * The HTTP status and response headers are available immediately, the response content can be accessed by
  * subscribing to the {@link org.reactivestreams.Publisher} returned from {@link #getBody()} or can
- * be directly streamed as a server response using {@link #forwardTo(ratpack.http.Response, ratpack.func.Action)}.
+ * be directly streamed as a server response using {@link #forwardTo(ratpack.http.Response, Action)}.
  */
 public interface StreamedResponse extends HttpResponse {
 
@@ -41,7 +41,7 @@ public interface StreamedResponse extends HttpResponse {
    * Stream this received response out to the given server response.
    *
    * @param response the server response to stream to
-   * @see #forwardTo(ratpack.http.Response, ratpack.func.Action)
+   * @see #forwardTo(ratpack.http.Response, Action)
    */
   void forwardTo(Response response);
 
@@ -51,7 +51,7 @@ public interface StreamedResponse extends HttpResponse {
    * The HTTP status and response headers of this response will be copied to the given server response.  If this response
    * has a {@code content-length} http header it will be excluded from the copy as all responses will be streamed with a
    * {@code transfer-encoding} of {@code chunked}.  Outgoing response headers can be added and modified with the given
-   * header mutating {@link ratpack.func.Action}.
+   * header mutating {@link Action}.
    * <p>
    * This method will stream the response content chunks unmodified to the given server response using the publisher returned
    * from {@link #getBody()}.

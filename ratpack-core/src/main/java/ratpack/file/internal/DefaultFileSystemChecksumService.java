@@ -16,9 +16,9 @@
 
 package ratpack.file.internal;
 
-import ratpack.api.Nullable;
+import ratpack.exec.api.Nullable;
 import ratpack.file.FileSystemBinding;
-import ratpack.func.Function;
+import ratpack.exec.func.Function;
 
 import java.util.List;
 import java.io.InputStream;

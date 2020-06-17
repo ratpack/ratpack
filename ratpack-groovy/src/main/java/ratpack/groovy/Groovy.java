@@ -22,10 +22,10 @@ import groovy.lang.DelegatesTo;
 import groovy.lang.GroovySystem;
 import groovy.xml.MarkupBuilder;
 import io.netty.util.CharsetUtil;
-import ratpack.api.Nullable;
+import ratpack.exec.api.Nullable;
 import ratpack.file.FileSystemBinding;
-import ratpack.func.Action;
-import ratpack.func.Function;
+import ratpack.exec.func.Action;
+import ratpack.exec.func.Function;
 import ratpack.groovy.handling.*;
 import ratpack.groovy.handling.internal.ClosureBackedHandler;
 import ratpack.groovy.handling.internal.DefaultGroovyByMethodSpec;
@@ -46,11 +46,11 @@ import ratpack.handling.Handler;
 import ratpack.handling.Handlers;
 import ratpack.handling.internal.ChainBuilders;
 import ratpack.http.internal.HttpHeaderConstants;
-import ratpack.registry.Registry;
+import ratpack.exec.registry.Registry;
 import ratpack.server.*;
 import ratpack.server.internal.BaseDirFinder;
 import ratpack.server.internal.FileBackedReloadInformant;
-import ratpack.util.internal.Paths2;
+import ratpack.exec.util.internal.Paths2;
 
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
@@ -60,7 +60,7 @@ import java.util.Arrays;
 import java.util.Map;
 import java.util.Optional;
 
-import static ratpack.util.Exceptions.uncheck;
+import static ratpack.exec.util.Exceptions.uncheck;
 
 /**
  * Static methods for specialized Groovy integration.
@@ -688,7 +688,7 @@ public abstract class Groovy {
    * @return The created action
    */
   public static Action<Chain> chain(@DelegatesTo(value = GroovyChain.class, strategy = Closure.DELEGATE_FIRST) final Closure<?> closure) throws Exception {
-    return (c) -> Groovy.chain(c, closure);
+    return c -> Groovy.chain(c, closure);
   }
 
   /**

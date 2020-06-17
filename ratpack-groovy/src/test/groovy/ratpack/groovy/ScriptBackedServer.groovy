@@ -18,7 +18,7 @@ package ratpack.groovy
 
 import ratpack.impose.ForceServerListenPortImposition
 import ratpack.impose.Impositions
-import ratpack.registry.Registry
+import ratpack.exec.registry.Registry
 import ratpack.server.RatpackServer
 import ratpack.server.StartupFailureException
 import ratpack.server.internal.ServerCapturer

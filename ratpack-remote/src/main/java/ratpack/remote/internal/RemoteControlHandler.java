@@ -21,8 +21,8 @@ import io.remotecontrol.server.Receiver;
 import ratpack.handling.Context;
 import ratpack.handling.Handler;
 import ratpack.handling.internal.ChainHandler;
-import ratpack.registry.Registry;
-import ratpack.registry.RegistryBuilder;
+import ratpack.exec.registry.Registry;
+import ratpack.exec.registry.RegistryBuilder;
 
 import java.io.ByteArrayOutputStream;
 import java.util.concurrent.atomic.AtomicReference;

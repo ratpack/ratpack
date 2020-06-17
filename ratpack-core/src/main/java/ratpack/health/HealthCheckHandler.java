@@ -20,7 +20,7 @@ import com.google.common.reflect.TypeToken;
 import ratpack.exec.Throttle;
 import ratpack.handling.Context;
 import ratpack.handling.Handler;
-import ratpack.util.Types;
+import ratpack.exec.util.Types;
 
 import java.util.Collections;
 import java.util.Optional;
@@ -32,7 +32,7 @@ import java.util.Optional;
  * Typically, health checks are added to the server registry.
  * <pre class="java">{@code
  * import ratpack.exec.Promise;
- * import ratpack.registry.Registry;
+ * import ratpack.exec.registry.Registry;
  * import ratpack.health.HealthCheck;
  * import ratpack.health.HealthCheckHandler;
  * import ratpack.test.embed.EmbeddedApp;

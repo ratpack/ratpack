@@ -17,7 +17,7 @@
 package ratpack.parse;
 
 import com.google.common.reflect.TypeToken;
-import ratpack.util.Types;
+import ratpack.exec.util.Types;
 
 import java.util.Optional;
 

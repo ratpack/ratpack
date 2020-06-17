@@ -19,7 +19,7 @@ package ratpack.render
 import ratpack.error.ServerErrorHandler
 import ratpack.error.internal.DefaultDevelopmentErrorHandler
 import ratpack.handling.Context
-import ratpack.registry.Registry
+import ratpack.exec.registry.Registry
 import ratpack.test.internal.RatpackGroovyDslSpec
 
 class RenderingSpec extends RatpackGroovyDslSpec {

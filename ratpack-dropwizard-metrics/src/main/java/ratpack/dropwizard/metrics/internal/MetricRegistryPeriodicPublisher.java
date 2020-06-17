@@ -19,7 +19,7 @@ package ratpack.dropwizard.metrics.internal;
 import com.codahale.metrics.MetricRegistry;
 import ratpack.dropwizard.metrics.DropwizardMetricsConfig;
 import ratpack.exec.ExecController;
-import ratpack.stream.internal.PeriodicPublisher;
+import ratpack.exec.stream.internal.PeriodicPublisher;
 
 import javax.inject.Inject;
 import java.time.Duration;

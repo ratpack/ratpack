@@ -16,7 +16,7 @@
 
 package ratpack.path
 
-import ratpack.func.Block
+import ratpack.exec.func.Block
 import ratpack.handling.Context
 import ratpack.handling.Handler
 import ratpack.http.HttpMethod

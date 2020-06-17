@@ -19,7 +19,7 @@ package ratpack.sse
 import io.netty.util.concurrent.Future
 import io.netty.util.concurrent.GenericFutureListener
 import ratpack.http.client.BaseHttpClientSpec
-import ratpack.stream.TransformablePublisher
+import ratpack.exec.stream.TransformablePublisher
 
 import java.time.Duration
 import java.util.concurrent.CountDownLatch
@@ -28,7 +28,7 @@ import java.util.zip.GZIPInputStream
 import static io.netty.handler.codec.http.HttpResponseStatus.OK
 import static ratpack.http.ResponseChunks.stringChunks
 import static ratpack.sse.ServerSentEvents.serverSentEvents
-import static ratpack.stream.Streams.*
+import static ratpack.exec.stream.Streams.*
 
 class ServerSentEventsSpec extends BaseHttpClientSpec {
 

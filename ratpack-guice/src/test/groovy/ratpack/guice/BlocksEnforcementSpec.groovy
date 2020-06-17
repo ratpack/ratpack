@@ -17,7 +17,7 @@
 package ratpack.guice
 
 import com.google.inject.AbstractModule
-import ratpack.api.Blocks
+import ratpack.exec.api.Blocks
 import ratpack.exec.Blocking
 import ratpack.test.internal.RatpackGroovyDslSpec
 import ratpack.test.internal.SimpleErrorHandler

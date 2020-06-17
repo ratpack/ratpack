@@ -17,9 +17,9 @@
 package ratpack.http.client.internal;
 
 import io.netty.handler.ssl.SslContext;
-import ratpack.func.Action;
-import ratpack.func.Factory;
-import ratpack.func.Function;
+import ratpack.exec.func.Action;
+import ratpack.exec.func.Factory;
+import ratpack.exec.func.Function;
 import ratpack.http.HttpMethod;
 import ratpack.http.MutableHeaders;
 import ratpack.http.client.ReceivedResponse;

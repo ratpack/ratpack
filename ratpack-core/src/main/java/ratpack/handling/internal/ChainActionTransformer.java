@@ -16,12 +16,12 @@
 
 package ratpack.handling.internal;
 
-import ratpack.api.Nullable;
-import ratpack.func.Function;
+import ratpack.exec.api.Nullable;
+import ratpack.exec.func.Function;
 import ratpack.handling.Chain;
 import ratpack.handling.Handler;
 import ratpack.server.ServerConfig;
-import ratpack.registry.Registry;
+import ratpack.exec.registry.Registry;
 
 import java.util.List;
 

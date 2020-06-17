@@ -23,7 +23,7 @@ import com.netflix.hystrix.HystrixCommandKey;
 import com.netflix.hystrix.HystrixCommandMetrics;
 import com.netflix.hystrix.HystrixCommandProperties;
 import com.netflix.hystrix.util.HystrixRollingNumberEvent;
-import ratpack.func.Function;
+import ratpack.exec.func.Function;
 
 import java.io.StringWriter;
 

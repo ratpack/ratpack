@@ -16,7 +16,7 @@
 
 package ratpack.server;
 
-import ratpack.api.NonBlocking;
+import ratpack.exec.api.NonBlocking;
 
 /**
  * The mechanism for stopping the application from within the application.

@@ -18,7 +18,7 @@ package ratpack.handling.internal;
 
 import ratpack.handling.Context;
 import ratpack.handling.Handler;
-import ratpack.registry.Registry;
+import ratpack.exec.registry.Registry;
 
 public class RegistryNextHandler implements Handler {
 

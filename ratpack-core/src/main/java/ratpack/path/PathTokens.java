@@ -16,7 +16,7 @@
 
 package ratpack.path;
 
-import ratpack.util.TypeCoercingMap;
+import ratpack.exec.util.TypeCoercingMap;
 
 /**
  * A marker interface for the contextual object that represents the tokens extracted from the request path.

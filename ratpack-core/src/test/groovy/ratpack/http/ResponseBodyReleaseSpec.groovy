@@ -21,7 +21,7 @@ import io.netty.handler.codec.PrematureChannelClosureException
 import io.netty.handler.codec.http.HttpResponseStatus
 import ratpack.exec.Blocking
 import ratpack.exec.Execution
-import ratpack.func.Block
+import ratpack.exec.func.Block
 import ratpack.groovy.handling.GroovyContext
 import ratpack.test.internal.RatpackGroovyDslSpec
 

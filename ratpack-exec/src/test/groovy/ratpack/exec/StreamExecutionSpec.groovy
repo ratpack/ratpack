@@ -18,12 +18,12 @@ package ratpack.exec
 
 import org.reactivestreams.Subscriber
 import org.reactivestreams.Subscription
-import ratpack.func.Action
-import ratpack.func.Function
+import ratpack.exec.func.Action
+import ratpack.exec.func.Function
 import ratpack.http.ResponseChunks
-import ratpack.stream.Streams
-import ratpack.stream.internal.BufferingPublisher
-import ratpack.stream.internal.CollectingSubscriber
+import ratpack.exec.stream.Streams
+import ratpack.exec.stream.internal.BufferingPublisher
+import ratpack.exec.stream.internal.CollectingSubscriber
 import ratpack.test.exec.ExecHarness
 import ratpack.test.internal.RatpackGroovyDslSpec
 import spock.lang.AutoCleanup
@@ -32,7 +32,7 @@ import spock.lang.Ignore
 import java.time.Duration
 import java.util.concurrent.TimeUnit
 
-import static ratpack.stream.Streams.periodically
+import static ratpack.exec.stream.Streams.periodically
 
 class StreamExecutionSpec extends RatpackGroovyDslSpec {
 

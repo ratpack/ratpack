@@ -11,7 +11,7 @@ with [Hystrix](https://github.com/Netflix/Hystrix/wiki). Part of the [Netflix OS
 increased responsiveness and resilience for your application.  See the [Hystrix Wiki](https://github.com/Netflix/Hystrix/wiki/How-To-Use#Common-Patterns) for common usage patterns.
   
 Hystrix can also help you reduce the number of external network calls your application makes by de-duping (Request Caching) and batching (Request Collapsing) your requests within a request context.  The `ratpack-hystrix` JAR provides and registers
-a [Hystrix Concurrency Strategy](http://netflix.github.io/Hystrix/javadoc/index.html?com/netflix/hystrix/strategy/concurrent/HystrixConcurrencyStrategy.html) with Hystrix that allows the [Ratpack Registry](api/ratpack/registry/Registry.html) 
+a [Hystrix Concurrency Strategy](http://netflix.github.io/Hystrix/javadoc/index.html?com/netflix/hystrix/strategy/concurrent/HystrixConcurrencyStrategy.html) with Hystrix that allows the [Ratpack Registry](api/ratpack/exec/registry/Registry.html) 
 to be used for managing the [Hystrix Request Context](http://netflix.github.io/Hystrix/javadoc/index.html?com/netflix/hystrix/strategy/concurrent/HystrixRequestContext.html).  What all that means is that you **do not** need to initialise a Hystrix Request Context
 (`HystrixRequestContext context = HystrixRequestContext.initializeContext();`) before a request begins as detailed in the [Hystrix wiki](https://github.com/Netflix/Hystrix/wiki/How-To-Use#RequestContextSetup).
 

@@ -18,6 +18,7 @@ package ratpack.http;
 
 import io.netty.buffer.ByteBuf;
 import ratpack.exec.Blocking;
+import ratpack.exec.func.Factory;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -72,7 +73,7 @@ public interface TypedData {
    * <p>
    * Data is effectively piped from {@link #getInputStream()} to the given output stream.
    * As such, if the given output stream might block (e.g. is backed by a file or socket) then
-   * this should be called from a blocking thread using {@link Blocking#get(ratpack.func.Factory)}
+   * this should be called from a blocking thread using {@link Blocking#get(Factory)}
    * This method does not flush or close the stream.
    *
    * @param outputStream The stream to write to

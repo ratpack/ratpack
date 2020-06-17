@@ -67,7 +67,7 @@ It makes it easy to start/stop very small (or fully fledged) apps during a large
 It is used in the examples to keep the amount of bootstrapping to a minimum in order to focus on the API being demonstrated.
 
 In this example we are starting a Ratpack server on an ephemeral port with default configuration that responds to all HTTP requests with the plain text string “Hello World”.
-The [`test()`](api/ratpack/test/CloseableApplicationUnderTest.html#test-ratpack.func.Action-) method being used here provides a [`TestHttpClient`](api/ratpack/test/http/TestHttpClient.html) to the given function, that is configured to make requests of the server under test.
+The [`test()`](api/ratpack/test/CloseableApplicationUnderTest.html#test-ratpack.exec.func.Action-) method being used here provides a [`TestHttpClient`](api/ratpack/test/http/TestHttpClient.html) to the given function, that is configured to make requests of the server under test.
 This example and all others like it are making HTTP requests to a Ratpack server.
 [`EmbeddedApp`](api/ratpack/test/embed/EmbeddedApp.html) and [`TestHttpClient`](api/ratpack/test/http/TestHttpClient.html) are provided as part of Ratpack's [testing support](testing.html).
 

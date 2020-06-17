@@ -21,7 +21,7 @@ import ratpack.handling.internal.DefaultRequestId;
 import ratpack.handling.internal.HeaderBasedRequestIdGenerator;
 import ratpack.handling.internal.UuidBasedRequestIdGenerator;
 import ratpack.http.Request;
-import ratpack.util.Types;
+import ratpack.exec.util.Types;
 
 import java.util.concurrent.ThreadLocalRandom;
 

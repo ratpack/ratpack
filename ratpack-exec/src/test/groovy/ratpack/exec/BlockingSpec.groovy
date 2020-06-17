@@ -17,12 +17,12 @@
 package ratpack.exec
 
 import ratpack.error.ServerErrorHandler
-import ratpack.func.Block
+import ratpack.exec.func.Block
 import ratpack.http.client.RequestSpec
 import ratpack.test.internal.RatpackGroovyDslSpec
 import ratpack.test.internal.SimpleErrorHandler
 
-import static ratpack.util.Exceptions.uncheck
+import static ratpack.exec.util.Exceptions.uncheck
 
 class BlockingSpec extends RatpackGroovyDslSpec {
 

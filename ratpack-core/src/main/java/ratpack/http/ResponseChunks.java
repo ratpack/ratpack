@@ -21,12 +21,12 @@ import io.netty.buffer.ByteBufAllocator;
 import io.netty.buffer.ByteBufUtil;
 import io.netty.util.CharsetUtil;
 import org.reactivestreams.Publisher;
-import ratpack.func.Function;
+import ratpack.exec.func.Function;
 import ratpack.handling.Context;
 import ratpack.http.internal.HttpHeaderConstants;
 import ratpack.render.Renderable;
-import ratpack.stream.Streams;
-import ratpack.util.Exceptions;
+import ratpack.exec.stream.Streams;
+import ratpack.exec.util.Exceptions;
 
 import java.nio.CharBuffer;
 import java.nio.charset.Charset;
@@ -39,7 +39,7 @@ import java.nio.charset.Charset;
  * Example usage:
  * <pre class="java">{@code
  * import org.reactivestreams.Publisher;
- * import ratpack.stream.Streams;
+ * import ratpack.exec.stream.Streams;
  * import ratpack.test.embed.EmbeddedApp;
  *
  * import java.time.Duration;

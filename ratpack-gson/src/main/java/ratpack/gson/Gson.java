@@ -21,17 +21,17 @@ import com.google.gson.JsonElement;
 import com.google.gson.stream.JsonWriter;
 import io.netty.buffer.Unpooled;
 import org.reactivestreams.Publisher;
-import ratpack.api.Nullable;
-import ratpack.func.Function;
+import ratpack.exec.api.Nullable;
+import ratpack.exec.func.Function;
 import ratpack.gson.internal.DefaultGsonParseOpts;
 import ratpack.gson.internal.DefaultGsonRender;
 import ratpack.http.ResponseChunks;
 import ratpack.http.internal.HttpHeaderConstants;
 import ratpack.parse.Parse;
-import ratpack.registry.Registry;
-import ratpack.stream.StreamMapper;
-import ratpack.stream.Streams;
-import ratpack.stream.WriteStream;
+import ratpack.exec.registry.Registry;
+import ratpack.exec.stream.StreamMapper;
+import ratpack.exec.stream.Streams;
+import ratpack.exec.stream.WriteStream;
 
 import java.io.IOException;
 import java.io.Writer;
@@ -194,7 +194,7 @@ public abstract class Gson {
    * import ratpack.guice.Guice;
    * import ratpack.test.embed.EmbeddedApp;
    * import ratpack.http.client.ReceivedResponse;
-   * import ratpack.stream.Streams;
+   * import ratpack.exec.stream.Streams;
    * import org.reactivestreams.Publisher;
    *
    * import java.util.Arrays;

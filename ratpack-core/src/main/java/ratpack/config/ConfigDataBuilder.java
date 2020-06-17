@@ -21,8 +21,8 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.ImmutableList;
 import com.google.common.io.ByteSource;
 import ratpack.config.internal.source.ArgsConfigSource;
-import ratpack.func.Action;
-import ratpack.func.Function;
+import ratpack.exec.func.Action;
+import ratpack.exec.func.Function;
 
 import java.net.URL;
 import java.nio.file.Path;
@@ -37,13 +37,13 @@ import java.util.Properties;
  * If a given value exists in multiple data sources, the value from the last specified source will be used.
  * <p>
  * By default, if loading a data source fails, the exception will be thrown.
- * If desired, this behavior can be adjusted using {@link #onError(ratpack.func.Action)}.
+ * If desired, this behavior can be adjusted using {@link #onError(Action)}.
  * For example:
  *
  * <pre class="java">{@code
  * import java.nio.file.Files;
  * import java.nio.file.Path;
- * import ratpack.func.Action;
+ * import ratpack.exec.func.Action;
  * import ratpack.server.RatpackServer;
  * import ratpack.server.ServerConfig;
  * import ratpack.test.ServerBackedApplicationUnderTest;
@@ -403,8 +403,8 @@ public interface ConfigDataBuilder {
    *
    * @param errorHandler the error all
    * @return {@code this}
-   * @see ratpack.func.Action#noop()
-   * @see ratpack.func.Action#throwException()
+   * @see Action#noop()
+   * @see Action#throwException()
    */
   ConfigDataBuilder onError(Action<? super Throwable> errorHandler);
 

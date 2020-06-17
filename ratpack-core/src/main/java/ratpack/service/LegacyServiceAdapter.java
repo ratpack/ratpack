@@ -16,7 +16,7 @@
 
 package ratpack.service;
 
-import ratpack.func.Predicate;
+import ratpack.exec.func.Predicate;
 
 /**
  * An adapter from {@link ratpack.server.Service} to {@link ratpack.service.Service}.
