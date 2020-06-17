@@ -17,10 +17,10 @@
 package ratpack.groovy.handling.internal;
 
 import ratpack.groovy.handling.GroovyChain;
-import ratpack.handling.Chain;
-import ratpack.handling.Handler;
+import ratpack.core.handling.Chain;
+import ratpack.core.handling.Handler;
 import ratpack.exec.registry.Registry;
-import ratpack.server.ServerConfig;
+import ratpack.core.server.ServerConfig;
 
 public class DefaultGroovyChain implements GroovyChain {
 

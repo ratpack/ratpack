@@ -29,7 +29,7 @@ class ShadowJarSpec extends FunctionalSpec {
 
     file("src/ratpack/ratpack.groovy") << """
       import static ratpack.groovy.Groovy.*
-      import ratpack.server.Stopper
+      import ratpack.core.server.Stopper
 
       ratpack {
         serverConfig { port 0 }

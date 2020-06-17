@@ -20,8 +20,8 @@ import groovy.lang.Closure;
 import groovy.xml.MarkupBuilder;
 import io.netty.util.CharsetUtil;
 import ratpack.groovy.internal.ClosureUtil;
-import ratpack.handling.Context;
-import ratpack.render.Renderable;
+import ratpack.core.handling.Context;
+import ratpack.core.render.Renderable;
 
 import java.io.ByteArrayOutputStream;
 import java.io.OutputStreamWriter;

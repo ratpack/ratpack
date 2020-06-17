@@ -21,13 +21,14 @@ import com.google.gson.JsonElement;
 import com.google.gson.stream.JsonWriter;
 import io.netty.buffer.Unpooled;
 import org.reactivestreams.Publisher;
+import ratpack.core.handling.Context;
 import ratpack.exec.api.Nullable;
 import ratpack.exec.func.Function;
 import ratpack.gson.internal.DefaultGsonParseOpts;
 import ratpack.gson.internal.DefaultGsonRender;
-import ratpack.http.ResponseChunks;
-import ratpack.http.internal.HttpHeaderConstants;
-import ratpack.parse.Parse;
+import ratpack.core.http.ResponseChunks;
+import ratpack.core.http.internal.HttpHeaderConstants;
+import ratpack.core.parse.Parse;
 import ratpack.exec.registry.Registry;
 import ratpack.exec.stream.StreamMapper;
 import ratpack.exec.stream.Streams;
@@ -47,7 +48,7 @@ public abstract class Gson {
   }
 
   /**
-   * Creates a {@link ratpack.handling.Context#render renderable object} to render the given object as JSON.
+   * Creates a {@link Context#render renderable object} to render the given object as JSON.
    * <p>
    * The given object will be converted to JSON using a {@link com.google.gson.Gson} instance obtained from the context registry.
    * <p>
@@ -61,7 +62,7 @@ public abstract class Gson {
   }
 
   /**
-   * Creates a {@link ratpack.handling.Context#render renderable object} to render the given object as JSON.
+   * Creates a {@link Context#render renderable object} to render the given object as JSON.
    * <p>
    * The given object will be converted to JSON using the given {@link com.google.gson.Gson}.
    * If it is {@code null}, a {@code Gson} instance will be obtained from the context registry.
@@ -77,7 +78,7 @@ public abstract class Gson {
   }
 
   /**
-   * Creates a {@link ratpack.handling.Context#parse parseable object} to parse a request body into a {@link JsonElement}.
+   * Creates a {@link Context#parse parseable object} to parse a request body into a {@link JsonElement}.
    * <p>
    * The corresponding parser for this type requires the request content type to be {@code "application/json"}.
    * <p>
@@ -92,7 +93,7 @@ public abstract class Gson {
   }
 
   /**
-   * Creates a {@link ratpack.handling.Context#parse parseable object} to parse a request body into a {@link JsonElement}.
+   * Creates a {@link Context#parse parseable object} to parse a request body into a {@link JsonElement}.
    * <p>
    * The corresponding parser for this type requires the request content type to be {@code "application/json"}.
    * <p>
@@ -109,7 +110,7 @@ public abstract class Gson {
   }
 
   /**
-   * Creates a {@link ratpack.handling.Context#parse parseable object} to parse a request body into the given type.
+   * Creates a {@link Context#parse parseable object} to parse a request body into the given type.
    * <p>
    * The corresponding parser for this type requires the request content type to be {@code "application/json"}.
    * <p>
@@ -126,7 +127,7 @@ public abstract class Gson {
   }
 
   /**
-   * Creates a {@link ratpack.handling.Context#parse parseable object} to parse a request body into the given type.
+   * Creates a {@link Context#parse parseable object} to parse a request body into the given type.
    * <p>
    * The corresponding parser for this type requires the request content type to be {@code "application/json"}.
    * <p>
@@ -143,7 +144,7 @@ public abstract class Gson {
   }
 
   /**
-   * Creates a {@link ratpack.handling.Context#parse parseable object} to parse a request body into the given type.
+   * Creates a {@link Context#parse parseable object} to parse a request body into the given type.
    * <p>
    * The corresponding parser for this type requires the request content type to be {@code "application/json"}.
    * <p>
@@ -162,7 +163,7 @@ public abstract class Gson {
   }
 
   /**
-   * Creates a {@link ratpack.handling.Context#parse parseable object} to parse a request body into the given type.
+   * Creates a {@link Context#parse parseable object} to parse a request body into the given type.
    * <p>
    * The corresponding parser for this type requires the request content type to be {@code "application/json"}.
    * <p>
@@ -193,7 +194,7 @@ public abstract class Gson {
    * import ratpack.gson.GsonModule;
    * import ratpack.guice.Guice;
    * import ratpack.test.embed.EmbeddedApp;
-   * import ratpack.http.client.ReceivedResponse;
+   * import ratpack.core.http.client.ReceivedResponse;
    * import ratpack.exec.stream.Streams;
    * import org.reactivestreams.Publisher;
    *
@@ -308,7 +309,7 @@ public abstract class Gson {
    * import ratpack.guice.Guice;
    * import ratpack.exec.Promise;
    * import ratpack.test.embed.EmbeddedApp;
-   * import ratpack.http.client.ReceivedResponse;
+   * import ratpack.core.http.client.ReceivedResponse;
    *
    * import java.util.Arrays;
    *

@@ -5,19 +5,19 @@ This is provided as part of `ratpack-core`.
  
 As of Ratpack @ratpack-version@ is built against (and depends on) Jackson Core @versions-jackson@.
 
-The [`ratpack.jackson.Jackson`](api/ratpack/jackson/Jackson.html) class provides most of the Jackson related functionality. 
+The [`ratpack.core.jackson.Jackson`](api/ratpack/core/jackson/Jackson.html) class provides most of the Jackson related functionality. 
  
 ## Writing JSON responses
 
 The Jackson integration adds a [Renderer](api/ratpack/render/Renderer.html) for rendering objects as JSON.
 
-The [`Jackson.json()`](api/ratpack/jackson/Jackson.html#json-java.lang.Object-) method can be used to wrap any object (serializable by Jackson) for use with the [`Context.render()`](api/ratpack/handling/Context.html#render-java.lang.Object-) method. 
+The [`Jackson.json()`](api/ratpack/core/jackson/Jackson.html#json-java.lang.Object-) method can be used to wrap any object (serializable by Jackson) for use with the [`Context.render()`](api/ratpack/core/handling/Context.html#render-java.lang.Object-) method. 
 
 ```language-java
 import ratpack.test.embed.EmbeddedApp;
-import ratpack.http.client.ReceivedResponse;
+import ratpack.core.http.client.ReceivedResponse;
 
-import static ratpack.jackson.Jackson.json;
+import static ratpack.core.jackson.Jackson.json;
 import static org.junit.Assert.*;
 
 public class Example {
@@ -46,18 +46,18 @@ public class Example {
 }
 ```
 
-See the [`Jackson`](api/ratpack/jackson/Jackson.html) class documentation for more examples, including streaming and JSON events.
+See the [`Jackson`](api/ratpack/core/jackson/Jackson.html) class documentation for more examples, including streaming and JSON events.
 
 ## Reading JSON requests
 
 The Jackson integration adds a [Parser](api/ratpack/parse/Parser.html) for converting JSON request bodies into objects.
 
-The [`Jackson.jsonNode()`](api/ratpack/jackson/Jackson.html#Jackson.html#jsonNode--) and [`Jackson.fromJson()`](api/ratpack/jackson/Jackson.html#fromJson) methods can be used to create objects to be used with the [`Context.parse()`](api/ratpack/handling/Context.html#parse) method. 
+The [`Jackson.jsonNode()`](api/ratpack/core/jackson/Jackson.html#Jackson.html#jsonNode--) and [`Jackson.fromJson()`](api/ratpack/core/jackson/Jackson.html#fromJson) methods can be used to create objects to be used with the [`Context.parse()`](api/ratpack/core/handling/Context.html#parse) method. 
 
 ```language-java
 import ratpack.guice.Guice;
 import ratpack.test.embed.EmbeddedApp;
-import ratpack.http.client.ReceivedResponse;
+import ratpack.core.http.client.ReceivedResponse;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.google.common.reflect.TypeToken;
@@ -65,8 +65,8 @@ import com.google.common.reflect.TypeToken;
 import java.util.List;
 
 import static ratpack.exec.util.Types.listOf;
-import static ratpack.jackson.Jackson.jsonNode;
-import static ratpack.jackson.Jackson.fromJson;
+import static ratpack.core.jackson.Jackson.jsonNode;
+import static ratpack.core.jackson.Jackson.fromJson;
 import static org.junit.Assert.*;
 
 public class Example {
@@ -114,11 +114,11 @@ public class Example {
 }
 ```
 
-The integration adds a [no opts parser](api/ratpack/parse/NoOptParserSupport.html), which makes it possible to use the [`Context.parse(Class)`](api/ratpack/handling/Context.html#parse-java.lang.Class-) and [`Context.parse(TypeToken)`](api/ratpack/handling/Context.html#parse-com.google.common.reflect.TypeToken-) methods.
+The integration adds a [no opts parser](api/ratpack/parse/NoOptParserSupport.html), which makes it possible to use the [`Context.parse(Class)`](api/ratpack/core/handling/Context.html#parse-java.lang.Class-) and [`Context.parse(TypeToken)`](api/ratpack/core/handling/Context.html#parse-com.google.common.reflect.TypeToken-) methods.
 
 ```language-java
 import ratpack.test.embed.EmbeddedApp;
-import ratpack.http.client.ReceivedResponse;
+import ratpack.core.http.client.ReceivedResponse;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.google.common.reflect.TypeToken;
 
@@ -177,13 +177,13 @@ To use such modules, simply add an appropriately configured `ObjectMapper` to th
 
 ```language-java
 import ratpack.test.embed.EmbeddedApp;
-import ratpack.http.client.ReceivedResponse;
+import ratpack.core.http.client.ReceivedResponse;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.datatype.jdk8.Jdk8Module;
 
 import java.util.Optional;
 
-import static ratpack.jackson.Jackson.json;
+import static ratpack.core.jackson.Jackson.json;
 import static org.junit.Assert.*;
 
 public class Example {

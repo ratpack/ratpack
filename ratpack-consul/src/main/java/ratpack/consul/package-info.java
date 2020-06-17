@@ -26,9 +26,9 @@
  * The Consul integration provides support for reading values from Consul's Key-Value store as a {@code ByteSource}.
  * The {@code ByteSource} can then be provided to Ratpack's configuration parsing methods:
  * <ul>
- * <li>{@link ratpack.server.ServerConfigBuilder#json(com.google.common.io.ByteSource)}</li>
- * <li>{@link ratpack.server.ServerConfigBuilder#props(com.google.common.io.ByteSource)}</li>
- * <li>{@link ratpack.server.ServerConfigBuilder#yaml(com.google.common.io.ByteSource)}</li>
+ * <li>{@link ratpack.core.server.ServerConfigBuilder#json(com.google.common.io.ByteSource)}</li>
+ * <li>{@link ratpack.core.server.ServerConfigBuilder#props(com.google.common.io.ByteSource)}</li>
+ * <li>{@link ratpack.core.server.ServerConfigBuilder#yaml(com.google.common.io.ByteSource)}</li>
  * </ul>
  * </p>
  *

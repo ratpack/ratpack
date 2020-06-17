@@ -22,6 +22,8 @@ import com.lambdaworks.redis.api.async.RedisAsyncCommands;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
 import io.netty.util.AsciiString;
+import ratpack.core.server.StartEvent;
+import ratpack.core.server.StopEvent;
 import ratpack.exec.Execution;
 import ratpack.exec.Operation;
 import ratpack.exec.Promise;
@@ -87,13 +89,13 @@ public class RedisSessionStore implements SessionStore {
   }
 
   @Override
-  public void onStart(@SuppressWarnings("deprecation") ratpack.server.StartEvent event) throws Exception {
+  public void onStart(@SuppressWarnings("deprecation") StartEvent event) throws Exception {
     redisClient = new TimerExposingRedisClient(getRedisURI());
     connection = redisClient.connect(new AsciiStringByteBufRedisCodec()).async();
   }
 
   @Override
-  public void onStop(@SuppressWarnings("deprecation") ratpack.server.StopEvent event) throws Exception {
+  public void onStop(@SuppressWarnings("deprecation") StopEvent event) throws Exception {
     if (redisClient != null) {
       try {
         redisClient.getTimer().stop();

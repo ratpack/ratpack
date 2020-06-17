@@ -18,13 +18,12 @@ package ratpack.rx2
 
 import io.reactivex.functions.Action
 import io.reactivex.functions.Consumer
-import ratpack.error.ServerErrorHandler
+import ratpack.core.error.ServerErrorHandler
 import ratpack.exec.Blocking
 import ratpack.test.internal.RatpackGroovyDslSpec
 import ratpack.test.internal.SimpleErrorHandler
 
 import static ratpack.rx2.RxRatpack.observe
-import static ratpack.rx2.RxRatpack.single
 
 class RxBlockingSpec extends RatpackGroovyDslSpec {
 
@@ -36,7 +35,7 @@ class RxBlockingSpec extends RatpackGroovyDslSpec {
     when:
     handlers {
       get(":value") {
-        single(Blocking.get {
+        RxRatpack.single(Blocking.get {
           pathTokens.value
         }) map {
           it * 2
@@ -59,7 +58,7 @@ class RxBlockingSpec extends RatpackGroovyDslSpec {
     }
     handlers {
       get(":value") {
-        single(Blocking.get {
+        RxRatpack.single(Blocking.get {
           pathTokens.value
         }) map {
           it * 2
@@ -83,7 +82,7 @@ class RxBlockingSpec extends RatpackGroovyDslSpec {
     }
     handlers {
       get(":value") {
-        single(Blocking.get {
+        RxRatpack.single(Blocking.get {
           pathTokens.value
         }) map {
           it * 2

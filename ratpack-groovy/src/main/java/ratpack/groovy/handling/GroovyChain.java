@@ -19,14 +19,15 @@ package ratpack.groovy.handling;
 import groovy.lang.Closure;
 import groovy.lang.DelegatesTo;
 import org.codehaus.groovy.runtime.DefaultGroovyMethods;
-import ratpack.file.FileHandlerSpec;
+import ratpack.core.file.FileSystemBinding;
+import ratpack.core.file.FileHandlerSpec;
 import ratpack.exec.func.Action;
 import ratpack.exec.func.Predicate;
 import ratpack.groovy.handling.internal.DefaultGroovyChain;
 import ratpack.groovy.internal.ClosureUtil;
-import ratpack.handling.Chain;
-import ratpack.handling.Context;
-import ratpack.handling.Handler;
+import ratpack.core.handling.Chain;
+import ratpack.core.handling.Context;
+import ratpack.core.handling.Handler;
 import ratpack.exec.registry.Registry;
 import ratpack.exec.registry.RegistrySpec;
 
@@ -37,10 +38,10 @@ import static ratpack.groovy.internal.ClosureUtil.delegatingAction;
 /**
  * A Groovy oriented handler chain builder DSL.
  * <p>
- * The methods specific to this subclass create {@link ratpack.handling.Handler} instances from closures and
+ * The methods specific to this subclass create {@link Handler} instances from closures and
  * add them to the underlying chain.
  * <p>
- * These methods are generally shortcuts for {@link #all(ratpack.handling.Handler)} on this underlying chain.
+ * These methods are generally shortcuts for {@link #all(Handler)} on this underlying chain.
  */
 public interface GroovyChain extends Chain {
 
@@ -97,7 +98,7 @@ public interface GroovyChain extends Chain {
    * Adds a {@code Handler} to this {@code GroovyChain} that delegates to the given {@code Closure} as a {@code Handler} if the
    * relative {@code path} matches the given {@code path} and the {@code request} {@code HTTPMethod} is {@code DELETE}.
    * <p>
-   * See {@link GroovyChain#delete(String, ratpack.handling.Handler)} for more details.
+   * See {@link GroovyChain#delete(String, Handler)} for more details.
    *
    * @param path the relative path to match on
    * @param handler the handler to delegate to
@@ -111,7 +112,7 @@ public interface GroovyChain extends Chain {
    * Adds a {@code Handler} to this {@code GroovyChain} that delegates to the given {@code Closure} as a {@code Handler}
    * if the {@code request} {@code HTTPMethod} is {@code DELETE} and the {@code path} is at the current root.
    * <p>
-   * See {@link GroovyChain#delete(ratpack.handling.Handler)} for more details.
+   * See {@link GroovyChain#delete(Handler)} for more details.
    *
    * @param handler the handler to delegate to
    * @return this {@code GroovyChain}
@@ -154,7 +155,7 @@ public interface GroovyChain extends Chain {
 
   /**
    * Creates a {@code List} of {@code Handler} from the given {@code Closure} and adds a {@code Handler} to this {@code GroovyChain} that
-   * changes the {@link ratpack.file.FileSystemBinding} for the {@code Handler} list.
+   * changes the {@link FileSystemBinding} for the {@code Handler} list.
    * <p>
    * See {@link GroovyChain#fileSystem(String, Action)} for more details.
    *
@@ -237,7 +238,7 @@ public interface GroovyChain extends Chain {
    * Adds a {@code Handler} to this {@code GroovyChain} that delegates to the given {@code Closure} as a {@code Handler} if the
    * relative {@code path} matches the given {@code path} and the {@code request} {@code HTTPMethod} is {@code GET}.
    * <p>
-   * See {@link GroovyChain#get(String, ratpack.handling.Handler)} for more details.
+   * See {@link GroovyChain#get(String, Handler)} for more details.
    *
    * @param path the relative path to match on
    * @param handler the handler to delegate to
@@ -251,7 +252,7 @@ public interface GroovyChain extends Chain {
    * Adds a {@code Handler} to this {@code GroovyChain} that delegates to the given {@code Closure} as a {@code Handler}
    * if the {@code request} {@code HTTPMethod} is {@code GET} and the {@code path} is at the current root.
    * <p>
-   * See {@link GroovyChain#get(ratpack.handling.Handler)} for more details.
+   * See {@link GroovyChain#get(Handler)} for more details.
    *
    * @param handler the handler to delegate to
    * @return this {@code GroovyChain}
@@ -353,7 +354,7 @@ public interface GroovyChain extends Chain {
    * Adds a {@code Handler} to this {@code GroovyChain} that delegates to the given {@code Closure} as a {@code Handler} if the
    * relative {@code path} matches the given {@code path} and the {@code request} {@code HTTPMethod} is {@code PATCH}.
    * <p>
-   * See {@link GroovyChain#put(String, ratpack.handling.Handler)} for more details.
+   * See {@link GroovyChain#put(String, Handler)} for more details.
    *
    * @param path the relative path to match on
    * @param handler the handler to delegate to
@@ -367,7 +368,7 @@ public interface GroovyChain extends Chain {
    * Adds a {@code Handler} to this {@code GroovyChain} that delegates to the given {@code Closure} as a {@code Handler}
    * if the {@code request} {@code HTTPMethod} is {@code PATCH} and the {@code path} is at the current root.
    * <p>
-   * See {@link GroovyChain#put(ratpack.handling.Handler)} for more details.
+   * See {@link GroovyChain#put(Handler)} for more details.
    *
    * @param handler the handler to delegate to
    * @return this {@code GroovyChain}
@@ -412,7 +413,7 @@ public interface GroovyChain extends Chain {
    * Adds a {@code Handler} to this {@code GroovyChain} that delegates to the given {@code Closure} as a {@code Handler} if the
    * relative {@code path} matches the given {@code path} and the {@code request} {@code HTTPMethod} is {@code OPTIONS}.
    * <p>
-   * See {@link GroovyChain#put(String, ratpack.handling.Handler)} for more details.
+   * See {@link GroovyChain#put(String, Handler)} for more details.
    *
    * @param path the relative path to match on
    * @param handler the handler to delegate to
@@ -427,7 +428,7 @@ public interface GroovyChain extends Chain {
    * Adds a {@code Handler} to this {@code GroovyChain} that delegates to the given {@code Closure} as a {@code Handler}
    * if the {@code request} {@code HTTPMethod} is {@code OPTIONS} and the {@code path} is at the current root.
    * <p>
-   * See {@link GroovyChain#put(ratpack.handling.Handler)} for more details.
+   * See {@link GroovyChain#put(Handler)} for more details.
    *
    * @param handler the handler to delegate to
    * @return this {@code GroovyChain}
@@ -473,7 +474,7 @@ public interface GroovyChain extends Chain {
    * Adds a {@code Handler} to this {@code GroovyChain} that delegates to the given {@code Closure} as a {@code Handler} if the
    * relative {@code path} matches the given {@code path} exactly.
    * <p>
-   * See {@link GroovyChain#path(String, ratpack.handling.Handler)} for more details.
+   * See {@link GroovyChain#path(String, Handler)} for more details.
    *
    * @param path the relative path to match exactly on
    * @param handler the handler to delegate to
@@ -523,7 +524,7 @@ public interface GroovyChain extends Chain {
    * Adds a {@code Handler} to this {@code GroovyChain} that delegates to the given {@code Closure} as a {@code Handler} if the
    * relative {@code path} matches the given {@code path} and the {@code request} {@code HTTPMethod} is {@code POST}.
    * <p>
-   * See {@link GroovyChain#post(String, ratpack.handling.Handler)} for more details.
+   * See {@link GroovyChain#post(String, Handler)} for more details.
    *
    * @param path the relative path to match on
    * @param handler the handler to delegate to
@@ -537,7 +538,7 @@ public interface GroovyChain extends Chain {
    * Adds a {@code Handler} to this {@code GroovyChain} that delegates to the given {@code Closure} as a {@code Handler}
    * if the {@code request} {@code HTTPMethod} is {@code POST} and the {@code path} is at the current root.
    * <p>
-   * See {@link GroovyChain#post(ratpack.handling.Handler)} for more details.
+   * See {@link GroovyChain#post(Handler)} for more details.
    *
    * @param handler the handler to delegate to
    * @return this {@code GroovyChain}
@@ -614,7 +615,7 @@ public interface GroovyChain extends Chain {
    * Adds a {@code Handler} to this {@code GroovyChain} that delegates to the given {@code Closure} as a {@code Handler} if the
    * relative {@code path} matches the given {@code path} and the {@code request} {@code HTTPMethod} is {@code PUT}.
    * <p>
-   * See {@link GroovyChain#put(String, ratpack.handling.Handler)} for more details.
+   * See {@link GroovyChain#put(String, Handler)} for more details.
    *
    * @param path the relative path to match on
    * @param handler the handler to delegate to
@@ -628,7 +629,7 @@ public interface GroovyChain extends Chain {
    * Adds a {@code Handler} to this {@code GroovyChain} that delegates to the given {@code Closure} as a {@code Handler}
    * if the {@code request} {@code HTTPMethod} is {@code PUT} and the {@code path} is at the current root.
    * <p>
-   * See {@link GroovyChain#put(ratpack.handling.Handler)} for more details.
+   * See {@link GroovyChain#put(Handler)} for more details.
    *
    * @param handler the handler to delegate to
    * @return this {@code GroovyChain}

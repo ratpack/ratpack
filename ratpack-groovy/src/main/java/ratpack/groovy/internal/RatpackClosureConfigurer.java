@@ -22,9 +22,9 @@ import ratpack.groovy.Groovy;
 import ratpack.groovy.internal.capture.RatpackDslBacking;
 import ratpack.groovy.internal.capture.RatpackDslClosures;
 import ratpack.guice.Guice;
-import ratpack.server.RatpackServerSpec;
-import ratpack.server.ServerConfig;
-import ratpack.server.ServerConfigBuilder;
+import ratpack.core.server.RatpackServerSpec;
+import ratpack.core.server.ServerConfig;
+import ratpack.core.server.ServerConfigBuilder;
 
 public class RatpackClosureConfigurer implements Action<RatpackServerSpec> {
 

@@ -2,7 +2,7 @@ import ratpack.perf.incl.*
 import static ratpack.groovy.Groovy.*
 
 <% if (patch >= 14) { %>
-import ratpack.handling.ResponseTimer
+import ratpack.core.handling.ResponseTimer
 <% } %>
 
 ratpack {

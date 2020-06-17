@@ -16,8 +16,8 @@
 
 package ratpack.test.handling;
 
-import ratpack.handling.Handler;
-import ratpack.http.Request;
+import ratpack.core.handling.Handler;
+import ratpack.core.http.Request;
 
 /**
  * An interface for creating a Ratpack {@link Handler} based on the contents of the received {@link Request}.

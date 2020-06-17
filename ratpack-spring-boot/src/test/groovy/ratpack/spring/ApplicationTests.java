@@ -31,15 +31,15 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import ratpack.exec.func.Action;
-import ratpack.handling.Chain;
-import ratpack.server.RatpackServer;
+import ratpack.core.handling.Chain;
+import ratpack.core.server.RatpackServer;
 import ratpack.spring.ApplicationTests.Application;
 import ratpack.spring.config.EnableRatpack;
 
 import java.util.Collections;
 
 import static org.junit.Assert.*;
-import static ratpack.jackson.Jackson.json;
+import static ratpack.core.jackson.Jackson.json;
 
 @RunWith(SpringJUnit4ClassRunner.class)
 @SpringApplicationConfiguration(classes = Application.class)

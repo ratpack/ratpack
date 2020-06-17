@@ -22,7 +22,7 @@ import ratpack.test.embed.EmbeddedApp
 import spock.lang.AutoCleanup
 import spock.lang.Specification
 
-import static ratpack.jackson.Jackson.json
+import static ratpack.core.jackson.Jackson.json
 
 
 class ConsulConfigSpec extends Specification {

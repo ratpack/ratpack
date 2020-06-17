@@ -20,7 +20,7 @@ import com.fasterxml.jackson.annotation.JsonProperty
 import com.google.inject.AbstractModule
 import com.google.inject.Provides
 import com.google.inject.Singleton
-import ratpack.server.ServerConfig
+import ratpack.core.server.ServerConfig
 import ratpack.test.internal.RatpackGroovyDslSpec
 
 class GuiceConfigOverrideSpec extends RatpackGroovyDslSpec {

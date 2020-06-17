@@ -20,8 +20,8 @@ import asset.pipeline.ratpack.internal.ProductionAssetCache;
 import com.google.inject.Singleton;
 import com.google.inject.multibindings.Multibinder;
 import ratpack.guice.ConfigurableModule;
-import ratpack.handling.HandlerDecorator;
-import ratpack.handling.Handlers;
+import ratpack.core.handling.HandlerDecorator;
+import ratpack.core.handling.Handlers;
 
 import java.util.Map;
 

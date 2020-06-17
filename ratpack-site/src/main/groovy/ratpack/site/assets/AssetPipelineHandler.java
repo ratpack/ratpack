@@ -16,9 +16,9 @@
 package ratpack.site.assets;
 
 import asset.pipeline.AssetPipelineConfigHolder;
-import ratpack.handling.Context;
-import ratpack.handling.Handler;
-import ratpack.handling.Handlers;
+import ratpack.core.handling.Context;
+import ratpack.core.handling.Handler;
+import ratpack.core.handling.Handlers;
 import ratpack.site.assets.internal.AssetPropertiesHandler;
 import ratpack.site.assets.internal.DevelopmentAssetHandler;
 import ratpack.site.assets.internal.ProductionAssetHandler;

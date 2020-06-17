@@ -16,7 +16,7 @@
 
 package ratpack.site
 
-class TestConfig extends ratpack.config.TestConfig {
+class TestConfig extends ratpack.core.config.TestConfig {
 
   List<String> getManualVersions() {
     testConfigProperties.getProperty('manualVersions').tokenize(",")

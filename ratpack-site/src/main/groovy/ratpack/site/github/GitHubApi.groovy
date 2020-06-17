@@ -19,7 +19,7 @@ package ratpack.site.github
 import com.fasterxml.jackson.databind.JsonNode
 import com.fasterxml.jackson.databind.ObjectReader
 import ratpack.exec.Promise
-import ratpack.http.client.HttpClient
+import ratpack.core.http.client.HttpClient
 
 @javax.inject.Singleton
 class GitHubApi {

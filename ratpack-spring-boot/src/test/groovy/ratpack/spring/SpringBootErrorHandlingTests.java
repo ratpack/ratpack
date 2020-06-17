@@ -27,10 +27,10 @@ import org.springframework.boot.test.TestRestTemplate;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
-import ratpack.error.ServerErrorHandler;
+import ratpack.core.error.ServerErrorHandler;
 import ratpack.exec.func.Action;
-import ratpack.handling.Chain;
-import ratpack.server.RatpackServer;
+import ratpack.core.handling.Chain;
+import ratpack.core.server.RatpackServer;
 import ratpack.spring.config.EnableRatpack;
 
 import static org.junit.Assert.assertEquals;

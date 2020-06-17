@@ -17,10 +17,8 @@
 package ratpack.rx2
 
 import io.reactivex.functions.Function
-import ratpack.http.client.HttpClient
+import ratpack.core.http.client.HttpClient
 import ratpack.http.client.BaseHttpClientSpec
-
-import static ratpack.rx2.RxRatpack.single
 
 class RxHttpClientSpec extends BaseHttpClientSpec {
 
@@ -37,7 +35,7 @@ class RxHttpClientSpec extends BaseHttpClientSpec {
     when:
     handlers {
       get { HttpClient httpClient ->
-        single(httpClient.get(otherAppUrl("foo"))).toFlowable() map({
+        RxRatpack.single(httpClient.get(otherAppUrl("foo"))).toFlowable() map({
           it.body.text.toUpperCase()
         } as Function) subscribe {
           render it

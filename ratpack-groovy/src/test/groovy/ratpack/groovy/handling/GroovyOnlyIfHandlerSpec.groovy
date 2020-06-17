@@ -16,8 +16,8 @@
 
 package ratpack.groovy.handling
 
-import ratpack.handling.Context
-import ratpack.handling.Handler
+import ratpack.core.handling.Context
+import ratpack.core.handling.Handler
 import ratpack.test.internal.RatpackGroovyDslSpec
 
 class GroovyOnlyIfHandlerSpec extends RatpackGroovyDslSpec {

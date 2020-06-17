@@ -18,16 +18,16 @@ package ratpack.remote.internal;
 
 import io.remotecontrol.groovy.ContentType;
 import io.remotecontrol.server.Receiver;
-import ratpack.handling.Context;
-import ratpack.handling.Handler;
-import ratpack.handling.internal.ChainHandler;
+import ratpack.core.handling.Context;
+import ratpack.core.handling.Handler;
+import ratpack.core.handling.internal.ChainHandler;
 import ratpack.exec.registry.Registry;
 import ratpack.exec.registry.RegistryBuilder;
 
 import java.io.ByteArrayOutputStream;
 import java.util.concurrent.atomic.AtomicReference;
 
-import static ratpack.handling.Handlers.*;
+import static ratpack.core.handling.Handlers.*;
 
 public class RemoteControlHandler implements Handler {
 

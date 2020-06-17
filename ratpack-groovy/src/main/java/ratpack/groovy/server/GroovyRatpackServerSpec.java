@@ -24,13 +24,13 @@ import ratpack.groovy.Groovy;
 import ratpack.groovy.handling.GroovyChain;
 import ratpack.groovy.internal.ClosureUtil;
 import ratpack.groovy.server.internal.DefaultGroovyRatpackServerSpec;
-import ratpack.handling.Handler;
-import ratpack.handling.Handlers;
+import ratpack.core.handling.Handler;
+import ratpack.core.handling.Handlers;
 import ratpack.exec.registry.Registry;
 import ratpack.exec.registry.RegistrySpec;
-import ratpack.server.RatpackServerSpec;
-import ratpack.server.ServerConfig;
-import ratpack.server.ServerConfigBuilder;
+import ratpack.core.server.RatpackServerSpec;
+import ratpack.core.server.ServerConfig;
+import ratpack.core.server.ServerConfigBuilder;
 
 public interface GroovyRatpackServerSpec extends RatpackServerSpec {
 

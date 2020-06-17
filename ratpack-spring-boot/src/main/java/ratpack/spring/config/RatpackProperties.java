@@ -37,7 +37,7 @@ import org.springframework.util.StringUtils;
 import org.springframework.validation.Errors;
 import org.springframework.validation.Validator;
 
-import ratpack.server.ServerConfig;
+import ratpack.core.server.ServerConfig;
 
 @ConfigurationProperties(prefix = "ratpack", ignoreUnknownFields = false)
 public class RatpackProperties implements Validator {

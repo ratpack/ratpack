@@ -17,7 +17,7 @@
 package ratpack.newrelic.internal;
 
 import com.newrelic.api.agent.NewRelic;
-import ratpack.handling.Context;
+import ratpack.core.handling.Context;
 import ratpack.newrelic.NewRelicTransaction;
 
 public class DefaultNewRelicTransaction implements NewRelicTransaction {

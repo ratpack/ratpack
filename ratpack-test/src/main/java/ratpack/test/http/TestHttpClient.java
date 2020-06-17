@@ -18,10 +18,12 @@ package ratpack.test.http;
 
 import com.google.common.collect.ImmutableMultimap;
 import io.netty.handler.codec.http.cookie.Cookie;
+import ratpack.core.http.HttpUrlBuilder;
+import ratpack.core.http.TypedData;
 import ratpack.exec.api.Nullable;
 import ratpack.exec.func.Action;
-import ratpack.http.client.ReceivedResponse;
-import ratpack.http.client.RequestSpec;
+import ratpack.core.http.client.ReceivedResponse;
+import ratpack.core.http.client.RequestSpec;
 import ratpack.test.ApplicationUnderTest;
 import ratpack.test.http.internal.DefaultTestHttpClient;
 
@@ -48,7 +50,7 @@ public interface TestHttpClient {
    * The settings provided can be overridden on a per request basis via {@link ratpack.test.http.TestHttpClient#requestSpec}.
    *
    * @param applicationUnderTest the Ratpack application to make requests against
-   * @param requestConfigurer a {@link Action} that will set up the {@link ratpack.http.client.RequestSpec} for all requests made through this instance of TestHttpClient
+   * @param requestConfigurer a {@link Action} that will set up the {@link RequestSpec} for all requests made through this instance of TestHttpClient
    * @return a http client which is configured to make requests against the provided ApplicationUnderTest
    */
   static TestHttpClient testHttpClient(ApplicationUnderTest applicationUnderTest, @Nullable Action<? super RequestSpec> requestConfigurer) {
@@ -61,14 +63,14 @@ public interface TestHttpClient {
   ApplicationUnderTest getApplicationUnderTest();
 
   /**
-   * @param requestAction an {@link Action} that will act on the {@link ratpack.http.client.RequestSpec} this is used to configure details of the next request
+   * @param requestAction an {@link Action} that will act on the {@link RequestSpec} this is used to configure details of the next request
    * @return this
    */
   TestHttpClient requestSpec(Action<? super RequestSpec> requestAction);
 
   /**
    *
-   * @param params the params that will be used with the HttpUrlBuilder passed into {@link ratpack.http.HttpUrlBuilder#params(Action)}
+   * @param params the params that will be used with the HttpUrlBuilder passed into {@link HttpUrlBuilder#params(Action)}
    * @return this
    */
   TestHttpClient params(Action<? super ImmutableMultimap.Builder<String, Object>> params);
@@ -114,7 +116,7 @@ public interface TestHttpClient {
   ReceivedResponse options(String path);
 
   /**
-   *  A convenience method for doing a OPTIONS request then calling {@link ratpack.http.client.ReceivedResponse#getBody} then {@link ratpack.http.TypedData#getText}.
+   *  A convenience method for doing a OPTIONS request then calling {@link ReceivedResponse#getBody} then {@link TypedData#getText}.
    *
    * @return the response body as a String
    * @since 1.1
@@ -122,7 +124,7 @@ public interface TestHttpClient {
   String optionsText();
 
   /**
-   * A convenience method for doing a OPTIONS request then calling {@link ratpack.http.client.ReceivedResponse#getBody} then {@link ratpack.http.TypedData#getText}.
+   * A convenience method for doing a OPTIONS request then calling {@link ReceivedResponse#getBody} then {@link TypedData#getText}.
    *
    * @param path the path the request is made against
    * @return the response body as a String
@@ -146,7 +148,7 @@ public interface TestHttpClient {
   ReceivedResponse get(String path);
 
   /**
-   * A convenience method for doing a GET request then calling {@link ratpack.http.client.ReceivedResponse#getBody} then {@link ratpack.http.TypedData#getText}.
+   * A convenience method for doing a GET request then calling {@link ReceivedResponse#getBody} then {@link TypedData#getText}.
    *
    * Useful if you need to only check details of the response body.
    *
@@ -155,7 +157,7 @@ public interface TestHttpClient {
   String getText();
 
   /**
-   * A convenience method for doing a GET request then calling {@link ratpack.http.client.ReceivedResponse#getBody} then {@link ratpack.http.TypedData#getText}.
+   * A convenience method for doing a GET request then calling {@link ReceivedResponse#getBody} then {@link TypedData#getText}.
    *
    * Useful if you need to only check details of the response body.
    *
@@ -180,14 +182,14 @@ public interface TestHttpClient {
   ReceivedResponse post(String path);
 
   /**
-   * A convenience method for doing a POST request then calling {@link ratpack.http.client.ReceivedResponse#getBody} then {@link ratpack.http.TypedData#getText}.
+   * A convenience method for doing a POST request then calling {@link ReceivedResponse#getBody} then {@link TypedData#getText}.
    *
    * @return the response body as a String
    */
   String postText();
 
   /**
-   * A convenience method for doing a POST request then calling {@link ratpack.http.client.ReceivedResponse#getBody} then {@link ratpack.http.TypedData#getText}.
+   * A convenience method for doing a POST request then calling {@link ReceivedResponse#getBody} then {@link TypedData#getText}.
    *
    * @param path the path the request is made against
    * @return the response body as a String
@@ -210,14 +212,14 @@ public interface TestHttpClient {
   ReceivedResponse put(String path);
 
   /**
-   * A convenience method for doing a PUT request then calling {@link ratpack.http.client.ReceivedResponse#getBody} then {@link ratpack.http.TypedData#getText}.
+   * A convenience method for doing a PUT request then calling {@link ReceivedResponse#getBody} then {@link TypedData#getText}.
    *
    * @return the response body as a String
    */
   String putText();
 
   /**
-   * A convenience method for doing a PUT request then calling {@link ratpack.http.client.ReceivedResponse#getBody} then {@link ratpack.http.TypedData#getText}.
+   * A convenience method for doing a PUT request then calling {@link ReceivedResponse#getBody} then {@link TypedData#getText}.
    *
    * @param path the path the request is made against
    * @return the response body as a String
@@ -240,14 +242,14 @@ public interface TestHttpClient {
   ReceivedResponse patch(String path);
 
   /**
-   *  A convenience method for doing a PATCH request then calling {@link ratpack.http.client.ReceivedResponse#getBody} then {@link ratpack.http.TypedData#getText}.
+   *  A convenience method for doing a PATCH request then calling {@link ReceivedResponse#getBody} then {@link TypedData#getText}.
    *
    * @return the response body as a String
    */
   String patchText();
 
   /**
-   * A convenience method for doing a PATCH request then calling {@link ratpack.http.client.ReceivedResponse#getBody} then {@link ratpack.http.TypedData#getText}.
+   * A convenience method for doing a PATCH request then calling {@link ReceivedResponse#getBody} then {@link TypedData#getText}.
    *
    * @param path the path the request is made against
    * @return the response body as a String
@@ -270,14 +272,14 @@ public interface TestHttpClient {
   ReceivedResponse delete(String path);
 
   /**
-   * A convenience method for doing a DELETE request then calling {@link ratpack.http.client.ReceivedResponse#getBody} then {@link ratpack.http.TypedData#getText}.
+   * A convenience method for doing a DELETE request then calling {@link ReceivedResponse#getBody} then {@link TypedData#getText}.
    *
    * @return the response body as a String
    */
   String deleteText();
 
   /**
-   * A convenience method for doing a DELETE request then calling {@link ratpack.http.client.ReceivedResponse#getBody} then {@link ratpack.http.TypedData#getText}.
+   * A convenience method for doing a DELETE request then calling {@link ReceivedResponse#getBody} then {@link TypedData#getText}.
    *
    * @param path the path the request is made against
    * @return the response body as a String

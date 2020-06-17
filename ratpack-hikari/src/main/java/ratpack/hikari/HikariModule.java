@@ -32,8 +32,8 @@ import javax.sql.DataSource;
  * All aspects of the connection pool can be configured through this object.
  * See {@link ConfigurableModule} for usage patterns.
  * <pre class="java">{@code
- * import ratpack.service.Service;
- * import ratpack.service.StartEvent;
+ * import ratpack.core.service.Service;
+ * import ratpack.core.service.StartEvent;
  * import ratpack.exec.Blocking;
  * import ratpack.guice.Guice;
  * import ratpack.hikari.HikariModule;

@@ -22,7 +22,7 @@ import ratpack.dropwizard.metrics.BlockingExecTimingInterceptor;
 import ratpack.dropwizard.metrics.DropwizardMetricsConfig;
 import ratpack.exec.Execution;
 import ratpack.exec.func.Block;
-import ratpack.http.Request;
+import ratpack.core.http.Request;
 
 import java.util.Map;
 import java.util.Optional;

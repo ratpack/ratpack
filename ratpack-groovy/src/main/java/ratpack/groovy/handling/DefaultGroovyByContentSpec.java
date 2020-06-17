@@ -17,8 +17,8 @@
 package ratpack.groovy.handling;
 
 import ratpack.exec.func.Block;
-import ratpack.handling.ByContentSpec;
-import ratpack.handling.Handler;
+import ratpack.core.handling.ByContentSpec;
+import ratpack.core.handling.Handler;
 
 public class DefaultGroovyByContentSpec implements GroovyByContentSpec {
 

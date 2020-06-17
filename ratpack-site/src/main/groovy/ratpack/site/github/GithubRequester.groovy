@@ -21,9 +21,9 @@ import com.fasterxml.jackson.databind.node.ArrayNode
 import groovy.transform.CompileStatic
 import io.reactivex.functions.Consumer
 import ratpack.exec.Promise
-import ratpack.http.client.HttpClient
-import ratpack.http.client.ReceivedResponse
-import ratpack.http.client.RequestSpec
+import ratpack.core.http.client.HttpClient
+import ratpack.core.http.client.ReceivedResponse
+import ratpack.core.http.client.RequestSpec
 import io.reactivex.Observable
 import io.reactivex.ObservableEmitter
 import io.reactivex.ObservableOnSubscribe

@@ -20,7 +20,7 @@ import io.netty.util.CharsetUtil
 import io.netty.util.ResourceLeakDetectorFactory
 import org.junit.Rule
 import org.junit.rules.TemporaryFolder
-import ratpack.http.client.RequestSpec
+import ratpack.core.http.client.RequestSpec
 import ratpack.test.embed.EmbeddedApp
 import ratpack.test.http.TestHttpClient
 import ratpack.test.internal.spock.InheritedTimeout

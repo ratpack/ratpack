@@ -21,10 +21,10 @@ import io.netty.buffer.ByteBufAllocator;
 import ratpack.dropwizard.metrics.internal.MetricRegistryJsonMapper;
 import ratpack.dropwizard.metrics.internal.MetricsBroadcaster;
 import ratpack.dropwizard.metrics.internal.RegexMetricFilter;
-import ratpack.handling.Context;
-import ratpack.handling.Handler;
+import ratpack.core.handling.Context;
+import ratpack.core.handling.Handler;
 
-import static ratpack.websocket.WebSockets.websocketByteBufBroadcast;
+import static ratpack.core.websocket.WebSockets.websocketByteBufBroadcast;
 
 /**
  * A Handler that broadcasts metric reports via web sockets.
@@ -34,7 +34,7 @@ import static ratpack.websocket.WebSockets.websocketByteBufBroadcast;
  * import ratpack.dropwizard.metrics.MetricsWebsocketBroadcastHandler;
  * import static org.junit.Assert.*;
  *
- * assertTrue(chain instanceof ratpack.handling.Chain);
+ * assertTrue(chain instanceof ratpack.core.handling.Chain);
  * chain.get("admin/metrics", new MetricsWebsocketBroadcastHandler());
  * </pre>
  */

@@ -20,8 +20,8 @@ import groovy.lang.Closure;
 import groovy.lang.DelegatesTo;
 import ratpack.exec.func.Action;
 import ratpack.groovy.handling.internal.DefaultGroovyContext;
-import ratpack.handling.Context;
-import ratpack.handling.RequestOutcome;
+import ratpack.core.handling.Context;
+import ratpack.core.handling.RequestOutcome;
 
 /**
  * Subclass of {@link Context} that adds Groovy friendly variants of methods.

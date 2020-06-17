@@ -61,7 +61,7 @@ import java.util.function.Supplier;
  * When starting an execution, a global error handler can be specified via {@link ExecStarter#onError(Action)}.
  * The default error handler simply logs the error to a logger named {@code ratpack.exec.Execution}.
  * <p>
- * The error handler for request processing executions forwards the exception to {@link ratpack.handling.Context#error(Throwable)}.
+ * The error handler for request processing executions forwards the exception to {@link ratpack.core.handling.Context#error(Throwable)}.
  *
  * <h3>Cleanup</h3>
  * <p>

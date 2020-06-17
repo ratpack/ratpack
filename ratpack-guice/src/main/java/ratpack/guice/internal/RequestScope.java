@@ -18,7 +18,7 @@ package ratpack.guice.internal;
 
 import com.google.inject.Key;
 import ratpack.exec.Execution;
-import ratpack.http.Request;
+import ratpack.core.http.Request;
 
 import java.util.HashMap;
 

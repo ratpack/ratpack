@@ -18,8 +18,8 @@ package ratpack.rocker
 
 import com.fizzed.rocker.RenderingException
 import com.fizzed.rocker.compiler.JavaGeneratorMain
-import ratpack.error.ServerErrorHandler
-import ratpack.render.RendererException
+import ratpack.core.error.ServerErrorHandler
+import ratpack.core.render.RendererException
 import ratpack.test.internal.RatpackGroovyDslSpec
 
 import javax.tools.*

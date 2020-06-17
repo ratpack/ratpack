@@ -19,7 +19,7 @@ package ratpack.groovy.template.internal;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.ByteBufAllocator;
 import ratpack.exec.Promise;
-import ratpack.file.FileSystemBinding;
+import ratpack.core.file.FileSystemBinding;
 import ratpack.groovy.script.internal.ScriptEngine;
 
 import javax.inject.Inject;

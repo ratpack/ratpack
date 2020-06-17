@@ -20,10 +20,10 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.annotation.AnnotationAwareOrderComparator;
 import org.springframework.stereotype.Component;
 import ratpack.exec.func.Action;
-import ratpack.handling.Chain;
-import ratpack.handling.Handler;
-import ratpack.handling.Handlers;
-import ratpack.server.ServerConfig;
+import ratpack.core.handling.Chain;
+import ratpack.core.handling.Handler;
+import ratpack.core.handling.Handlers;
+import ratpack.core.server.ServerConfig;
 import ratpack.spring.config.RatpackServerCustomizer;
 
 import java.util.ArrayList;

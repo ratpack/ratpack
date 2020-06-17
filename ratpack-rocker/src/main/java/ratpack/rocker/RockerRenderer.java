@@ -17,8 +17,8 @@
 package ratpack.rocker;
 
 import com.fizzed.rocker.RockerModel;
-import ratpack.handling.Context;
-import ratpack.render.Renderer;
+import ratpack.core.handling.Context;
+import ratpack.core.render.Renderer;
 import ratpack.rocker.internal.DefaultRockerRenderer;
 
 /**

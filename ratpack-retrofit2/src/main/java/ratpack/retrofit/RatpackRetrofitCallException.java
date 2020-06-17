@@ -18,11 +18,11 @@ package ratpack.retrofit;
 
 import io.netty.buffer.Unpooled;
 import okhttp3.Request;
-import ratpack.http.Status;
-import ratpack.http.client.ReceivedResponse;
-import ratpack.http.client.internal.DefaultReceivedResponse;
-import ratpack.http.internal.ByteBufBackedTypedData;
-import ratpack.http.internal.DefaultMediaType;
+import ratpack.core.http.Status;
+import ratpack.core.http.client.ReceivedResponse;
+import ratpack.core.http.client.internal.DefaultReceivedResponse;
+import ratpack.core.http.internal.ByteBufBackedTypedData;
+import ratpack.core.http.internal.DefaultMediaType;
 import ratpack.retrofit.internal.OkHttpHeadersBackedHeaders;
 import ratpack.exec.util.Exceptions;
 import retrofit2.Call;

@@ -16,7 +16,7 @@
 
 package ratpack.groovy
 
-import ratpack.server.RatpackServer
+import ratpack.core.server.RatpackServer
 import ratpack.test.embed.EmbeddedApp
 import ratpack.test.embed.internal.EmbeddedAppSupport
 import ratpack.test.internal.EmbeddedRatpackSpec

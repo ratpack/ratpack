@@ -19,7 +19,7 @@ package ratpack.hikari;
 import com.zaxxer.hikari.pool.HikariPool;
 import ratpack.exec.Blocking;
 import ratpack.exec.Promise;
-import ratpack.health.HealthCheck;
+import ratpack.core.health.HealthCheck;
 import ratpack.exec.registry.Registry;
 
 import java.sql.SQLException;
@@ -31,7 +31,7 @@ import java.time.Duration;
  * <pre class="java">{@code
  * import com.zaxxer.hikari.pool.HikariPool;
  * import ratpack.guice.Guice;
- * import ratpack.health.HealthCheckHandler;
+ * import ratpack.core.health.HealthCheckHandler;
  * import ratpack.hikari.HikariHealthCheck;
  * import ratpack.hikari.HikariModule;
  * import ratpack.test.embed.EmbeddedApp;

@@ -59,18 +59,18 @@ class LogExample {
 
 ## Request Logging
 
-Ratpack provides a mechanism for logging information about each request, [`RequestLogger`](api/ratpack/handling/RequestLogger.html).
+Ratpack provides a mechanism for logging information about each request, [`RequestLogger`](api/ratpack/core/handling/RequestLogger.html).
 The request logger is a handler.
 Each request that flows through it will be logged, when the request completes.
 Typically, it is placed early in the handler chain and added with the `Chain.all(Handler)` method so that all requests are logged.
  
-Ratpack provides the [`RequestLogger.ncsa()`](api/ratpack/handling/RequestLogger.html#ncsa--) method, that logs in the [NCSA Common Log Format](https://en.wikipedia.org/wiki/Common_Log_Format).
+Ratpack provides the [`RequestLogger.ncsa()`](api/ratpack/core/handling/RequestLogger.html#ncsa--) method, that logs in the [NCSA Common Log Format](https://en.wikipedia.org/wiki/Common_Log_Format).
 This implementation logs to an slf4j logger named `ratpack.requests` 
-(the [`RequestLogger.ncsa(Logger)`](api/ratpack/handling/RequestLogger.html#ncsa-org.slf4j.Logger-) method allows an alternative logger to be specified).  
+(the [`RequestLogger.ncsa(Logger)`](api/ratpack/core/handling/RequestLogger.html#ncsa-org.slf4j.Logger-) method allows an alternative logger to be specified).  
 
 ```language-java
-import ratpack.handling.RequestLogger;
-import ratpack.http.client.ReceivedResponse;
+import ratpack.core.handling.RequestLogger;
+import ratpack.core.http.client.ReceivedResponse;
 import ratpack.test.embed.EmbeddedApp;
 import static org.junit.Assert.*;
 
@@ -89,4 +89,4 @@ public class Example {
 }
 ```
 
-See the documentation of [`RequestLogger`](api/ratpack/handling/RequestLogger.html) for information on creating a logger with an alternative format.
+See the documentation of [`RequestLogger`](api/ratpack/core/handling/RequestLogger.html) for information on creating a logger with an alternative format.

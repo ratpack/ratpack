@@ -16,8 +16,8 @@
 
 package ratpack.groovy.handling
 
-import ratpack.handling.Chain
-import ratpack.handling.Handler
+import ratpack.core.handling.Chain
+import ratpack.core.handling.Handler
 import spock.lang.Specification
 
 import java.lang.reflect.Modifier

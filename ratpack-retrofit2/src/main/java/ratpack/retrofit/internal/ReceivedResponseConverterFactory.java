@@ -17,7 +17,7 @@
 package ratpack.retrofit.internal;
 
 import okhttp3.ResponseBody;
-import ratpack.http.client.ReceivedResponse;
+import ratpack.core.http.client.ReceivedResponse;
 import retrofit2.Converter;
 import retrofit2.Retrofit;
 

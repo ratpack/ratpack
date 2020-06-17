@@ -17,9 +17,11 @@
 package ratpack.test.handling;
 
 import io.netty.handler.codec.http.cookie.Cookie;
+import ratpack.core.handling.Context;
+import ratpack.core.http.Response;
 import ratpack.exec.api.Nullable;
-import ratpack.http.Headers;
-import ratpack.http.Status;
+import ratpack.core.http.Headers;
+import ratpack.core.http.Status;
 import ratpack.exec.registry.Registry;
 
 import java.nio.file.Path;
@@ -57,8 +59,8 @@ public interface HandlingResult {
   /**
    * The cookies to be set as part of the response.
    * <p>
-   * Cookies are set during request processing via the {@link ratpack.http.Response#cookie(String, String)} method,
-   * or via directly modifying {@link ratpack.http.Response#getCookies()}.
+   * Cookies are set during request processing via the {@link Response#cookie(String, String)} method,
+   * or via directly modifying {@link Response#getCookies()}.
    *
    * @return the cookies to be set as part of the response
    * @since 1.3
@@ -80,7 +82,7 @@ public interface HandlingResult {
   Integer getClientError();
 
   /**
-   * The throwable thrown or given to {@link ratpack.handling.Context#error(Throwable)}, unless a custom error handler is in use.
+   * The throwable thrown or given to {@link Context#error(Throwable)}, unless a custom error handler is in use.
    * <p>
    * If no throwable was “raised”, a new {@link ratpack.test.handling.HandlerExceptionNotThrownException} is raised.
    * <p>
@@ -116,11 +118,11 @@ public interface HandlingResult {
   Registry getRequestRegistry();
 
   /**
-   * Indicates whether the result of invoking the handler was that it invoked one of the {@link ratpack.http.Response#sendFile} methods.
+   * Indicates whether the result of invoking the handler was that it invoked one of the {@link Response#sendFile} methods.
    * <p>
-   * This does not include files rendered with {@link ratpack.handling.Context#render(Object)}.
+   * This does not include files rendered with {@link Context#render(Object)}.
    *
-   * @return the file given to one of the {@link ratpack.http.Response#sendFile} methods, or {@code null} if none of these methods were called
+   * @return the file given to one of the {@link Response#sendFile} methods, or {@code null} if none of these methods were called
    */
   @Nullable
   Path getSentFile();
@@ -128,7 +130,7 @@ public interface HandlingResult {
   /**
    * The response status information.
    * <p>
-   * Indicates the state of the context's {@link ratpack.http.Response#getStatus()} after invoking the handler.
+   * Indicates the state of the context's {@link Response#getStatus()} after invoking the handler.
    * If the result is a sent response, this indicates the status of the response.
    *
    * @return the response status
@@ -143,16 +145,16 @@ public interface HandlingResult {
   boolean isCalledNext();
 
   /**
-   * Indicates the the handler(s) invoked one of the {@link ratpack.http.Response#send} methods.
+   * Indicates the the handler(s) invoked one of the {@link Response#send} methods.
    *
-   * @return whether one of the {@link ratpack.http.Response#send} methods was invoked
+   * @return whether one of the {@link Response#send} methods was invoked
    */
   boolean isSentResponse(); // This is not named right, as it doesn't include sending files
 
   /**
    * The object that was rendered to the response.
    * <p>
-   * The exact object that was given to {@link ratpack.handling.Context#render(Object)}.
+   * The exact object that was given to {@link Context#render(Object)}.
    * The value must be assignment compatible with given type token.
    * If it is not, an {@link AssertionError} will be thrown.
    *

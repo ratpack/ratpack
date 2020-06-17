@@ -32,14 +32,14 @@ import org.junit.rules.TemporaryFolder
 import org.slf4j.Logger
 import ratpack.dropwizard.metrics.internal.PooledByteBufAllocatorMetricSet
 import ratpack.dropwizard.metrics.internal.UnpooledByteBufAllocatorMetricSet
-import ratpack.error.ServerErrorHandler
-import ratpack.error.internal.DefaultDevelopmentErrorHandler
+import ratpack.core.error.ServerErrorHandler
+import ratpack.core.error.internal.DefaultDevelopmentErrorHandler
 import ratpack.exec.Blocking
 import ratpack.exec.ExecController
 import ratpack.exec.Promise
 import ratpack.groovy.handling.GroovyChain
 import ratpack.groovy.test.embed.GroovyEmbeddedApp
-import ratpack.http.client.HttpClient
+import ratpack.core.http.client.HttpClient
 import ratpack.test.embed.EmbeddedApp
 import ratpack.test.internal.RatpackGroovyDslSpec
 import ratpack.websocket.RecordingWebSocketClient

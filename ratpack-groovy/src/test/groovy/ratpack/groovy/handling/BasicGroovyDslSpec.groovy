@@ -16,10 +16,10 @@
 
 package ratpack.groovy.handling
 
-import ratpack.error.ServerErrorHandler
-import ratpack.error.internal.DefaultProductionErrorHandler
-import ratpack.file.FileSystemBinding
-import ratpack.file.internal.DefaultFileSystemBinding
+import ratpack.core.error.ServerErrorHandler
+import ratpack.core.error.internal.DefaultProductionErrorHandler
+import ratpack.core.file.FileSystemBinding
+import ratpack.core.file.internal.DefaultFileSystemBinding
 import ratpack.test.internal.RatpackGroovyDslSpec
 
 class BasicGroovyDslSpec extends RatpackGroovyDslSpec {

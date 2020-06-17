@@ -22,19 +22,19 @@ import com.google.inject.Injector;
 import com.google.inject.Module;
 import com.google.inject.Stage;
 import com.google.inject.util.Modules;
-import ratpack.config.ConfigObject;
+import ratpack.core.config.ConfigObject;
 import ratpack.exec.func.Action;
 import ratpack.exec.func.Function;
 import ratpack.guice.internal.DefaultBindingsSpec;
 import ratpack.guice.internal.GuiceUtil;
 import ratpack.guice.internal.InjectorRegistryBacking;
 import ratpack.guice.internal.RatpackBaseRegistryModule;
-import ratpack.handling.Chain;
-import ratpack.handling.Context;
-import ratpack.handling.Handler;
-import ratpack.impose.Impositions;
+import ratpack.core.handling.Chain;
+import ratpack.core.handling.Context;
+import ratpack.core.handling.Handler;
+import ratpack.core.impose.Impositions;
 import ratpack.exec.registry.Registry;
-import ratpack.server.ServerConfig;
+import ratpack.core.server.ServerConfig;
 
 import java.util.List;
 import java.util.Optional;
@@ -60,8 +60,8 @@ import static ratpack.exec.util.Exceptions.uncheck;
  * <pre class="java">{@code
  * import com.google.inject.AbstractModule;
  * import ratpack.guice.Guice;
- * import ratpack.handling.Context;
- * import ratpack.handling.Handler;
+ * import ratpack.core.handling.Context;
+ * import ratpack.core.handling.Handler;
  * import ratpack.test.embed.EmbeddedApp;
  *
  * import javax.inject.Inject;

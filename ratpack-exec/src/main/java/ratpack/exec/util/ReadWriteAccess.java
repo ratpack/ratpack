@@ -45,7 +45,7 @@ import java.util.concurrent.locks.ReadWriteLock;
  * import ratpack.exec.Promise;
  * import ratpack.exec.util.ParallelBatch;
  * import ratpack.exec.util.ReadWriteAccess;
- * import ratpack.file.FileIo;
+ * import ratpack.core.file.FileIo;
  * import ratpack.test.embed.EmbeddedApp;
  * import ratpack.test.embed.EphemeralBaseDir;
  * import ratpack.test.exec.ExecHarness;

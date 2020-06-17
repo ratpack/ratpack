@@ -16,7 +16,7 @@
 
 package ratpack.rx
 
-import ratpack.error.ServerErrorHandler
+import ratpack.core.error.ServerErrorHandler
 import ratpack.exec.Blocking
 import ratpack.test.internal.RatpackGroovyDslSpec
 import ratpack.test.internal.SimpleErrorHandler

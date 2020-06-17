@@ -17,9 +17,9 @@ package ratpack.site.assets.internal;
 
 
 import asset.pipeline.ratpack.internal.AssetProperties;
-import ratpack.handling.Context;
-import ratpack.handling.Handler;
-import ratpack.http.Response;
+import ratpack.core.handling.Context;
+import ratpack.core.handling.Handler;
+import ratpack.core.http.Response;
 
 import java.util.Date;
 

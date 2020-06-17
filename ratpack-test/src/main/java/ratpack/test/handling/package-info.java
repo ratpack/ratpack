@@ -15,7 +15,7 @@
  */
 
 /**
- * Test fixtures for exercising {@link ratpack.handling.Handler} implementations without
+ * Test fixtures for exercising {@link ratpack.core.handling.Handler} implementations without
  * start a full {@link ratpack.test.embed.EmbeddedApp}.
  *
  * @see ratpack.test.handling.RequestFixture
