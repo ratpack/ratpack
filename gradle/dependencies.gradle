@@ -16,16 +16,13 @@
 
 ext {
   commonVersions = [
-    remote           : "0.7",
     slf4j            : "1.7.30",
     netty            : "4.1.48.Final",
     nettyTCNative    : "2.0.30.Final",
     guava            : "28.2-jre",
     groovy           : "2.5.4",
-    rxjava           : "1.1.2",
     rxjava2          : "2.1.12",
     reactor          : "3.1.8.RELEASE",
-    hystrix          : "1.5.13",
     jackson          : "2.10.3",
     dropwizardMetrics: "4.1.6",
     pegdown          : "1.5.0",
@@ -80,16 +77,9 @@ ext {
     guice      : dependencies.create("com.google.inject:guice:$commonVersions.guice", {
       exclude group: "com.google.guava", module: "guava"
     }),
-    rxjava     : "io.reactivex:rxjava:$commonVersions.rxjava",
     rxjava2    : "io.reactivex.rxjava2:rxjava:${commonVersions.rxjava2}",
     reactor    : "io.projectreactor:reactor-core:${commonVersions.reactor}",
     reactorTest: "io.projectreactor:reactor-test:${commonVersions.reactor}",
-    remote     : dependencies.create("io.remotecontrol:remote-core:${commonVersions.remote}", {
-      exclude group: "org.codehaus.groovy", module: "groovy-all"
-    }),
-    remoteHttp : dependencies.create("io.remotecontrol:remote-transport-http:${commonVersions.remote}", {
-      exclude group: "org.codehaus.groovy", module: "groovy-all"
-    }),
     jackson    : "com.fasterxml.jackson.core:jackson-databind:${commonVersions.jackson}",
     slf4j      : "org.slf4j:slf4j-api:${commonVersions.slf4j}",
     h2         : "com.h2database:h2:1.4.197",
