@@ -1,12 +1,8 @@
 # RxJava
 
-> Note: The version of `ratpack-rx` module which provided integration against RxJava 1.x has been deprecated as of Ratpack 1.7.0 and will be
-  removed in Ratpack 2.0. Users should upgrade to the `ratpack-rx2` module. This documentation has been update to reference the 
-  RxJava 2.x integrations as of 1.7.0.
-
 The excellent [RxJava](https://github.com/Netflix/RxJava) can be used in Ratpack applications to elegantly compose asynchronous operations.
 
-The `ratpack-rx2` JAR provides the [`RxRatpack`](api/ratpack/rx2/RxRatpack.html) class that provides static methods for adapting Ratpack promises to [RxJava's Observable](https://github.com/Netflix/RxJava/wiki/Observable).
+The `ratpack-rx2` module provides the [`RxRatpack`](api/ratpack/rx2/RxRatpack.html) class that provides static methods for adapting Ratpack promises to [RxJava's Observable](https://github.com/Netflix/RxJava/wiki/Observable).
 
 The `ratpack-rx2` module as of @ratpack-version@ is built against (and depends on) RxJava @versions-rxjava2@.
 
