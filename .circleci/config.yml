@@ -5,12 +5,20 @@
 defaults: &defaults
   working_directory: ~/ratpack
   docker:
-    - image: circleci/openjdk:8-jdk
+    - image: cimg/openjdk:8.0.252
   environment:
     TERM: dumb
     _JAVA_OPTIONS: -XX:+UnlockExperimentalVMOptions -XX:+UseCGroupMemoryLimitForHeap
     GRADLE_OPTS: -Dorg.gradle.parallel.intra=true -Dorg.gradle.jvmargs="-Xmx1g"
     JRUBY_OPTS: -Xmx512m
+
+restore_cache: &restore_cache
+  keys:
+    - v1-gradle-{{ .Branch }}-{{ checksum "gradle/wrapper/gradle-wrapper.properties" }}-{{ checksum "gradle/dependencies.gradle" }}
+    - v1-gradle-{{ .Branch }}-{{ checksum "gradle/wrapper/gradle-wrapper.properties" }}
+    - v1-gradle-{{ .Branch }}
+    - v1-gradle-master
+    - v1-gradle
 
 version: 2
 jobs:
@@ -20,13 +28,7 @@ jobs:
       - checkout
 
       # Download and cache dependencies
-      - restore_cache:
-          keys:
-            - v1-gradle-{{ .Branch }}-{{ checksum "gradle/wrapper/gradle-wrapper.properties" }}-{{ checksum "gradle/dependencies.gradle" }}
-            - v1-gradle-{{ .Branch }}-{{ checksum "gradle/wrapper/gradle-wrapper.properties" }}
-            - v1-gradle-{{ .Branch }}
-            - v1-gradle-master
-            - v1-gradle
+      - restore_cache: *restore_cache
 
       - run:
           name: Download Gradle Dependencies
@@ -68,15 +70,16 @@ jobs:
       - persist_to_workspace:
           root: ~/ratpack
           paths:
-            - build/*
+            - "*/build/*"
+            - ".gradle/*"
 
   uploadArtifacts:
     <<: *defaults
     steps:
       - checkout
-
+      - restore_cache: *restore_cache
       - attach_workspace:
-          at: ~/build
+          at: ~/ratpack
 
       - run:
           name: Upload Artifacts
@@ -88,7 +91,7 @@ jobs:
       - checkout
 
       - attach_workspace:
-          at: ~/build
+          at: ~/ratpack
 
       - run:
           name: Deploy Site
