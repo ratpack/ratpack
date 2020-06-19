@@ -16,7 +16,7 @@
 
 package ratpack.session.store.internal;
 
-import com.lambdaworks.redis.codec.RedisCodec;
+import io.lettuce.core.codec.RedisCodec;
 import io.netty.buffer.*;
 import io.netty.util.AsciiString;
 

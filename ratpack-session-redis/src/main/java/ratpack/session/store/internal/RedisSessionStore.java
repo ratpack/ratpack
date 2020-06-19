@@ -17,8 +17,8 @@
 package ratpack.session.store.internal;
 
 import com.google.inject.Inject;
-import com.lambdaworks.redis.RedisURI;
-import com.lambdaworks.redis.api.async.RedisAsyncCommands;
+import io.lettuce.core.RedisURI;
+import io.lettuce.core.api.async.RedisAsyncCommands;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
 import io.netty.util.AsciiString;
@@ -90,7 +90,7 @@ public class RedisSessionStore implements SessionStore {
 
   @Override
   public void onStart(@SuppressWarnings("deprecation") StartEvent event) throws Exception {
-    redisClient = new TimerExposingRedisClient(getRedisURI());
+    redisClient = new TimerExposingRedisClient(null, getRedisURI());
     connection = redisClient.connect(new AsciiStringByteBufRedisCodec()).async();
   }
 
