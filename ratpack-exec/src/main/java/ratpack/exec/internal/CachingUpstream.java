@@ -48,7 +48,14 @@ public class CachingUpstream<T> implements Upstream<T> {
     this.clock = clock;
   }
 
+  private boolean shouldTryDrain() {
+    return !waiting.isEmpty() && loadingRef.get().getState() != LoadingState.PENDING;
+  }
+
   private void tryDrain() {
+    if (!shouldTryDrain()) {
+      return;
+    }
     if (draining.compareAndSet(false, true)) {
       try {
         if (!waiting.isEmpty()) {
@@ -73,9 +80,7 @@ public class CachingUpstream<T> implements Upstream<T> {
       }
     }
 
-    if (!waiting.isEmpty() && loadingRef.get().getState() != LoadingState.PENDING) {
-      tryDrain();
-    }
+    tryDrain();
   }
 
   private void startLoad(Loading loading) {
