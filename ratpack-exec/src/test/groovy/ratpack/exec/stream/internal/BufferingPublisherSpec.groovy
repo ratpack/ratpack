@@ -172,7 +172,7 @@ class BufferingPublisherSpec extends Specification {
     subscriber.received == [1]
   }
 
-  def "can write/buffer/request/drain async"() {
+  def "can write and buffer and request drain async"() {
     given:
     def latch = new CountDownLatch(1)
     subscriber = new CollectingSubscriber<Integer>({ latch.countDown() }, {}) {
