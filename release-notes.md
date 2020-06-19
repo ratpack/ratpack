@@ -7,6 +7,7 @@ It should not be considered the final announcement for any release at any time.
 # v2.0.0
 ## Module removals
 * `ratpack-base`
+* `ratpack-pac4j` (in favor of https://github.com/pac4j/ratpack-pac4j)
 
 ## Package relocations
 * `ratpack.api` → `ratpack.exec.api`

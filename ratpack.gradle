@@ -72,7 +72,6 @@ ext {
     "ratpack-jdbc-tx",
     "ratpack-manual",
     "ratpack-newrelic",
-    "ratpack-pac4j",
     "ratpack-reactor",
     "ratpack-remote",
     "ratpack-remote-test",
