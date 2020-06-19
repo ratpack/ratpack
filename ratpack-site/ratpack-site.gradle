@@ -99,7 +99,6 @@ sourceSets {
 dependencies {
   compile project(":ratpack-groovy")
   compile project(":ratpack-dropwizard-metrics")
-  compile project(":ratpack-remote")
   compile project(":ratpack-rx2")
   compile project(":ratpack-newrelic")
   compile "org.pegdown:pegdown:${commonVersions.pegdown}"
@@ -131,7 +130,6 @@ dependencies {
   runtime 'com.lmax:disruptor:3.4.2'
 
   testCompile project(":ratpack-groovy-test")
-  testCompile project(":ratpack-remote-test")
   testCompile project(":ratpack-test-internal")
   testCompile commonDependencies.spock
   testCompile 'org.jsoup:jsoup:1.8.1'

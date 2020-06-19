@@ -73,8 +73,6 @@ ext {
     "ratpack-manual",
     "ratpack-newrelic",
     "ratpack-reactor",
-    "ratpack-remote",
-    "ratpack-remote-test",
     "ratpack-retrofit2",
     "ratpack-rocker",
     "ratpack-rx", "ratpack-rx2",
