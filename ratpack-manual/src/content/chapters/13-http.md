@@ -37,7 +37,7 @@ For advanced uses or for handling extra large requests, [`Request.getBodyStream(
 ### Parsers
 
 The parser mechanism to turn the request body into an object representation. 
-It works by selecting a [`Parser`](api/ratpack/parse/Parser.html) implementation from context registry.
+It works by selecting a [`Parser`](api/ratpack/core/parse/Parser.html) implementation from context registry.
 See [`Context.parse(Class<T>)`](api/ratpack/core/handling/Context.html#parse-ratpack.core.parse.Parse-) for details and additional variants. 
 
 #### JSON
@@ -47,7 +47,7 @@ See [`Jackson parsing`](api/ratpack/core/jackson/Jackson.html#parsing) for examp
 
 #### Forms
 
-Ratpack provides a parser for [`Form`](api/ratpack/form/Form.html) objects in the core.
+Ratpack provides a parser for [`Form`](api/ratpack/core/form/Form.html) objects in the core.
 This can be used for reading POST'd (or PUT'd etc. for that matter) forms, both URL encoded and multi part (including file uploads).
 
 ```language-java tested
@@ -76,7 +76,7 @@ public class MyHandler implements Handler {
 }
 ```
 
-See [`Form`](api/ratpack/form/Form.html) and [`UploadedFile`](api/ratpack/form/UploadedFile.html) for more information and examples.
+See [`Form`](api/ratpack/core/form/Form.html) and [`UploadedFile`](api/ratpack/core/form/UploadedFile.html) for more information and examples.
 
 ### Bytes and Text
 
@@ -204,7 +204,7 @@ See [`Response`](api/ratpack/core/http/Response.html) for more on sending a resp
 ### An alternative approach with Renderers
 
 Sending empty or simple text responses may be fine but you may find yourself wanting to send a more complex response to the client.
-The [`Renderer`](api/ratpack/render/Renderer.html) is a mechanism that is able to render a given type to the client.
+The [`Renderer`](api/ratpack/core/render/Renderer.html) is a mechanism that is able to render a given type to the client.
 More specifically, it's the underlying mechanism that powers the [`render(Object)`](api/ratpack/core/handling/Context.html#render-java.lang.Object-) method, which can be found on the context object.
 
 In the following example, we utilize the context's `render(Object)` method to render an object of type `String`.
@@ -260,7 +260,7 @@ public class Example {
 }
 ```
 
-If you'd like to implement your own `Renderer`, Ratpack provides a [`RendererSupport`](api/ratpack/render/RendererSupport.html) that makes it easy to implement your own.
+If you'd like to implement your own `Renderer`, Ratpack provides a [`RendererSupport`](api/ratpack/core/render/RendererSupport.html) that makes it easy to implement your own.
 You must also remember to register your `Renderer` so that Ratpack can use it.
 
 ```language-java

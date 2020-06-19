@@ -9,7 +9,7 @@ The [`ratpack.core.jackson.Jackson`](api/ratpack/core/jackson/Jackson.html) clas
  
 ## Writing JSON responses
 
-The Jackson integration adds a [Renderer](api/ratpack/render/Renderer.html) for rendering objects as JSON.
+The Jackson integration adds a [Renderer](api/ratpack/core/render/Renderer.html) for rendering objects as JSON.
 
 The [`Jackson.json()`](api/ratpack/core/jackson/Jackson.html#json-java.lang.Object-) method can be used to wrap any object (serializable by Jackson) for use with the [`Context.render()`](api/ratpack/core/handling/Context.html#render-java.lang.Object-) method. 
 
@@ -50,7 +50,7 @@ See the [`Jackson`](api/ratpack/core/jackson/Jackson.html) class documentation f
 
 ## Reading JSON requests
 
-The Jackson integration adds a [Parser](api/ratpack/parse/Parser.html) for converting JSON request bodies into objects.
+The Jackson integration adds a [Parser](api/ratpack/core/parse/Parser.html) for converting JSON request bodies into objects.
 
 The [`Jackson.jsonNode()`](api/ratpack/core/jackson/Jackson.html#Jackson.html#jsonNode--) and [`Jackson.fromJson()`](api/ratpack/core/jackson/Jackson.html#fromJson) methods can be used to create objects to be used with the [`Context.parse()`](api/ratpack/core/handling/Context.html#parse) method. 
 
@@ -114,7 +114,7 @@ public class Example {
 }
 ```
 
-The integration adds a [no opts parser](api/ratpack/parse/NoOptParserSupport.html), which makes it possible to use the [`Context.parse(Class)`](api/ratpack/core/handling/Context.html#parse-java.lang.Class-) and [`Context.parse(TypeToken)`](api/ratpack/core/handling/Context.html#parse-com.google.common.reflect.TypeToken-) methods.
+The integration adds a [no opts parser](api/ratpack/core/parse/NoOptParserSupport.html), which makes it possible to use the [`Context.parse(Class)`](api/ratpack/core/handling/Context.html#parse-java.lang.Class-) and [`Context.parse(TypeToken)`](api/ratpack/core/handling/Context.html#parse-com.google.common.reflect.TypeToken-) methods.
 
 ```language-java
 import ratpack.test.embed.EmbeddedApp;

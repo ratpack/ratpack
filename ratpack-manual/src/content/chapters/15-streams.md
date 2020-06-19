@@ -34,7 +34,7 @@ Ratpack supports [chunked transfer encoding](http://en.wikipedia.org/wiki/Chunke
 
 ## Server-sent events
 
-Ratpack supports [server-sent events](https://developer.mozilla.org/en-US/docs/Server-sent_events/Using_server-sent_events) for streaming data to, primarily Javascript based, clients by way of the [`ServerSentEvents`](api/ratpack/sse/ServerSentEvents.html) renderable type.
+Ratpack supports [server-sent events](https://developer.mozilla.org/en-US/docs/Server-sent_events/Using_server-sent_events) for streaming data to, primarily Javascript based, clients by way of the [`ServerSentEvents`](api/ratpack/core/sse/ServerSentEvents.html) renderable type.
 
 ## Websockets
 

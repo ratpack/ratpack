@@ -35,7 +35,7 @@ TODO guice backed registry impl
 This offers an alternative to dependency injected handlers, as objects can just be retrieved on demand from the context.
 
 More usefully, this means that Ratpack infrastructure can be integrated via Guice modules.
-For example, an implementation of the [`ServerErrorHandler`](api/ratpack/error/ServerErrorHandler.html) can be provided by a Guice module.
+For example, an implementation of the [`ServerErrorHandler`](api/ratpack/core/error/ServerErrorHandler.html) can be provided by a Guice module.
 Because Guice bound objects are integrated into the context registry lookup mechanism, this implementation will participate in the error handling infrastructure.
 
-This is true for all Ratpack infrastructure that works via context registry lookup, such as [Renderer](api/ratpack/render/Renderer.html) implementations for example.
+This is true for all Ratpack infrastructure that works via context registry lookup, such as [Renderer](api/ratpack/core/render/Renderer.html) implementations for example.

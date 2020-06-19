@@ -122,6 +122,6 @@ that uses the [`Chain`](api/ratpack/core/handling/Chain.html) DSL to create the 
 
 ### Start and stop actions
 
-The [`Service`](api/ratpack/service/Service.html) interface allows hooking in to the application lifecycle.
+The [`Service`](api/ratpack/core/service/Service.html) interface allows hooking in to the application lifecycle.
 Before accepting any requests, Ratpack will notify all services and allow them to perform any initialization.
 Conversely, when the application stops, Ratpack will notify all services and allow them to perform any cleanup or termination. 

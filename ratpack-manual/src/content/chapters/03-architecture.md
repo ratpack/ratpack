@@ -66,7 +66,7 @@ That is, handlers can retrieve them by type.
 
 To see why this is useful, we will use the requirement of rendering an object as JSON to the response.
 The “context” object given to a “handler” has a [render(Object)](api/ratpack/core/handling/Context.html#render-java.lang.Object-) method.
-The implementation of this method simply searches the context registry for an implementation of [`Renderer`](api/ratpack/render/Renderer.html)
+The implementation of this method simply searches the context registry for an implementation of [`Renderer`](api/ratpack/core/render/Renderer.html)
 that can render objects of the given type. 
 Because objects available to Guice are available through the registry, they may be used for rendering.
 Therefore, adding a Guice module with a `Renderer` implementation for the desired type will allow it to be integrated into request processing.

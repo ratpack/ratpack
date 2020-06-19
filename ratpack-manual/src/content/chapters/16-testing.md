@@ -17,7 +17,7 @@ While Spock requires writing tests in Groovy, it can effortlessly be used to eff
 
 The [`RequestFixture`](api/ratpack/test/handling/RequestFixture.html#handle-ratpack.core.handling.Handler-ratpack.exec.func.Action-) class
 facilitates creating a mocked request environment, ostensibly for testing [`Handler`](api/ratpack/core/handling/Handler.html) implementations.
-However, it is also common to use an ad-hoc handler with a request fixture that integrates with other components (e.g. [`Parser`](api/ratpack/parse/Parser.html) implementations).
+However, it is also common to use an ad-hoc handler with a request fixture that integrates with other components (e.g. [`Parser`](api/ratpack/core/parse/Parser.html) implementations).
 
 > Note: the [`GroovyRequestFixture`](api/ratpack/groovy/test/handling/GroovyRequestFixture.html) class provides Groovy sugar for working with request fixtures.
  
@@ -33,7 +33,7 @@ Ratpack integration tests are tests that test a subset of application components
 The [`EmbeddedApp`](api/ratpack/test/embed/EmbeddedApp.html) fixture facilitates constructing an ad-hoc application that responds to real HTTP requests.
 In the context of integration testing, it is typically used to glue together a specific combination of application components to test.
 
-As it constructs a real Ratpack application, it can also be used for testing implementations of Ratpack extension points such as [`Renderer`](api/ratpack/render/Renderer.html), [`Parser`](api/ratpack/parse/Parser.html) and [`ConfigurableModule`](api/ratpack/guice/ConfigurableModule.html).
+As it constructs a real Ratpack application, it can also be used for testing implementations of Ratpack extension points such as [`Renderer`](api/ratpack/core/render/Renderer.html), [`Parser`](api/ratpack/core/parse/Parser.html) and [`ConfigurableModule`](api/ratpack/guice/ConfigurableModule.html).
 
 The `EmbeddedApp` fixture manages starting and stopping the application, as well as providing a [`TestHttpClient`](api/ratpack/test/http/TestHttpClient.html) that makes requests of the embedded application.
 
@@ -60,7 +60,7 @@ This can often be combined with the “after test” lifecycle event of the tes
 
 ### Impositions
  
-Ratpack provides a mechanism for augmenting applications under test for testability, known as [`impositions`](api/ratpack/impose/Impositions.html).
+Ratpack provides a mechanism for augmenting applications under test for testability, known as [`impositions`](api/ratpack/core/impose/Impositions.html).
 
 Typically, impositions are specified by sub-classing [`MainClassApplicationUnderTest`](api/ratpack/test/MainClassApplicationUnderTest.html) or similar, and overriding the 
 [`addImpositions(ImpositionsSpec)`](api/ratpack/test/ServerBackedApplicationUnderTest.html#addImpositions-ratpack.core.impose.ImpositionsSpec-) method.
