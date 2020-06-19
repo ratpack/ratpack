@@ -5,11 +5,10 @@
 defaults: &defaults
   working_directory: ~/ratpack
   docker:
-    - image: cimg/openjdk:8.0.252
+    - image: cimg/openjdk:11.0.7
   environment:
     TERM: dumb
-    _JAVA_OPTIONS: -XX:+UnlockExperimentalVMOptions -XX:+UseCGroupMemoryLimitForHeap
-    GRADLE_OPTS: -Dorg.gradle.parallel.intra=true -Dorg.gradle.jvmargs="-Xmx1g"
+    GRADLE_OPTS: -Dorg.gradle.parallel.intra=true
     JRUBY_OPTS: -Xmx512m
 
 restore_cache: &restore_cache
