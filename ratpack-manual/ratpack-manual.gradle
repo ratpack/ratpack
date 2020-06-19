@@ -122,10 +122,6 @@ task configureApi() {
             packages << ((it.absolutePath - root.absolutePath) - "/").replaceAll("/", ".")
           }
         }
-
-        if (it.name == "ratpack-exec") {
-          packages = packages - ["ratpack.exec.util", "ratpack.exec.util.internal", "ratpack.exec.func"]
-        }
         options.group it.name, packages
       }
     }
