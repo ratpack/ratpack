@@ -7,9 +7,11 @@ It should not be considered the final announcement for any release at any time.
 # v2.0.0
 ## Module removals
 * `ratpack-base`
+* `ratpack-hystrix` (Hystrix is no longer maintained, relies on `ratpack-rx` which is removed)
 * `ratpack-pac4j` (in favor of https://github.com/pac4j/ratpack-pac4j)
 * `ratpack-remote` (obsolete due to additions of `Imposition` and `RatpackServer.getRegistry()`, URLClassLoader no longer supported in Java > 9)
 * `ratpack-remote-test` (obsolete due to additions of `Imposition` and `RatpackServer.getRegistry()`, URLClassLoader no longer supported in Java > 9)
+* `ratpack-rx` (in favor of `ratpack-rx2`)
 
 ## Package relocations
 * `ratpack.api` → `ratpack.exec.api`
