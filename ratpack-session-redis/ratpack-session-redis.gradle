@@ -22,15 +22,14 @@ dependencies {
   compile project(":ratpack-guice")
   compile project(":ratpack-session")
 
-  compile('biz.paluch.redis:lettuce:4.0.2.Final') {
+  compile('biz.paluch.redis:lettuce:4.5.0.Final') {
     exclude group: "io.netty", module: "netty-common"
     exclude group: "io.netty", module: "netty-handler"
     exclude group: "io.netty", module: "netty-transport"
-    exclude group: "io.reactivex", module: "rxjava"
     exclude group: "com.google.guava", module: "guava"
   }
-  compile commonDependencies.rxjava
-  testCompile "com.github.kstyrc:embedded-redis:0.6", {
+  testCompile "it.ozimov:embedded-redis:0.7.3", {
+    exclude group: "org.slf4j", module: "slf4j-api"
     exclude group: "com.google.guava", module: "guava"
   }
 }
