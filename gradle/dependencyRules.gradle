@@ -34,11 +34,9 @@ configurations.all { configuration ->
           it.selected.moduleVersion.group == "org.codehaus.groovy" &&
           it.selected.moduleVersion.name == "groovy" &&
           !configuration.name.startsWith("test") &&
-          project.name != "perf" && 
+          project.name != "perf" &&
           project.name != "ratpack-groovy" &&
           project.name != "ratpack-groovy-test" &&
-          project.name != "ratpack-remote" &&
-          project.name != "ratpack-remote-test" &&
           project.name != "ratpack-site" &&
           project.name != "ratpack-test-internal") {
           throw new InvalidUserDataException("groovy in dependency graph of $configuration.name of project $project.name")
