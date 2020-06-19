@@ -16,7 +16,7 @@
 
 package ratpack.session.redis
 
-import com.lambdaworks.redis.RedisClient
+import io.lettuce.core.RedisClient
 import ratpack.session.Session
 import ratpack.session.SessionModule
 import ratpack.session.SessionStore
@@ -31,7 +31,7 @@ class RedisSessionSpec extends RatpackGroovyDslSpec {
 
   boolean isRedisAlreadyRunning() {
     try {
-      new RedisClient('localhost').connect().sync().withCloseable {
+      RedisClient.create('localhost').connect().sync().withCloseable {
         it.ping().equalsIgnoreCase('pong')
       }
     } catch (Exception ignored) {

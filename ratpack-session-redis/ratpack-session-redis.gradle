@@ -22,12 +22,16 @@ dependencies {
   compile project(":ratpack-guice")
   compile project(":ratpack-session")
 
-  compile('biz.paluch.redis:lettuce:4.5.0.Final') {
+  compile('io.lettuce:lettuce-core:5.3.1.RELEASE') {
     exclude group: "io.netty", module: "netty-common"
     exclude group: "io.netty", module: "netty-handler"
     exclude group: "io.netty", module: "netty-transport"
-    exclude group: "com.google.guava", module: "guava"
+    exclude group: "io.netty", module: "netty-buffer"
+    exclude group: "io.netty", module: "netty-resolver"
+    exclude group: "org.reactivestreams", module: "reactive-streams"
+    exclude group: "io.projectreactor", module: "reactor-core"
   }
+  compile commonDependencies.reactor
   testCompile "it.ozimov:embedded-redis:0.7.3", {
     exclude group: "org.slf4j", module: "slf4j-api"
     exclude group: "com.google.guava", module: "guava"

@@ -16,15 +16,16 @@
 
 package ratpack.session.store.internal;
 
-import com.lambdaworks.redis.RedisClient;
-import com.lambdaworks.redis.RedisURI;
+import io.lettuce.core.RedisClient;
+import io.lettuce.core.RedisURI;
+import io.lettuce.core.resource.ClientResources;
 import io.netty.util.HashedWheelTimer;
 
 public class TimerExposingRedisClient extends RedisClient {
 
   @SuppressWarnings("deprecation")
-  public TimerExposingRedisClient(RedisURI redisURI) {
-    super(redisURI);
+  public TimerExposingRedisClient(ClientResources resources, RedisURI redisURI) {
+    super(resources, redisURI);
   }
 
   HashedWheelTimer getTimer() {
