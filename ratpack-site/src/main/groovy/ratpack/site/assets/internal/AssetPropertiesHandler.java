@@ -16,12 +16,12 @@
 package ratpack.site.assets.internal;
 
 
-import asset.pipeline.ratpack.AssetPipelineModule;
 import asset.pipeline.ratpack.internal.AssetProperties;
 import ratpack.file.MimeTypes;
 import ratpack.handling.Context;
 import ratpack.handling.Handler;
 import ratpack.path.PathBinding;
+import ratpack.site.assets.AssetPipelineModule;
 
 import java.nio.charset.Charset;
 
