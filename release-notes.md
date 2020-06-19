@@ -40,6 +40,11 @@ It should not be considered the final announcement for any release at any time.
 * `ratpack.util` → `ratpack.exec.util`
 * `ratpack.websocket` → `ratpack.core.websocket`
 
+## Dependecy updates
+* rxjava2 2.1.2 → 2.2.
+* reactor 3.1.8.RELEASE → 3.3.6.RELEASE
+* reactiveStreams 1.0.2 → 1.0.3
+
 ## TODOs
 * `SiteMain` had to inline ratpack-asset-pipeline code to handle package renames.
 * `ratpack-asset-pipeline` version in `ratpack-site` is very old, but not a problem due to above TODO.
