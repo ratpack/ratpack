@@ -80,14 +80,14 @@ ext {
     "ratpack-spring-boot",
     "ratpack-spring-boot-starter",
     "ratpack-test",
-    "ratpack-thymeleaf", "ratpack-thymeleaf3",
+    "ratpack-thymeleaf3",
   ].collect { project(it) }
 
   noCodeModules = [
     "ratpack-spring-boot-starter"
   ]
 
-  apiModules = publishedModules.findAll { !(it.name in ["ratpack-manual", "ratpack-gradle", "ratpack-spring-boot-starter", "ratpack-thymeleaf3"]) }
+  apiModules = publishedModules.findAll { !(it.name in ["ratpack-manual", "ratpack-gradle", "ratpack-spring-boot-starter"]) }
 }
 
 apply from: 'gradle/buildScan.gradle'
