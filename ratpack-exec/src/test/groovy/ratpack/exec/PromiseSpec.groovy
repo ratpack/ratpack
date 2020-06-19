@@ -17,6 +17,7 @@
 package ratpack.exec
 
 import ratpack.test.exec.ExecHarness
+import spock.lang.AutoCleanup
 import spock.lang.Specification
 
 import java.util.concurrent.CountDownLatch
@@ -24,6 +25,7 @@ import java.util.concurrent.TimeUnit
 
 class PromiseSpec extends Specification {
 
+  @AutoCleanup
   def exec = ExecHarness.harness()
 
   def "simple promise"() {
