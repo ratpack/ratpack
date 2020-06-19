@@ -161,13 +161,13 @@ class ReactorErrorHandlingSpec extends RatpackGroovyDslSpec {
     when:
     handlers {
       get {
-        Flux.error(e).subscribe {} {}
+        Flux.error(e).subscribe {}
       }
     }
 
     then:
     get()
-    thrownException == e
+    thrownException.cause == e
   }
 
   def "observer can be complex"() {
@@ -264,11 +264,11 @@ class ReactorErrorHandlingSpec extends RatpackGroovyDslSpec {
     def e = new Exception("!")
 
     when:
-    def result = GroovyRequestFixture.handle({ Flux.error(e).subscribe({}, {}) } as Handler) {
+    def result = GroovyRequestFixture.handle({ Flux.error(e).subscribe({} ) } as Handler) {
     }
 
     then:
-    result.exception(Exception) == e
+    result.exception(Exception).cause == e
   }
 
   def "error handler is invoked even when error occurs on different thread"() {
