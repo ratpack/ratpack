@@ -13,7 +13,7 @@ This method only needs to be called once for the JVM's lifetime.
 
 ## Observing Ratpack
 
-The integration is based on the [`RxRatpack.single()`](api/ratpack/rx2/RxRatpack.html#single-ratpack.exec.Promise-) and [`RxRatpack.observe()`](api/ratpack/rx/RxRatpack.html#observe-ratpack.exec.Promise-) static methods.
+The integration is based on the [`RxRatpack.single()`](api/ratpack/rx2/RxRatpack.html#single-ratpack.exec.Promise-) static method.
 These methods adapt Ratpack's promise type into an observable, which can then be used with all of the observable operators that RxJava offers.
 
 For example, blocking operations can be easily observed.
@@ -73,7 +73,7 @@ public class Example {
 }
 ```
 
-In this case, the throwable thrown during the blocking operation will be forwarded to the current [`ServerErrorHandler`](api/ratpack/error/ServerErrorHandler.html), which will probably render an error page to the response.
+In this case, the throwable thrown during the blocking operation will be forwarded to the current [`ServerErrorHandler`](api/ratpack/core/error/ServerErrorHandler.html), which will probably render an error page to the response.
 If the subscriber _does_ implement an error handling strategy, it will be used instead of the implicit error handler.
 
 The implicit error handling applies to _all_ observables that are created on Ratpack managed threads.
