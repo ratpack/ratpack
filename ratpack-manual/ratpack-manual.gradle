@@ -60,18 +60,9 @@ dependencies {
   compass commonDependencies.compass
 
   testCompile apiModules
-  testCompile("org.pac4j:pac4j-oauth:${commonVersions.pac4j}") { // used by ratpack-pac4j's code snippets
-    exclude group: "org.slf4j", module: "slf4j-api"
-    exclude group: "com.google.inject", module: "guice"
-    exclude group: "org.apache.httpcomponents", module: "httpclient"
-    exclude group: "org.apache.commons", module: "commons-lang3"
-    exclude group: "com.fasterxml.jackson.core", module: "jackson-databind"
-  }
   testCompile gradleTestKit()
   testRuntime "org.apache.ant:ant-nodeps:1.8.1"
   testRuntime "com.fasterxml.jackson.datatype:jackson-datatype-jdk8:${commonVersions.jackson}"
-
-  testRuntime project(path: ":ratpack-pac4j", configuration: "testRuntime")
 }
 
 // Gradle needs to use its version of Groovy, exclude ours
@@ -234,7 +225,6 @@ task tokeniseManual(type: Sync) {
     "ratpack-version" : project.version,
     "ratpack-group"   : project.group,
     "groovy-version"  : commonVersions.groovy,
-    "pac4j-version"   : commonVersions.pac4j,
     "retrofit-version": commonVersions.retrofit,
     "slf4j-version"   : commonVersions.slf4j,
     "spock-version"   : commonVersions.spock,
