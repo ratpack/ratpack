@@ -17,12 +17,12 @@
 package ratpack.core.server
 
 import com.google.common.io.Resources
+import io.netty.handler.ssl.SslContext
 import ratpack.core.impose.Impositions
 import ratpack.core.server.internal.DefaultServerConfigBuilder
 import ratpack.core.server.internal.ServerEnvironment
 import spock.lang.Specification
 
-import javax.net.ssl.SSLContext
 import java.nio.file.Paths
 
 class ServerConfigBuilderSystemPropertiesSpec extends Specification {
@@ -193,7 +193,7 @@ class ServerConfigBuilderSystemPropertiesSpec extends Specification {
     properties.setProperty('ratpack.server.ssl.keystorePassword', keystorePassword)
 
     when:
-    SSLContext sslContext = builder.sysProps().build().sslContext
+    SslContext sslContext = builder.sysProps().build().sslContext
 
     then:
     sslContext

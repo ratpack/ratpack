@@ -16,11 +16,11 @@
 
 package ratpack.core.server
 
-
-import ratpack.core.ssl.SSLContexts
+import io.netty.handler.ssl.SslContext
+import io.netty.handler.ssl.SslContextBuilder
+import ratpack.core.ssl.internal.SslContexts
 import spock.lang.Specification
 
-import javax.net.ssl.SSLContext
 import java.nio.file.Paths
 
 class ServerConfigBuilderSpec extends Specification {
@@ -167,10 +167,12 @@ class ServerConfigBuilderSpec extends Specification {
 
   def "set ssl context"() {
     given:
-    SSLContext context = SSLContexts.sslContext(ServerConfigBuilderSpec.classLoader.getResourceAsStream('ratpack/core/server/keystore.jks'), 'password')
+    def is = ServerConfigBuilderSpec.classLoader.getResourceAsStream('ratpack/core/server/keystore.jks')
+    def keyFactory = SslContexts.keyManagerFactory(is, 'password'.toCharArray())
+    SslContext context = SslContextBuilder.forServer(keyFactory).build()
 
     when:
-    SSLContext sslContext = builder.ssl(context).build().sslContext
+    SslContext sslContext = builder.ssl(context).build().sslContext
 
     then:
     sslContext

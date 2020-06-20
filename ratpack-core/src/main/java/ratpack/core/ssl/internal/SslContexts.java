@@ -23,6 +23,7 @@ import java.io.InputStream;
 import java.security.*;
 import java.security.cert.CertificateException;
 
+//TODO-v2 should this become public API?
 public class SslContexts {
 
   public static KeyManagerFactory keyManagerFactory(InputStream keyStoreStream, char[] keyStorePassword) throws KeyStoreException, IOException, NoSuchAlgorithmException, CertificateException, UnrecoverableKeyException {

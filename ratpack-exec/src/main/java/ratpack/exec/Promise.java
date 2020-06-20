@@ -181,23 +181,6 @@ public interface Promise<T> {
   }
 
   /**
-   * Deprecated. Use {@link #flatten(Factory)}.
-   *
-   * @param factory deprecated.
-   * @param <T> the type of promised value
-   * @return deprecated.
-   * @deprecated since 1.5, replaced by {@link #flatten(Factory)}.
-   */
-  @Deprecated
-  static <T> Promise<T> wrap(Factory<? extends Promise<T>> factory) {
-    try {
-      return factory.create();
-    } catch (Exception e) {
-      return Promise.error(e);
-    }
-  }
-
-  /**
    * Creates a promise for the given item.
    * <p>
    * The given item will be used every time that the value is requested.
@@ -278,32 +261,6 @@ public interface Promise<T> {
     return new DefaultPromise<>(down -> DefaultExecution.require().delimit(down::error, continuation ->
       continuation.resume(() -> down.error(t))
     ));
-  }
-
-  /**
-   * Deprecated.
-   *
-   * @param upstream the producer of the value
-   * @param <T> the type of promised value
-   * @return a promise for the asynchronously created value
-   * @deprecated replaced by {@link #async(Upstream)}
-   */
-  @Deprecated
-  static <T> Promise<T> of(Upstream<T> upstream) {
-    return async(upstream);
-  }
-
-  /**
-   * Deprecated.
-   *
-   * @param factory the producer of the value
-   * @param <T> the type of promised value
-   * @return a promise for the result of the factory
-   * @deprecated replaced by {@link #sync(Factory)}}
-   */
-  @Deprecated
-  static <T> Promise<T> ofLazy(Factory<T> factory) {
-    return sync(factory);
   }
 
   /**
@@ -627,21 +584,6 @@ public interface Promise<T> {
    */
   default Promise<T> blockingOp(Action<? super T> action) {
     return flatMap(t -> Blocking.op(action.curry(t)).map(() -> t));
-  }
-
-  /**
-   * Deprecated.
-   * <p>
-   * Use {@link #replace(Promise)}.
-   *
-   * @param next the promise to replace {@code this} with
-   * @param <O> the type of value provided by the replacement promise
-   * @return a promise
-   * @deprecated replaced by {@link #replace(Promise)} as of 1.1.0
-   */
-  @Deprecated
-  default <O> Promise<O> next(Promise<O> next) {
-    return flatMap(in -> next);
   }
 
   /**
@@ -2344,43 +2286,6 @@ public interface Promise<T> {
    */
   default Promise<T> fork() {
     return Exceptions.uncheck(() -> fork(Action.noop()));
-  }
-
-  /**
-   * Causes {@code this} yielding the promised value to be retried on error, after a fixed delay.
-   *
-   * @param maxAttempts the maximum number of times to retry
-   * @param delay the duration to wait between retry attempts
-   * @param onError the error handler
-   * @return a promise with a retry error handler
-   * @see #retry(int, BiFunction)
-   * @since 1.5
-   * @deprecated since 1.7, use {@link #retry(RetryPolicy, BiAction)}
-   */
-  @Deprecated
-  default Promise<T> retry(int maxAttempts, Duration delay, @NonBlocking BiAction<? super Integer, ? super Throwable> onError) {
-    Promise<Duration> delayPromise = Promise.value(delay);
-    return retry(maxAttempts, (i, error) ->
-      Operation.of(() ->
-        onError.execute(i, error)
-      )
-        .flatMap(delayPromise)
-    );
-  }
-
-  /**
-   * Causes {@code this} yielding the promised value to be retried on error, after a calculated delay.
-   *
-   * @param maxAttempts the maximum number of times to retry
-   * @param onError the error handler
-   * @return a promise with a retry error handler
-   * @see #retry(int, Duration, BiAction)
-   * @since 1.5
-   * @deprecated since 1.7, use {@link #retry(RetryPolicy, BiAction)}
-   */
-  @Deprecated
-  default Promise<T> retry(int maxAttempts, BiFunction<? super Integer, ? super Throwable, Promise<Duration>> onError) {
-    return transform(up -> down -> DefaultPromise.retryAttempt(1, maxAttempts, up, down, onError));
   }
 
   /**

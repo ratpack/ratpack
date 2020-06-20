@@ -16,8 +16,6 @@
 
 package ratpack.core.service.internal;
 
-import com.google.common.base.Joiner;
-import com.google.common.collect.*;
 import org.slf4j.Logger;
 import ratpack.core.server.StartupFailureException;
 import ratpack.core.server.internal.DefaultRatpackServer;
@@ -27,12 +25,13 @@ import ratpack.exec.api.Nullable;
 import ratpack.exec.func.Predicate;
 import ratpack.exec.registry.Registry;
 
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicReference;
+import java.util.stream.Collectors;
+import java.util.stream.StreamSupport;
 
 public class ServicesGraph {
 
@@ -51,10 +50,11 @@ public class ServicesGraph {
   private volatile boolean startupFailed;
 
   public ServicesGraph(Registry registry) throws Exception {
-    this.nodes = ImmutableList.<Node>builder()
-      .addAll(Iterables.transform(registry.getAll(Service.class), Node::new))
-      .addAll(adaptLegacy(registry))
-      .build();
+    this.nodes = Collections.unmodifiableList(
+      StreamSupport.stream(registry.getAll(Service.class).spliterator(), false)
+        .map(Node::new)
+        .collect(Collectors.toList())
+    );
     this.toStartCount.set(nodes.size());
     this.toStopCount.set(nodes.size());
     this.execController = registry.get(ExecController.class);
@@ -62,32 +62,19 @@ public class ServicesGraph {
     defineDependencies(registry);
   }
 
-  private Iterable<Node> adaptLegacy(Registry registry) {
-    @SuppressWarnings("deprecation") Class<ratpack.core.server.Service> type = ratpack.core.server.Service.class;
-    return Iterables.transform(registry.getAll(type), s -> new Node(new DefaultLegacyServiceAdapter(s)));
-  }
-
   private void defineDependencies(Registry registry) throws Exception {
     SpecBacking specBacking = new SpecBacking();
     for (ServiceDependencies dependencies : registry.getAll(ServiceDependencies.class)) {
       dependencies.define(specBacking);
     }
-    List<Node> legacyNodes = Lists.newArrayList();
     for (Node node : nodes) {
-      if (node.isLegacy()) {
-        for (Node legacyNode : legacyNodes) {
-          node.addDependency(legacyNode);
-          legacyNode.addDependent(node);
-        }
-        legacyNodes.add(node);
-      }
       DependsOn dependsOn = node.getDependsOn();
       if (dependsOn != null) {
         specBacking.dependsOn(
           s -> node.getImplClass().isInstance(s),
           s -> {
             for (Class<?> dependencyType : dependsOn.value()) {
-              if (dependencyType.isInstance(unpackIfLegacy(s))) {
+              if (dependencyType.isInstance(s)) {
                 return true;
               }
             }
@@ -164,10 +151,10 @@ public class ServicesGraph {
   }
 
   private void onCycle() {
-    String joinedServiceNames = FluentIterable.from(nodes)
+    String joinedServiceNames = nodes.stream()
       .filter(Node::notStarted)
-      .transform(n -> n.service.getName())
-      .join(Joiner.on(", "));
+      .map(n -> n.service.getName())
+      .collect(Collectors.joining(", "));
 
     failureRef.set(new StartupFailureException("dependency cycle detected involving the following services: [" + joinedServiceNames + "]"));
     startLatch.countDown();
@@ -200,8 +187,8 @@ public class ServicesGraph {
   private class SpecBacking implements ServiceDependenciesSpec {
     @Override
     public ServiceDependenciesSpec dependsOn(Predicate<? super Service> dependents, Predicate<? super Service> dependencies) throws Exception {
-      List<Node> dependentNodes = Lists.newArrayList();
-      List<Node> dependencyNodes = Lists.newArrayList();
+      List<Node> dependentNodes = new ArrayList<>();
+      List<Node> dependencyNodes = new ArrayList<>();
       for (Node node : nodes) {
         boolean dependent = false;
         if (dependents.apply(node.service)) {
@@ -228,9 +215,9 @@ public class ServicesGraph {
   private class Node {
 
     private final Service service;
-    private final Set<Node> dependents = Sets.newHashSet();
+    private final Set<Node> dependents = new HashSet<>();
     private final AtomicInteger dependentsToStopCount = new AtomicInteger();
-    private final Set<Node> dependencies = Sets.newHashSet();
+    private final Set<Node> dependencies = new HashSet<>();
     private final AtomicInteger dependenciesToStartCount = new AtomicInteger();
 
     private final AtomicBoolean stopped = new AtomicBoolean();
@@ -246,11 +233,7 @@ public class ServicesGraph {
     }
 
     private Class<?> getImplClass() {
-      return isLegacy() ? ((DefaultLegacyServiceAdapter) service).getAdapted().getClass() : service.getClass();
-    }
-
-    private boolean isLegacy() {
-      return service instanceof DefaultLegacyServiceAdapter;
+      return service.getClass();
     }
 
     public boolean notStarted() {
@@ -321,23 +304,8 @@ public class ServicesGraph {
     }
   }
 
-  @SuppressWarnings("deprecation")
   public static boolean isOfType(Service service, Class<?> type) {
-    if (service instanceof LegacyServiceAdapter) {
-      ratpack.core.server.Service legacyService = ((LegacyServiceAdapter) service).getAdapted();
-      return type.isInstance(legacyService);
-    } else {
-      return type.isInstance(service);
-    }
-  }
-
-  @SuppressWarnings("deprecation")
-  public static Object unpackIfLegacy(Service service) {
-    if (service instanceof LegacyServiceAdapter) {
-      return ((LegacyServiceAdapter) service).getAdapted();
-    } else {
-      return service;
-    }
+    return type.isInstance(service);
   }
 
 }

@@ -40,19 +40,6 @@ public class RatpackRetrofitCallException extends Exception {
 
   /**
    * Create a wrapped Retrofit exception
-   * @param call the Retrofit {@link Call} to wrap.
-   * @param error the error message
-   * @deprecated since 1.6.0
-   * @see #RatpackRetrofitCallException(Request, Response)
-   */
-  @Deprecated
-  public RatpackRetrofitCallException(Call<?> call, String error) {
-    super(call.request().url().toString() + ": " + error);
-    this.response = null;
-  }
-
-  /**
-   * Create a wrapped Retrofit exception
    * @param request the Retrofit {@link Request} that initiated HTTP request.
    * @param response the underlying Retrofit {@link Response} from the HTTP request.
    * @since 1.6.0

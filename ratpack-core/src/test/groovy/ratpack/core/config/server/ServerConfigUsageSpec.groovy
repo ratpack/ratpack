@@ -39,7 +39,7 @@ class ServerConfigUsageSpec extends ConfigUsageSpec {
     !config.development
     config.threads == ServerConfig.DEFAULT_THREADS
     !config.publicAddress
-    !config.nettySslContext
+    !config.sslContext
     config.maxContentLength == ServerConfig.DEFAULT_MAX_CONTENT_LENGTH
   }
 
@@ -72,7 +72,7 @@ class ServerConfigUsageSpec extends ConfigUsageSpec {
     config.threads == 5
     config.publicAddress == URI.create("http://app.ratpack.com")
     config.sslContext
-    config.maxContentLength == 54321L
+    config.maxContentLength == 54321
   }
 
   private Path createKeystore(String password) {

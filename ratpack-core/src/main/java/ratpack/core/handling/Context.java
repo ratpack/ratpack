@@ -33,7 +33,7 @@ import ratpack.core.parse.Parse;
 import ratpack.core.parse.Parser;
 import ratpack.core.path.PathBinding;
 import ratpack.core.path.PathTokens;
-import ratpack.core.render.NoSuchRendererException;
+import ratpack.core.render.*;
 import ratpack.core.server.PublicAddress;
 import ratpack.core.server.ServerConfig;
 import ratpack.exec.Execution;
@@ -45,7 +45,6 @@ import ratpack.exec.registry.Registry;
 import ratpack.exec.stream.Streams;
 import ratpack.exec.util.Types;
 
-import java.net.URI;
 import java.nio.file.Path;
 import java.time.Instant;
 import java.util.Arrays;
@@ -339,65 +338,6 @@ public interface Context extends Registry {
   default Context header(CharSequence name, Object... values) {
     getResponse().getHeaders().set(name, Arrays.asList(values));
     return this;
-  }
-
-  /**
-   * Sends a temporary redirect response (i.e. 302) to the client using the specified redirect location.
-   * <p>
-   * This method is effectively deprecated and will be removed in Ratpack 2.0.
-   * Note, this method simply delegates to {@link #redirect(Object)} which is the replacement.
-   * It is not formally marked as deprecated as the replacement is source compatible, and a generalising overload of this method.
-   *
-   * @param to the location to redirect to
-   * @see #redirect(Object)
-   */
-  default void redirect(String to) {
-    redirect((Object) to);
-  }
-
-  /**
-   * Sends a redirect response to the given location, and with the given status code.
-   * <p>
-   * This method is effectively deprecated and will be removed in Ratpack 2.0.
-   * Note, this method simply delegates to {@link #redirect(int, Object)} which is the replacement.
-   * It is not formally marked as deprecated as the replacement is source compatible, and a generalising overload of this method.
-   *
-   * @param code the redirect response status code
-   * @param to the location to redirect to
-   * @see #redirect(int, Object)
-   */
-  default void redirect(int code, String to) {
-    redirect(code, (Object) to);
-  }
-
-  /**
-   * Sends a temporary redirect response (i.e. 302) to the client using the specified redirect location.
-   * <p>
-   * This method is effectively deprecated and will be removed in Ratpack 2.0.
-   * Note, this method simply delegates to {@link #redirect(Object)} which is the replacement.
-   * It is not formally marked as deprecated as the replacement is source compatible, and a generalising overload of this method.
-   *
-   * @param to the location to redirect to
-   * @see #redirect(Object)
-   * @since 1.2
-   */
-  default void redirect(URI to) {
-    redirect((Object) to);
-  }
-
-  /**
-   * Sends a redirect response to the given location, and with the given status code.
-   * <p>
-   * This method is effectively deprecated and will be removed in Ratpack 2.0.
-   * Note, this method simply delegates to {@link #redirect(int, Object)} which is the replacement.
-   * It is not formally marked as deprecated as the replacement is source compatible, and a generalising overload of this method.
-   *
-   * @param code the redirect response status code
-   * @param to the location to redirect to
-   * @see #redirect(int, Object)
-   */
-  default void redirect(int code, URI to) {
-    redirect(code, to.toASCIIString());
   }
 
   /**

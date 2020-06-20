@@ -191,14 +191,6 @@ public interface TransformablePublisher<T> extends Publisher<T> {
   }
 
   /**
-   * @deprecated since 1.4, use {@link #streamMap(StreamMapper)}
-   */
-  @Deprecated
-  default <O> TransformablePublisher<O> streamMap(Function<? super WriteStream<O>, ? extends WriteStream<? super T>> function) {
-    return Streams.streamMap(this, function);
-  }
-
-  /**
    * See {@link Streams#filter(Publisher, Predicate)}.
    *
    * @param filter the filter

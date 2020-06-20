@@ -27,16 +27,13 @@ import spock.lang.Specification
 import java.nio.file.Path
 import java.security.KeyStore
 
-/**
- * Created by spencer on 1/2/2016.
- */
-class SSLContextDeserializerSpec extends Specification {
+class NettySslContextDeserializerSpec extends Specification {
 
   @Rule
   TemporaryFolder tempFolder
 
   DeserializationContext context = null
-    JdkSslContextDeserializer deserializer = new JdkSslContextDeserializer()
+  NettySslContextDeserializer deserializer = new NettySslContextDeserializer()
   ObjectNode objectNode = JsonNodeFactory.instance.objectNode()
   JsonParser jsonParser = Stub(JsonParser)
 

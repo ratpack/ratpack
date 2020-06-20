@@ -96,31 +96,4 @@ public interface WriteStream<T> {
       }
     };
   }
-
-  /**
-   * @deprecated since 1.4, use {@link #itemMap(Subscription, Action)}
-   */
-  @Deprecated
-  default <O> WriteStream<O> itemMap(Action<? super O> itemMapper) {
-    return new WriteStream<O>() {
-      @Override
-      public void item(O item) {
-        try {
-          itemMapper.execute(item);
-        } catch (Exception e) {
-          error(e);
-        }
-      }
-
-      @Override
-      public void error(Throwable throwable) {
-        WriteStream.this.error(throwable);
-      }
-
-      @Override
-      public void complete() {
-        WriteStream.this.complete();
-      }
-    };
-  }
 }

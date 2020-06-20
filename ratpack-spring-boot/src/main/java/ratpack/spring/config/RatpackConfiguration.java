@@ -51,16 +51,6 @@ public class RatpackConfiguration implements CommandLineRunner, DisposableBean {
     server.start();
   }
 
-  /**
-   * @deprecated since 1.6.0. Use {@link #destroy()} instead
-   * @throws Exception
-   * @see #destroy()
-   */
-  @Deprecated
-  public void stop() throws Exception {
-    destroy();
-  }
-
   @Override
   public void destroy() throws Exception {
     server.stop();

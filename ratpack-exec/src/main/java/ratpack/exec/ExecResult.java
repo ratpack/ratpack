@@ -20,7 +20,6 @@ import ratpack.exec.func.Action;
 import ratpack.exec.func.Predicate;
 import ratpack.exec.internal.CompleteExecResult;
 import ratpack.exec.internal.ResultBackedExecResult;
-import ratpack.exec.registry.Registry;
 
 /**
  * The result of an execution.
@@ -40,17 +39,6 @@ public interface ExecResult<T> extends Result<T> {
    * @return true if the execution the promise was bound to completed before the promised value was provided.
    */
   boolean isComplete();
-
-  /**
-   * Deprecated. Do not use.
-   *
-   * @return the execution registry.
-   * @throws UnsupportedOperationException always
-   */
-  @Deprecated
-  default Registry getRegistry() throws UnsupportedOperationException {
-    throw new UnsupportedOperationException("ExecResult.getRegistry() has been removed.");
-  }
 
   /**
    * Wraps the given result as an exec result.
