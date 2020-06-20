@@ -16,7 +16,6 @@
 
 package ratpack.exec.func;
 
-import ratpack.exec.Operation;
 import ratpack.exec.util.Exceptions;
 
 /**
@@ -62,18 +61,6 @@ public interface Block {
    */
   default Runnable toRunnable() {
     return () -> Exceptions.uncheck(this);
-  }
-
-  /**
-   * Creates an {@link Operation} from this block.
-   *
-   * @return an operation
-   * @see Operation#of(Block)
-   * @deprecated since 1.5
-   */
-  @Deprecated
-  default Operation operation() {
-    return Operation.of(this);
   }
 
   /**

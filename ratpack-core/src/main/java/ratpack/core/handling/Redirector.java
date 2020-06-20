@@ -72,22 +72,6 @@ public interface Redirector {
   TypeToken<Redirector> TYPE = Types.token(Redirector.class);
 
   /**
-   * Deprecated, replaced by {@link #redirect(Context, int, Object)}.
-   * <p>
-   * This interface provides a default implementation that simply forwards to {@link #redirect(Context, int, Object)}.
-   *
-   * @param context the request processing context when the redirect was requested
-   * @param to the location to redirect to
-   * @param code the status code to issue with the redirect
-   * @see #redirect(Context, int, Object)
-   * @deprecated use {@link #redirect(Context, int, Object)}
-   */
-  @Deprecated
-  default void redirect(Context context, String to, int code) {
-    redirect(context, code, to);
-  }
-
-  /**
    * Issues a HTTP redirect response, transforming the given {@code to} value into a value for the {@code Location} header.
    * <p>
    * Implementations may interpret the {@code to} value in any manner.

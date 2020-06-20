@@ -103,7 +103,7 @@ public class ServerConfigDataDeserializer extends JsonDeserializer<ServerConfigD
     }
     if (serverNode.hasNonNull("ssl")) {
       data.setSslContext(toValue(codec, serverNode.get("ssl"), SslContext.class));
-    } else if (serverNode.hasNonNull("jdkSsl")) {
+    } else if (serverNode.hasNonNull("jdkSsl")) { //TODO-v2 do we need to carry this forward?
       data.setSslContext(toJdkSslContext(data, toValue(codec, serverNode.get("jdkSsl"), SSLContext.class)));
     }
     if (serverNode.hasNonNull("baseDir")) {
@@ -131,7 +131,6 @@ public class ServerConfigDataDeserializer extends JsonDeserializer<ServerConfigD
     return data;
   }
 
-  @SuppressWarnings("deprecation")
   private JdkSslContext toJdkSslContext(ServerConfigData data, SSLContext jdkSslContext) {
     return new JdkSslContext(jdkSslContext, false, data.isRequireClientSslAuth() ? ClientAuth.REQUIRE : ClientAuth.NONE);
   }

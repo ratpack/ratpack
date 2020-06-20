@@ -17,10 +17,9 @@
 package ratpack.hikari;
 
 import com.zaxxer.hikari.HikariDataSource;
-import ratpack.core.server.Service;
-import ratpack.core.server.StopEvent;
+import ratpack.core.service.Service;
+import ratpack.core.service.StopEvent;
 
-@SuppressWarnings("deprecation")
 public class HikariService implements Service {
 
   private final HikariDataSource dataSource;

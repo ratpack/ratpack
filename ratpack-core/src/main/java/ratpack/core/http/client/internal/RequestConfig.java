@@ -22,8 +22,6 @@ import io.netty.buffer.ByteBufAllocator;
 import io.netty.buffer.ByteBufOutputStream;
 import io.netty.buffer.Unpooled;
 import io.netty.handler.codec.http.DefaultHttpHeaders;
-import io.netty.handler.ssl.ClientAuth;
-import io.netty.handler.ssl.JdkSslContext;
 import io.netty.handler.ssl.SslContext;
 import io.netty.util.CharsetUtil;
 import ratpack.core.http.HttpMethod;
@@ -36,7 +34,6 @@ import ratpack.core.http.internal.NettyHeadersBackedMutableHeaders;
 import ratpack.exec.func.Action;
 import ratpack.exec.func.Function;
 
-import javax.net.ssl.SSLContext;
 import java.io.OutputStream;
 import java.net.URI;
 import java.nio.charset.Charset;
@@ -144,13 +141,6 @@ class RequestConfig {
     @Override
     public int getRedirects() {
       return this.maxRedirects;
-    }
-
-    @Override
-    @SuppressWarnings("deprecation")
-    public RequestSpec sslContext(SSLContext sslContext) {
-      this.sslContext = new JdkSslContext(sslContext, true, ClientAuth.NONE);
-      return this;
     }
 
     @Override

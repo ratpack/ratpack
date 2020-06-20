@@ -18,7 +18,7 @@ package ratpack.session;
 
 import io.netty.buffer.ByteBuf;
 import io.netty.util.AsciiString;
-import ratpack.core.server.Service;
+import ratpack.core.service.Service;
 import ratpack.exec.Operation;
 import ratpack.exec.Promise;
 
@@ -44,6 +44,8 @@ import ratpack.exec.Promise;
  * import io.netty.buffer.ByteBufInputStream;
  * import io.netty.buffer.ByteBufOutputStream;
  * import io.netty.util.AsciiString;
+ * import ratpack.core.service.StartEvent;
+ * import ratpack.core.service.StopEvent;
  * import ratpack.exec.Operation;
  * import ratpack.exec.Promise;
  * import ratpack.exec.Blocking;
@@ -75,14 +77,14 @@ import ratpack.exec.Promise;
  *     }
  *
  *     {@literal @}Override
- *     public void onStart({@literal @}SuppressWarnings("deprecation") ratpack.core.server.StartEvent event) throws Exception {
+ *     public void onStart(StartEvent event) throws Exception {
  *       Blocking.op(() -> {
  *         assert dir.mkdirs() || dir.exists();
  *       }).then();
  *     }
  *
  *     {@literal @}Override
- *     public void onStop({@literal @}SuppressWarnings("deprecation") ratpack.core.server.StopEvent event) throws Exception {
+ *     public void onStop(StopEvent event) throws Exception {
  *       Blocking.op(() -> {
  *         Arrays.asList(dir.listFiles()).forEach(File::delete);
  *         dir.delete();
@@ -170,7 +172,6 @@ import ratpack.exec.Promise;
  *
  * @see SessionModule
  */
-@SuppressWarnings("deprecation")
 public interface SessionStore extends Service {
 
   /**

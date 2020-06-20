@@ -26,6 +26,7 @@ import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.UnknownHostException;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Properties;
 import java.util.regex.Pattern;
 
@@ -52,7 +53,7 @@ public class ServerEnvironment extends Environment {
 
   public InetAddress getAddress() {
     return get(null,
-      i -> i != null,
+      Objects::nonNull,
       () -> parseAddressValue("ratpack.address system property", getProperties().getProperty(ADDRESS_PROPERTY)),
       () -> parseAddressValue("RATPACK_ADDRESS env var", getenv().get("RATPACK_ADDRESS"))
     );
@@ -72,7 +73,7 @@ public class ServerEnvironment extends Environment {
 
   public Integer getPort() {
     return get(ServerConfig.DEFAULT_PORT,
-      i -> i != null,
+      Objects::nonNull,
       () -> parsePortValue("ratpack.port system property", getProperties().getProperty(PORT_PROPERTY)),
       () -> parsePortValue("RATPACK_PORT env var", getenv().get("RATPACK_PORT")),
       () -> parsePortValue("PORT env var", getenv().get("PORT"))
@@ -80,7 +81,7 @@ public class ServerEnvironment extends Environment {
   }
 
   public URI getPublicAddress() {
-    return get(null, i -> i != null,
+    return get(null, Objects::nonNull,
       () -> parseUri("'ratpack.publicAddress' system property", getProperties().getProperty("ratpack.publicAddress")),
       () -> parseUri("'RATPACK_PUBLIC_ADDRESS' env var", getenv().get("RATPACK_PUBLIC_ADDRESS"))
     );

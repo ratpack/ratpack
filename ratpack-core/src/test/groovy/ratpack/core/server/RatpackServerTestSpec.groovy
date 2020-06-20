@@ -18,6 +18,9 @@ package ratpack.core.server
 
 import ratpack.core.handling.Handler
 import ratpack.core.http.client.RequestSpec
+import ratpack.core.service.Service
+import ratpack.core.service.StartEvent
+import ratpack.core.service.StopEvent
 import ratpack.exec.func.Action
 import ratpack.groovy.test.embed.GroovyEmbeddedApp
 import ratpack.test.ServerBackedApplicationUnderTest

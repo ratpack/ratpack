@@ -23,10 +23,8 @@ import io.netty.handler.ssl.SslContextBuilder;
 import ratpack.core.http.HttpMethod;
 import ratpack.core.http.MutableHeaders;
 import ratpack.exec.func.Action;
-import ratpack.exec.func.Factory;
 import ratpack.exec.func.Function;
 
-import javax.net.ssl.SSLContext;
 import java.io.OutputStream;
 import java.net.URI;
 import java.nio.charset.Charset;
@@ -34,7 +32,6 @@ import java.nio.charset.StandardCharsets;
 import java.time.Duration;
 import java.util.Base64;
 
-import static java.time.temporal.ChronoUnit.SECONDS;
 
 public interface RequestSpec {
 
@@ -81,16 +78,6 @@ public interface RequestSpec {
   RequestSpec onRedirect(Function<? super ReceivedResponse, Action<? super RequestSpec>> function);
 
   /**
-   * Sets the {@link SSLContext} used for client and server SSL authentication.
-   *
-   * @param sslContext SSL context with keystore as well as trust store
-   * @return {@code this}
-   * @deprecated since 1.5, use {@link #sslContext(SslContext)}
-   */
-  @Deprecated
-  RequestSpec sslContext(SSLContext sslContext);
-
-  /**
    * Get the configured {@link SslContext} used for client and server SSL authentication.
    *
    * @return The {@code SslContext} used for SSL authentication
@@ -98,20 +85,6 @@ public interface RequestSpec {
    * @since 1.6
    */
   SslContext getSslContext();
-
-  /**
-   * Factory method to create {@link SSLContext} used for client and server SSL authentication.
-   *
-   * @param factory provides a factory that will create {@link SSLContext} instance
-   * @return {@code this}
-   * @throws Exception this can be thrown from the action
-   * @deprecated since 1.5, no replacement.
-   */
-  @SuppressWarnings("deprecation")
-  @Deprecated
-  default RequestSpec sslContext(Factory<SSLContext> factory) throws Exception {
-    return sslContext(factory.create());
-  }
 
   /**
    * Sets the {@link SslContext} used for client and server SSL authentication.
@@ -291,23 +264,6 @@ public interface RequestSpec {
   URI getUri();
 
   /**
-   * @deprecated since 1.4, use {@link #getUri()}
-   */
-  @Deprecated
-  default URI getUrl() {
-    return getUri();
-  }
-
-  /**
-   * @since 1.1
-   * @deprecated since 1.4, use {@link #connectTimeout(Duration)}
-   */
-  @Deprecated
-  default RequestSpec connectTimeoutSeconds(int seconds) {
-    return connectTimeout(Duration.of(seconds, SECONDS));
-  }
-
-  /**
    * Sets the socket connection timeout.
    * <p>
    * This value defaults to 30 seconds.
@@ -326,14 +282,6 @@ public interface RequestSpec {
    * @since 1.6
    */
   Duration getConnectTimeout();
-
-  /**
-   * @deprecated since 1.4, use {@link #readTimeout(Duration)}
-   */
-  @Deprecated
-  default RequestSpec readTimeoutSeconds(int seconds) {
-    return readTimeout(Duration.of(seconds, SECONDS));
-  }
 
   /**
    * Sets the socket read timeout.

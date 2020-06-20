@@ -346,18 +346,6 @@ public class Streams {
   }
 
   /**
-   * @deprecated since 1.4, use {@link #streamMap(Publisher, StreamMapper)}
-   */
-  @Deprecated
-  public static <U, D> TransformablePublisher<D> streamMap(Publisher<U> input, Function<? super WriteStream<D>, ? extends WriteStream<? super U>> mapper) {
-    return streamMap(input, (subscription, downstream) -> {
-      @SuppressWarnings("UnnecessaryLocalVariable")
-      WriteStream<? super U> writeStream = mapper.apply(downstream);
-      return writeStream;
-    });
-  }
-
-  /**
    * Returns a publisher that publishes items from the given input publisher after transforming each item via the given, promise returning, function.
    * <p>
    * The returned publisher does not perform any flow control on the data stream.

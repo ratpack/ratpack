@@ -17,7 +17,6 @@
 package ratpack.core.server.internal;
 
 import com.google.common.collect.ImmutableSet;
-import io.netty.handler.ssl.JdkSslContext;
 import io.netty.handler.ssl.SslContext;
 import ratpack.core.config.ConfigData;
 import ratpack.core.config.ConfigObject;
@@ -27,7 +26,6 @@ import ratpack.core.server.NoBaseDirException;
 import ratpack.core.server.ServerConfig;
 import ratpack.exec.api.Nullable;
 
-import javax.net.ssl.SSLContext;
 import java.net.InetAddress;
 import java.net.URI;
 import java.nio.file.Path;
@@ -83,27 +81,9 @@ public class DefaultServerConfig extends DelegatingConfigData implements ServerC
     return serverConfigData.getPublicAddress();
   }
 
-  @Nullable
   @Override
-  @SuppressWarnings("deprecation")
-  public SSLContext getSslContext() {
-    SslContext sslContext = serverConfigData.getSslContext();
-    if (sslContext instanceof JdkSslContext) {
-      return ((JdkSslContext) sslContext).context();
-    } else {
-      throw new UnsupportedOperationException("Cannot provide sslContext as JDK type");
-    }
-  }
-
-  @Override
-  public SslContext getNettySslContext() {
+  public SslContext getSslContext() {
     return serverConfigData.getSslContext();
-  }
-
-  @Override
-  @SuppressWarnings("deprecation")
-  public boolean isRequireClientSslAuth() {
-    return serverConfigData.isRequireClientSslAuth();
   }
 
   @Override

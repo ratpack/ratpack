@@ -16,7 +16,6 @@
 
 package ratpack.core.server;
 
-import ratpack.core.handling.Context;
 import ratpack.core.http.HttpUrlBuilder;
 import ratpack.core.server.internal.ConstantPublicAddress;
 import ratpack.core.server.internal.InferringPublicAddress;
@@ -72,45 +71,16 @@ public interface PublicAddress {
   }
 
   /**
-   * The advertised public address.
-   * <p>
-   * This method has been deprecated.
-   * Since 1.2, the default implementation simply calls {@link #get()}.
-   * Implementations should implement that method only.
-   *
-   * @param ctx the handling context at the time the public address is needed
-   * @return the public address for the context
-   * @deprecated since 1.2
-   */
-  @Deprecated
-  default URI get(@SuppressWarnings("UnusedParameters") Context ctx) {
-    return get();
-  }
-
-  /**
    * Returns the public address.
    * <p>
-   * This method was introduced in 1.2 and supersedes {@link #get(Context)}.
    * The default implementation throws {@link UnsupportedOperationException}, however, all Ratpack provided implemenations
-   * properly implement this method and it should be used instead of {@link #get(Context)}
+   * properly implement this method.
    *
    * @return the public address
    * @since 1.2
    */
   default URI get() {
     throw new UnsupportedOperationException("this implementation does not support this method, use get(Context)");
-  }
-
-  /**
-   * Creates a URL builder using the public address as the base.
-   *
-   * @param ctx the handling context at the time the public address is needed
-   * @return a URL builder
-   * @deprecated since 1.2, use {@link #builder()}
-   */
-  @Deprecated
-  default HttpUrlBuilder builder(@SuppressWarnings("UnusedParameters") Context ctx) {
-    return builder();
   }
 
   /**
@@ -126,20 +96,6 @@ public interface PublicAddress {
   /**
    * Creates a URL by building a URL based on the public address.
    *
-   * @param ctx the handling context at the time the public address is needed
-   * @param action the additions to the public address
-   * @return the built url
-   * @throws Exception any thrown by {@code action}
-   * @deprecated since 1.2, use {@link #get(Action)}
-   */
-  @Deprecated
-  default URI get(@SuppressWarnings("UnusedParameters") Context ctx, Action<? super HttpUrlBuilder> action) throws Exception {
-    return action.with(builder()).build();
-  }
-
-  /**
-   * Creates a URL by building a URL based on the public address.
-   *
    * @param action the additions to the public address
    * @return the built url
    * @throws Exception any thrown by {@code action}
@@ -147,19 +103,6 @@ public interface PublicAddress {
    */
   default URI get(Action<? super HttpUrlBuilder> action) throws Exception {
     return action.with(builder()).build();
-  }
-
-  /**
-   * Creates a URL by appending the given <i>path</i> to the public address
-   *
-   * @param ctx the handling context at the time the public address is needed
-   * @param path the path to append to the public address
-   * @return the public address with the given path appended
-   * @deprecated since 1.2, use {@link #get(String)}
-   */
-  @Deprecated
-  default URI get(@SuppressWarnings("UnusedParameters") Context ctx, String path) {
-    return builder().path(path).build();
   }
 
   /**

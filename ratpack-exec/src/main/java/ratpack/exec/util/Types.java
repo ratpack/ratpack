@@ -19,7 +19,6 @@ package ratpack.exec.util;
 
 import com.google.common.reflect.TypeParameter;
 import com.google.common.reflect.TypeToken;
-import ratpack.exec.Promise;
 import ratpack.exec.registry.internal.TypeCaching;
 
 import java.lang.reflect.Type;
@@ -111,70 +110,6 @@ public abstract class Types {
     return new TypeToken<List<T>>() {
     }.where(new TypeParameter<T>() {
     }, token(type));
-  }
-
-  /**
-   * Creates a type token for a promise of of the given type.
-   * <pre class="java">{@code
-   * import ratpack.exec.util.Types;
-   * import ratpack.exec.Promise;
-   * import com.google.common.reflect.TypeToken;
-   *
-   * import java.util.List;
-   *
-   * import static org.junit.Assert.*;
-   *
-   * public class Example {
-   *   {@literal @}SuppressWarnings("deprecation")
-   *   public static void main(String... args) {
-   *     assertEquals(Types.promiseOf(String.class), new TypeToken<Promise<String>>() {});
-   *   }
-   * }
-   * }</pre>
-   *
-   * @param type the promise element type
-   * @param <T> the promise element type
-   * @return a type token for a promise of of the given type.
-   * @deprecated since 1.5, no replacement.
-   */
-  @Deprecated
-  public static <T> TypeToken<Promise<T>> promiseOf(Class<T> type) {
-    return promiseOf(token(type));
-  }
-
-  /**
-   * Creates a type token for a promise of the given type.
-   *
-   * <pre class="java">{@code
-   * import ratpack.exec.util.Types;
-   * import ratpack.exec.Promise;
-   * import com.google.common.reflect.TypeToken;
-   *
-   * import java.util.List;
-   *
-   * import static org.junit.Assert.*;
-   *
-   * public class Example {
-   *   {@literal @}SuppressWarnings("deprecation")
-   *   public static void main(String... args) {
-   *     assertEquals(
-   *       Types.promiseOf(new TypeToken<List<String>>() {}),
-   *       new TypeToken<Promise<List<String>>>() {}
-   *     );
-   *   }
-   * }
-   * }</pre>
-   *
-   * @param type the promise element type
-   * @param <T> the promise element type
-   * @return a type token for a promise of of the given type.
-   * @deprecated since 1.5, no replacement.
-   */
-  @Deprecated
-  public static <T> TypeToken<Promise<T>> promiseOf(TypeToken<T> type) {
-    return new TypeToken<Promise<T>>() {
-    }.where(new TypeParameter<T>() {
-    }, type);
   }
 
 }

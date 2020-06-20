@@ -29,7 +29,6 @@ import io.netty.handler.ssl.SslContext;
 import ratpack.core.config.*;
 import ratpack.core.config.internal.DefaultConfigData;
 import ratpack.core.config.internal.DefaultConfigDataBuilder;
-import ratpack.core.config.internal.module.JdkSslContextDeserializer;
 import ratpack.core.config.internal.module.NettySslContextDeserializer;
 import ratpack.core.config.internal.module.ServerConfigDataDeserializer;
 import ratpack.core.file.FileSystemBinding;
@@ -42,7 +41,6 @@ import ratpack.core.server.ServerConfigBuilder;
 import ratpack.exec.func.Action;
 import ratpack.exec.func.Function;
 
-import javax.net.ssl.SSLContext;
 import java.net.InetAddress;
 import java.net.URI;
 import java.net.URL;
@@ -191,18 +189,6 @@ public class DefaultServerConfigBuilder implements ServerConfigBuilder {
   @Override
   public ServerConfigBuilder portFile(Path portFile) {
     return addToServer(n -> n.put("portFile", portFile.toString()));
-  }
-
-  @Override
-  @SuppressWarnings("deprecation")
-  public ServerConfigBuilder ssl(SSLContext sslContext) {
-    return addToServer(n -> n.putPOJO("jdkSsl", sslContext));
-  }
-
-  @Override
-  @SuppressWarnings("deprecation")
-  public ServerConfigBuilder requireClientSslAuth(boolean requireClientSslAuth) {
-    return addToServer(n -> n.put("requireClientSslAuth", requireClientSslAuth));
   }
 
   @Override
@@ -441,7 +427,6 @@ public class DefaultServerConfigBuilder implements ServerConfigBuilder {
         serverEnvironment.getPublicAddress(),
         baseDirSupplier
       ));
-      addDeserializer(SSLContext.class, new JdkSslContextDeserializer());
       addDeserializer(SslContext.class, new NettySslContextDeserializer());
     }
   }

@@ -31,7 +31,6 @@ import ratpack.exec.api.Nullable;
 import ratpack.exec.func.Action;
 import ratpack.exec.util.Types;
 
-import javax.net.ssl.SSLContext;
 import java.net.InetAddress;
 import java.net.URI;
 import java.nio.file.Path;
@@ -207,32 +206,10 @@ public interface ServerConfig extends ConfigData {
 
   /**
    * The SSL context to use if the application will serve content over HTTPS.
-   * <p>
-   * If the SSL context was configured with {@link ServerConfigBuilder#ssl(SslContext)},
-   * this method will throw {@link UnsupportedOperationException}.
-   *
-   * @return The SSL context or <code>null</code> if the application does not use SSL.
-   * @deprecated since 1.5, prefer {@link #getNettySslContext()}
-   */
-  @Nullable
-  @Deprecated
-  SSLContext getSslContext();
-
-  /**
-   * The SSL context to use if the application will serve content over HTTPS.
    *
    * @return The SSL context or <code>null</code> if the application does not use SSL.
    */
-  SslContext getNettySslContext();
-
-  /**
-   * Whether or not the server needs client SSL authentication {@link javax.net.ssl.SSLEngine#setNeedClientAuth(boolean)}.
-   *
-   * @return whether or not the server needs client SSL authentication
-   * @deprecated since 1.5, replaced by {@link #getNettySslContext()}
-   */
-  @Deprecated
-  boolean isRequireClientSslAuth();
+  SslContext getSslContext();
 
   /**
    * The max content length to use for the HttpObjectAggregator.

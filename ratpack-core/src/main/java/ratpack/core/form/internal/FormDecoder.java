@@ -44,7 +44,6 @@ import static ratpack.exec.util.Exceptions.uncheck;
 
 public abstract class FormDecoder {
 
-  @SuppressWarnings("deprecation")
   public static Form parseForm(Context context, TypedData body, MultiValueMap<String, String> base) throws RuntimeException {
     Request request = context.getRequest();
     HttpMethod method = io.netty.handler.codec.http.HttpMethod.valueOf(request.getMethod().getName());

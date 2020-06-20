@@ -22,9 +22,9 @@ import groovy.transform.Canonical
 import org.junit.Rule
 import org.junit.rules.TemporaryFolder
 import ratpack.core.server.ServerConfig
-import ratpack.core.server.Service
-import ratpack.core.server.StartEvent
 import ratpack.core.server.internal.ServerConfigData
+import ratpack.core.service.Service
+import ratpack.core.service.StartEvent
 import ratpack.exec.func.Action
 import ratpack.test.internal.RatpackGroovyDslSpec
 import spock.util.concurrent.PollingConditions
