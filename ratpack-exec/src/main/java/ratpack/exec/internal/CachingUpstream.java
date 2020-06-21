@@ -26,6 +26,7 @@ import java.time.Instant;
 import java.util.Queue;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicReference;
+import java.util.stream.Stream;
 
 public class CachingUpstream<T> implements Upstream<T> {
 
@@ -48,39 +49,47 @@ public class CachingUpstream<T> implements Upstream<T> {
     this.clock = clock;
   }
 
-  private boolean shouldTryDrain() {
+  private boolean shouldDrain() {
     return !waiting.isEmpty() && loadingRef.get().getState() != LoadingState.PENDING;
   }
 
+  // This uses lazy evaluation of lambdas in an infinite collection in order to
+  // create a tail-call optimization (http://blog.agiledeveloper.com/2013/01/functional-programming-in-java-is-quite.html)
   private void tryDrain() {
-    if (!shouldTryDrain()) {
-      return;
-    }
-    if (draining.compareAndSet(false, true)) {
-      try {
-        if (!waiting.isEmpty()) {
-          Loading loading = loadingRef.get();
-          LoadingState state = loading.getState();
-          if (state == LoadingState.INIT) {
-            startLoad(loading);
-          } else if (state == LoadingState.EXPIRED) {
-            Loading newLoading = new Loading();
-            loadingRef.compareAndSet(loading, newLoading);
-            startLoad(loadingRef.get());
-          } else if (state == LoadingState.LOADED) {
-            Downstream<? super T> downstream = waiting.poll();
-            while (downstream != null) {
-              downstream.accept(loading.cached.result);
-              downstream = waiting.poll();
+    Stream.iterate(drain(), Drainer::get).filter(Drainer::done).findFirst();
+  }
+
+  private Drainer drain() {
+    if (!shouldDrain()) {
+      return new DrainerEnd();
+    } else {
+      return () -> {
+        if (draining.compareAndSet(false, true)) {
+          try {
+            if (!waiting.isEmpty()) {
+              Loading loading = loadingRef.get();
+              LoadingState state = loading.getState();
+              if (state == LoadingState.INIT) {
+                startLoad(loading);
+              } else if (state == LoadingState.EXPIRED) {
+                Loading newLoading = new Loading();
+                loadingRef.compareAndSet(loading, newLoading);
+                startLoad(loadingRef.get());
+              } else if (state == LoadingState.LOADED) {
+                Downstream<? super T> downstream = waiting.poll();
+                while (downstream != null) {
+                  downstream.accept(loading.cached.result);
+                  downstream = waiting.poll();
+                }
+              }
             }
+          } finally {
+            draining.set(false);
           }
         }
-      } finally {
-        draining.set(false);
-      }
+        return drain();
+      };
     }
-
-    tryDrain();
   }
 
   private void startLoad(Loading loading) {
@@ -191,6 +200,25 @@ public class CachingUpstream<T> implements Upstream<T> {
       }
     }
 
+  }
+
+  @FunctionalInterface
+  interface Drainer {
+    Drainer get();
+
+    default boolean done() {
+      return false;
+    }
+  }
+
+  static class DrainerEnd implements Drainer {
+    public Drainer get() {
+      throw new RuntimeException("should not drain");
+    }
+
+    public boolean done() {
+      return true;
+    }
   }
 
 }
