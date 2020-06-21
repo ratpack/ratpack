@@ -309,14 +309,14 @@ public abstract class Handlers {
   }
 
   /**
-   * Creates a handler that always issues a redirect using {@link Context#redirect(int, String)} with exactly the given code and location.
+   * Creates a handler that always issues a redirect using {@link Context#redirect(int, Object)} with exactly the given code and location.
    * <p>
    * This method will immediate throw an {@link IllegalArgumentException} if code is &lt; 300 || &gt; 399.
    *
    * @param code the 3XX HTTP status code
    * @param location the URL to set in the Location response header
    * @return a handler
-   * @see Context#redirect(int, String)
+   * @see Context#redirect(int, Object)
    */
   public static Handler redirect(int code, String location) {
     return new RedirectionHandler(location, code);
