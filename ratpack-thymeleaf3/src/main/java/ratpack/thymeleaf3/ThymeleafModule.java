@@ -59,7 +59,7 @@ public final class ThymeleafModule extends ConfigurableModule<ThymeleafModule.Co
     /**
      * The mode for templates.
      * <p>
-     * {@value ThymeleafModule#DEFAULT_TEMPLATE_MODE} by default.
+     * {@value ratpack.thymeleaf3.ThymeleafModule#DEFAULT_TEMPLATE_MODE} by default.
      *
      * @return the mode for templates.
      */
@@ -70,7 +70,7 @@ public final class ThymeleafModule extends ConfigurableModule<ThymeleafModule.Co
     /**
      * The prefix for templates.
      * <p>
-     * {@value ThymeleafModule#DEFAULT_TEMPLATE_PREFIX} by default.
+     * {@value ratpack.thymeleaf3.ThymeleafModule#DEFAULT_TEMPLATE_PREFIX} by default.
      *
      * @return the prefix for templates.
      */
@@ -81,7 +81,7 @@ public final class ThymeleafModule extends ConfigurableModule<ThymeleafModule.Co
     /**
      * The suffix for templates.
      * <p>
-     * {@value ThymeleafModule#DEFAULT_TEMPLATE_SUFFIX} by default.
+     * {@value ratpack.thymeleaf3.ThymeleafModule#DEFAULT_TEMPLATE_SUFFIX} by default.
      *
      * @return the suffix for templates.
      */
