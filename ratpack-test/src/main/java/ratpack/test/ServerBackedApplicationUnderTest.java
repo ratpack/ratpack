@@ -17,13 +17,13 @@
 package ratpack.test;
 
 import ratpack.core.impose.*;
-import ratpack.exec.func.Factory;
+import ratpack.func.Factory;
 import ratpack.core.server.RatpackServer;
 
 import java.net.URI;
 import java.net.URISyntaxException;
 
-import static ratpack.exec.util.Exceptions.uncheck;
+import static ratpack.func.Exceptions.uncheck;
 
 /**
  * An {@link ApplicationUnderTest} implementation that manages a {@link RatpackServer}.

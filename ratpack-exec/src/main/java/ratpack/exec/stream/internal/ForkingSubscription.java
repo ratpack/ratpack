@@ -21,7 +21,7 @@ import org.reactivestreams.Subscriber;
 import org.reactivestreams.Subscription;
 import ratpack.exec.ExecSpec;
 import ratpack.exec.Execution;
-import ratpack.exec.func.Action;
+import ratpack.func.Action;
 
 public class ForkingSubscription<T> implements Subscription {
 

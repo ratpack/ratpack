@@ -19,7 +19,7 @@ package ratpack.core.server.internal;
 import ratpack.core.server.RatpackServerSpec;
 import ratpack.core.server.ServerConfig;
 import ratpack.core.server.ServerConfigBuilder;
-import ratpack.exec.func.Action;
+import ratpack.func.Action;
 
 public class EmbeddedRatpackServerSpec extends DelegatingRatpackServerSpec {
   public EmbeddedRatpackServerSpec(RatpackServerSpec delegate) {

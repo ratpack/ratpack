@@ -31,8 +31,8 @@ import ratpack.core.http.client.ReceivedResponse;
 import ratpack.core.http.client.RequestSpec;
 import ratpack.core.http.internal.HttpHeaderConstants;
 import ratpack.core.http.internal.NettyHeadersBackedMutableHeaders;
-import ratpack.exec.func.Action;
-import ratpack.exec.func.Function;
+import ratpack.func.Action;
+import ratpack.func.Function;
 
 import java.io.OutputStream;
 import java.net.URI;

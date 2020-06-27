@@ -18,7 +18,7 @@ package ratpack.reactor.internal;
 
 import ratpack.exec.Execution;
 import ratpack.exec.Promise;
-import ratpack.exec.func.Action;
+import ratpack.func.Action;
 
 import java.lang.reflect.UndeclaredThrowableException;
 import java.util.function.BiFunction;

@@ -22,16 +22,16 @@ import com.google.inject.Module;
 import com.google.inject.Provider;
 import com.google.inject.TypeLiteral;
 import com.google.inject.multibindings.Multibinder;
-import ratpack.exec.func.Action;
+import ratpack.func.Action;
 import ratpack.guice.internal.GuiceUtil;
 import ratpack.exec.registry.RegistrySpec;
-import ratpack.exec.registry.internal.TypeCaching;
+import ratpack.func.internal.TypeCaching;
 import ratpack.core.server.ServerConfig;
-import ratpack.exec.util.Types;
+import ratpack.func.Types;
 
 import java.util.function.Supplier;
 
-import static ratpack.exec.util.Exceptions.uncheck;
+import static ratpack.func.Exceptions.uncheck;
 
 /**
  * A buildable specification of Guice bindings.

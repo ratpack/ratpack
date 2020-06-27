@@ -26,8 +26,8 @@ import ratpack.core.handling.Context;
 import ratpack.core.handling.Handler;
 import ratpack.core.http.Response;
 import ratpack.core.http.internal.HttpHeaderConstants;
-import ratpack.exec.func.Factory;
-import ratpack.exec.func.Action;
+import ratpack.func.Factory;
+import ratpack.func.Action;
 import ratpack.exec.Blocking;
 
 import java.nio.file.Path;

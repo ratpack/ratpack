@@ -22,13 +22,13 @@ import ratpack.exec.ExecutionException;
 import ratpack.exec.Promise;
 import ratpack.exec.Upstream;
 import ratpack.exec.util.retry.RetryPolicy;
-import ratpack.exec.func.Action;
-import ratpack.exec.func.BiAction;
-import ratpack.exec.func.BiFunction;
-import ratpack.exec.func.Block;
-import ratpack.exec.func.Function;
-import ratpack.exec.func.Predicate;
-import ratpack.exec.util.Exceptions;
+import ratpack.func.Action;
+import ratpack.func.BiAction;
+import ratpack.func.BiFunction;
+import ratpack.func.Block;
+import ratpack.func.Function;
+import ratpack.func.Predicate;
+import ratpack.func.Exceptions;
 
 import java.time.Duration;
 

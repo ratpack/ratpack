@@ -20,7 +20,7 @@ import org.reactivestreams.Publisher;
 import ratpack.exec.ExecResult;
 import ratpack.exec.Operation;
 import ratpack.exec.Promise;
-import ratpack.exec.func.BiAction;
+import ratpack.func.BiAction;
 import ratpack.exec.stream.Streams;
 import ratpack.exec.stream.TransformablePublisher;
 

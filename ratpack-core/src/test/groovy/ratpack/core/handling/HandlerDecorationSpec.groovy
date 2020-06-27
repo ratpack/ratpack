@@ -16,7 +16,7 @@
 
 package ratpack.core.handling
 
-import ratpack.exec.func.Action
+import ratpack.func.Action
 import ratpack.exec.registry.Registry
 import ratpack.groovy.handling.GroovyChain
 import ratpack.test.internal.RatpackGroovyDslSpec

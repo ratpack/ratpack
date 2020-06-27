@@ -16,7 +16,7 @@
 
 package ratpack.exec;
 
-import ratpack.exec.func.Action;
+import ratpack.func.Action;
 
 @FunctionalInterface
 public interface ExecInitializer {

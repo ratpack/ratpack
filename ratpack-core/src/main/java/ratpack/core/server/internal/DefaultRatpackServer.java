@@ -46,14 +46,14 @@ import ratpack.core.service.internal.ServicesGraph;
 import ratpack.exec.Blocking;
 import ratpack.exec.Promise;
 import ratpack.exec.Throttle;
-import ratpack.exec.api.Nullable;
-import ratpack.exec.func.Action;
-import ratpack.exec.func.Function;
+import ratpack.func.Nullable;
+import ratpack.func.Action;
+import ratpack.func.Function;
 import ratpack.exec.internal.DefaultExecController;
 import ratpack.exec.internal.ExecThreadBinding;
 import ratpack.exec.registry.Registry;
-import ratpack.exec.util.Exceptions;
-import ratpack.exec.util.Types;
+import ratpack.func.Exceptions;
+import ratpack.func.Types;
 import ratpack.exec.util.internal.TransportDetector;
 
 import javax.net.ssl.SSLEngine;
@@ -63,7 +63,7 @@ import java.nio.file.Path;
 import java.util.Optional;
 import java.util.concurrent.atomic.AtomicBoolean;
 
-import static ratpack.exec.util.Exceptions.uncheck;
+import static ratpack.func.Exceptions.uncheck;
 
 public class DefaultRatpackServer implements RatpackServer {
 

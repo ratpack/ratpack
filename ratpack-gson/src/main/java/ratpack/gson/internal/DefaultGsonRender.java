@@ -17,7 +17,7 @@
 package ratpack.gson.internal;
 
 import com.google.gson.Gson;
-import ratpack.exec.api.Nullable;
+import ratpack.func.Nullable;
 import ratpack.gson.GsonRender;
 
 public class DefaultGsonRender implements GsonRender {

@@ -24,7 +24,7 @@ import java.nio.file.Path;
 import java.nio.file.attribute.FileTime;
 import java.util.concurrent.atomic.AtomicReference;
 
-import static ratpack.exec.util.Exceptions.uncheck;
+import static ratpack.func.Exceptions.uncheck;
 
 public class FileBackedReloadInformant implements ReloadInformant {
   private final Path file;

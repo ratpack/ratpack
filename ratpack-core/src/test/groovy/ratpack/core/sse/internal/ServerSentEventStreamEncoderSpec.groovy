@@ -21,7 +21,7 @@ import org.reactivestreams.Publisher
 import ratpack.core.sse.Event
 import ratpack.core.sse.ServerSentEvents
 import ratpack.exec.Result
-import ratpack.exec.func.Action
+import ratpack.func.Action
 import ratpack.exec.stream.Streams
 import ratpack.exec.stream.internal.CollectingSubscriber
 import ratpack.test.internal.RatpackGroovyDslSpec

@@ -17,8 +17,9 @@
 package ratpack.exec.registry.internal;
 
 import com.google.common.reflect.TypeToken;
-import ratpack.exec.func.Function;
+import ratpack.func.Function;
 import ratpack.exec.registry.Registry;
+import ratpack.func.internal.TypeCaching;
 
 import java.util.Collections;
 import java.util.Optional;

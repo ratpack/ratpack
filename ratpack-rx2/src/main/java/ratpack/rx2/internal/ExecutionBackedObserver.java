@@ -22,7 +22,7 @@ import io.reactivex.exceptions.CompositeException;
 import io.reactivex.exceptions.OnErrorNotImplementedException;
 import io.reactivex.exceptions.UndeliverableException;
 import ratpack.exec.Promise;
-import ratpack.exec.func.Action;
+import ratpack.func.Action;
 
 public  class ExecutionBackedObserver<T> implements Observer<T> {
   private final Observer<? super T> observer;

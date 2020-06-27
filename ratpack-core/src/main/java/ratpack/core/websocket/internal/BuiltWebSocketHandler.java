@@ -20,10 +20,10 @@ import ratpack.core.websocket.WebSocket;
 import ratpack.core.websocket.WebSocketClose;
 import ratpack.core.websocket.WebSocketHandler;
 import ratpack.core.websocket.WebSocketMessage;
-import ratpack.exec.func.Action;
-import ratpack.exec.func.Function;
+import ratpack.func.Action;
+import ratpack.func.Function;
 
-import static ratpack.exec.util.Exceptions.uncheck;
+import static ratpack.func.Exceptions.uncheck;
 
 public class BuiltWebSocketHandler<T> implements WebSocketHandler<T> {
 

@@ -42,7 +42,7 @@ import ratpack.core.http.internal.*;
 import ratpack.core.render.internal.DefaultRenderController;
 import ratpack.core.server.ServerConfig;
 import ratpack.exec.ExecController;
-import ratpack.exec.func.Action;
+import ratpack.func.Action;
 import ratpack.exec.registry.Registry;
 
 import javax.net.ssl.SSLEngine;

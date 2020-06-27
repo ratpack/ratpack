@@ -21,8 +21,8 @@ import ratpack.core.server.StartupFailureException;
 import ratpack.core.server.internal.DefaultRatpackServer;
 import ratpack.core.service.*;
 import ratpack.exec.ExecController;
-import ratpack.exec.api.Nullable;
-import ratpack.exec.func.Predicate;
+import ratpack.func.Nullable;
+import ratpack.func.Predicate;
 import ratpack.exec.registry.Registry;
 
 import java.util.*;

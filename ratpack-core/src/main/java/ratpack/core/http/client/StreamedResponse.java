@@ -19,7 +19,7 @@ package ratpack.core.http.client;
 import io.netty.buffer.ByteBuf;
 import ratpack.core.http.MutableHeaders;
 import ratpack.core.http.Response;
-import ratpack.exec.func.Action;
+import ratpack.func.Action;
 import ratpack.exec.stream.TransformablePublisher;
 
 /**

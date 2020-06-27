@@ -16,7 +16,7 @@
 
 package ratpack.core.file.checksummer.internal;
 
-import ratpack.exec.func.Function;
+import ratpack.func.Function;
 
 import java.io.InputStream;
 import java.security.MessageDigest;

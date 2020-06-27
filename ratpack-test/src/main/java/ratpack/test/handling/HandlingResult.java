@@ -19,7 +19,7 @@ package ratpack.test.handling;
 import io.netty.handler.codec.http.cookie.Cookie;
 import ratpack.core.handling.Context;
 import ratpack.core.http.Response;
-import ratpack.exec.api.Nullable;
+import ratpack.func.Nullable;
 import ratpack.core.http.Headers;
 import ratpack.core.http.Status;
 import ratpack.exec.registry.Registry;

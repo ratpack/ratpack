@@ -18,13 +18,13 @@ package ratpack.groovy.template.internal;
 
 import com.google.common.reflect.TypeToken;
 import ratpack.groovy.template.TextTemplateModel;
-import ratpack.exec.util.Types;
+import ratpack.func.Types;
 
 import java.util.Collection;
 import java.util.Map;
 import java.util.Set;
 
-import static ratpack.exec.util.Types.cast;
+import static ratpack.func.Types.cast;
 
 public class MapBackedTextTemplateModel implements TextTemplateModel {
 

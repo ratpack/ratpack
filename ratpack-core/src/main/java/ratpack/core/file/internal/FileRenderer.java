@@ -27,10 +27,10 @@ import ratpack.core.http.internal.HttpHeaderConstants;
 import ratpack.core.render.Renderer;
 import ratpack.core.render.RendererSupport;
 import ratpack.exec.Blocking;
-import ratpack.exec.func.Action;
-import ratpack.exec.func.Factory;
-import ratpack.exec.util.Exceptions;
-import ratpack.exec.util.Types;
+import ratpack.func.Action;
+import ratpack.func.Factory;
+import ratpack.func.Exceptions;
+import ratpack.func.Types;
 
 import java.nio.file.Files;
 import java.nio.file.Path;

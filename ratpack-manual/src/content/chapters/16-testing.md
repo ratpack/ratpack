@@ -15,7 +15,7 @@ While Spock requires writing tests in Groovy, it can effortlessly be used to eff
 
 ### RequestFixture
 
-The [`RequestFixture`](api/ratpack/test/handling/RequestFixture.html#handle-ratpack.core.handling.Handler-ratpack.exec.func.Action-) class
+The [`RequestFixture`](api/ratpack/test/handling/RequestFixture.html#handle-ratpack.core.handling.Handler-ratpack.func.Action-) class
 facilitates creating a mocked request environment, ostensibly for testing [`Handler`](api/ratpack/core/handling/Handler.html) implementations.
 However, it is also common to use an ad-hoc handler with a request fixture that integrates with other components (e.g. [`Parser`](api/ratpack/core/parse/Parser.html) implementations).
 

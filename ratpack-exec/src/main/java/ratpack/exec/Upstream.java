@@ -16,7 +16,7 @@
 
 package ratpack.exec;
 
-import ratpack.exec.func.Function;
+import ratpack.func.Function;
 
 /**
  * An upstream asynchronous data source.

@@ -20,7 +20,7 @@ import com.google.common.util.concurrent.Futures
 import org.reactivestreams.Publisher
 import org.reactivestreams.Subscriber
 import org.reactivestreams.Subscription
-import ratpack.exec.func.Action
+import ratpack.func.Action
 import ratpack.exec.stream.Streams
 import ratpack.test.exec.ExecHarness
 import spock.lang.AutoCleanup

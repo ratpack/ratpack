@@ -18,11 +18,11 @@ package ratpack.test.exec.internal;
 
 import ratpack.exec.*;
 import ratpack.exec.internal.ResultBackedExecResult;
-import ratpack.exec.func.Action;
-import ratpack.exec.func.Function;
+import ratpack.func.Action;
+import ratpack.func.Function;
 import ratpack.exec.registry.RegistrySpec;
 import ratpack.test.exec.ExecHarness;
-import ratpack.exec.util.Exceptions;
+import ratpack.func.Exceptions;
 
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.atomic.AtomicReference;

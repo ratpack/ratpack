@@ -18,7 +18,7 @@ package ratpack.core.parse;
 
 import ratpack.core.handling.Context;
 import ratpack.core.http.TypedData;
-import ratpack.exec.api.Nullable;
+import ratpack.func.Nullable;
 
 /**
  * A parser converts a request body into an object.

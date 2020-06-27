@@ -19,7 +19,7 @@ package ratpack.core.file.internal
 import ratpack.core.http.client.ReceivedResponse
 import ratpack.core.http.client.RequestSpec
 import ratpack.core.http.internal.HttpHeaderDateFormat
-import ratpack.exec.func.Action
+import ratpack.func.Action
 import ratpack.test.internal.RatpackGroovyDslSpec
 
 import java.nio.file.Files

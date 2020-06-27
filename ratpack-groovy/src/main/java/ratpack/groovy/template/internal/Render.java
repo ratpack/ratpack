@@ -19,7 +19,7 @@ package ratpack.groovy.template.internal;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.ByteBufAllocator;
 import ratpack.exec.Promise;
-import ratpack.exec.func.Function;
+import ratpack.func.Function;
 
 import java.util.HashMap;
 import java.util.Map;

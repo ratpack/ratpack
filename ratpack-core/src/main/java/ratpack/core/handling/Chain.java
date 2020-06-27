@@ -18,15 +18,15 @@ package ratpack.core.handling;
 
 import io.netty.handler.codec.http.HttpHeaderNames;
 import ratpack.core.file.FileHandlerSpec;
-import ratpack.core.file.FileSystemBinding;
+import ratpack.config.FileSystemBinding;
 import ratpack.core.path.PathTokens;
 import ratpack.core.server.RatpackServerSpec;
 import ratpack.core.server.ServerConfig;
-import ratpack.exec.func.Action;
-import ratpack.exec.func.Predicate;
+import ratpack.func.Action;
+import ratpack.func.Predicate;
 import ratpack.exec.registry.Registry;
 import ratpack.exec.registry.RegistrySpec;
-import ratpack.exec.util.Exceptions;
+import ratpack.func.Exceptions;
 
 import java.util.Optional;
 

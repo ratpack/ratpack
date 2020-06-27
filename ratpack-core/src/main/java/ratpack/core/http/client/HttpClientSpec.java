@@ -20,7 +20,7 @@ import io.netty.buffer.ByteBufAllocator;
 import io.netty.buffer.PooledByteBufAllocator;
 import ratpack.core.server.ServerConfig;
 import ratpack.exec.Operation;
-import ratpack.exec.func.Action;
+import ratpack.func.Action;
 
 import java.time.Duration;
 

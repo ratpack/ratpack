@@ -40,8 +40,8 @@ import ratpack.core.http.internal.*;
 import ratpack.exec.Blocking;
 import ratpack.exec.Execution;
 import ratpack.exec.Promise;
-import ratpack.exec.api.Nullable;
-import ratpack.exec.func.Action;
+import ratpack.func.Nullable;
+import ratpack.func.Action;
 
 import java.io.IOException;
 import java.io.UncheckedIOException;

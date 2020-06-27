@@ -19,7 +19,7 @@ package ratpack.exec.stream.internal;
 import org.reactivestreams.Publisher;
 import org.reactivestreams.Subscriber;
 import org.reactivestreams.Subscription;
-import ratpack.exec.func.Function;
+import ratpack.func.Function;
 import ratpack.exec.stream.TransformablePublisher;
 
 import java.util.concurrent.atomic.AtomicBoolean;

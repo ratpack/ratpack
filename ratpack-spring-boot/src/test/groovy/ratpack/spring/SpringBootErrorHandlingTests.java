@@ -28,7 +28,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import ratpack.core.error.ServerErrorHandler;
-import ratpack.exec.func.Action;
+import ratpack.func.Action;
 import ratpack.core.handling.Chain;
 import ratpack.core.server.RatpackServer;
 import ratpack.spring.config.EnableRatpack;

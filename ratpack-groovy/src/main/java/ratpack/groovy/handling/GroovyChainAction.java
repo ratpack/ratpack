@@ -16,7 +16,7 @@
 
 package ratpack.groovy.handling;
 
-import ratpack.exec.func.Action;
+import ratpack.func.Action;
 import ratpack.core.handling.Chain;
 import ratpack.core.handling.Handler;
 import ratpack.exec.registry.Registry;

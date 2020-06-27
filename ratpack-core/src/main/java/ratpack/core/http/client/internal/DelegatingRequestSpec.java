@@ -21,8 +21,8 @@ import ratpack.core.http.HttpMethod;
 import ratpack.core.http.MutableHeaders;
 import ratpack.core.http.client.ReceivedResponse;
 import ratpack.core.http.client.RequestSpec;
-import ratpack.exec.func.Action;
-import ratpack.exec.func.Function;
+import ratpack.func.Action;
+import ratpack.func.Function;
 
 import java.net.URI;
 import java.time.Duration;

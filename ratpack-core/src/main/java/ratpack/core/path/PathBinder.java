@@ -20,7 +20,7 @@ import ratpack.core.handling.Chain;
 import ratpack.core.handling.Handler;
 import ratpack.core.handling.Handlers;
 import ratpack.core.path.internal.DefaultPathBinderBuilder;
-import ratpack.exec.func.Action;
+import ratpack.func.Action;
 
 import java.util.Optional;
 

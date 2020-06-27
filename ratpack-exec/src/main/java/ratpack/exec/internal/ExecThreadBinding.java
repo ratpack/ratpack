@@ -17,11 +17,11 @@
 package ratpack.exec.internal;
 
 import io.netty.util.concurrent.FastThreadLocal;
-import ratpack.exec.api.Nullable;
+import ratpack.func.Nullable;
 import ratpack.exec.ExecController;
 import ratpack.exec.ExecutionException;
 import ratpack.exec.UnmanagedThreadException;
-import ratpack.exec.func.Factory;
+import ratpack.func.Factory;
 
 import java.util.Optional;
 

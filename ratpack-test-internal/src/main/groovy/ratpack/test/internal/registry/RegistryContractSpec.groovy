@@ -16,8 +16,8 @@
 
 package ratpack.test.internal.registry
 
-import ratpack.exec.func.Action
-import ratpack.exec.func.Function
+import ratpack.func.Action
+import ratpack.func.Function
 import ratpack.exec.registry.NotInRegistryException
 import ratpack.exec.registry.Registry
 import ratpack.exec.registry.RegistrySpec

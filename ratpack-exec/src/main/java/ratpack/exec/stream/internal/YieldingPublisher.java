@@ -17,7 +17,7 @@
 package ratpack.exec.stream.internal;
 
 import org.reactivestreams.Subscriber;
-import ratpack.exec.func.Function;
+import ratpack.func.Function;
 import ratpack.exec.stream.TransformablePublisher;
 import ratpack.exec.stream.YieldRequest;
 

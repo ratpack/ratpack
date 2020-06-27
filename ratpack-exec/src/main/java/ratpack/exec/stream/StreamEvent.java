@@ -16,8 +16,8 @@
 
 package ratpack.exec.stream;
 
-import ratpack.exec.api.Nullable;
-import ratpack.exec.func.Action;
+import ratpack.func.Nullable;
+import ratpack.func.Action;
 
 /**
  * Represents an event emitted by a publisher.

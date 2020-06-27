@@ -17,9 +17,10 @@
 package ratpack.exec.registry;
 
 import com.google.common.reflect.TypeToken;
-import ratpack.exec.func.Action;
-import ratpack.exec.func.Function;
+import ratpack.func.Action;
+import ratpack.func.Function;
 import ratpack.exec.registry.internal.*;
+import ratpack.func.internal.TypeCaching;
 
 import java.util.Optional;
 import java.util.function.Supplier;
@@ -60,7 +61,7 @@ import java.util.function.Supplier;
  * import ratpack.test.handling.RequestFixture;
  *
  * import static ratpack.core.handling.Handlers.chain;
- * import static ratpack.exec.func.Action.noop;
+ * import static ratpack.func.Action.noop;
  *
  * import static org.junit.Assert.assertEquals;
  *

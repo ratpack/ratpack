@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package ratpack.core.config.internal.module;
+package ratpack.config.internal.module;
 
 import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.core.JsonProcessingException;
@@ -29,7 +29,7 @@ import io.netty.handler.ssl.JdkSslContext;
 import io.netty.handler.ssl.SslContext;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import ratpack.core.file.FileSystemBinding;
+import ratpack.config.FileSystemBinding;
 import ratpack.core.server.ServerConfig;
 import ratpack.core.server.internal.ServerConfigData;
 import ratpack.core.server.internal.ServerEnvironment;

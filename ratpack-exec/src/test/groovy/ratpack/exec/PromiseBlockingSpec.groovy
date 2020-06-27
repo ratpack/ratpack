@@ -16,7 +16,7 @@
 
 package ratpack.exec
 
-import ratpack.exec.func.Block
+import ratpack.func.Block
 import ratpack.test.exec.ExecHarness
 import spock.lang.AutoCleanup
 import spock.lang.Specification

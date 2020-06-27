@@ -18,8 +18,8 @@ package ratpack.test.exec;
 
 import ratpack.exec.*;
 import ratpack.exec.internal.DefaultExecController;
-import ratpack.exec.func.Action;
-import ratpack.exec.func.Function;
+import ratpack.func.Action;
+import ratpack.func.Function;
 import ratpack.exec.registry.RegistrySpec;
 import ratpack.test.exec.internal.DefaultExecHarness;
 

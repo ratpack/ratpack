@@ -16,7 +16,7 @@
 
 package ratpack.groovy;
 
-import ratpack.exec.func.Action;
+import ratpack.func.Action;
 import ratpack.core.server.RatpackServer;
 
 /**

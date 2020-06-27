@@ -20,7 +20,7 @@ import org.java_websocket.framing.Framedata
 import org.reactivestreams.Publisher
 import org.reactivestreams.Subscriber
 import ratpack.exec.ExecController
-import ratpack.exec.func.Function
+import ratpack.func.Function
 import ratpack.test.internal.RatpackGroovyDslSpec
 import ratpack.websocket.RecordingWebSocketClient
 import spock.util.concurrent.BlockingVariable

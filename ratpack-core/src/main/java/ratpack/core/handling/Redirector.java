@@ -20,7 +20,7 @@ import com.google.common.reflect.TypeToken;
 import ratpack.core.handling.internal.DefaultRedirector;
 import ratpack.core.http.Request;
 import ratpack.core.server.PublicAddress;
-import ratpack.exec.util.Types;
+import ratpack.func.Types;
 
 import java.net.URI;
 

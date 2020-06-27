@@ -17,7 +17,7 @@ package ratpack.site.assets;
 
 import asset.pipeline.AssetPipelineConfigHolder;
 import asset.pipeline.fs.FileSystemAssetResolver;
-import ratpack.core.file.FileSystemBinding;
+import ratpack.config.FileSystemBinding;
 import ratpack.core.service.Service;
 import ratpack.core.service.StartEvent;
 

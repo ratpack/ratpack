@@ -20,7 +20,7 @@ import com.google.common.reflect.TypeToken;
 import ratpack.core.handling.Context;
 import ratpack.core.path.InvalidPathEncodingException;
 import ratpack.exec.api.NonBlocking;
-import ratpack.exec.util.Types;
+import ratpack.func.Types;
 
 /**
  * An object that can deal with errors that occur during the processing of an exchange.

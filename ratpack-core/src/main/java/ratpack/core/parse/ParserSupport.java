@@ -32,7 +32,7 @@ import ratpack.core.http.TypedData;
  * import ratpack.core.parse.Parse;
  * import ratpack.core.parse.ParserSupport;
  * import ratpack.core.parse.ParseException;
- * import ratpack.exec.util.Types;
+ * import ratpack.func.Types;
  *
  * import java.io.UnsupportedEncodingException;
  *

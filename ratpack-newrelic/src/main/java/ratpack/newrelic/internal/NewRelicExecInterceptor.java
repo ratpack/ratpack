@@ -19,7 +19,7 @@ package ratpack.newrelic.internal;
 import com.newrelic.api.agent.Trace;
 import ratpack.exec.ExecInterceptor;
 import ratpack.exec.Execution;
-import ratpack.exec.func.Block;
+import ratpack.func.Block;
 import ratpack.core.handling.Context;
 import ratpack.newrelic.NewRelicTransaction;
 

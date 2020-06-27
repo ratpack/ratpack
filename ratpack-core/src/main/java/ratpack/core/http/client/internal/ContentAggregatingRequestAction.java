@@ -27,7 +27,7 @@ import ratpack.core.http.client.RequestSpec;
 import ratpack.exec.Downstream;
 import ratpack.exec.Execution;
 import ratpack.exec.Upstream;
-import ratpack.exec.func.Action;
+import ratpack.func.Action;
 
 import java.net.URI;
 

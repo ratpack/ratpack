@@ -24,7 +24,7 @@ import ratpack.core.http.client.internal.DefaultReceivedResponse;
 import ratpack.core.http.internal.ByteBufBackedTypedData;
 import ratpack.core.http.internal.DefaultMediaType;
 import ratpack.retrofit.internal.OkHttpHeadersBackedHeaders;
-import ratpack.exec.util.Exceptions;
+import ratpack.func.Exceptions;
 import retrofit2.Call;
 import retrofit2.Response;
 

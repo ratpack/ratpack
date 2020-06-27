@@ -14,11 +14,11 @@
  * limitations under the License.
  */
 
-package ratpack.core.config.internal.module
+package ratpack.config.internal.module
 
 import com.fasterxml.jackson.databind.JsonNode
-import ratpack.core.config.internal.DefaultConfigDataBuilder
-import ratpack.core.file.FileSystemBinding
+import ratpack.config.internal.DefaultConfigDataBuilder
+import ratpack.config.FileSystemBinding
 import ratpack.core.server.internal.ServerConfigData
 import ratpack.core.server.internal.ServerEnvironment
 import ratpack.test.embed.EphemeralBaseDir

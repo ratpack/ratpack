@@ -26,7 +26,7 @@ import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
-import ratpack.exec.func.Function;
+import ratpack.func.Function;
 import ratpack.guice.Guice;
 import ratpack.exec.registry.Registry;
 import ratpack.core.server.RatpackServer;

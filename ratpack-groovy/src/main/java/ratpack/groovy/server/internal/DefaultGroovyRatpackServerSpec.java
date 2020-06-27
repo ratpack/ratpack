@@ -16,8 +16,8 @@
 
 package ratpack.groovy.server.internal;
 
-import ratpack.exec.func.Action;
-import ratpack.exec.func.Function;
+import ratpack.func.Action;
+import ratpack.func.Function;
 import ratpack.groovy.server.GroovyRatpackServerSpec;
 import ratpack.core.handling.Handler;
 import ratpack.exec.registry.Registry;

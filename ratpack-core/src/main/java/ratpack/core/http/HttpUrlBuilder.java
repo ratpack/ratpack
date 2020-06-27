@@ -20,8 +20,8 @@ import com.google.common.collect.ImmutableMultimap;
 import com.google.common.collect.Multimap;
 import ratpack.core.http.client.HttpClient;
 import ratpack.core.http.internal.DefaultHttpUrlBuilder;
-import ratpack.exec.func.Action;
-import ratpack.exec.util.MultiValueMap;
+import ratpack.func.Action;
+import ratpack.func.MultiValueMap;
 
 import java.net.URI;
 import java.util.Map;

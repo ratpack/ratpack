@@ -17,7 +17,7 @@
 package ratpack.core.server.internal;
 
 import ratpack.core.server.RatpackServer;
-import ratpack.exec.func.Block;
+import ratpack.func.Block;
 
 public abstract class ServerCapturer {
 

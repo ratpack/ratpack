@@ -20,7 +20,7 @@ import com.google.inject.Provides;
 import com.google.inject.Singleton;
 import io.netty.buffer.ByteBufAllocator;
 import ratpack.exec.ExecController;
-import ratpack.core.file.FileSystemBinding;
+import ratpack.config.FileSystemBinding;
 import ratpack.groovy.template.internal.TextTemplateRenderingEngine;
 import ratpack.groovy.template.internal.TextTemplateRenderer;
 import ratpack.guice.ConfigurableModule;

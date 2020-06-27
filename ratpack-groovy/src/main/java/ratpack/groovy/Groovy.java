@@ -24,10 +24,10 @@ import groovy.xml.MarkupBuilder;
 import io.netty.util.CharsetUtil;
 import ratpack.core.handling.Context;
 import ratpack.core.server.*;
-import ratpack.exec.api.Nullable;
-import ratpack.core.file.FileSystemBinding;
-import ratpack.exec.func.Action;
-import ratpack.exec.func.Function;
+import ratpack.func.Nullable;
+import ratpack.config.FileSystemBinding;
+import ratpack.func.Action;
+import ratpack.func.Function;
 import ratpack.groovy.handling.*;
 import ratpack.groovy.handling.internal.ClosureBackedHandler;
 import ratpack.groovy.handling.internal.DefaultGroovyByMethodSpec;
@@ -51,7 +51,7 @@ import ratpack.core.http.internal.HttpHeaderConstants;
 import ratpack.exec.registry.Registry;
 import ratpack.core.server.internal.BaseDirFinder;
 import ratpack.core.server.internal.FileBackedReloadInformant;
-import ratpack.exec.util.internal.Paths2;
+import ratpack.func.Paths2;
 
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
@@ -61,7 +61,7 @@ import java.util.Arrays;
 import java.util.Map;
 import java.util.Optional;
 
-import static ratpack.exec.util.Exceptions.uncheck;
+import static ratpack.func.Exceptions.uncheck;
 
 /**
  * Static methods for specialized Groovy integration.

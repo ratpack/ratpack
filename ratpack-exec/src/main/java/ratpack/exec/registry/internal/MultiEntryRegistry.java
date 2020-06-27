@@ -19,9 +19,10 @@ package ratpack.exec.registry.internal;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Iterables;
 import com.google.common.reflect.TypeToken;
-import ratpack.exec.func.Function;
+import ratpack.func.Function;
 import ratpack.exec.registry.Registry;
-import ratpack.exec.util.Types;
+import ratpack.func.internal.TypeCaching;
+import ratpack.func.Types;
 
 import java.util.Collections;
 import java.util.Optional;

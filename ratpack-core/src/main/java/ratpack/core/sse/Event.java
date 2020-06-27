@@ -16,7 +16,7 @@
 
 package ratpack.core.sse;
 
-import ratpack.exec.func.Function;
+import ratpack.func.Function;
 
 /**
  * An individual event in a server sent event stream.

@@ -25,10 +25,10 @@ import io.netty.util.CharsetUtil;
 import org.reactivestreams.Subscriber;
 import org.slf4j.LoggerFactory;
 import ratpack.core.http.internal.*;
-import ratpack.exec.api.Nullable;
+import ratpack.func.Nullable;
 import ratpack.exec.ExecController;
 import ratpack.core.file.internal.ResponseTransmitter;
-import ratpack.exec.func.Action;
+import ratpack.func.Action;
 import ratpack.core.handling.Context;
 import ratpack.core.handling.Handler;
 import ratpack.core.handling.RequestOutcome;
@@ -55,7 +55,7 @@ import java.util.Set;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
-import static ratpack.exec.util.Exceptions.uncheck;
+import static ratpack.func.Exceptions.uncheck;
 
 public class DefaultHandlingResult implements HandlingResult {
 

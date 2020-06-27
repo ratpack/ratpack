@@ -20,7 +20,7 @@ import com.google.common.reflect.TypeParameter;
 import com.google.common.reflect.TypeToken;
 import ratpack.core.handling.Context;
 import ratpack.exec.api.NonBlocking;
-import ratpack.exec.util.Types;
+import ratpack.func.Types;
 
 import java.util.function.BiConsumer;
 

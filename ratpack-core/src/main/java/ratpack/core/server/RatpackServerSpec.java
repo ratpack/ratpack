@@ -19,8 +19,8 @@ package ratpack.core.server;
 import ratpack.core.handling.Chain;
 import ratpack.core.handling.Handler;
 import ratpack.core.handling.Handlers;
-import ratpack.exec.func.Action;
-import ratpack.exec.func.Function;
+import ratpack.func.Action;
+import ratpack.func.Function;
 import ratpack.exec.registry.Registry;
 import ratpack.exec.registry.RegistrySpec;
 

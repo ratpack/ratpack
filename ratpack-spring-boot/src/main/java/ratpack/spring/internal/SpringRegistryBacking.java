@@ -23,7 +23,7 @@ import com.google.common.reflect.TypeToken;
 import org.springframework.beans.factory.BeanFactoryUtils;
 import org.springframework.beans.factory.ListableBeanFactory;
 import ratpack.exec.registry.RegistryBacking;
-import ratpack.exec.util.Types;
+import ratpack.func.Types;
 
 public class SpringRegistryBacking implements RegistryBacking {
   private final ListableBeanFactory beanFactory;

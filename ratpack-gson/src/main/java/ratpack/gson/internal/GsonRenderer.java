@@ -28,7 +28,7 @@ import ratpack.core.handling.Context;
 import ratpack.core.http.internal.HttpHeaderConstants;
 import ratpack.core.render.Renderer;
 import ratpack.core.render.RendererSupport;
-import ratpack.exec.util.Types;
+import ratpack.func.Types;
 
 import java.io.OutputStream;
 import java.io.OutputStreamWriter;

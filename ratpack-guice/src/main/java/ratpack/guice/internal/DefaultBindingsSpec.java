@@ -18,7 +18,7 @@ package ratpack.guice.internal;
 
 import com.google.inject.Binder;
 import com.google.inject.Module;
-import ratpack.exec.func.Action;
+import ratpack.func.Action;
 import ratpack.guice.BindingsSpec;
 import ratpack.guice.ConfigurableModule;
 import ratpack.core.server.ServerConfig;

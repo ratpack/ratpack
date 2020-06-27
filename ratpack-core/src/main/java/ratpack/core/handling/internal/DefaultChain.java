@@ -19,7 +19,7 @@ package ratpack.core.handling.internal;
 import ratpack.core.handling.Chain;
 import ratpack.core.handling.Handler;
 import ratpack.core.server.ServerConfig;
-import ratpack.exec.api.Nullable;
+import ratpack.func.Nullable;
 import ratpack.exec.registry.Registry;
 
 import java.util.List;

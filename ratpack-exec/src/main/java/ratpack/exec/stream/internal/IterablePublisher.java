@@ -17,7 +17,7 @@
 package ratpack.exec.stream.internal;
 
 import org.reactivestreams.Subscriber;
-import ratpack.exec.func.Action;
+import ratpack.func.Action;
 import ratpack.exec.stream.TransformablePublisher;
 
 import java.util.Iterator;

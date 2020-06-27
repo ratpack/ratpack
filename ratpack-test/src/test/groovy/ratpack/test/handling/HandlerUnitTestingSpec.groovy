@@ -22,7 +22,7 @@ import ratpack.core.error.ServerErrorHandler
 import ratpack.exec.Blocking
 import ratpack.core.form.Form
 import ratpack.core.form.UploadedFile
-import ratpack.exec.func.Action
+import ratpack.func.Action
 import ratpack.groovy.internal.ClosureUtil
 import ratpack.groovy.test.handling.GroovyRequestFixture
 import ratpack.core.handling.Context

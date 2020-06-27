@@ -30,7 +30,7 @@ import ratpack.core.http.RequestBodyTooLargeException;
 import ratpack.exec.Downstream;
 import ratpack.exec.Execution;
 import ratpack.exec.Promise;
-import ratpack.exec.func.Block;
+import ratpack.func.Block;
 import ratpack.exec.stream.TransformablePublisher;
 import ratpack.exec.stream.internal.BufferingPublisher;
 

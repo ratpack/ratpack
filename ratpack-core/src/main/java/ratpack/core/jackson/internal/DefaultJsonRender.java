@@ -18,7 +18,7 @@ package ratpack.core.jackson.internal;
 
 import com.fasterxml.jackson.databind.ObjectWriter;
 import ratpack.core.jackson.JsonRender;
-import ratpack.exec.api.Nullable;
+import ratpack.func.Nullable;
 
 public class DefaultJsonRender implements JsonRender {
 

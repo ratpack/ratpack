@@ -17,7 +17,7 @@
 package ratpack.exec
 
 import ratpack.exec.internal.ExecThreadBinding
-import ratpack.exec.func.Action
+import ratpack.func.Action
 import ratpack.test.exec.ExecHarness
 import spock.lang.AutoCleanup
 import spock.lang.Specification
@@ -25,7 +25,7 @@ import spock.lang.Specification
 import java.util.concurrent.CountDownLatch
 import java.util.concurrent.atomic.AtomicInteger
 
-import static ratpack.exec.func.Action.throwException
+import static ratpack.func.Action.throwException
 
 @SuppressWarnings("ChangeToOperator")
 class PromiseOperationsSpec extends Specification {

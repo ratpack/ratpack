@@ -117,7 +117,7 @@ A server registry is just the name given to the registry that backs the applicat
 
 The server [handler](handlers.html) receives all incoming HTTP requests.
 Handlers are composable, and very few applications are actually comprised of only one handler.
-The server handler for most applications is a composite handler, typically created by using the [`handlers(Action)`](api/ratpack/core/server/RatpackServerSpec.html#handlers-ratpack.exec.func.Action-) method,
+The server handler for most applications is a composite handler, typically created by using the [`handlers(Action)`](api/ratpack/core/server/RatpackServerSpec.html#handlers-ratpack.func.Action-) method,
 that uses the [`Chain`](api/ratpack/core/handling/Chain.html) DSL to create the composite handler.
 
 ### Start and stop actions

@@ -49,17 +49,6 @@ class ServerEnvironmentSpec extends Specification {
     env([:], ["ratpack.port": "-1"]).port == 5050
   }
 
-  def "development"() {
-    expect:
-    !env([:], [:]).development
-    env([RATPACK_DEVELOPMENT: "true"], [:]).development
-    env([:], ["ratpack.development": "true"]).development
-    !env([RATPACK_DEVELOPMENT: "true"], ["ratpack.development": "false"]).development
-    env([RATPACK_DEVELOPMENT: "false"], ["ratpack.development": "true"]).development
-    !env([RATPACK_DEVELOPMENT: "-1"], [:]).development
-    !env([:], ["ratpack.development": "-1"]).development
-  }
-
   def "publicAddress"() {
     expect:
     !env([:], [:]).publicAddress
@@ -74,12 +63,6 @@ class ServerEnvironmentSpec extends Specification {
     env([RATPACK_PUBLIC_ADDRESS: "192.168.1.151:2020"], [:]).publicAddress == URI.create("http://192.168.1.151:2020")
     env([RATPACK_PUBLIC_ADDRESS: "192.168.1.151"], [:]).publicAddress == URI.create("http://192.168.1.151")
     !env([RATPACK_PUBLIC_ADDRESS: "bad://192.168.1.151"], [:]).publicAddress
-  }
-
-  def "is implicitly development when started from intellij but not when running tests"() {
-    expect:
-    env([:], [(ServerEnvironment.SUN_JAVA_COMMAND): "$ServerEnvironment.INTELLIJ_MAIN RealMainClass".toString()]).development
-    !env([:], [(ServerEnvironment.SUN_JAVA_COMMAND): "$ServerEnvironment.INTELLIJ_MAIN $ServerEnvironment.INTELLIJ_JUNIT".toString()]).development
   }
 
 }

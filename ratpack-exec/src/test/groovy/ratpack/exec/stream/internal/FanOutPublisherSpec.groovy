@@ -20,8 +20,8 @@ import groovy.util.logging.Slf4j
 import org.reactivestreams.Subscription
 import ratpack.exec.BaseExecutionSpec
 import ratpack.exec.Execution
-import ratpack.exec.func.Action
-import ratpack.exec.func.Function
+import ratpack.func.Action
+import ratpack.func.Function
 import ratpack.exec.stream.Streams
 
 import java.time.Duration

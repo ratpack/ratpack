@@ -21,7 +21,7 @@ import io.netty.util.CharsetUtil;
 
 import java.net.URL;
 
-import static ratpack.exec.util.Exceptions.uncheck;
+import static ratpack.func.Exceptions.uncheck;
 
 /**
  * Provides the version of the Ratpack core at runtime.

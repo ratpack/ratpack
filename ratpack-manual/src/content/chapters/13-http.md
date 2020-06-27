@@ -83,7 +83,7 @@ See [`Form`](api/ratpack/core/form/Form.html) and [`UploadedFile`](api/ratpack/c
 [`Request.getBody()`](api/ratpack/core/http/Request.html#getBody--) reads the entire request into memory, providing access to the data as either bytes or a string.
 
 This method will default to rejecting requests which are larger than the server's configured [max content length](api/ratpack/core/server/ServerConfig.html#getMaxContentLength--).
-Additional flavors are available for configuring the [rejection action](api/ratpack/core/http/Request.html#getBody-ratpack.exec.func.Block-) and the [maximum size](api/ratpack/core/http/Request.html#getBody-long-).
+Additional flavors are available for configuring the [rejection action](api/ratpack/core/http/Request.html#getBody-ratpack.func.Block-) and the [maximum size](api/ratpack/core/http/Request.html#getBody-long-).
 
 ```language-java tested
 import ratpack.core.http.client.ReceivedResponse;
@@ -561,7 +561,7 @@ public class Example {
 
 ## Content Negotiation
 
-Support for rendering different representations of a resource (JSON/XML/HTML, GIF/PNG, etc.) is provided via [`byContent(Action)`](api/ratpack/core/handling/Context.html#byContent-ratpack.exec.func.Action-).
+Support for rendering different representations of a resource (JSON/XML/HTML, GIF/PNG, etc.) is provided via [`byContent(Action)`](api/ratpack/core/handling/Context.html#byContent-ratpack.func.Action-).
 
 ## Sessions
 

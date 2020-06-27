@@ -17,7 +17,7 @@
 package ratpack.core.sse.internal;
 
 import ratpack.core.sse.Event;
-import ratpack.exec.func.Function;
+import ratpack.func.Function;
 
 public class DefaultEvent<T> implements Event<T> {
 

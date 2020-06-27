@@ -19,7 +19,7 @@ package ratpack.core.error
 import ratpack.core.handling.Context
 import ratpack.exec.ExecInterceptor
 import ratpack.exec.Execution
-import ratpack.exec.func.Block
+import ratpack.func.Block
 import ratpack.test.internal.RatpackGroovyDslSpec
 
 class ReasonableErrorResponseSpec extends RatpackGroovyDslSpec {

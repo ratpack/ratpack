@@ -21,7 +21,7 @@ import com.google.common.collect.Iterables;
 import com.google.common.reflect.TypeToken;
 import ratpack.exec.registry.Registry;
 import ratpack.exec.registry.RegistryBacking;
-import ratpack.exec.util.Types;
+import ratpack.func.Types;
 
 import java.util.Iterator;
 import java.util.Map;

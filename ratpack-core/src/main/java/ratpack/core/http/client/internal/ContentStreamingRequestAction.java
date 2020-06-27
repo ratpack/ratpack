@@ -35,11 +35,11 @@ import ratpack.core.http.internal.NettyHeadersBackedHeaders;
 import ratpack.exec.Downstream;
 import ratpack.exec.Execution;
 import ratpack.exec.Upstream;
-import ratpack.exec.func.Action;
+import ratpack.func.Action;
 import ratpack.exec.stream.TransformablePublisher;
 import ratpack.exec.stream.internal.BufferedWriteStream;
 import ratpack.exec.stream.internal.BufferingPublisher;
-import ratpack.exec.util.Exceptions;
+import ratpack.func.Exceptions;
 
 import java.net.URI;
 import java.util.ArrayList;

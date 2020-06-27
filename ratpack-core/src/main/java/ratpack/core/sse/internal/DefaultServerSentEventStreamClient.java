@@ -21,7 +21,7 @@ import ratpack.core.http.client.RequestSpec;
 import ratpack.core.sse.Event;
 import ratpack.core.sse.ServerSentEventStreamClient;
 import ratpack.exec.Promise;
-import ratpack.exec.func.Action;
+import ratpack.func.Action;
 import ratpack.exec.stream.TransformablePublisher;
 
 import java.net.URI;

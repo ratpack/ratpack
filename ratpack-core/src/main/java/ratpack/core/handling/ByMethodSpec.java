@@ -16,8 +16,8 @@
 
 package ratpack.core.handling;
 
-import ratpack.exec.func.Action;
-import ratpack.exec.func.Block;
+import ratpack.func.Action;
+import ratpack.func.Block;
 
 /**
  * A specification of how to respond to a request, based on the requested method.

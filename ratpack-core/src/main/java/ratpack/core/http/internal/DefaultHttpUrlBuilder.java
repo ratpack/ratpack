@@ -24,7 +24,7 @@ import com.google.common.escape.Escaper;
 import com.google.common.net.UrlEscapers;
 import io.netty.handler.codec.http.QueryStringDecoder;
 import ratpack.core.http.HttpUrlBuilder;
-import ratpack.exec.util.MultiValueMap;
+import ratpack.func.MultiValueMap;
 import ratpack.exec.util.internal.InternalRatpackError;
 
 import java.io.UnsupportedEncodingException;

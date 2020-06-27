@@ -18,8 +18,8 @@ package ratpack.groovy.server;
 
 import groovy.lang.Closure;
 import groovy.lang.DelegatesTo;
-import ratpack.exec.func.Action;
-import ratpack.exec.func.Function;
+import ratpack.func.Action;
+import ratpack.func.Function;
 import ratpack.groovy.Groovy;
 import ratpack.groovy.handling.GroovyChain;
 import ratpack.groovy.internal.ClosureUtil;

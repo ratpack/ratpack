@@ -18,8 +18,8 @@ package ratpack.core.server.internal;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import ratpack.config.internal.DefaultEnvironment;
 import ratpack.core.server.ServerConfig;
-import ratpack.exec.util.internal.Environment;
 
 import java.net.InetAddress;
 import java.net.URI;
@@ -30,7 +30,7 @@ import java.util.Objects;
 import java.util.Properties;
 import java.util.regex.Pattern;
 
-public class ServerEnvironment extends Environment {
+public class ServerEnvironment extends DefaultEnvironment {
 
   public static final ServerEnvironment INSTANCE = new ServerEnvironment(System.getenv(), System.getProperties());
   public static final String ADDRESS_PROPERTY = "ratpack.address";

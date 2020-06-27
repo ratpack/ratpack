@@ -16,7 +16,7 @@
 
 package ratpack.exec.internal;
 
-import ratpack.exec.func.Block;
+import ratpack.func.Block;
 
 public interface Continuation {
   void resume(Block rest);

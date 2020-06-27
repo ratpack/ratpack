@@ -22,7 +22,7 @@ import groovy.sql.Sql
 import org.h2.jdbcx.JdbcDataSource
 import ratpack.exec.Blocking
 import ratpack.exec.Promise
-import ratpack.exec.func.Factory
+import ratpack.func.Factory
 import ratpack.test.exec.ExecHarness
 import spock.lang.Specification
 

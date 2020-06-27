@@ -16,13 +16,13 @@
 package ratpack.dropwizard.metrics;
 
 import ratpack.dropwizard.metrics.internal.DefaultRequestTimingHandler;
-import ratpack.exec.func.Action;
+import ratpack.func.Action;
 
 import java.time.Duration;
 import java.util.Map;
 import java.util.Optional;
 
-import static ratpack.exec.util.Exceptions.uncheck;
+import static ratpack.func.Exceptions.uncheck;
 
 /**
  * The configuration object for {@link DropwizardMetricsModule}.

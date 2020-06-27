@@ -18,7 +18,7 @@ package ratpack.groovy.internal;
 
 import com.google.common.base.Charsets;
 import com.google.common.io.Resources;
-import ratpack.exec.api.Nullable;
+import ratpack.func.Nullable;
 
 import java.io.IOException;
 import java.net.URL;

@@ -21,8 +21,8 @@ import org.reactivestreams.Subscriber
 import org.reactivestreams.Subscription
 import ratpack.exec.Blocking
 import ratpack.exec.Promise
-import ratpack.exec.func.Action
-import ratpack.exec.func.Function
+import ratpack.func.Action
+import ratpack.func.Function
 import ratpack.exec.stream.internal.BufferingPublisher
 import ratpack.exec.stream.internal.CollectingSubscriber
 import ratpack.test.exec.ExecHarness

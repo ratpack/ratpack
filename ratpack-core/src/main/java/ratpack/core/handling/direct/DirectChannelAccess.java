@@ -18,7 +18,7 @@ package ratpack.core.handling.direct;
 
 import io.netty.channel.Channel;
 import ratpack.core.websocket.WebSockets;
-import ratpack.exec.func.Action;
+import ratpack.func.Action;
 
 /**
  * Provides direct access to the underlying Netty {@link io.netty.channel.Channel}.

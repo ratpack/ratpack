@@ -19,7 +19,7 @@ package ratpack.core.path
 import ratpack.core.handling.Context
 import ratpack.core.handling.Handler
 import ratpack.core.http.HttpMethod
-import ratpack.exec.func.Block
+import ratpack.func.Block
 import ratpack.test.internal.RatpackGroovyDslSpec
 
 class ByMethodRoutingSpec extends RatpackGroovyDslSpec {

@@ -22,9 +22,9 @@ import com.google.inject.Injector;
 import com.google.inject.Module;
 import com.google.inject.Stage;
 import com.google.inject.util.Modules;
-import ratpack.core.config.ConfigObject;
-import ratpack.exec.func.Action;
-import ratpack.exec.func.Function;
+import ratpack.config.ConfigObject;
+import ratpack.func.Action;
+import ratpack.func.Function;
 import ratpack.guice.internal.DefaultBindingsSpec;
 import ratpack.guice.internal.GuiceUtil;
 import ratpack.guice.internal.InjectorRegistryBacking;
@@ -40,7 +40,7 @@ import java.util.List;
 import java.util.Optional;
 
 import static com.google.inject.Guice.createInjector;
-import static ratpack.exec.util.Exceptions.uncheck;
+import static ratpack.func.Exceptions.uncheck;
 
 /**
  * Static utility methods for creating Google Guice based Ratpack infrastructure.

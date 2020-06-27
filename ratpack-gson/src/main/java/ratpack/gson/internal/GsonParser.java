@@ -18,14 +18,14 @@ package ratpack.gson.internal;
 
 import com.google.common.reflect.TypeToken;
 import com.google.gson.Gson;
-import ratpack.exec.api.Nullable;
+import ratpack.func.Nullable;
 import ratpack.gson.GsonParseOpts;
 import ratpack.core.handling.Context;
 import ratpack.core.http.TypedData;
 import ratpack.core.parse.Parse;
 import ratpack.core.parse.Parser;
 import ratpack.core.parse.ParserSupport;
-import ratpack.exec.util.Types;
+import ratpack.func.Types;
 
 import java.io.BufferedReader;
 import java.io.InputStream;

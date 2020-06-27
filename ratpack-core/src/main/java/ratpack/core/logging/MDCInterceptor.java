@@ -22,9 +22,9 @@ import ratpack.core.handling.Context;
 import ratpack.core.handling.RequestId;
 import ratpack.exec.ExecInterceptor;
 import ratpack.exec.Execution;
-import ratpack.exec.func.Action;
-import ratpack.exec.func.Block;
-import ratpack.exec.util.Types;
+import ratpack.func.Action;
+import ratpack.func.Block;
+import ratpack.func.Types;
 
 import java.util.HashMap;
 import java.util.Map;

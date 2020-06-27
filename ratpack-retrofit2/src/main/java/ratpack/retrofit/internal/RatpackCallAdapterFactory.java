@@ -18,11 +18,11 @@ package ratpack.retrofit.internal;
 
 import com.google.common.reflect.TypeToken;
 import ratpack.exec.Promise;
-import ratpack.exec.func.Factory;
+import ratpack.func.Factory;
 import ratpack.core.http.client.HttpClient;
 import ratpack.core.http.client.ReceivedResponse;
 import ratpack.retrofit.RatpackRetrofitCallException;
-import ratpack.exec.util.Exceptions;
+import ratpack.func.Exceptions;
 import retrofit2.*;
 
 import java.lang.annotation.Annotation;
@@ -76,9 +76,9 @@ public class RatpackCallAdapterFactory extends CallAdapter.Factory {
   static final class ReceivedResponseCallAdapter implements CallAdapter<Object, Promise<?>> {
 
     private final Type responseType;
-    private final ratpack.exec.func.Factory<? extends HttpClient> factory;
+    private final ratpack.func.Factory<? extends HttpClient> factory;
 
-    ReceivedResponseCallAdapter(Type responseType, ratpack.exec.func.Factory<? extends HttpClient> factory) {
+    ReceivedResponseCallAdapter(Type responseType, ratpack.func.Factory<? extends HttpClient> factory) {
       this.responseType = responseType;
       this.factory = factory;
     }
