@@ -19,8 +19,8 @@ package ratpack.core.websocket.internal;
 import ratpack.core.handling.Context;
 import ratpack.core.server.ServerConfig;
 import ratpack.core.websocket.*;
-import ratpack.exec.func.Action;
-import ratpack.exec.func.Function;
+import ratpack.func.Action;
+import ratpack.func.Function;
 
 public class DefaultWebSocketConnector<T> implements WebSocketConnector<T> {
 

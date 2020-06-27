@@ -17,7 +17,7 @@
 package ratpack.exec.registry;
 
 import com.google.common.reflect.TypeToken;
-import ratpack.exec.util.Types;
+import ratpack.func.Types;
 
 /**
  * A {@link Registry} that is also mutable.

@@ -25,9 +25,9 @@ import org.reactivestreams.Publisher;
 import ratpack.core.handling.Chain;
 import ratpack.core.handling.Context;
 import ratpack.exec.api.NonBlocking;
-import ratpack.exec.func.Action;
+import ratpack.func.Action;
 import ratpack.exec.stream.Streams;
-import ratpack.exec.util.Types;
+import ratpack.func.Types;
 
 import java.nio.file.Path;
 import java.util.Set;

@@ -33,7 +33,7 @@ import ratpack.core.http.TypedData;
  * import ratpack.core.parse.NoOptParserSupport;
  * import ratpack.test.handling.HandlingResult;
  * import ratpack.test.handling.RequestFixture;
- * import ratpack.exec.util.Types;
+ * import ratpack.func.Types;
  *
  * import static org.junit.Assert.assertEquals;
  *

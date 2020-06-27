@@ -31,7 +31,7 @@ import ratpack.core.error.ServerErrorHandler;
 import ratpack.exec.ExecController;
 import ratpack.exec.ExecInitializer;
 import ratpack.exec.Execution;
-import ratpack.core.file.FileSystemBinding;
+import ratpack.config.FileSystemBinding;
 import ratpack.core.file.MimeTypes;
 import ratpack.core.file.internal.FileRenderer;
 import ratpack.core.form.internal.FormParser;

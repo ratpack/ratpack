@@ -17,7 +17,7 @@
 package ratpack.core.service;
 
 import ratpack.core.service.internal.ServicesGraph;
-import ratpack.exec.func.Predicate;
+import ratpack.func.Predicate;
 
 /**
  * Allows declaring which services depend on which services.

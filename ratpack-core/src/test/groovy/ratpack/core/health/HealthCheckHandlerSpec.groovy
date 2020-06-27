@@ -21,7 +21,7 @@ import groovy.json.JsonSlurper
 import ratpack.core.http.MediaType
 import ratpack.core.render.Renderer
 import ratpack.exec.Promise
-import ratpack.exec.func.Block
+import ratpack.func.Block
 import ratpack.exec.registry.Registry
 import ratpack.test.internal.RatpackGroovyDslSpec
 

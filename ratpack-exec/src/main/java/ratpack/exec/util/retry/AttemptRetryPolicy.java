@@ -18,7 +18,7 @@ package ratpack.exec.util.retry;
 
 import ratpack.exec.Promise;
 import ratpack.exec.util.retry.internal.DefaultAttemptRetryPolicyBuilder;
-import ratpack.exec.func.Action;
+import ratpack.func.Action;
 
 import java.time.Duration;
 

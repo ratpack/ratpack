@@ -23,7 +23,7 @@ import io.reactivex.exceptions.UndeliverableException;
 import org.reactivestreams.Subscriber;
 import org.reactivestreams.Subscription;
 import ratpack.exec.Promise;
-import ratpack.exec.func.Action;
+import ratpack.func.Action;
 
 public class ExecutionBackedSubscriber<T> implements FlowableSubscriber<T> {
   private final Subscriber<? super T> subscriber;

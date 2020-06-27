@@ -36,9 +36,9 @@ import ratpack.core.http.MutableHeaders;
 import ratpack.core.http.Response;
 import ratpack.core.http.Status;
 import ratpack.exec.Operation;
-import ratpack.exec.api.Nullable;
-import ratpack.exec.func.Action;
-import ratpack.exec.util.MultiValueMap;
+import ratpack.func.Nullable;
+import ratpack.func.Action;
+import ratpack.func.MultiValueMap;
 
 import java.nio.CharBuffer;
 import java.nio.file.Path;

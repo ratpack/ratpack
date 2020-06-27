@@ -18,7 +18,7 @@ package ratpack.core.service
 
 import ratpack.core.server.StartupFailureException
 import ratpack.exec.Operation
-import ratpack.exec.func.Predicate
+import ratpack.func.Predicate
 import ratpack.test.internal.RatpackGroovyDslSpec
 
 import java.util.concurrent.CyclicBarrier

@@ -21,7 +21,7 @@ import ratpack.core.http.Request;
 import ratpack.core.server.RatpackServer;
 import ratpack.test.embed.EmbeddedApp;
 import ratpack.test.handling.HandlerFactory;
-import ratpack.exec.util.Exceptions;
+import ratpack.func.Exceptions;
 
 /**
  * A test harness for simulating behavior of remote APIs by starting an {@link EmbeddedApp} that will

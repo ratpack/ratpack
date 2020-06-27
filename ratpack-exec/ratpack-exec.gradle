@@ -20,6 +20,7 @@ apply from: "$rootDir/gradle/javaModule.gradle"
 apply from: "$rootDir/gradle/versionFile.gradle"
 
 dependencies {
+  compile project(":ratpack-func")
   compile commonDependencies.guava
   compile commonDependencies.slf4j
 

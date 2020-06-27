@@ -17,7 +17,7 @@
 package ratpack.core.handling;
 
 import ratpack.core.server.RatpackServerSpec;
-import ratpack.exec.func.Action;
+import ratpack.func.Action;
 import ratpack.exec.registry.Registry;
 
 /**
@@ -31,7 +31,7 @@ import ratpack.exec.registry.Registry;
  * import ratpack.core.handling.Handler;
  * import ratpack.core.handling.HandlerDecorator;
  * import ratpack.core.handling.Context;
- * import ratpack.exec.util.Types;
+ * import ratpack.func.Types;
  * import ratpack.test.embed.EmbeddedApp;
  * import static org.junit.Assert.*;
  *

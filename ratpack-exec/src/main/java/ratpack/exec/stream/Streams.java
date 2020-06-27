@@ -22,13 +22,13 @@ import org.reactivestreams.Subscriber;
 import org.reactivestreams.Subscription;
 import ratpack.exec.*;
 import ratpack.exec.internal.DefaultExecution;
-import ratpack.exec.func.Action;
-import ratpack.exec.func.BiFunction;
-import ratpack.exec.func.Function;
-import ratpack.exec.func.Predicate;
+import ratpack.func.Action;
+import ratpack.func.BiFunction;
+import ratpack.func.Function;
+import ratpack.func.Predicate;
 import ratpack.exec.registry.Registry;
 import ratpack.exec.stream.internal.*;
-import ratpack.exec.util.Types;
+import ratpack.func.Types;
 
 import java.time.Duration;
 import java.util.List;

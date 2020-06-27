@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package ratpack.core.config
+package ratpack.config
 
 class TestConfig {
 

@@ -22,7 +22,7 @@ import ratpack.core.file.FileHandlerSpec;
 import ratpack.core.handling.Handler;
 import ratpack.core.handling.Handlers;
 import ratpack.core.server.ServerConfig;
-import ratpack.exec.func.Action;
+import ratpack.func.Action;
 
 public class DefaultFileHandlerSpec implements FileHandlerSpec {
 

@@ -16,7 +16,7 @@
 
 package ratpack.core.server;
 
-import ratpack.exec.func.Action;
+import ratpack.func.Action;
 import ratpack.exec.registry.Registry;
 
 /**

@@ -5,6 +5,10 @@ It should not be considered the final announcement for any release at any time.
 
 
 # v2.0.0
+## New modules
+* `ratpack-config`
+* `ratpack-func`
+
 ## Module removals
 * `ratpack-base` (collapsed into `ratpack-exec`)
 * `ratpack-hystrix` (Hystrix is no longer maintained, relies on `ratpack-rx` which is removed)
@@ -16,11 +20,11 @@ It should not be considered the final announcement for any release at any time.
 
 ## Package relocations
 * `ratpack.api` → `ratpack.exec.api`
-* `ratpack.config` → `ratpack.core.config`
+* `ratpack.config` → moved to `ratpack-config` module
 * `ratpack.error` → `ratpack.core.error`
 * `ratpack.file` → `ratpack.core.file`
 * `ratpack.form` → `ratpack.core.form`
-* `ratpack.func` → `ratpack.exec.func`
+* `ratpack.func` → moved to `ratpack-func` module
 * `ratpack.handling` → `ratpack.core.handling`
 * `ratpack.health` → `ratpack.core.health`
 * `ratpack.http` → `ratpack.core.http`

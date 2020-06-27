@@ -19,9 +19,9 @@ package ratpack.exec;
 import com.google.common.util.concurrent.FutureCallback;
 import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
-import ratpack.exec.func.Action;
-import ratpack.exec.func.Block;
-import ratpack.exec.func.Function;
+import ratpack.func.Action;
+import ratpack.func.Block;
+import ratpack.func.Function;
 
 import java.nio.channels.CompletionHandler;
 import java.util.concurrent.CompletionStage;

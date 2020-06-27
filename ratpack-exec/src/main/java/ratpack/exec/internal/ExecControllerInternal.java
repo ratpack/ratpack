@@ -20,7 +20,7 @@ import com.google.common.collect.ImmutableList;
 import ratpack.exec.ExecController;
 import ratpack.exec.ExecInitializer;
 import ratpack.exec.ExecInterceptor;
-import ratpack.exec.func.Block;
+import ratpack.func.Block;
 
 public interface ExecControllerInternal extends ExecController {
 

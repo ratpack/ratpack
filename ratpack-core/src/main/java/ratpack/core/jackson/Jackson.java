@@ -32,8 +32,8 @@ import ratpack.core.jackson.internal.DefaultJsonRender;
 import ratpack.core.parse.NoOptParserSupport;
 import ratpack.core.parse.Parse;
 import ratpack.core.sse.ServerSentEvents;
-import ratpack.exec.api.Nullable;
-import ratpack.exec.func.Function;
+import ratpack.func.Nullable;
+import ratpack.func.Function;
 import ratpack.exec.registry.Registry;
 import ratpack.exec.stream.StreamMapper;
 import ratpack.exec.stream.Streams;
@@ -162,7 +162,7 @@ import java.io.OutputStream;
  *
  * import java.util.List;
  *
- * import static ratpack.exec.util.Types.listOf;
+ * import static ratpack.func.Types.listOf;
  * import static ratpack.core.jackson.Jackson.jsonNode;
  * import static ratpack.core.jackson.Jackson.fromJson;
  * import static org.junit.Assert.*;
@@ -224,7 +224,7 @@ import java.io.OutputStream;
  *
  * import java.util.List;
  *
- * import static ratpack.exec.util.Types.listOf;
+ * import static ratpack.func.Types.listOf;
  * import static org.junit.Assert.*;
  *
  * public class Example {

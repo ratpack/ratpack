@@ -16,8 +16,8 @@
 
 package ratpack.exec;
 
-import ratpack.exec.func.Action;
-import ratpack.exec.func.Block;
+import ratpack.func.Action;
+import ratpack.func.Block;
 
 /**
  * Intercepts execution segments of an execution, primarily for traceability and recording metrics.
@@ -31,7 +31,7 @@ import ratpack.exec.func.Block;
  * import ratpack.exec.Execution;
  * import ratpack.exec.Blocking;
  * import ratpack.exec.ExecResult;
- * import ratpack.exec.func.Block;
+ * import ratpack.func.Block;
  * import ratpack.test.exec.ExecHarness;
  *
  * import static java.lang.Thread.sleep;

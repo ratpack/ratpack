@@ -16,7 +16,7 @@
 
 package ratpack.exec.util.internal;
 
-import ratpack.exec.util.TypeCoercingMap;
+import ratpack.func.TypeCoercingMap;
 
 import java.util.AbstractMap;
 import java.util.Map;

@@ -19,8 +19,8 @@ package ratpack.exec.stream.internal;
 import org.reactivestreams.Publisher;
 import org.reactivestreams.Subscriber;
 import org.reactivestreams.Subscription;
-import ratpack.exec.api.Nullable;
-import ratpack.exec.func.Action;
+import ratpack.func.Nullable;
+import ratpack.func.Action;
 import ratpack.exec.stream.StreamEvent;
 import ratpack.exec.stream.TransformablePublisher;
 

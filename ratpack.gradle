@@ -56,10 +56,12 @@ ext {
   isCi = isCloudCi
 
   publishedModules = [
+    "ratpack-config",
     "ratpack-consul",
     "ratpack-core",
     "ratpack-dropwizard-metrics",
     "ratpack-exec",
+    "ratpack-func",
     "ratpack-gradle",
     "ratpack-groovy",
     "ratpack-groovy-test",

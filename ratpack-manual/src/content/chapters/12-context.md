@@ -96,7 +96,7 @@ The benefit of avoiding duplication is obvious.
 What's slightly more subtle is that the decoupling makes testing easier when the downstream handlers are not implemented as anonymous classes (see the [Testing chapter](testing.html) for for information).
 
 At `(1)` we are also using contextual objects.
-The [`prefix()`](api/ratpack/core/handling/Chain.html#prefix-java.lang.String-ratpack.exec.func.Action-) chain method binds on a request path, potentially capturing tokens.
+The [`prefix()`](api/ratpack/core/handling/Chain.html#prefix-java.lang.String-ratpack.func.Action-) chain method binds on a request path, potentially capturing tokens.
 If the binding is successful, a [`PathBinding`](api/ratpack/core/path/PathBinding.html) object is registered with the context that describes the binding result.
 This includes any path tokens that were captured as part of the binding.
 In the case above, we are capturing the second path component as the `id`.

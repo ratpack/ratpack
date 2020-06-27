@@ -30,7 +30,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
-import ratpack.exec.func.Action;
+import ratpack.func.Action;
 import ratpack.core.handling.Chain;
 import ratpack.core.server.RatpackServer;
 import ratpack.spring.ApplicationTests.Application;

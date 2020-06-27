@@ -18,7 +18,7 @@ package ratpack.exec.internal;
 
 import io.netty.util.internal.PlatformDependent;
 import ratpack.exec.*;
-import ratpack.exec.func.Function;
+import ratpack.func.Function;
 
 import java.time.Clock;
 import java.time.Duration;

@@ -32,8 +32,8 @@ import ratpack.exec.Execution;
 import ratpack.exec.Operation;
 import ratpack.exec.Promise;
 import ratpack.exec.UnmanagedThreadException;
-import ratpack.exec.func.Action;
-import ratpack.exec.func.Function;
+import ratpack.func.Action;
+import ratpack.func.Function;
 import ratpack.exec.registry.RegistrySpec;
 import ratpack.rx2.internal.DefaultSchedulers;
 import ratpack.rx2.internal.ErrorHandler;
@@ -42,7 +42,7 @@ import ratpack.rx2.internal.ExecutionBackedObserver;
 import ratpack.rx2.internal.ExecutionBackedSubscriber;
 import ratpack.exec.stream.Streams;
 import ratpack.exec.stream.TransformablePublisher;
-import ratpack.exec.util.Exceptions;
+import ratpack.func.Exceptions;
 
 import java.util.List;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -483,7 +483,7 @@ public abstract class RxRatpack {
    * This is different than <code>forkEach</code> which modifies where the downstream is executed.
    * <p>
    * <pre class="java">{@code
-   * import ratpack.exec.func.Pair;
+   * import ratpack.func.Pair;
    * import ratpack.rx2.RxRatpack;
    * import ratpack.test.exec.ExecHarness;
    *
@@ -588,7 +588,7 @@ public abstract class RxRatpack {
    * <p>
    * <pre class="java">{@code
    * import ratpack.rx2.RxRatpack;
-   * import ratpack.exec.util.Exceptions;
+   * import ratpack.func.Exceptions;
    * import ratpack.test.exec.ExecHarness;
    *
    * import io.reactivex.Observable;

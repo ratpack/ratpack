@@ -24,8 +24,8 @@ import ratpack.core.handling.ByContentSpec;
 import ratpack.core.handling.Context;
 import ratpack.core.handling.Handler;
 import ratpack.core.http.internal.MimeParse;
-import ratpack.exec.func.Action;
-import ratpack.exec.func.Function;
+import ratpack.func.Action;
+import ratpack.func.Function;
 import ratpack.exec.registry.Registry;
 
 import java.util.*;

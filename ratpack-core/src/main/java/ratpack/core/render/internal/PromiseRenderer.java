@@ -21,7 +21,7 @@ import ratpack.core.handling.Context;
 import ratpack.core.render.Renderer;
 import ratpack.core.render.RendererSupport;
 import ratpack.exec.Promise;
-import ratpack.exec.util.Types;
+import ratpack.func.Types;
 
 public class PromiseRenderer extends RendererSupport<Promise<?>> {
 

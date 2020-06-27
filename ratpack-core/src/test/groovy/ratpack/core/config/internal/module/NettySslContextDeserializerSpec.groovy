@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package ratpack.core.config.internal.module
+package ratpack.config.internal.module
 
 import com.fasterxml.jackson.core.JsonParser
 import com.fasterxml.jackson.databind.DeserializationContext

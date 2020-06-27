@@ -16,6 +16,7 @@
 
 package ratpack.core.file
 
+import ratpack.config.FileSystemBinding
 import ratpack.test.internal.RatpackGroovyDslSpec
 
 import java.nio.file.FileSystems

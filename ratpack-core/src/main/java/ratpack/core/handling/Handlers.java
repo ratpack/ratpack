@@ -17,7 +17,7 @@
 package ratpack.core.handling;
 
 import ratpack.core.file.FileHandlerSpec;
-import ratpack.core.file.FileSystemBinding;
+import ratpack.config.FileSystemBinding;
 import ratpack.core.file.internal.DefaultFileHandlerSpec;
 import ratpack.core.file.internal.FileSystemBindingHandler;
 import ratpack.core.handling.internal.*;
@@ -25,10 +25,10 @@ import ratpack.core.path.PathBinder;
 import ratpack.core.path.PathBinding;
 import ratpack.core.path.internal.PathHandler;
 import ratpack.core.server.ServerConfig;
-import ratpack.exec.api.Nullable;
-import ratpack.exec.func.Action;
-import ratpack.exec.func.Block;
-import ratpack.exec.func.Predicate;
+import ratpack.func.Nullable;
+import ratpack.func.Action;
+import ratpack.func.Block;
+import ratpack.func.Predicate;
 import ratpack.exec.registry.Registry;
 
 import java.util.List;

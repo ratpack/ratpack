@@ -19,7 +19,7 @@ package ratpack.core.http.client.internal;
 import ratpack.core.http.client.HttpClient;
 import ratpack.core.http.client.HttpResponse;
 import ratpack.core.http.client.RequestSpec;
-import ratpack.exec.func.Action;
+import ratpack.func.Action;
 
 interface HttpClientInternal extends HttpClient {
 

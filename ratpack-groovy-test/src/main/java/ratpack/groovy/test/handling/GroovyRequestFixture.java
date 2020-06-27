@@ -19,7 +19,7 @@ package ratpack.groovy.test.handling;
 import com.google.common.net.HostAndPort;
 import groovy.lang.Closure;
 import groovy.lang.DelegatesTo;
-import ratpack.exec.func.Action;
+import ratpack.func.Action;
 import ratpack.groovy.internal.ClosureUtil;
 import ratpack.groovy.test.handling.internal.DefaultGroovyRequestFixture;
 import ratpack.core.handling.Chain;

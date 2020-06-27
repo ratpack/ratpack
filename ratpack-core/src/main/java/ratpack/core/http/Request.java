@@ -25,13 +25,13 @@ import ratpack.core.server.ServerConfig;
 import ratpack.core.server.ServerConfigBuilder;
 import ratpack.exec.Blocking;
 import ratpack.exec.Promise;
-import ratpack.exec.api.Nullable;
-import ratpack.exec.func.Block;
+import ratpack.func.Nullable;
+import ratpack.func.Block;
 import ratpack.exec.registry.MutableRegistry;
 import ratpack.exec.stream.Streams;
 import ratpack.exec.stream.TransformablePublisher;
-import ratpack.exec.util.MultiValueMap;
-import ratpack.exec.util.Types;
+import ratpack.func.MultiValueMap;
+import ratpack.func.Types;
 
 import javax.security.cert.X509Certificate;
 import java.time.Duration;

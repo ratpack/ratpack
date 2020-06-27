@@ -39,8 +39,8 @@ import ratpack.core.http.internal.*;
 import ratpack.exec.Downstream;
 import ratpack.exec.Execution;
 import ratpack.exec.Upstream;
-import ratpack.exec.func.Action;
-import ratpack.exec.func.Function;
+import ratpack.func.Action;
+import ratpack.func.Function;
 
 import javax.net.ssl.SSLEngine;
 import javax.net.ssl.SSLException;

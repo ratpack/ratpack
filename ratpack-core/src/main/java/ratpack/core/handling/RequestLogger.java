@@ -19,7 +19,7 @@ package ratpack.core.handling;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import ratpack.core.handling.internal.NcsaRequestLogger;
-import ratpack.exec.func.Action;
+import ratpack.func.Action;
 
 /**
  * A handler that logs information about the request.

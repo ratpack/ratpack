@@ -18,7 +18,7 @@ package ratpack.groovy.internal;
 
 import groovy.lang.Closure;
 import groovy.lang.GroovySystem;
-import ratpack.exec.func.Action;
+import ratpack.func.Action;
 import ratpack.groovy.Groovy;
 import ratpack.core.server.RatpackServer;
 

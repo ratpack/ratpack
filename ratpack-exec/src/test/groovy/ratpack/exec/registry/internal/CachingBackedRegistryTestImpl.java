@@ -20,9 +20,9 @@ import com.google.common.base.Supplier;
 import com.google.common.base.Suppliers;
 import com.google.common.collect.FluentIterable;
 import com.google.common.reflect.TypeToken;
-import ratpack.exec.func.Pair;
+import ratpack.func.Pair;
 import ratpack.exec.registry.RegistryBacking;
-import ratpack.exec.util.Types;
+import ratpack.func.Types;
 
 import java.util.LinkedList;
 import java.util.List;

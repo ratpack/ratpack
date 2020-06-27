@@ -18,7 +18,7 @@ package ratpack.core.handling;
 
 import ratpack.core.http.Request;
 import ratpack.core.http.Response;
-import ratpack.exec.func.Action;
+import ratpack.func.Action;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;

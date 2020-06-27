@@ -22,8 +22,8 @@ import io.netty.handler.ssl.SslContext;
 import io.netty.handler.ssl.SslContextBuilder;
 import ratpack.core.http.HttpMethod;
 import ratpack.core.http.MutableHeaders;
-import ratpack.exec.func.Action;
-import ratpack.exec.func.Function;
+import ratpack.func.Action;
+import ratpack.func.Function;
 
 import java.io.OutputStream;
 import java.net.URI;

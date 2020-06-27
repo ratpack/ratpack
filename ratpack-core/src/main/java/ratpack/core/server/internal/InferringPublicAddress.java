@@ -24,7 +24,7 @@ import ratpack.core.http.Headers;
 import ratpack.core.http.Request;
 import ratpack.core.server.PublicAddress;
 import ratpack.exec.Execution;
-import ratpack.exec.util.Exceptions;
+import ratpack.func.Exceptions;
 import ratpack.exec.util.internal.ProtocolUtil;
 
 import java.net.URI;

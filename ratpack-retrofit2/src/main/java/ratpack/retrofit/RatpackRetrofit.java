@@ -18,15 +18,15 @@ package ratpack.retrofit;
 
 import com.google.common.base.Preconditions;
 import ratpack.exec.Execution;
-import ratpack.exec.func.Action;
+import ratpack.func.Action;
 import ratpack.exec.registry.NotInRegistryException;
-import ratpack.exec.func.Factory;
+import ratpack.func.Factory;
 import ratpack.core.handling.Context;
 import ratpack.core.http.client.HttpClient;
 import ratpack.retrofit.internal.RatpackCallAdapterFactory;
 import ratpack.retrofit.internal.RatpackCallFactory;
 import ratpack.retrofit.internal.ReceivedResponseConverterFactory;
-import ratpack.exec.util.Exceptions;
+import ratpack.func.Exceptions;
 import retrofit2.Retrofit;
 import retrofit2.converter.scalars.ScalarsConverterFactory;
 

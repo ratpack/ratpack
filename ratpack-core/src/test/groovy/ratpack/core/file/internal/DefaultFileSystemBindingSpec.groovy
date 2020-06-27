@@ -18,7 +18,7 @@ package ratpack.core.file.internal
 
 import org.junit.Rule
 import org.junit.rules.TemporaryFolder
-import ratpack.core.file.FileSystemBinding
+import ratpack.config.FileSystemBinding
 import spock.lang.Specification
 
 import java.nio.file.Files

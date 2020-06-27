@@ -23,7 +23,7 @@ import ratpack.core.http.Headers
 import ratpack.core.server.ServerConfig
 import ratpack.core.server.internal.RequestBodyReader
 import ratpack.exec.Promise
-import ratpack.exec.func.Block
+import ratpack.func.Block
 import ratpack.exec.stream.TransformablePublisher
 import ratpack.test.internal.RatpackGroovyDslSpec
 

@@ -33,6 +33,7 @@ ext.apiLinks = [
 
 dependencies {
   compile project(":ratpack-exec")
+  compile project(":ratpack-config")
   compile "io.netty:netty-codec-http:$commonVersions.netty"
   compile "io.netty:netty-handler:$commonVersions.netty"
   compile "io.netty:netty-handler-proxy:$commonVersions.netty"

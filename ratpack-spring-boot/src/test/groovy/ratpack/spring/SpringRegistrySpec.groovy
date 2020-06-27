@@ -20,7 +20,7 @@ import com.google.common.reflect.TypeToken
 import org.springframework.beans.factory.FactoryBean
 import org.springframework.beans.factory.support.BeanDefinitionBuilder
 import org.springframework.context.support.StaticApplicationContext
-import ratpack.exec.func.Action
+import ratpack.func.Action
 import ratpack.exec.registry.Registry
 import ratpack.exec.registry.RegistrySpec
 import ratpack.test.internal.registry.RegistryContractSpec

@@ -18,7 +18,7 @@ package ratpack.exec;
 
 import io.netty.channel.EventLoop;
 import ratpack.exec.api.NonBlocking;
-import ratpack.exec.func.Action;
+import ratpack.func.Action;
 import ratpack.exec.registry.RegistrySpec;
 
 /**

@@ -18,7 +18,7 @@ package ratpack.core.handling
 
 import ratpack.core.error.ClientErrorHandler
 import ratpack.core.error.ServerErrorHandler
-import ratpack.core.file.FileSystemBinding
+import ratpack.config.FileSystemBinding
 import ratpack.core.file.MimeTypes
 import ratpack.core.server.ServerConfig
 import ratpack.exec.ExecController

@@ -18,8 +18,8 @@ package ratpack.exec
 
 import org.reactivestreams.Subscriber
 import org.reactivestreams.Subscription
-import ratpack.exec.func.Action
-import ratpack.exec.func.Function
+import ratpack.func.Action
+import ratpack.func.Function
 import ratpack.core.http.ResponseChunks
 import ratpack.exec.stream.Streams
 import ratpack.exec.stream.internal.BufferingPublisher

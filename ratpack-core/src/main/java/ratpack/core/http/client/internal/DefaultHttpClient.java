@@ -29,9 +29,9 @@ import ratpack.exec.ExecController;
 import ratpack.exec.Execution;
 import ratpack.exec.Operation;
 import ratpack.exec.Promise;
-import ratpack.exec.func.Action;
+import ratpack.func.Action;
 import ratpack.exec.internal.ExecControllerInternal;
-import ratpack.exec.util.Exceptions;
+import ratpack.func.Exceptions;
 import ratpack.exec.util.internal.TransportDetector;
 
 import java.net.URI;

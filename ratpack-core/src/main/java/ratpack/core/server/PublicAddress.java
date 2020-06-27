@@ -19,7 +19,7 @@ package ratpack.core.server;
 import ratpack.core.http.HttpUrlBuilder;
 import ratpack.core.server.internal.ConstantPublicAddress;
 import ratpack.core.server.internal.InferringPublicAddress;
-import ratpack.exec.func.Action;
+import ratpack.func.Action;
 
 import java.net.URI;
 

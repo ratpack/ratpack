@@ -17,7 +17,7 @@
 package ratpack.exec
 
 import ratpack.exec.util.Promised
-import ratpack.exec.func.Action
+import ratpack.func.Action
 import spock.util.concurrent.PollingConditions
 
 class HierarchicalExecutionSpec extends BaseExecutionSpec {

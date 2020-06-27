@@ -19,10 +19,10 @@ package ratpack.exec.internal;
 import org.reactivestreams.Publisher;
 import org.reactivestreams.Subscriber;
 import org.reactivestreams.Subscription;
-import ratpack.exec.func.Action;
-import ratpack.exec.func.Block;
+import ratpack.func.Action;
+import ratpack.func.Block;
 import ratpack.exec.stream.TransformablePublisher;
-import ratpack.exec.util.Exceptions;
+import ratpack.func.Exceptions;
 
 import java.util.concurrent.atomic.AtomicBoolean;
 

@@ -25,8 +25,8 @@ import ratpack.core.handling.Handler;
 import ratpack.core.handling.Handlers;
 import ratpack.core.http.HttpMethod;
 import ratpack.core.http.internal.HttpHeaderConstants;
-import ratpack.exec.func.Action;
-import ratpack.exec.func.Block;
+import ratpack.func.Action;
+import ratpack.func.Block;
 import ratpack.exec.registry.Registry;
 
 import java.util.ArrayList;

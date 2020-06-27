@@ -16,7 +16,7 @@
 
 package ratpack.guice;
 
-import ratpack.exec.func.Action;
+import ratpack.func.Action;
 import ratpack.core.impose.Imposition;
 import ratpack.core.impose.Impositions;
 

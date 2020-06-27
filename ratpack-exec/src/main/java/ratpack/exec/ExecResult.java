@@ -16,8 +16,8 @@
 
 package ratpack.exec;
 
-import ratpack.exec.func.Action;
-import ratpack.exec.func.Predicate;
+import ratpack.func.Action;
+import ratpack.func.Predicate;
 import ratpack.exec.internal.CompleteExecResult;
 import ratpack.exec.internal.ResultBackedExecResult;
 

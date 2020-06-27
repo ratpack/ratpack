@@ -19,11 +19,11 @@ package ratpack.exec.stream.bytebuf;
 import io.netty.buffer.*;
 import org.reactivestreams.Publisher;
 import ratpack.exec.Promise;
-import ratpack.exec.func.Action;
+import ratpack.func.Action;
 import ratpack.exec.stream.Streams;
 import ratpack.exec.stream.TransformablePublisher;
 import ratpack.exec.stream.bytebuf.internal.ByteBufComposingPublisher;
-import ratpack.exec.util.Exceptions;
+import ratpack.func.Exceptions;
 
 import java.io.BufferedInputStream;
 

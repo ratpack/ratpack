@@ -17,8 +17,8 @@
 package ratpack.exec.stream.internal
 
 import org.reactivestreams.Subscription
-import ratpack.exec.func.Action
-import ratpack.exec.func.Function
+import ratpack.func.Action
+import ratpack.func.Function
 import ratpack.exec.stream.StreamMapper
 import spock.lang.Specification
 

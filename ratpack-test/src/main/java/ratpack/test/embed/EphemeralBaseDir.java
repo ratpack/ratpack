@@ -16,10 +16,10 @@
 
 package ratpack.test.embed;
 
-import ratpack.exec.func.Action;
+import ratpack.func.Action;
 import ratpack.test.embed.internal.JarFileEphemeralBaseDir;
 import ratpack.test.embed.internal.PathEphemeralBaseDir;
-import ratpack.exec.util.Exceptions;
+import ratpack.func.Exceptions;
 
 import java.io.Closeable;
 import java.io.File;

@@ -19,7 +19,7 @@ package ratpack.core.file.internal;
 import com.github.benmanes.caffeine.cache.Cache;
 import com.github.benmanes.caffeine.cache.Caffeine;
 import ratpack.core.file.BaseDirRequiredException;
-import ratpack.core.file.FileSystemBinding;
+import ratpack.config.FileSystemBinding;
 import ratpack.core.handling.Context;
 import ratpack.core.handling.Handler;
 import ratpack.core.handling.internal.ChainHandler;

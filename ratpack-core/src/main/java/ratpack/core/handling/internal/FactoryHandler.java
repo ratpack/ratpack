@@ -18,7 +18,7 @@ package ratpack.core.handling.internal;
 
 import ratpack.core.handling.Context;
 import ratpack.core.handling.Handler;
-import ratpack.exec.func.Factory;
+import ratpack.func.Factory;
 
 public class FactoryHandler implements DescribingHandler {
 

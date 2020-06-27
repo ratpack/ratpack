@@ -22,7 +22,7 @@ import org.reactivestreams.Publisher;
 import org.reactivestreams.Subscriber;
 import org.reactivestreams.Subscription;
 import ratpack.core.sse.Event;
-import ratpack.exec.func.Action;
+import ratpack.func.Action;
 import ratpack.exec.stream.internal.BufferingPublisher;
 
 public class ServerSentEventDecodingPublisher extends BufferingPublisher<Event<?>> {

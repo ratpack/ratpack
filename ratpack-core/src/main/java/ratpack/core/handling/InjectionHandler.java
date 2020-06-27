@@ -19,7 +19,7 @@ package ratpack.core.handling;
 import com.google.common.reflect.TypeToken;
 import ratpack.core.handling.internal.Extractions;
 import ratpack.exec.registry.NotInRegistryException;
-import ratpack.exec.util.Types;
+import ratpack.func.Types;
 
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
@@ -27,7 +27,7 @@ import java.lang.reflect.Type;
 import java.util.ArrayList;
 import java.util.List;
 
-import static ratpack.exec.util.Exceptions.uncheck;
+import static ratpack.func.Exceptions.uncheck;
 
 /**
  * A super class that removes the boiler plate of retrieving objects from the context registry by injecting them based on a method signature.

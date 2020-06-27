@@ -18,10 +18,10 @@ package ratpack.exec.registry.internal
 
 import com.google.common.base.Supplier
 import com.google.common.reflect.TypeToken
-import ratpack.exec.func.Function
+import ratpack.func.Function
 import ratpack.exec.registry.NotInRegistryException
 import ratpack.exec.registry.RegistryBacking
-import ratpack.exec.util.Types
+import ratpack.func.Types
 import spock.lang.Specification
 
 class CachingBackedRegistrySpec extends Specification {

@@ -21,7 +21,7 @@ import org.reactivestreams.Subscriber;
 import org.reactivestreams.Subscription;
 import ratpack.exec.Operation;
 import ratpack.exec.Promise;
-import ratpack.exec.func.Function;
+import ratpack.func.Function;
 import ratpack.exec.stream.TransformablePublisher;
 
 import java.util.concurrent.atomic.AtomicBoolean;

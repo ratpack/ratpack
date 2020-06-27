@@ -21,14 +21,14 @@ import ratpack.exec.Downstream;
 import ratpack.exec.ExecController;
 import ratpack.exec.ExecResult;
 import ratpack.exec.Result;
-import ratpack.exec.func.Action;
+import ratpack.func.Action;
 import ratpack.core.http.TypedData;
 import ratpack.core.http.client.HttpClient;
 import ratpack.core.http.client.ReceivedResponse;
 import ratpack.core.http.client.RequestSpec;
 import ratpack.core.http.client.internal.DefaultReceivedResponse;
 import ratpack.core.http.internal.ByteBufBackedTypedData;
-import ratpack.exec.util.Exceptions;
+import ratpack.func.Exceptions;
 
 import java.net.URI;
 import java.time.Duration;

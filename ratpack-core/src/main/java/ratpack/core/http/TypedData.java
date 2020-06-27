@@ -18,7 +18,7 @@ package ratpack.core.http;
 
 import io.netty.buffer.ByteBuf;
 import ratpack.exec.Blocking;
-import ratpack.exec.func.Factory;
+import ratpack.func.Factory;
 
 import java.io.IOException;
 import java.io.InputStream;

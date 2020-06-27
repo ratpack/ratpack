@@ -18,7 +18,7 @@ package ratpack.groovy.internal;
 
 import groovy.lang.Closure;
 import groovy.lang.DelegatesTo;
-import ratpack.exec.func.Action;
+import ratpack.func.Action;
 import ratpack.groovy.script.internal.LineNumber;
 import ratpack.groovy.script.internal.ScriptPath;
 

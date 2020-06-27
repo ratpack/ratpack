@@ -16,7 +16,7 @@
 
 package ratpack.core.path;
 
-import ratpack.exec.func.Action;
+import ratpack.func.Action;
 
 /**
  * A builder to generate a {@link PathBinder} from a list of tokens and literals.

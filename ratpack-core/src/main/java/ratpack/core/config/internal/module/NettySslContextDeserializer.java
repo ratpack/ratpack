@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package ratpack.core.config.internal.module;
+package ratpack.config.internal.module;
 
 import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.databind.DeserializationContext;
@@ -23,7 +23,7 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 import io.netty.handler.ssl.SslContext;
 import io.netty.handler.ssl.SslContextBuilder;
 import ratpack.core.ssl.internal.SslContexts;
-import ratpack.exec.util.Exceptions;
+import ratpack.func.Exceptions;
 
 import javax.net.ssl.KeyManagerFactory;
 import java.io.IOException;

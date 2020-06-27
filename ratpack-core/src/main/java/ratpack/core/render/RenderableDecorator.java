@@ -20,7 +20,7 @@ import com.google.common.reflect.TypeParameter;
 import com.google.common.reflect.TypeToken;
 import ratpack.core.handling.Context;
 import ratpack.exec.Promise;
-import ratpack.exec.func.Action;
+import ratpack.func.Action;
 import ratpack.exec.registry.RegistrySpec;
 
 import java.util.function.BiFunction;

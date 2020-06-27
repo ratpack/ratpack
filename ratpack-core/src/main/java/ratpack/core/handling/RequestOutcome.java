@@ -18,7 +18,7 @@ package ratpack.core.handling;
 
 import ratpack.core.http.Request;
 import ratpack.core.http.SentResponse;
-import ratpack.exec.func.Action;
+import ratpack.func.Action;
 
 import java.time.Duration;
 import java.time.Instant;

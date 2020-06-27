@@ -16,11 +16,11 @@
 
 package ratpack.core.file.internal;
 
-import ratpack.core.file.FileSystemBinding;
+import ratpack.config.FileSystemBinding;
 import ratpack.core.file.checksummer.internal.Adler32Checksummer;
 import ratpack.core.file.checksummer.internal.MD5Checksummer;
 import ratpack.core.server.ServerConfig;
-import ratpack.exec.func.Function;
+import ratpack.func.Function;
 
 import java.io.InputStream;
 import java.nio.file.Files;

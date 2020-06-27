@@ -21,7 +21,7 @@ import ratpack.core.server.RatpackServer;
 import ratpack.core.server.ServerConfig;
 import ratpack.exec.Blocking;
 import ratpack.exec.api.NonBlocking;
-import ratpack.exec.func.Action;
+import ratpack.func.Action;
 
 /**
  * A service participates in the application lifecycle.
@@ -146,7 +146,7 @@ import ratpack.exec.func.Action;
  * import ratpack.core.service.StartEvent;
  * import ratpack.core.service.StopEvent;
  * import ratpack.guice.Guice;
- * import ratpack.exec.util.Types;
+ * import ratpack.func.Types;
  * import javax.inject.Inject;
  *
  * import java.util.List;

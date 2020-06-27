@@ -21,7 +21,7 @@ import org.reactivestreams.Publisher;
 import ratpack.core.http.Response;
 import ratpack.core.http.client.internal.DefaultHttpClient;
 import ratpack.exec.Promise;
-import ratpack.exec.func.Action;
+import ratpack.func.Action;
 
 import java.net.URI;
 import java.time.Duration;

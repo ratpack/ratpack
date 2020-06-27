@@ -19,7 +19,7 @@ package ratpack.spring.config;
 import java.util.Collections;
 import java.util.List;
 
-import ratpack.exec.func.Action;
+import ratpack.func.Action;
 import ratpack.guice.BindingsSpec;
 import ratpack.core.handling.Chain;
 import ratpack.core.server.ServerConfigBuilder;

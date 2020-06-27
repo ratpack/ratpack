@@ -18,7 +18,7 @@ package ratpack.groovy.handling;
 
 import groovy.lang.Closure;
 import groovy.lang.DelegatesTo;
-import ratpack.exec.func.Block;
+import ratpack.func.Block;
 import ratpack.core.handling.ByMethodSpec;
 import ratpack.core.handling.Handler;
 

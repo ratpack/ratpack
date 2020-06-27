@@ -16,7 +16,7 @@
 
 package ratpack.session.internal;
 
-import ratpack.exec.api.Nullable;
+import ratpack.func.Nullable;
 import ratpack.session.SessionKey;
 
 public class DefaultSessionKey<T> implements SessionKey<T> {

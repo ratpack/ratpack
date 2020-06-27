@@ -16,7 +16,7 @@
 
 package ratpack.core.impose;
 
-import ratpack.exec.func.Action;
+import ratpack.func.Action;
 
 /**
  * Used to specify a set of impositions.

@@ -19,8 +19,8 @@ package ratpack.test.handling;
 import com.google.common.net.HostAndPort;
 import ratpack.core.error.ClientErrorHandler;
 import ratpack.core.error.ServerErrorHandler;
-import ratpack.exec.func.Action;
-import ratpack.exec.func.Factory;
+import ratpack.func.Action;
+import ratpack.func.Factory;
 import ratpack.core.handling.Chain;
 import ratpack.core.handling.Context;
 import ratpack.core.handling.Handler;
@@ -97,7 +97,7 @@ public interface RequestFixture {
    * Unit test a {@link Handler} chain.
    *
    * <pre class="java">{@code
-   * import ratpack.exec.func.Action;
+   * import ratpack.func.Action;
    * import ratpack.core.handling.Chain;
    * import ratpack.test.handling.RequestFixture;
    * import ratpack.test.handling.HandlingResult;

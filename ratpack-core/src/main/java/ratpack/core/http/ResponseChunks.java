@@ -25,9 +25,9 @@ import ratpack.core.handling.Context;
 import ratpack.core.http.internal.HttpHeaderConstants;
 import ratpack.core.render.Renderable;
 import ratpack.core.render.Renderer;
-import ratpack.exec.func.Function;
+import ratpack.func.Function;
 import ratpack.exec.stream.Streams;
-import ratpack.exec.util.Exceptions;
+import ratpack.func.Exceptions;
 
 import java.nio.CharBuffer;
 import java.nio.charset.Charset;

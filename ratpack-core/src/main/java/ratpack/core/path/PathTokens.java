@@ -18,7 +18,7 @@ package ratpack.core.path;
 
 import ratpack.core.handling.Chain;
 import ratpack.core.handling.Handler;
-import ratpack.exec.util.TypeCoercingMap;
+import ratpack.func.TypeCoercingMap;
 
 /**
  * A marker interface for the contextual object that represents the tokens extracted from the request path.

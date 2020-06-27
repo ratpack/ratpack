@@ -16,8 +16,8 @@
 
 package ratpack.groovy.handling.internal;
 
-import ratpack.exec.api.Nullable;
-import ratpack.exec.func.Function;
+import ratpack.func.Nullable;
+import ratpack.func.Function;
 import ratpack.groovy.handling.GroovyChain;
 import ratpack.core.handling.Handler;
 import ratpack.core.handling.internal.DefaultChain;

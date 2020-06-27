@@ -17,12 +17,13 @@
 package ratpack.exec.registry.internal;
 
 import com.google.common.reflect.TypeToken;
-import ratpack.exec.api.Nullable;
-import ratpack.exec.func.Function;
+import ratpack.func.Nullable;
+import ratpack.func.Function;
 import ratpack.exec.registry.MutableRegistry;
 import ratpack.exec.registry.NotInRegistryException;
 import ratpack.exec.registry.Registry;
 import ratpack.exec.registry.RegistrySpec;
+import ratpack.func.internal.TypeCaching;
 
 import java.util.Deque;
 import java.util.Iterator;

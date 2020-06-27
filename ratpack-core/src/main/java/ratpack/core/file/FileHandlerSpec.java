@@ -16,9 +16,10 @@
 
 package ratpack.core.file;
 
+import ratpack.config.FileSystemBinding;
 import ratpack.core.handling.Chain;
 import ratpack.core.path.PathBinding;
-import ratpack.exec.func.Action;
+import ratpack.func.Action;
 
 /**
  * A specification for a handler that serves files from the file system.

@@ -25,7 +25,7 @@ import ratpack.core.render.Renderable;
 import ratpack.core.render.Renderer;
 import ratpack.core.sse.internal.DefaultEvent;
 import ratpack.core.sse.internal.ServerSentEventEncoder;
-import ratpack.exec.func.Action;
+import ratpack.func.Action;
 import ratpack.exec.stream.Streams;
 
 /**

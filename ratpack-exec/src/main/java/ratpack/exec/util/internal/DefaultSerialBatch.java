@@ -21,11 +21,11 @@ import ratpack.exec.ExecResult;
 import ratpack.exec.Operation;
 import ratpack.exec.Promise;
 import ratpack.exec.util.SerialBatch;
-import ratpack.exec.func.BiAction;
-import ratpack.exec.func.BiFunction;
+import ratpack.func.BiAction;
+import ratpack.func.BiFunction;
 import ratpack.exec.stream.Streams;
 import ratpack.exec.stream.TransformablePublisher;
-import ratpack.exec.util.Types;
+import ratpack.func.Types;
 
 import java.util.ArrayList;
 import java.util.Iterator;

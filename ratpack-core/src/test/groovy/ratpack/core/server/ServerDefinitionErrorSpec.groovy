@@ -19,6 +19,7 @@ package ratpack.core.server
 import ratpack.core.handling.Handler
 import ratpack.core.server.internal.ServerEnvironment
 import ratpack.exec.registry.Registry
+import ratpack.func.Utils
 import ratpack.test.ServerBackedApplicationUnderTest
 import ratpack.test.http.TestHttpClient
 import spock.lang.AutoCleanup
@@ -38,11 +39,11 @@ class ServerDefinitionErrorSpec extends Specification {
   }
 
   static implicitlyDevelopment(boolean flag) {
-    System.setProperty(ServerEnvironment.DEVELOPMENT_PROPERTY, flag.toString())
+    System.setProperty(Utils.DEVELOPMENT_PROPERTY, flag.toString())
   }
 
   def cleanup() {
-    System.clearProperty(ServerEnvironment.DEVELOPMENT_PROPERTY)
+    System.clearProperty(Utils.DEVELOPMENT_PROPERTY)
     System.clearProperty(ServerEnvironment.PORT_PROPERTY)
   }
 

@@ -19,7 +19,7 @@ package ratpack.exec.stream.tck;
 import org.reactivestreams.Publisher;
 import org.reactivestreams.tck.PublisherVerification;
 import org.reactivestreams.tck.TestEnvironment;
-import ratpack.exec.func.Action;
+import ratpack.func.Action;
 import ratpack.exec.stream.Streams;
 
 import java.util.ArrayList;

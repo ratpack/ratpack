@@ -24,7 +24,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import ratpack.core.error.ClientErrorHandler;
 import ratpack.core.error.ServerErrorHandler;
-import ratpack.core.file.FileSystemBinding;
+import ratpack.config.FileSystemBinding;
 import ratpack.core.file.internal.ResponseTransmitter;
 import ratpack.core.handling.*;
 import ratpack.core.handling.direct.DirectChannelAccess;
@@ -44,12 +44,12 @@ import ratpack.core.server.ServerConfig;
 import ratpack.exec.ExecController;
 import ratpack.exec.Execution;
 import ratpack.exec.Promise;
-import ratpack.exec.func.Action;
-import ratpack.exec.func.Function;
+import ratpack.func.Action;
+import ratpack.func.Function;
 import ratpack.exec.registry.NotInRegistryException;
 import ratpack.exec.registry.Registry;
-import ratpack.exec.util.Exceptions;
-import ratpack.exec.util.Types;
+import ratpack.func.Exceptions;
+import ratpack.func.Types;
 
 import java.lang.reflect.UndeclaredThrowableException;
 import java.nio.file.Path;
@@ -58,7 +58,7 @@ import java.util.*;
 
 import static com.google.common.base.Throwables.getStackTraceAsString;
 import static io.netty.handler.codec.http.HttpHeaderNames.IF_MODIFIED_SINCE;
-import static ratpack.exec.util.Exceptions.uncheck;
+import static ratpack.func.Exceptions.uncheck;
 
 public class DefaultContext implements Context {
 

@@ -16,7 +16,7 @@
 
 package ratpack.test;
 
-import ratpack.exec.func.Action;
+import ratpack.func.Action;
 import ratpack.test.http.TestHttpClient;
 
 /**

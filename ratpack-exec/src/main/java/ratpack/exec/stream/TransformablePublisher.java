@@ -20,10 +20,10 @@ import org.reactivestreams.Publisher;
 import org.reactivestreams.Subscriber;
 import ratpack.exec.ExecSpec;
 import ratpack.exec.Promise;
-import ratpack.exec.func.Action;
-import ratpack.exec.func.BiFunction;
-import ratpack.exec.func.Function;
-import ratpack.exec.func.Predicate;
+import ratpack.func.Action;
+import ratpack.func.BiFunction;
+import ratpack.func.Function;
+import ratpack.func.Predicate;
 
 import java.util.List;
 

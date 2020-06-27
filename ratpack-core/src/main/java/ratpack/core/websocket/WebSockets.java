@@ -26,7 +26,7 @@ import ratpack.core.server.ServerConfig;
 import ratpack.core.websocket.internal.DefaultWebSocketConnector;
 import ratpack.core.websocket.internal.WebSocketEngine;
 import ratpack.core.websocket.internal.WebsocketBroadcastSubscriber;
-import ratpack.exec.func.Function;
+import ratpack.func.Function;
 import ratpack.exec.stream.Streams;
 
 import java.nio.CharBuffer;

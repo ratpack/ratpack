@@ -18,7 +18,7 @@ package ratpack.core.jackson;
 
 import com.fasterxml.jackson.databind.ObjectWriter;
 import ratpack.core.handling.Context;
-import ratpack.exec.api.Nullable;
+import ratpack.func.Nullable;
 
 /**
  * A {@link Context#render renderable object wrapper} for rendering as JSON.

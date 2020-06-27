@@ -21,9 +21,9 @@ import com.google.common.collect.ImmutableSortedMap;
 import com.google.common.collect.Iterables;
 import ratpack.exec.Promise;
 import ratpack.exec.Throttle;
-import ratpack.exec.api.Nullable;
-import ratpack.exec.func.Function;
-import ratpack.exec.func.Pair;
+import ratpack.func.Nullable;
+import ratpack.func.Function;
+import ratpack.func.Pair;
 import ratpack.exec.registry.Registry;
 import ratpack.exec.util.ParallelBatch;
 

@@ -18,7 +18,7 @@ package ratpack.perf.incl;
 
 import ratpack.core.handling.*;
 import ratpack.core.server.*;
-import ratpack.exec.func.*;
+import ratpack.func.*;
 
 public class StopHandler implements Handler {
 

@@ -18,7 +18,7 @@ package ratpack.exec.stream;
 
 import org.reactivestreams.Publisher;
 import org.reactivestreams.Subscription;
-import ratpack.exec.func.Action;
+import ratpack.func.Action;
 
 /**
  * The write end of a data stream.

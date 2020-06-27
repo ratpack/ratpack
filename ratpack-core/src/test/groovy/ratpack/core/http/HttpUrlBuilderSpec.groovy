@@ -17,7 +17,7 @@
 package ratpack.core.http
 
 import com.google.common.collect.ImmutableMultimap
-import ratpack.exec.util.internal.ImmutableDelegatingMultiValueMap
+import ratpack.func.internal.ImmutableDelegatingMultiValueMap
 import ratpack.groovy.internal.ClosureUtil
 import spock.lang.Specification
 import spock.lang.Unroll

@@ -25,7 +25,7 @@ import ratpack.core.http.client.ReceivedResponse
 import ratpack.core.http.client.RequestSpec
 import ratpack.core.http.internal.HttpHeaderDateFormat
 import ratpack.core.server.Stopper
-import ratpack.exec.func.Action
+import ratpack.func.Action
 import ratpack.test.internal.RatpackGroovyDslSpec
 import spock.util.concurrent.BlockingVariable
 import spock.util.concurrent.PollingConditions

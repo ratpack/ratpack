@@ -22,7 +22,7 @@ import ratpack.core.handling.Context;
 import ratpack.core.render.Renderer;
 import ratpack.core.render.RendererSupport;
 import ratpack.exec.stream.Streams;
-import ratpack.exec.util.Types;
+import ratpack.func.Types;
 
 public class PublisherRenderer extends RendererSupport<Publisher<?>> {
 

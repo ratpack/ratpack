@@ -20,7 +20,7 @@ import ratpack.core.http.client.HttpClient;
 import ratpack.core.http.client.RequestSpec;
 import ratpack.core.sse.internal.DefaultServerSentEventStreamClient;
 import ratpack.exec.Promise;
-import ratpack.exec.func.Action;
+import ratpack.func.Action;
 import ratpack.exec.stream.TransformablePublisher;
 
 import java.net.URI;

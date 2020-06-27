@@ -21,7 +21,7 @@ import io.netty.buffer.CompositeByteBuf;
 import io.netty.buffer.Unpooled;
 import io.netty.util.ByteProcessor;
 import ratpack.core.sse.Event;
-import ratpack.exec.func.Action;
+import ratpack.func.Action;
 
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
