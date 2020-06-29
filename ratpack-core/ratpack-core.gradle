@@ -68,7 +68,7 @@ dependencies {
 }
 
 test {
-  maxParallelForks = 3
+  maxParallelForks = isCi ? 2 : 3
 }
 
 // Reactive Streams TCK uses TestNG, and Gradle can't run TestNG and JUnit in the same run.
@@ -87,5 +87,5 @@ task streamTckTest(type: Test) {
     junitXml.destination = binResultsDir.parentFile
   }
 
-  maxParallelForks = 4
+  maxParallelForks = isCi ? 2 : 4
 }
