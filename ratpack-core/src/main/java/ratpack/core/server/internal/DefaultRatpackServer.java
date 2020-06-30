@@ -44,6 +44,7 @@ import ratpack.core.server.ServerConfig;
 import ratpack.core.service.internal.DefaultEvent;
 import ratpack.core.service.internal.ServicesGraph;
 import ratpack.exec.Blocking;
+import ratpack.exec.ExecController;
 import ratpack.exec.Promise;
 import ratpack.exec.Throttle;
 import ratpack.func.Nullable;
@@ -125,7 +126,11 @@ public class DefaultRatpackServer implements RatpackServer {
       }
 
       serverConfig = definitionBuild.getServerConfig();
-      execController = new DefaultExecController(serverConfig.getThreads());
+      execController = (DefaultExecController) ExecController.of(spec ->
+        spec.compute(c ->
+          c.threads(serverConfig.getThreads())
+        )
+      );
       ChannelHandler channelHandler = ExecThreadBinding.bindFor(true, execController, () -> buildHandler(definitionBuild));
       channel = buildChannel(serverConfig, channelHandler);
 

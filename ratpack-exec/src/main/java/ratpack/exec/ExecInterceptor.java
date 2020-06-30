@@ -118,7 +118,7 @@ public interface ExecInterceptor {
   /**
    * The execution type (i.e. type of thread).
    */
-  enum ExecType {
+  enum ExecType implements ExecutionType{
 
     /**
      * The execution segment is executing on a blocking thread.

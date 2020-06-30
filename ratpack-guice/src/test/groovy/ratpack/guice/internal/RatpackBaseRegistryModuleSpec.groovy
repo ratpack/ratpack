@@ -51,7 +51,11 @@ class RatpackBaseRegistryModuleSpec extends Specification {
   def "injector contains bindings based on base registry"() {
     when:
     def ratpackServer = Mock(RatpackServer)
-    def execController = new DefaultExecController(4)
+    def execController = (DefaultExecController) ExecController.of { spec ->
+      spec.compute { c ->
+        c.threads(4)
+      }
+    }
     def serverConfig = ServerConfig.builder().build()
     def baseRegistry = ServerRegistry.serverRegistry(ratpackServer, Impositions.none(), execController, serverConfig, Guice.registry {})
     def injector = baseRegistry.get(Injector)

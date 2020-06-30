@@ -17,18 +17,19 @@
 package ratpack.exec.internal;
 
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.Lists;
 import io.netty.channel.EventLoop;
 import io.netty.channel.EventLoopGroup;
 import io.netty.util.concurrent.DefaultThreadFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import ratpack.exec.*;
-import ratpack.func.Action;
-import ratpack.func.Block;
+import ratpack.func.*;
 import ratpack.exec.registry.RegistrySpec;
 import ratpack.exec.util.internal.InternalRatpackError;
 import ratpack.exec.util.internal.TransportDetector;
 
+import java.util.List;
 import java.util.Queue;
 import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -43,23 +44,45 @@ public class DefaultExecController implements ExecControllerInternal {
 
   private final ExecutorService blockingExecutor;
   private final EventLoopGroup eventLoopGroup;
-  private final int numThreads;
   private final ClassLoader contextClassLoader = Thread.currentThread().getContextClassLoader();
   private final AtomicBoolean closed = new AtomicBoolean();
 
-  private ImmutableList<? extends ExecInterceptor> interceptors = ImmutableList.of();
-  private ImmutableList<? extends ExecInitializer> initializers = ImmutableList.of();
+  private ImmutableList<? extends ExecInterceptor> interceptors;
+  private ImmutableList<? extends ExecInitializer> initializers;
 
   private Queue<Block> onClose = new ConcurrentLinkedQueue<>();
 
-  public DefaultExecController() {
-    this(Runtime.getRuntime().availableProcessors() * 2);
-  }
+  public DefaultExecController(Spec spec) {
+    Compute compute = new Compute();
+    Blocking blocking = new Blocking();
 
-  public DefaultExecController(int numThreads) {
-    this.numThreads = numThreads;
-    this.eventLoopGroup = TransportDetector.eventLoopGroup(numThreads, new ExecControllerBindingThreadFactory(true, "ratpack-compute", Thread.MAX_PRIORITY));
-    this.blockingExecutor = Executors.newCachedThreadPool(new ExecControllerBindingThreadFactory(false, "ratpack-blocking", Thread.NORM_PRIORITY));
+    Exceptions.uncheck(() -> {
+        spec.computeSpec.execute(compute);
+        spec.blockingSpec.execute(blocking);
+    });
+
+    eventLoopGroup = Exceptions.uncheck(() ->
+      compute.eventLoopGroupFactory.apply(
+        compute.threads,
+        new ExecControllerBindingThreadFactory<>(
+          ExecInterceptor.ExecType.COMPUTE,
+          compute.prefix,
+          compute.priority
+        )
+      )
+    );
+    blockingExecutor = Exceptions.uncheck(() ->
+      blocking.executorFactory.apply(
+        new ExecControllerBindingThreadFactory<>(
+          ExecInterceptor.ExecType.BLOCKING,
+          blocking.prefix,
+          blocking.priority
+        )
+      )
+    );
+    this.initializers = ImmutableList.copyOf(spec.initializers);
+    this.interceptors = ImmutableList.copyOf(spec.interceptors);
+
   }
 
   @Override
@@ -121,27 +144,22 @@ public class DefaultExecController implements ExecControllerInternal {
     return eventLoopGroup;
   }
 
-  private class ExecControllerBindingThreadFactory extends DefaultThreadFactory {
-    private final boolean compute;
+  private class ExecControllerBindingThreadFactory<E extends Enum<E> & ExecutionType> extends DefaultThreadFactory {
+    private final E executionType;
 
-    ExecControllerBindingThreadFactory(boolean compute, String name, int priority) {
+    ExecControllerBindingThreadFactory(E executionType, String name, int priority) {
       super(name, priority);
-      this.compute = compute;
+      this.executionType = executionType;
     }
 
     @Override
     public Thread newThread(final Runnable r) {
       return super.newThread(() -> {
-        ExecThreadBinding.bind(compute, DefaultExecController.this);
+        ExecThreadBinding.bind(executionType, DefaultExecController.this);
         Thread.currentThread().setContextClassLoader(contextClassLoader);
         r.run();
       });
     }
-  }
-
-  @Override
-  public int getNumThreads() {
-    return numThreads;
   }
 
   @Override
@@ -213,4 +231,103 @@ public class DefaultExecController implements ExecControllerInternal {
     };
   }
 
+  public static ExecController of(Action<? super ExecControllerSpec> definition) throws Exception {
+    Spec spec = new Spec();
+    definition.execute(spec);
+
+    return new DefaultExecController(spec);
+  }
+
+  public static class Spec implements ExecControllerSpec {
+
+    private Action<? super ComputeSpec> computeSpec = Action.noop();
+    private Action<? super BlockingSpec> blockingSpec = Action.noop();
+    private List<ExecInterceptor> interceptors = Lists.newArrayList();
+    private List<ExecInitializer> initializers = Lists.newArrayList();
+
+    @Override
+    public ExecControllerSpec interceptor(ExecInterceptor interceptor) {
+      this.interceptors.add(interceptor);
+      return this;
+    }
+
+    @Override
+    public ExecControllerSpec initializer(ExecInitializer initializer) {
+      this.initializers.add(initializer);
+      return this;
+    }
+
+    @Override
+    public ExecControllerSpec compute(Action<? super ComputeSpec> definition) {
+      this.computeSpec = definition;
+      return this;
+    }
+
+    @Override
+    public ExecControllerSpec blocking(Action<? super BlockingSpec> definition) {
+      this.blockingSpec = definition;
+      return this;
+    }
+
+    @Override
+    public <E extends Enum<E> & ExecutionType> ExecControllerSpec binding(E executionType, Action<? super BindingSpec> definition) {
+      return this;
+    }
+  }
+
+  public static class Compute implements ExecControllerSpec.ComputeSpec {
+
+    private int threads = Runtime.getRuntime().availableProcessors() * 2;
+    private String prefix = "ratpack-compute";
+    private int priority = Thread.MAX_PRIORITY;
+    private BiFunction<Integer, ThreadFactory, EventLoopGroup> eventLoopGroupFactory = TransportDetector::eventLoopGroup;
+
+    @Override
+    public ExecControllerSpec.ComputeSpec threads(int threads) {
+      this.threads = threads;
+      return this;
+    }
+
+    @Override
+    public ExecControllerSpec.ComputeSpec prefix(String prefix) {
+      this.prefix = prefix;
+      return this;
+    }
+
+    @Override
+    public ExecControllerSpec.ComputeSpec priority(int priority) {
+      this.priority = priority;
+      return this;
+    }
+
+    @Override
+    public ExecControllerSpec.ComputeSpec eventLoopGroup(BiFunction<Integer, ThreadFactory, EventLoopGroup> eventLoopGroupFactory) {
+      this.eventLoopGroupFactory = eventLoopGroupFactory;
+      return this;
+    }
+  }
+
+  public static class Blocking implements ExecControllerSpec.BlockingSpec {
+    private String prefix = "ratpack-blocking";
+    private int priority = Thread.MIN_PRIORITY;
+    private Function<ThreadFactory, ExecutorService> executorFactory = Executors::newCachedThreadPool;
+
+    @Override
+    public ExecControllerSpec.BlockingSpec prefix(String prefix) {
+      this.prefix = prefix;
+      return this;
+    }
+
+    @Override
+    public ExecControllerSpec.BlockingSpec priority(int priority) {
+      this.priority = priority;
+      return this;
+    }
+
+    @Override
+    public ExecControllerSpec.BlockingSpec executor(Function<ThreadFactory, ExecutorService> executorFactory) {
+      this.executorFactory = executorFactory;
+      return this;
+    }
+  }
 }

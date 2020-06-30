@@ -17,7 +17,6 @@
 package ratpack.test.internal
 
 import ratpack.exec.ExecController
-import ratpack.exec.internal.DefaultExecController
 import ratpack.core.http.client.HttpClient
 import spock.lang.AutoCleanup
 
@@ -26,7 +25,11 @@ import java.time.Duration
 class BlockingHttpClientSpec extends RatpackGroovyDslSpec {
 
   @AutoCleanup
-  ExecController execController = new DefaultExecController(2)
+  ExecController execController = ExecController.of { spec ->
+    spec.compute { c ->
+      c.threads(2)
+    }
+  }
 
   def "can use blocking http client"() {
     when:

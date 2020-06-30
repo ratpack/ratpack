@@ -17,7 +17,9 @@
 package ratpack.exec;
 
 import io.netty.channel.EventLoopGroup;
+import ratpack.exec.internal.DefaultExecController;
 import ratpack.exec.internal.ExecThreadBinding;
+import ratpack.func.Action;
 
 import java.util.Optional;
 import java.util.concurrent.ExecutorService;
@@ -79,23 +81,17 @@ public interface ExecController extends AutoCloseable {
   EventLoopGroup getEventLoopGroup();
 
   /**
-   * The number of threads that will be used for computation.
-   * <p>
-   * This is determined by the {@link ratpack.core.server.ServerConfig#getThreads()} value of the launch config that created this controller.
-   *
-   * @return the number of threads that will be used for computation
-   */
-  int getNumThreads();
-
-  /**
    * Shuts down this controller, terminating the event loop and blocking threads.
    * <p>
    * This method returns immediately, not waiting for the actual shutdown to occur.
    * <p>
    * Generally, the only time it is necessary to call this method is when using an exec controller directly during testing.
-   * Calling {@link ratpack.core.server.RatpackServer#stop()} will inherently call this method.
    */
   @Override
   void close();
+
+  static ExecController of(Action<? super ExecControllerSpec> definition) throws Exception {
+    return DefaultExecController.of(definition);
+  }
 
 }

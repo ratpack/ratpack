@@ -17,31 +17,29 @@
 package ratpack.exec.internal;
 
 import io.netty.util.concurrent.FastThreadLocal;
+import ratpack.exec.*;
 import ratpack.func.Nullable;
-import ratpack.exec.ExecController;
-import ratpack.exec.ExecutionException;
-import ratpack.exec.UnmanagedThreadException;
 import ratpack.func.Factory;
 
 import java.util.Optional;
 
-public class ExecThreadBinding {
+public class ExecThreadBinding<E extends Enum<E> & ExecutionType> {
 
   private final Thread thread;
-  private final boolean compute;
   private final ExecController execController;
   private DefaultExecution execution;
+  private final E executionType;
 
-  public ExecThreadBinding(Thread thread, boolean compute, ExecController execController) {
+  public ExecThreadBinding(Thread thread, E executionType, ExecController execController) {
     this.thread = thread;
-    this.compute = compute;
+    this.executionType = executionType;
     this.execController = execController;
   }
 
-  private static final FastThreadLocal<ExecThreadBinding> STORAGE = new FastThreadLocal<>();
+  private static final FastThreadLocal<ExecThreadBinding<?>> STORAGE = new FastThreadLocal<>();
 
-  public static void bind(boolean compute, ExecController execController) {
-    STORAGE.set(new ExecThreadBinding(Thread.currentThread(), compute, execController));
+  public static <E extends Enum<E> & ExecutionType> void bind(E executionType, ExecController execController) {
+    STORAGE.set(new ExecThreadBinding<>(Thread.currentThread(), executionType, execController));
   }
 
   public static void unbind() {
@@ -49,12 +47,16 @@ public class ExecThreadBinding {
   }
 
   public static <T> T bindFor(boolean compute, ExecController execController, Factory<T> function) throws Exception {
-    ExecThreadBinding current = STORAGE.get();
+    return bindFor(compute ? ExecInterceptor.ExecType.COMPUTE : ExecInterceptor.ExecType.BLOCKING, execController, function);
+  }
+
+  public static <T, E extends Enum<E> & ExecutionType> T bindFor(E executionType, ExecController execController, Factory<T> function) throws Exception {
+    ExecThreadBinding<?> current = STORAGE.get();
     if (current != null && current.getExecController() == execController) {
       return function.create();
     }
 
-    bind(compute, execController);
+    bind(executionType, execController);
     try {
       return function.create();
     } finally {
@@ -70,16 +72,16 @@ public class ExecThreadBinding {
   }
 
   @Nullable
-  public static ExecThreadBinding get() {
+  public static ExecThreadBinding<?> get() {
     return STORAGE.get();
   }
 
-  public static Optional<ExecThreadBinding> maybeGet() {
+  public static Optional<ExecThreadBinding<?>> maybeGet() {
     return Optional.ofNullable(STORAGE.get());
   }
 
-  public static ExecThreadBinding require() {
-    ExecThreadBinding execThreadBinding = STORAGE.get();
+  public static ExecThreadBinding<?> require() {
+    ExecThreadBinding<?> execThreadBinding = STORAGE.get();
     if (execThreadBinding == null) {
       throw new UnmanagedThreadException();
     } else {
@@ -96,7 +98,11 @@ public class ExecThreadBinding {
   }
 
   public boolean isCompute() {
-    return compute;
+    return executionType == ExecInterceptor.ExecType.COMPUTE;
+  }
+
+  public E getExecutionType() {
+    return executionType;
   }
 
   public ExecController getExecController() {
@@ -110,7 +116,7 @@ public class ExecThreadBinding {
   }
 
   public static void requireBlockingThread(String message) {
-    if (require().isCompute()) {
+    if (require().getExecutionType() != ExecInterceptor.ExecType.BLOCKING) {
       throw new ExecutionException(toMessage(message));
     }
   }

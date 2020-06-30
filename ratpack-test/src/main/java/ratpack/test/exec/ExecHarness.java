@@ -17,8 +17,8 @@
 package ratpack.test.exec;
 
 import ratpack.exec.*;
-import ratpack.exec.internal.DefaultExecController;
 import ratpack.func.Action;
+import ratpack.func.Exceptions;
 import ratpack.func.Function;
 import ratpack.exec.registry.RegistrySpec;
 import ratpack.test.exec.internal.DefaultExecHarness;
@@ -94,11 +94,13 @@ public interface ExecHarness extends AutoCloseable {
    * @return a new execution harness
    */
   static ExecHarness harness() {
-    return new DefaultExecHarness(new DefaultExecController());
+    return new DefaultExecHarness(Exceptions.uncheck(() -> ExecController.of(Action.noop())));
   }
 
   static ExecHarness harness(int numThreads) {
-    return new DefaultExecHarness(new DefaultExecController(numThreads));
+    return new DefaultExecHarness(Exceptions.uncheck(() -> ExecController.of(spec -> {
+      spec.compute(c -> c.threads(numThreads));
+    })));
   }
 
   default ExecStarter fork() {
