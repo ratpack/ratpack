@@ -70,7 +70,7 @@ public interface ExecController extends AutoCloseable {
    * @param executionType the binding type for the event loop group to utilize for this execution
    * @param <E> an enum that implements the {@link ExecutionType} interface
    * @return a builder for the execution
-   * @throws IllegalArgumentException if event loop was bound for the provided type
+   * @throws IllegalArgumentException if no event loop was bound for the provided type
    * @since 2.0.0
    */
   <E extends Enum<E> & ExecutionType> ExecStarter fork(E executionType) throws IllegalArgumentException;
