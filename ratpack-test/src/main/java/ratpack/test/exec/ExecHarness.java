@@ -94,13 +94,27 @@ public interface ExecHarness extends AutoCloseable {
    * @return a new execution harness
    */
   static ExecHarness harness() {
-    return new DefaultExecHarness(Exceptions.uncheck(() -> ExecController.of(Action.noop())));
+    return harness(Action.noop());
   }
 
+  /**
+   * Create a harness with the provided number of computation threads.
+   *
+   * @param numThreads the number of computation threads
+   * @return an execution harness
+   */
   static ExecHarness harness(int numThreads) {
-    return new DefaultExecHarness(Exceptions.uncheck(() -> ExecController.of(spec -> {
-      spec.compute(c -> c.threads(numThreads));
-    })));
+    return harness(spec -> spec.compute(c -> c.threads(numThreads)));
+  }
+
+  /**
+   * Create a harness that is backed by an execution controller with the provided configuration
+   * @param definition the controller specification
+   * @return an execution harness
+   * @since 2.0.0
+   */
+  static ExecHarness harness(Action<? super ExecControllerSpec> definition) {
+    return new DefaultExecHarness(Exceptions.uncheck(() -> ExecController.of(definition)));
   }
 
   default ExecStarter fork() {

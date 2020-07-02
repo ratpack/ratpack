@@ -28,7 +28,9 @@ import ratpack.func.Block;
  *
  * <pre class="java">{@code
  * import ratpack.exec.ExecInterceptor;
+ * import ratpack.exec.ExecType;
  * import ratpack.exec.Execution;
+ * import ratpack.exec.ExecutionType;
  * import ratpack.exec.Blocking;
  * import ratpack.exec.ExecResult;
  * import ratpack.func.Block;
@@ -71,14 +73,14 @@ import ratpack.func.Block;
  *   }
  *
  *   public static class ProcessingTimingInterceptor implements ExecInterceptor {
- *     public void intercept(Execution execution, ExecInterceptor.ExecType type, Block continuation) throws Exception {
+ *     public void intercept(Execution execution, ExecutionType type, Block continuation) throws Exception {
  *       Timer timer = execution.maybeGet(Timer.class).orElse(null);
  *       if (timer == null) { // this is the first execution segment
  *         timer = new Timer();
  *         execution.add(Timer.class, timer);
  *       }
  *
- *       timer.start(type.equals(ExecInterceptor.ExecType.BLOCKING));
+ *       timer.start(type.equals(ExecType.BLOCKING));
  *       try {
  *         continuation.execute();
  *       } finally {
@@ -116,22 +118,6 @@ import ratpack.func.Block;
 public interface ExecInterceptor {
 
   /**
-   * The execution type (i.e. type of thread).
-   */
-  enum ExecType implements ExecutionType{
-
-    /**
-     * The execution segment is executing on a blocking thread.
-     */
-    BLOCKING,
-
-    /**
-     * The execution segment is executing on a compute thread.
-     */
-    COMPUTE
-  }
-
-  /**
    * Intercepts the execution of an execution segment.
    * <p>
    * The execution segment argument represents a unit of work of the execution.
@@ -139,10 +125,10 @@ public interface ExecInterceptor {
    * Implementations <b>MUST</b> invoke {@code execute()} on the given execution segment block.
    *
    * @param execution the execution that this segment belongs to
-   * @param execType indicates whether this segment is execution on a compute or blocking thread
+   * @param execType indicates the thread binding this execution uses
    * @param executionSegment the execution segment that is to be executed
    * @throws Exception any
    */
-  void intercept(Execution execution, ExecType execType, Block executionSegment) throws Exception;
+  void intercept(Execution execution, ExecutionType execType, Block executionSegment) throws Exception;
 
 }

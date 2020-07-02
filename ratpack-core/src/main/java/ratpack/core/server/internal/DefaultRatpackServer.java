@@ -43,10 +43,7 @@ import ratpack.core.server.ReloadInformant;
 import ratpack.core.server.ServerConfig;
 import ratpack.core.service.internal.DefaultEvent;
 import ratpack.core.service.internal.ServicesGraph;
-import ratpack.exec.Blocking;
-import ratpack.exec.ExecController;
-import ratpack.exec.Promise;
-import ratpack.exec.Throttle;
+import ratpack.exec.*;
 import ratpack.func.Nullable;
 import ratpack.func.Action;
 import ratpack.func.Function;
@@ -131,7 +128,7 @@ public class DefaultRatpackServer implements RatpackServer {
           c.threads(serverConfig.getThreads())
         )
       );
-      ChannelHandler channelHandler = ExecThreadBinding.bindFor(true, execController, () -> buildHandler(definitionBuild));
+      ChannelHandler channelHandler = ExecThreadBinding.bindFor(ExecType.COMPUTE, execController, () -> buildHandler(definitionBuild));
       channel = buildChannel(serverConfig, channelHandler);
 
       boundAddress = (InetSocketAddress) channel.localAddress();

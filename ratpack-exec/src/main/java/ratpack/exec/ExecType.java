@@ -13,19 +13,21 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package ratpack.exec;
 
-import ratpack.func.Action;
-
 /**
- * A marker interface for declaring execution thread binding types when used in conjunction with
- * {@link ExecControllerSpec#eventLoopBinding(Enum, Action)} and {@link ExecControllerSpec#executorServiceBinding(Enum, Action)}
- * <p>
- * This interface should only be implemented by {@link Enum} classes in order to provide type
- * safety.
- *
- * @see ExecType
- * @since 2.0.0
+ * The execution type (i.e. type of thread).
  */
-public interface ExecutionType {
+public enum ExecType implements ExecutionType {
+
+  /**
+   * The execution segment is executing on a blocking thread.
+   */
+  BLOCKING,
+
+  /**
+   * The execution segment is executing on a compute thread.
+   */
+  COMPUTE
 }

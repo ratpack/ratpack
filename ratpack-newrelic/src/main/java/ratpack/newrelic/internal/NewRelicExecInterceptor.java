@@ -19,6 +19,7 @@ package ratpack.newrelic.internal;
 import com.newrelic.api.agent.Trace;
 import ratpack.exec.ExecInterceptor;
 import ratpack.exec.Execution;
+import ratpack.exec.ExecutionType;
 import ratpack.func.Block;
 import ratpack.core.handling.Context;
 import ratpack.newrelic.NewRelicTransaction;
@@ -29,7 +30,7 @@ public class NewRelicExecInterceptor implements ExecInterceptor {
 
   @Override
   @Trace(dispatcher = true)
-  public void intercept(Execution execution, ExecType execType, Block executionSegment) throws Exception {
+  public void intercept(Execution execution, ExecutionType execType, Block executionSegment) throws Exception {
     execution.maybeGet(Context.class).ifPresent(context -> {
       NewRelicTransaction transaction = execution.maybeGet(NewRelicTransaction.class).orElse(null);
       if (transaction == null) {

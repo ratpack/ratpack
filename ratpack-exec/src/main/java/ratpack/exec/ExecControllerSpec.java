@@ -23,46 +23,251 @@ import ratpack.func.BiFunction;
 import ratpack.func.Function;
 
 import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 import java.util.concurrent.ThreadFactory;
 
+/**
+ * An additive specification of an execution controller.
+ *
+ * @see ExecController#of(Action)
+ * @since 2.0.0
+ */
 public interface ExecControllerSpec {
 
+  /**
+   * Registers an interceptor for execution segments managed by this controller.
+   *
+   * @param interceptor the interceptor to execute on new execution segments
+   * @return {@code this}
+   */
   ExecControllerSpec interceptor(ExecInterceptor interceptor);
 
+  /**
+   * Registers an intializer for executions created by this controller.
+   *
+   * @param initializer the intializer to execut on new executions
+   * @return {@code this}
+   */
   ExecControllerSpec initializer(ExecInitializer initializer);
 
+  /**
+   * Configures the default executor for computation (i.e. event loop) work for this controller.
+   *
+   * @param definition the specification for the computation executor
+   * @return {@code this}
+   * @see ExecController#getEventLoopGroup()
+   * @see ExecController#getExecutor()
+   */
   ExecControllerSpec compute(Action<? super ComputeSpec> definition);
 
+  /**
+   * Configures the default executor for blocking (i.e. I/O) work for this controller.
+   *
+   * @param definition the specification for the blocking executor
+   * @return {@code this}
+   * @see ExecController#getBlockingExecutor()
+   */
   ExecControllerSpec blocking(Action<? super BlockingSpec> definition);
 
-  <E extends Enum<E> & ExecutionType> ExecControllerSpec binding(E executionType, Action<? super BindingSpec> definition);
+  /**
+   * Registers a non-blocking executor (i.e. event loop) for the provided execution type binding.
+   * <p>
+   * Applications using this framework can use this method to customize additional work executors with varying priority.
+   *
+   * @param executionType the execution type binding to associate with this executor
+   * @param definition the specification for the non-blocking executor
+   * @param <E> an execution type binding that is an {@link Enum} and implements {@link ExecutionType} to provide type safety
+   * @return {@code this}
+   */
+  <E extends Enum<E> & ExecutionType> ExecControllerSpec eventLoopBinding(E executionType, Action<? super EventLoopSpec> definition);
 
-  interface BindingSpec {
-    BindingSpec threads(int threads);
+  /**
+   * Registers a blocking executor (i.e. thread pool) for the provided execution type binding.
+   * <p>
+   * Applications using this framework can use this method to customize additional work executors with varying priority.
+   *
+   * @param executionType the execution type binding to associate with this executor
+   * @param definition the specification for the blocking executor
+   * @param <E> an execution type binding that is an {@link Enum} and implements {@link ExecutionType} to provide type safety
+   * @return {@code this}
+   */
+  <E extends Enum<E> & ExecutionType> ExecControllerSpec executorServiceBinding(E executionType, Action<? super ExecutorServiceSpec> definition);
 
-    BindingSpec threadFactory(ThreadFactory threadFactory);
+  /**
+   * A specification for building Netty event loop groups.
+   */
+  interface EventLoopSpec {
 
-    BindingSpec eventLoopGroup(BiFunction<Integer, ThreadFactory, EventLoopGroup> eventLoopGroupFactory);
+    /**
+     * Specify the number of threads for this group.
+     *
+     * @param threads the number of threads
+     * @return {@code this}
+     */
+    EventLoopSpec threads(int threads);
 
-    BindingSpec executor(Function<ThreadFactory, ExecutorService> executorFactory);
+    /**
+     * Specify the thread prefix to utilize when constructing new threads from this group.
+     *
+     * @param prefix the thread name prefix
+     * @return {@code this}
+     */
+    EventLoopSpec prefix(String prefix);
+
+    /**
+     * Specify the thread priority for threads created by this group.
+     *
+     * @param priority the thread priority
+     * @return {@code this}
+     * @see Thread#MAX_PRIORITY
+     * @see Thread#MIN_PRIORITY
+     * @see Thread#NORM_PRIORITY
+     */
+    EventLoopSpec priority(int priority);
+
+    /**
+     * Specify a factory that generates Netty {@link EventLoopGroup} instances with the arguments.
+     * <p>
+     * The default value for this factory is {@link ratpack.exec.util.internal.TransportDetector#eventLoopGroup(int, ThreadFactory)}
+     * which will automatically configure the most optimization implementation available on the current system in the following order:
+     * <li>
+     *   <ul>{@code Epoll}</ul>
+     *   <ul>{@code KQueue}</ul>
+     *   <ul>{@code NIO}</ul>
+     * </li>
+     *
+     * @param eventLoopGroupFactory a factory that creates event loop group instances
+     * @return {@code this}
+     */
+    EventLoopSpec eventLoopGroup(BiFunction<Integer, ThreadFactory, EventLoopGroup> eventLoopGroupFactory);
   }
 
-  interface ComputeSpec {
-    ComputeSpec threads(int number);
+  /**
+   * A specification for building executor services
+   */
+  interface ExecutorServiceSpec {
 
+    /**
+     * Specify the thread name prefix to use for threads created by this executor service.
+     *
+     * @param prefix the thread name prefix
+     * @return {@code this}
+     */
+    ExecutorServiceSpec prefix(String prefix);
+
+    /**
+     * Specify the thread priority for threads created by this executor service.
+     *
+     * @param priority the thread priority.
+     * @return {@code this}
+     * @see Thread#MAX_PRIORITY
+     * @see Thread#MIN_PRIORITY
+     * @see Thread#NORM_PRIORITY
+     */
+    ExecutorServiceSpec priority(int priority);
+
+    /**
+     * Specify a factory for creating an executor service with the provider arguments.
+     * <p>
+     * The default value for this factory is {@link Executors::newCachedThreadPool}
+     *
+     * @param executorFactory the executor service factory
+     * @return {@code this}
+     */
+    ExecutorServiceSpec executor(Function<ThreadFactory, ExecutorService> executorFactory);
+  }
+
+  /**
+   * A specification for defining the default computation executor.
+   * <p>
+   * All parameters for this specification have defaults that can be overwritten.
+   *
+   * @see EventLoopSpec
+   */
+  interface ComputeSpec extends EventLoopSpec {
+
+    /**
+     * {@inheritDoc}
+     * <p>
+     * The default value for this parameter is 2 * {@link Runtime#availableProcessors()}
+     *
+     * @param threads the number of threads
+     * @return {@code this}
+     */
+    @Override
+    ComputeSpec threads(int threads);
+
+    /**
+     * {@inheritDoc}
+     * <p>
+     * The default value for this parameter is {@code "ratpack-compute"}
+     *
+     * @param prefix the thread name prefix
+     * @return {@code this}
+     */
+    @Override
     ComputeSpec prefix(String prefix);
 
+    /**
+     * {@inheritDoc}
+     * <p>
+     * The default value for this parameter is {@link Thread#MAX_PRIORITY}
+     *
+     * @param priority the thread priority
+     * @return {@code this}
+     */
+    @Override
     ComputeSpec priority(int priority);
 
+    /**
+     * {@inheritDoc}
+     *
+     * @param eventLoopGroupFactory a factory that creates event loop group instances
+     * @return {@code this}
+     */
+    @Override
     ComputeSpec eventLoopGroup(BiFunction<Integer, ThreadFactory, EventLoopGroup> eventLoopGroupFactory);
 
   }
 
-  interface BlockingSpec {
+  /**
+   * A specification for defining the default blocking executor.
+   * <p>
+   * All parameters for this specification have defaults that can be overwritten.
+   *
+   * @see ExecutorServiceSpec
+   */
+  interface BlockingSpec extends ExecutorServiceSpec {
+
+    /**
+     * {@inheritDoc}
+     * <p>
+     * The default value for this parameter is {@code "ratpack-blocking"}
+     *
+     * @param prefix the thread name prefix
+     * @return {@code this}
+     */
+    @Override
     BlockingSpec prefix(String prefix);
 
+    /**
+     * {@inheritDoc}
+     * <p>
+     * The default value for this parameter is {@link Thread#MIN_PRIORITY}
+     *
+     * @param priority the thread priority.
+     * @return {@code this}
+     */
+    @Override
     BlockingSpec priority(int priority);
 
+    /**
+     * {@inheritDoc}
+     *
+     * @param executorFactory the executor service factory
+     * @return {@code this}
+     */
+    @Override
     BlockingSpec executor(Function<ThreadFactory, ExecutorService> executorFactory);
   }
 }

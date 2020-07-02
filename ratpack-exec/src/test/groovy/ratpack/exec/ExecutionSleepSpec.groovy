@@ -38,7 +38,7 @@ class ExecutionSleepSpec extends BaseExecutionSpec {
     }
 
     @Override
-    void intercept(Execution execution, ExecInterceptor.ExecType type, Block executionSegment) {
+    void intercept(Execution execution, ExecutionType type, Block executionSegment) {
       record << "$id:$type"
       executionSegment.execute()
     }

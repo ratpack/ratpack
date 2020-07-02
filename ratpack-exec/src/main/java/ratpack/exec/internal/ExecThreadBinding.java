@@ -23,35 +23,31 @@ import ratpack.func.Factory;
 
 import java.util.Optional;
 
-public class ExecThreadBinding<E extends Enum<E> & ExecutionType> {
+public class ExecThreadBinding {
 
   private final Thread thread;
   private final ExecController execController;
   private DefaultExecution execution;
-  private final E executionType;
+  private final ExecutionType executionType;
 
-  public ExecThreadBinding(Thread thread, E executionType, ExecController execController) {
+  public ExecThreadBinding(Thread thread, ExecutionType executionType, ExecController execController) {
     this.thread = thread;
     this.executionType = executionType;
     this.execController = execController;
   }
 
-  private static final FastThreadLocal<ExecThreadBinding<?>> STORAGE = new FastThreadLocal<>();
+  private static final FastThreadLocal<ExecThreadBinding> STORAGE = new FastThreadLocal<>();
 
-  public static <E extends Enum<E> & ExecutionType> void bind(E executionType, ExecController execController) {
-    STORAGE.set(new ExecThreadBinding<>(Thread.currentThread(), executionType, execController));
+  public static void bind(ExecutionType executionType, ExecController execController) {
+    STORAGE.set(new ExecThreadBinding(Thread.currentThread(), executionType, execController));
   }
 
   public static void unbind() {
     STORAGE.remove();
   }
 
-  public static <T> T bindFor(boolean compute, ExecController execController, Factory<T> function) throws Exception {
-    return bindFor(compute ? ExecInterceptor.ExecType.COMPUTE : ExecInterceptor.ExecType.BLOCKING, execController, function);
-  }
-
   public static <T, E extends Enum<E> & ExecutionType> T bindFor(E executionType, ExecController execController, Factory<T> function) throws Exception {
-    ExecThreadBinding<?> current = STORAGE.get();
+    ExecThreadBinding current = STORAGE.get();
     if (current != null && current.getExecController() == execController) {
       return function.create();
     }
@@ -72,16 +68,16 @@ public class ExecThreadBinding<E extends Enum<E> & ExecutionType> {
   }
 
   @Nullable
-  public static ExecThreadBinding<?> get() {
+  public static ExecThreadBinding get() {
     return STORAGE.get();
   }
 
-  public static Optional<ExecThreadBinding<?>> maybeGet() {
+  public static Optional<ExecThreadBinding> maybeGet() {
     return Optional.ofNullable(STORAGE.get());
   }
 
-  public static ExecThreadBinding<?> require() {
-    ExecThreadBinding<?> execThreadBinding = STORAGE.get();
+  public static ExecThreadBinding require() {
+    ExecThreadBinding execThreadBinding = STORAGE.get();
     if (execThreadBinding == null) {
       throw new UnmanagedThreadException();
     } else {
@@ -98,10 +94,10 @@ public class ExecThreadBinding<E extends Enum<E> & ExecutionType> {
   }
 
   public boolean isCompute() {
-    return executionType == ExecInterceptor.ExecType.COMPUTE;
+    return executionType == ExecType.COMPUTE;
   }
 
-  public E getExecutionType() {
+  public ExecutionType getExecutionType() {
     return executionType;
   }
 
@@ -116,7 +112,13 @@ public class ExecThreadBinding<E extends Enum<E> & ExecutionType> {
   }
 
   public static void requireBlockingThread(String message) {
-    if (require().getExecutionType() != ExecInterceptor.ExecType.BLOCKING) {
+    if (require().getExecutionType() != ExecType.BLOCKING) {
+      throw new ExecutionException(toMessage(message));
+    }
+  }
+
+  public static <E extends Enum<E> & ExecutionType> void requireThread(E executionType, String message) {
+    if (require().getExecutionType() != executionType) {
       throw new ExecutionException(toMessage(message));
     }
   }

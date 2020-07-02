@@ -16,6 +16,7 @@
 
 package ratpack.exec;
 
+import io.netty.channel.EventLoop;
 import io.netty.channel.EventLoopGroup;
 import ratpack.exec.internal.DefaultExecController;
 import ratpack.exec.internal.ExecThreadBinding;
@@ -55,7 +56,24 @@ public interface ExecController extends AutoCloseable {
     return current().orElseThrow(UnmanagedThreadException::new);
   }
 
+  /**
+   * Create a new {@link Execution} from this controller that is bound to the computation threads.
+   * @return a builder for the execution
+   */
   ExecStarter fork();
+
+  /**
+   * Create a new {@link Execution} from this controller that is bound to the event loop group for the provided binding.
+   * <p>
+   * This method is identical to calling {@link ExecStarter#eventLoop(EventLoop)} with a value from the bound event loop group.
+   *
+   * @param executionType the binding type for the event loop group to utilize for this execution
+   * @param <E> an enum that implements the {@link ExecutionType} interface
+   * @return a builder for the execution
+   * @throws IllegalArgumentException if event loop was bound for the provided type
+   * @since 2.0.0
+   */
+  <E extends Enum<E> & ExecutionType> ExecStarter fork(E executionType) throws IllegalArgumentException;
 
   /**
    * The event loop (i.e. computation) executor.
@@ -69,6 +87,17 @@ public interface ExecController extends AutoCloseable {
    */
   ScheduledExecutorService getExecutor();
 
+  /**
+   * The blocking (i.e. I/O) executor service.
+   * <p>
+   * This executor service provides a thread pool which can be used to schedule work such that it does not block the
+   * computation threads.
+   * <p>
+   * The result of work executed on this thread should typically be returned to a continuation on a compute thread
+   *
+   * @see Blocking#get
+   * @return the default blocking executor service
+   */
   ExecutorService getBlockingExecutor();
 
   /**
@@ -81,6 +110,36 @@ public interface ExecController extends AutoCloseable {
   EventLoopGroup getEventLoopGroup();
 
   /**
+   * Retrieve the event loop group that is bound to the provided execution type.
+   * <p>
+   * If the type is {@link ExecType#COMPUTE}, this will return the same value as {@link #getEventLoopGroup()}.
+   * <p>
+   * Execution types must be an {@link Enum} that also implements the {@link ExecutionType} interface in order to provide type checking.
+   *
+   * @param executionType the execution type for the binding
+   * @param <E> an enum that implements the {@link ExecutionType} interface
+   * @return the bound event loop group
+   * @throws IllegalArgumentException if a binding for the provided type was not provided
+   * @since 2.0.0
+   */
+  <E extends Enum<E> & ExecutionType> EventLoopGroup getEventLoopGroup(E executionType) throws IllegalArgumentException;
+
+  /**
+   * Retrieve the executor service that is bound to the provided execution type.
+   * <p>
+   * If the type is {@link ExecType#BLOCKING}, this will return the same value as {@link #getBlockingExecutor()}.
+   * <p>
+   * Execution types must be an {@link Enum} that also implements the {@link ExecutionType} interface in order to provide type checking.
+   *
+   * @param executionType the execution type for the binding
+   * @param <E> an enum that implements the {@link ExecutionType} interface
+   * @return the bound executor service
+   * @throws IllegalArgumentException if a binding for the provided type was not provided
+   * @since 2.0.0
+   */
+  <E extends Enum<E> & ExecutionType> ExecutorService getExecutorService(E executionType) throws IllegalArgumentException;
+
+  /**
    * Shuts down this controller, terminating the event loop and blocking threads.
    * <p>
    * This method returns immediately, not waiting for the actual shutdown to occur.
@@ -90,6 +149,14 @@ public interface ExecController extends AutoCloseable {
   @Override
   void close();
 
+  /**
+   * Construct a new execution controller from the provided specification.
+   *
+   * @param definition the configuration of the execution controller.
+   * @return an execution controller
+   * @throws Exception if any exception is thrown when applying the configuration.
+   * @since 2.0.0
+   */
   static ExecController of(Action<? super ExecControllerSpec> definition) throws Exception {
     return DefaultExecController.of(definition);
   }

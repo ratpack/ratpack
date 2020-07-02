@@ -57,7 +57,7 @@ public class DefaultExecution implements Execution {
   private final MutableRegistry registry = new DefaultMutableRegistry();
 
   private List<ExecInterceptor> adhocInterceptors;
-  private Iterable<? extends ExecInterceptor> interceptors;
+  private Iterable<ExecInterceptor> interceptors;
 
   private Thread thread;
 
@@ -212,7 +212,7 @@ public class DefaultExecution implements Execution {
 
   private void exec(final Iterator<? extends ExecInterceptor> interceptors) throws Exception {
     if (interceptors.hasNext()) {
-      interceptors.next().intercept(this, ExecInterceptor.ExecType.COMPUTE, () -> exec(interceptors));
+      interceptors.next().intercept(this, ExecType.COMPUTE, () -> exec(interceptors));
     } else {
       exec();
     }
@@ -287,7 +287,7 @@ public class DefaultExecution implements Execution {
       interceptors = Iterables.concat(interceptors, adhocInterceptors);
     }
     adhocInterceptors.add(execInterceptor);
-    execInterceptor.intercept(this, ExecInterceptor.ExecType.COMPUTE, continuation);
+    execInterceptor.intercept(this, ExecType.COMPUTE, continuation);
   }
 
   @Override

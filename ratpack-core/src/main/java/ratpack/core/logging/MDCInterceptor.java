@@ -22,6 +22,7 @@ import ratpack.core.handling.Context;
 import ratpack.core.handling.RequestId;
 import ratpack.exec.ExecInterceptor;
 import ratpack.exec.Execution;
+import ratpack.exec.ExecutionType;
 import ratpack.func.Action;
 import ratpack.func.Block;
 import ratpack.func.Types;
@@ -175,11 +176,11 @@ public final class MDCInterceptor implements ExecInterceptor {
   /**
    *
    * @param execution the execution that this segment belongs to
-   * @param execType indicates whether this segment is execution on a compute or blocking thread
+   * @param execType indicates the thread binding on which this segment is executing
    * @param executionSegment the execution segment that is to be executed
    * @throws Exception any
    */
-  public void intercept(Execution execution, ExecType execType, Block executionSegment) throws Exception {
+  public void intercept(Execution execution, ExecutionType execType, Block executionSegment) throws Exception {
     MDCHolder holder = execution.maybeGet(MDCHolder.TYPE).orElse(null);
     if (holder == null) {
       MDC.clear();

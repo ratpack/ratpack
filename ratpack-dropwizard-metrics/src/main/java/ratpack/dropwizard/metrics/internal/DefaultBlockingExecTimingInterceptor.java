@@ -20,7 +20,9 @@ import com.codahale.metrics.MetricRegistry;
 import com.codahale.metrics.Timer;
 import ratpack.dropwizard.metrics.BlockingExecTimingInterceptor;
 import ratpack.dropwizard.metrics.DropwizardMetricsConfig;
+import ratpack.exec.ExecType;
 import ratpack.exec.Execution;
+import ratpack.exec.ExecutionType;
 import ratpack.func.Block;
 import ratpack.core.http.Request;
 
@@ -43,7 +45,7 @@ public class DefaultBlockingExecTimingInterceptor implements BlockingExecTimingI
   }
 
   @Override
-  public void intercept(Execution execution, ExecType type, Block executionSegment) throws Exception {
+  public void intercept(Execution execution, ExecutionType type, Block executionSegment) throws Exception {
     if (type == ExecType.BLOCKING) {
       Optional<Request> requestOpt = execution.maybeGet(Request.class);
       if (requestOpt.isPresent()) {

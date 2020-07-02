@@ -122,8 +122,9 @@ class PromiseBlockingSpec extends Specification {
     def events = []
     def latch = new CountDownLatch(4)
     def interceptor = new ExecInterceptor() {
+
       @Override
-      void intercept(Execution execution, ExecInterceptor.ExecType execType, Block executionSegment) throws Exception {
+      void intercept(Execution execution, ExecutionType execType, Block executionSegment) throws Exception {
         events << "$execType-start"
         try {
           executionSegment.execute()

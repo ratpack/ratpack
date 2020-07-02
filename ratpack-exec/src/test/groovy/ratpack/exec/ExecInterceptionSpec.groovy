@@ -40,7 +40,7 @@ class ExecInterceptionSpec extends RatpackGroovyDslSpec {
     }
 
     @Override
-    void intercept(Execution execution, ExecInterceptor.ExecType type, Block executionSegment) {
+    void intercept(Execution execution, ExecutionType type, Block executionSegment) {
       record << "$id:$type"
       executionSegment.execute()
     }
@@ -82,7 +82,7 @@ class ExecInterceptionSpec extends RatpackGroovyDslSpec {
     }
 
     @Override
-    void intercept(Execution execution, ExecInterceptor.ExecType type, Block executionSegment) {
+    void intercept(Execution execution, ExecutionType type, Block executionSegment) {
       super.intercept(execution, type, executionSegment)
       throw new RuntimeException("$type:$id")
     }
@@ -168,7 +168,7 @@ class ExecInterceptionSpec extends RatpackGroovyDslSpec {
     when:
     boolean on = false
     bindings {
-      bindInstance(ExecInterceptor, { Execution e, ExecInterceptor.ExecType type, Block segment ->
+      bindInstance(ExecInterceptor, { Execution e, ExecType type, Block segment ->
         on = true
         try {
           segment.execute()
@@ -194,7 +194,7 @@ class ExecInterceptionSpec extends RatpackGroovyDslSpec {
     when:
     boolean on = false
     bindings {
-      bindInstance(ExecInterceptor, { Execution e, ExecInterceptor.ExecType type, Block segment ->
+      bindInstance(ExecInterceptor, { Execution e, ExecType type, Block segment ->
         on = true
         try {
           segment.execute()

@@ -2462,4 +2462,16 @@ public interface Promise<T> {
     return async(downstream -> downstream.accept(future));
   }
 
+  /**
+   * Create a promise for the provided upstream.
+   *
+   * @param upstream the upstream which generates the value for the promise
+   * @param <T> the type of the promised value
+   * @return a promise
+   * @since 2.0.0
+   */
+  static <T> Promise<T> of(Upstream<T> upstream) {
+    return new DefaultPromise<>(upstream);
+  }
+
 }

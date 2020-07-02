@@ -19,6 +19,7 @@ package ratpack.core.error
 import ratpack.core.handling.Context
 import ratpack.exec.ExecInterceptor
 import ratpack.exec.Execution
+import ratpack.exec.ExecutionType
 import ratpack.func.Block
 import ratpack.test.internal.RatpackGroovyDslSpec
 
@@ -31,7 +32,8 @@ class ReasonableErrorResponseSpec extends RatpackGroovyDslSpec {
       this.error = error
     }
 
-    void intercept(Execution execution, ExecInterceptor.ExecType execType, Block executionSegment) {
+    @Override
+    void intercept(Execution execution, ExecutionType execType, Block executionSegment) {
       throw error
     }
   }

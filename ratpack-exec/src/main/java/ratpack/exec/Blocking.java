@@ -16,18 +16,8 @@
 
 package ratpack.exec;
 
-import io.netty.channel.EventLoop;
-import ratpack.exec.internal.DefaultExecution;
-import ratpack.exec.internal.DefaultPromise;
-import ratpack.exec.internal.ExecThreadBinding;
 import ratpack.func.Block;
 import ratpack.func.Factory;
-
-import java.util.Iterator;
-import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.atomic.AtomicReference;
-import java.util.function.Supplier;
 
 /**
  * Facilitates working with code that blocks (e.g. synchronous IO)
@@ -52,39 +42,7 @@ public abstract class Blocking {
    * @return a promise for the return value of the given blocking operation
    */
   public static <T> Promise<T> get(Factory<T> factory) {
-    return new DefaultPromise<>(downstream -> {
-      DefaultExecution execution = DefaultExecution.require();
-      EventLoop eventLoop = execution.getEventLoop();
-      execution.delimit(downstream::error, continuation ->
-        eventLoop.execute(() ->
-          CompletableFuture.supplyAsync(
-            new Supplier<Result<T>>() {
-              Result<T> result;
-
-              @Override
-              public Result<T> get() {
-                try {
-                  execution.bindToThread();
-                  intercept(execution, execution.getAllInterceptors().iterator(), () -> {
-                    try {
-                      result = Result.success(factory.create());
-                    } catch (Throwable e) {
-                      result = Result.error(e);
-                    }
-                  });
-                  return result;
-                } catch (Throwable e) {
-                  DefaultExecution.interceptorError(e);
-                  return result;
-                } finally {
-                  execution.unbindFromThread();
-                }
-              }
-            }, execution.getController().getBlockingExecutor()
-          ).thenAcceptAsync(v -> continuation.resume(() -> downstream.accept(v)), eventLoop)
-        )
-      );
-    });
+    return Promise.of(PromiseSupport.executeOn(ExecType.BLOCKING, factory));
   }
 
   /**
@@ -185,47 +143,7 @@ public abstract class Blocking {
    * @throws Exception any thrown while producing the value
    */
   public static <T> T on(Promise<T> promise) throws Exception {
-    ExecThreadBinding.requireBlockingThread("Blocking.on() can only be used while blocking (i.e. use Blocking.get() first)");
-    DefaultExecution execution = DefaultExecution.require();
-    CountDownLatch latch = new CountDownLatch(1);
-    AtomicReference<Result<T>> resultReference = new AtomicReference<>();
-
-    execution.delimit(t -> {
-        resultReference.set(Result.error(t));
-        latch.countDown();
-      }, continuation ->
-        promise.connect(
-          new Downstream<T>() {
-            @Override
-            public void success(T value) {
-              unlatch(Result.success(value));
-            }
-
-            @Override
-            public void error(Throwable throwable) {
-              unlatch(Result.error(throwable));
-            }
-
-            @Override
-            public void complete() {
-              unlatch(Result.success(null));
-            }
-
-            private void unlatch(Result<T> result) {
-              continuation.resume(() ->
-                execution.getEventLoop().execute(() -> {
-                  resultReference.set(result);
-                  latch.countDown();
-                })
-              );
-            }
-          }
-        )
-    );
-
-    execution.eventLoopDrain();
-    latch.await();
-    return resultReference.get().getValueOrThrow();
+    return PromiseSupport.awaitOn(ExecType.BLOCKING, "Blocking.on() can only be used while blocking (i.e. use Blocking.get() first)", promise);
   }
 
   public static Operation op(Block block) {
@@ -237,13 +155,5 @@ public abstract class Blocking {
 
   public static void exec(Block block) {
     op(block).then();
-  }
-
-  private static void intercept(Execution execution, final Iterator<? extends ExecInterceptor> interceptors, Runnable runnable) throws Exception {
-    if (interceptors.hasNext()) {
-      interceptors.next().intercept(execution, ExecInterceptor.ExecType.BLOCKING, () -> intercept(execution, interceptors, runnable));
-    } else {
-      runnable.run();
-    }
   }
 }
