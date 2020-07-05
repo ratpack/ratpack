@@ -20,31 +20,26 @@ package ratpack.dropwizard.metrics.internal;
 import com.codahale.metrics.MetricRegistry;
 import com.codahale.metrics.jmx.JmxReporter;
 import ratpack.dropwizard.metrics.DropwizardMetricsConfig;
+import ratpack.dropwizard.metrics.JmxConfig;
 
 import javax.inject.Inject;
-import javax.inject.Provider;
 
 /**
  * A Provider implementation that sets up a {@link JmxReporter} for a {@link MetricRegistry}.
  */
-public class JmxReporterProvider implements Provider<JmxReporter> {
-  private final MetricRegistry metricRegistry;
-  private final DropwizardMetricsConfig config;
+public class JmxReporterProvider extends AbstractReporterProvider<JmxReporter, JmxConfig> {
 
   @Inject
   public JmxReporterProvider(MetricRegistry metricRegistry, DropwizardMetricsConfig config) {
-    this.metricRegistry = metricRegistry;
-    this.config = config;
+    super(metricRegistry, config, DropwizardMetricsConfig::getJmx);
   }
 
   @Override
-  public JmxReporter get() {
+  protected JmxReporter build(JmxConfig jmx) {
     JmxReporter.Builder builder = JmxReporter.forRegistry(metricRegistry);
-    config.getJmx().ifPresent(jmx -> {
-      if (jmx.getIncludeFilter() != null || jmx.getExcludeFilter() != null) {
-        builder.filter(new RegexMetricFilter(jmx.getIncludeFilter(), jmx.getExcludeFilter()));
-      }
-    });
+    if (jmx.getIncludeFilter() != null || jmx.getExcludeFilter() != null) {
+      builder.filter(new RegexMetricFilter(jmx.getIncludeFilter(), jmx.getExcludeFilter()));
+    }
 
     return builder.build();
   }

@@ -16,26 +16,5 @@
 package ratpack.dropwizard.metrics;
 
 public class ConsoleConfig extends ScheduledReporterConfigSupport<ConsoleConfig> {
-  private boolean enabled = true;
-
-  /**
-   * The state of the Console publisher.
-   *
-   * @return the state of the Console publisher
-   */
-  public boolean isEnabled() {
-    return enabled;
-  }
-
-  /**
-   * Set the state of the Console publisher.
-   *
-   * @param enabled True if metrics are published to the console. False otherwise
-   * @return {@code this}
-   */
-  public ConsoleConfig enable(boolean enabled) {
-    this.enabled = enabled;
-    return this;
-  }
 
 }

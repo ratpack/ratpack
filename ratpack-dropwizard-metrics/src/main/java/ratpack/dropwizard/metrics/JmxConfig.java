@@ -16,24 +16,5 @@
 package ratpack.dropwizard.metrics;
 
 public class JmxConfig extends ReporterConfigSupport<JmxConfig> {
-  private boolean enabled = true;
-
-  /**
-   * The state of the JMX publisher.
-   * @return the state of the JMX publisher
-   */
-  public boolean isEnabled() {
-    return enabled;
-  }
-
-  /**
-   * Set the state of the JMX publisher.
-   * @param enabled True if metrics are published to JMX. False otherwise
-   * @return this
-   */
-  public JmxConfig enable(boolean enabled) {
-    this.enabled = enabled;
-    return this;
-  }
 
 }

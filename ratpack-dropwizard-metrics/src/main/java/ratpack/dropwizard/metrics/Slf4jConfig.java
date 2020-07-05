@@ -22,7 +22,6 @@ import org.slf4j.Marker;
 import java.util.concurrent.TimeUnit;
 
 public class Slf4jConfig extends ScheduledReporterConfigSupport<Slf4jConfig> {
-  private boolean enabled = true;
   private Marker marker;
   private String prefix;
   private TimeUnit durationUnit;
@@ -147,26 +146,6 @@ public class Slf4jConfig extends ScheduledReporterConfigSupport<Slf4jConfig> {
    */
   public Slf4jConfig logger(Logger logger) {
     this.logger = logger;
-    return this;
-  }
-
-  /**
-   * The state of the Slf4j publisher.
-   *
-   * @return the state of the Console publisher
-   */
-  public boolean isEnabled() {
-    return this.enabled;
-  }
-
-  /**
-   * Set the state of the Slf4j publisher.
-   *
-   * @param enabled True if metrics are published to the logger. False otherwise
-   * @return {@code this}
-   */
-  public Slf4jConfig enable(boolean enabled) {
-    this.enabled = enabled;
     return this;
   }
 

@@ -22,50 +22,37 @@ import ratpack.dropwizard.metrics.DropwizardMetricsConfig;
 import ratpack.dropwizard.metrics.GraphiteConfig;
 
 import javax.inject.Inject;
-import javax.inject.Provider;
-import java.util.Optional;
 
 /**
  * A Provider implementation that sets up a {@link GraphiteReporter} for a {@link MetricRegistry}.
  */
-public class GraphiteReporterProvider implements Provider<GraphiteReporter> {
-
-  private final MetricRegistry metricRegistry;
-  private final DropwizardMetricsConfig config;
+public class GraphiteReporterProvider extends AbstractReporterProvider<GraphiteReporter, GraphiteConfig> {
 
   @Inject
   public GraphiteReporterProvider(MetricRegistry metricRegistry, DropwizardMetricsConfig config) {
-    this.metricRegistry = metricRegistry;
-    this.config = config;
+    super(metricRegistry, config, DropwizardMetricsConfig::getGraphite);
   }
 
   @Override
-  public GraphiteReporter get() {
-    Optional<GraphiteConfig> graphite = config.getGraphite();
-    boolean enabled = graphite.map(GraphiteConfig::isEnabled).orElse(false);
-    if (!enabled) {
-      return null;
-    }
+  protected GraphiteReporter build(GraphiteConfig graphite) {
     GraphiteReporter.Builder builder = GraphiteReporter.forRegistry(metricRegistry);
-    graphite.ifPresent(input -> {
-      if (input.getIncludeFilter() != null || input.getExcludeFilter() != null) {
-        builder.filter(new RegexMetricFilter(input.getIncludeFilter(), input.getExcludeFilter()));
-      }
+    if (graphite.getIncludeFilter() != null || graphite.getExcludeFilter() != null) {
+      builder.filter(new RegexMetricFilter(graphite.getIncludeFilter(), graphite.getExcludeFilter()));
+    }
 
-      if (input.getPrefix() != null) {
-        builder.prefixedWith(input.getPrefix());
-      }
+    if (graphite.getPrefix() != null) {
+      builder.prefixedWith(graphite.getPrefix());
+    }
 
-      if (input.getDurationUnit() != null) {
-        builder.convertDurationsTo(input.getDurationUnit());
-      }
+    if (graphite.getDurationUnit() != null) {
+      builder.convertDurationsTo(graphite.getDurationUnit());
+    }
 
-      if (input.getRateUnit() != null) {
-        builder.convertRatesTo(input.getRateUnit());
-      }
+    if (graphite.getRateUnit() != null) {
+      builder.convertRatesTo(graphite.getRateUnit());
+    }
 
-    });
-    return builder.build(graphite.get().getSender());
+    return builder.build(graphite.getSender());
   }
 
 }
