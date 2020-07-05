@@ -24,6 +24,7 @@ package ratpack.dropwizard.metrics;
 public abstract class ReporterConfigSupport<T extends ReporterConfigSupport<T>> {
   private String includeFilter;
   private String excludeFilter;
+  private boolean enabled = true;
 
   /**
    * The include metric filter expression of the reporter.
@@ -64,6 +65,28 @@ public abstract class ReporterConfigSupport<T extends ReporterConfigSupport<T>> 
   @SuppressWarnings("unchecked")
   public T excludeFilter(String excludeFilter) {
     this.excludeFilter = excludeFilter;
+    return (T)this;
+  }
+
+  /**
+   * The state of the publisher.
+   * <p>
+   * True by default if the reporter configuration is specified.
+   *
+   * @return the state of the publisher
+   */
+  public boolean isEnabled() {
+    return enabled;
+  }
+
+  /**
+   * Set the state of the publisher.
+   * @param enabled True if metrics are published to this publisher. False otherwise
+   * @return this
+   */
+  @SuppressWarnings("unchecked")
+  public T enable(boolean enabled) {
+    this.enabled = enabled;
     return (T)this;
   }
 

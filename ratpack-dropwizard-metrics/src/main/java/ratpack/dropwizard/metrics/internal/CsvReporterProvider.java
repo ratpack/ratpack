@@ -21,33 +21,23 @@ import ratpack.dropwizard.metrics.CsvConfig;
 import ratpack.dropwizard.metrics.DropwizardMetricsConfig;
 
 import javax.inject.Inject;
-import javax.inject.Provider;
 
 /**
  * A Provider implementation that sets up a {@link CsvReporter} for a {@link MetricRegistry}.
  */
-public class CsvReporterProvider implements Provider<CsvReporter> {
-  private final MetricRegistry metricRegistry;
-  private final DropwizardMetricsConfig config;
+public class CsvReporterProvider extends AbstractReporterProvider<CsvReporter, CsvConfig> {
 
   @Inject
   public CsvReporterProvider(MetricRegistry metricRegistry, DropwizardMetricsConfig config) {
-    this.metricRegistry = metricRegistry;
-    this.config = config;
+    super(metricRegistry, config, DropwizardMetricsConfig::getCsv);
   }
 
   @Override
-  public CsvReporter get() {
-    if (config.getCsv().isPresent()) {
-      CsvConfig csv = config.getCsv().get();
-      CsvReporter.Builder builder = CsvReporter.forRegistry(metricRegistry);
-      if (csv.getIncludeFilter() != null || csv.getExcludeFilter() != null) {
-        builder.filter(new RegexMetricFilter(csv.getIncludeFilter(), csv.getExcludeFilter()));
-      }
-      return builder.build(csv.getReportDirectory());
-    } else {
-      return null;
+  protected CsvReporter build(CsvConfig csv) {
+    CsvReporter.Builder builder = CsvReporter.forRegistry(metricRegistry);
+    if (csv.getIncludeFilter() != null || csv.getExcludeFilter() != null) {
+      builder.filter(new RegexMetricFilter(csv.getIncludeFilter(), csv.getExcludeFilter()));
     }
+    return builder.build(csv.getReportDirectory());
   }
-
 }

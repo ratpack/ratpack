@@ -18,28 +18,7 @@ package ratpack.dropwizard.metrics;
 import java.io.File;
 
 public class CsvConfig extends ScheduledReporterConfigSupport<CsvConfig> {
-  private boolean enabled = true;
   private File reportDirectory;
-
-  /**
-   * The state of the CSV publisher.
-   *
-   * @return the state of the CSV publisher
-   */
-  public boolean isEnabled() {
-    return this.enabled;
-  }
-
-  /**
-   * Set the state of the CSV publisher.
-   *
-   * @param enabled True if metrics are published to CSV. False otherwise
-   * @return this
-   */
-  public CsvConfig enable(boolean enabled) {
-    this.enabled = enabled;
-    return this;
-  }
 
   /**
    * The directory to output CSV metrics reports to.

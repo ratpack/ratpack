@@ -18,32 +18,27 @@ package ratpack.dropwizard.metrics.internal;
 
 import com.codahale.metrics.ConsoleReporter;
 import com.codahale.metrics.MetricRegistry;
+import ratpack.dropwizard.metrics.ConsoleConfig;
 import ratpack.dropwizard.metrics.DropwizardMetricsConfig;
 
 import javax.inject.Inject;
-import javax.inject.Provider;
 
 /**
  * A Provider implementation that sets up a {@link ConsoleReporter} for a {@link MetricRegistry}.
  */
-public class ConsoleReporterProvider implements Provider<ConsoleReporter> {
-  private final MetricRegistry metricRegistry;
-  private final DropwizardMetricsConfig config;
+public class ConsoleReporterProvider extends AbstractReporterProvider<ConsoleReporter, ConsoleConfig> {
 
   @Inject
   public ConsoleReporterProvider(MetricRegistry metricRegistry, DropwizardMetricsConfig config) {
-    this.metricRegistry = metricRegistry;
-    this.config = config;
+    super(metricRegistry, config, DropwizardMetricsConfig::getConsole);
   }
 
   @Override
-  public ConsoleReporter get() {
+  protected ConsoleReporter build(ConsoleConfig console) {
     ConsoleReporter.Builder builder = ConsoleReporter.forRegistry(metricRegistry);
-    config.getConsole().ifPresent(console -> {
-      if (console.getIncludeFilter() != null || console.getExcludeFilter() != null) {
-        builder.filter(new RegexMetricFilter(console.getIncludeFilter(), console.getExcludeFilter()));
-      }
-    });
+    if (console.getIncludeFilter() != null || console.getExcludeFilter() != null) {
+      builder.filter(new RegexMetricFilter(console.getIncludeFilter(), console.getExcludeFilter()));
+    }
     return builder.build();
   }
 

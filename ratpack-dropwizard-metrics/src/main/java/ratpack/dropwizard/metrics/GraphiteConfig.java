@@ -25,39 +25,9 @@ import java.util.concurrent.TimeUnit;
  */
 public class GraphiteConfig extends ScheduledReporterConfigSupport<GraphiteConfig> {
   private GraphiteSender sender;
-  private boolean enabled = true;
   private String prefix;
   private TimeUnit rateUnit;
   private TimeUnit durationUnit;
-
-  /**
-   * The state of the Graphite publisher.
-   *
-   * @return the state of the Graphite publisher
-   */
-  public boolean isEnabled() {
-    return this.enabled;
-  }
-
-  /**
-   * Enable the Graphite publisher.
-   *
-   * @return this
-   */
-  public GraphiteConfig enable() {
-    this.enabled = true;
-    return this;
-  }
-
-  /**
-   * Disable the Graphite publisher.
-   *
-   * @return this
-   */
-  public GraphiteConfig disable() {
-    this.enabled = false;
-    return this;
-  }
 
   /**
    * The {@link GraphiteSender} instance.
