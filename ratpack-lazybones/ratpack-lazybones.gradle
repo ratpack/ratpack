@@ -39,7 +39,7 @@ dependencies {
   compile commonDependencies.toolingApi
 
   testCompile "commons-io:commons-io:2.4"
-  testCompile "org.apache.commons:commons-lang3:3.3.2"
+  testCompile "org.apache.commons:commons-lang3:${commonVersions.commonsLang3}"
   testCompile project(":ratpack-test-internal")
 }
 

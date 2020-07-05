@@ -27,5 +27,6 @@ dependencies {
   }
   testCompile 'com.fizzed:rocker-compiler:0.18.0', {
     exclude group: "org.slf4j", module: "slf4j-api"
+    exclude group: "org.apache.commons", module: "commons-lang3"
   }
 }
