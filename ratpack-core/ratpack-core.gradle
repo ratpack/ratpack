@@ -39,7 +39,9 @@ dependencies {
   compile "io.netty:netty-handler-proxy:$commonVersions.netty"
   compile 'com.sun.activation:javax.activation:1.2.0'
 
-  compile "com.github.ben-manes.caffeine:caffeine:${commonVersions.caffeine}"
+  compile("com.github.ben-manes.caffeine:caffeine:${commonVersions.caffeine}") {
+    exclude group: "com.google.errorprone", module: "error_prone_annotations"
+  }
 
   compile 'org.javassist:javassist:3.22.0-GA'
 
@@ -55,9 +57,11 @@ dependencies {
   compile "com.fasterxml.jackson.datatype:jackson-datatype-jdk8:${commonVersions.jackson}"
   compile "com.fasterxml.jackson.datatype:jackson-datatype-jsr310:${commonVersions.jackson}"
 
-  testCompile 'org.apache.commons:commons-lang3:3.3.2'
+  testCompile "org.apache.commons:commons-lang3:${commonVersions.commonsLang3}"
 
-  testCompile 'com.opencsv:opencsv:3.3'
+  testCompile('com.opencsv:opencsv:3.3') {
+    exclude group: "org.apache.commons", module: "commons-lang3"
+  }
   testCompile('com.github.tomakehurst:wiremock:1.56') {
     exclude group: "org.slf4j", module: "slf4j-api"
     exclude group: "com.fasterxml.jackson.core", module: "jackson-annotations"
