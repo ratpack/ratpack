@@ -75,7 +75,7 @@ class RatpackPlugin implements Plugin<Project> {
         into "app"
       }
       eachFile {
-        if (it.name == jarTask.archiveName) {
+        if (it.name == jarTask.archiveFileName.get()) {
           it.exclude()
         }
       }
@@ -84,7 +84,7 @@ class RatpackPlugin implements Plugin<Project> {
     CreateStartScripts startScripts = project.startScripts
     startScripts.with {
       doLast {
-        def jarName = jarTask.archiveName
+        def jarName = jarTask.archiveFileName.get()
 
         unixScript.text = unixScript.text
           .replaceAll('CLASSPATH=(")?(.+)(")?\n', 'CLASSPATH=$1\\$APP_HOME/app:$2$3\ncd "\\$APP_HOME/app"\n')
