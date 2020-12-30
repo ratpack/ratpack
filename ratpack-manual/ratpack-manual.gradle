@@ -14,9 +14,10 @@
  * limitations under the License.
  */
 
-
 import org.gradle.external.javadoc.internal.AbstractJavadocOptionFileOption
 import org.gradle.external.javadoc.internal.JavadocOptionFileWriterContext
+import io.freefair.gradle.plugins.jsass.SassCompile
+import java.util.regex.Pattern
 
 import static org.pegdown.Extensions.*
 
@@ -33,32 +34,21 @@ buildscript {
     // Use the master version of gradle-js-plugin since it fixes a Gradle 6 deprecation (from JitPack.io)
     classpath "com.github.eriwen:gradle-js-plugin:d15f4ae"
     classpath "com.google.javascript:closure-compiler:v20150315"
-    // Use a patched version of gradle-compass that upgrades the jruby version to work around the shutdown of torquebox ruby gem proxy (from JitPack.io)
-    classpath "com.github.johnrengelman:gradle-compass:fb492aa"
-    //classpath "com.github.robfletcher:compass-gradle-plugin:2.0.6"
+    classpath "io.freefair.gradle:jsass-plugin:4.1.6"
   }
 }
 
 description = "The manual for Ratpack (documentation & API reference)"
 
 apply from: "$rootDir/gradle/javaModule.gradle"
-
-apply plugin: "com.github.robfletcher.compass"
 apply plugin: "com.eriwen.gradle.js"
-
-jruby {
-  jrubyVersion = '9.1.14.0'
-}
+apply plugin: 'io.freefair.jsass-base'
 
 repositories {
-  ruby.gems()
   jcenter()
-  mavenCentral()
 }
 
 dependencies {
-  compass commonDependencies.compass
-
   testCompile apiModules
   testCompile("org.pac4j:pac4j-oauth:${commonVersions.pac4j}") { // used by ratpack-pac4j's code snippets
     exclude group: "org.slf4j", module: "slf4j-api"
@@ -95,13 +85,6 @@ configurations.all {
 
 apply from: "$rootDir/gradle/markdown2book.gradle"
 
-idea {
-  module {
-    excludeDirs += file(".jruby")
-    excludeDirs += file(".sass-cache")
-  }
-}
-
 modifyPom { pom ->
   project {
     name "Ratpack Manual"
@@ -110,6 +93,14 @@ modifyPom { pom ->
 
 apiModules.each { evaluationDependsOn(it.path) }
 evaluationDependsOn ":ratpack-gradle"
+
+task compileSass(type: SassCompile) {
+  doFirst { destinationDir.get().asFile.deleteDir() }
+  source = "src/assets/sass"
+  includePaths.from "$rootDir/shared-web-assets/sass"
+  includePaths.from "$rootDir/shared-web-assets"
+  destinationDir = file("build/assets/css")
+}
 
 task configureApi() {
   doLast {
@@ -135,26 +126,16 @@ task configureApi() {
 // Note: does not build viewable docs.
 // Docs must be viewed within the manual for styling to work
 task api(type: Javadoc) {
-  dependsOn configureApi, compassCompile
-  group "manual"
-  description "Generates the Javadoc for the entire public API"
-
-  ext.stylesheetFile = file("$buildDir/assets/css/javadoc.css")
-  inputs.file(stylesheetFile)
-  inputs.property("links") { options.links }
-
+  dependsOn configureApi, compileSass
   classpath = files()
-  destinationDir = file("$buildDir/api")
-
+  destinationDir = file("$buildDir/docs")
   apiModules.each {
     source it.sourceSets.main.java
     classpath += it.sourceSets.main.compileClasspath + it.sourceSets.main.output
-
     if (it.hasProperty("apiLinks")) {
       options.links(*it.apiLinks)
     }
   }
-
   configure(options) {
     splitIndex true
     use = true
@@ -162,13 +143,13 @@ task api(type: Javadoc) {
     windowTitle "Ratpack API ($project.version)"
     docTitle "Ratpack API ($project.version)"
   }
+  ext.stylesheetFile = file("src/assets/css/blank.css")
+  inputs.file stylesheetFile
   options.addStringOption "stylesheetfile", stylesheetFile.absolutePath
-
   ext.additionalAssets = """
-      <script src=\"{@docRoot}/../js/all.min.js\"></script>
-      <link rel="stylesheet" type="text/css" href="{@docRoot}/../css/fonts.css">
+      <script src=\"{@docRoot}/../all.min.js\"></script>
+      <link rel="stylesheet" type="text/css" href="{@docRoot}/../javadoc.css">
     """.replaceAll("(^|\\n)\\s*", "")
-
   options.addOption new AbstractJavadocOptionFileOption<String>("-allow-script-in-comments", null) {
     @Override
     void write(JavadocOptionFileWriterContext context) throws IOException {
@@ -180,27 +161,23 @@ task api(type: Javadoc) {
       this
     }
   }
-  options.bottom = ext.additionalAssets
-
-  inputs.property "additionalAssets", ext.additionalAssets
-  inputs.property "groups", options.groups
-
-  // For some awesome reason, the 'bottom' arg doesn't get applied to these files
   doLast {
-    def replacementString = additionalAssets.replaceAll(java.util.regex.Pattern.quote("{@docRoot}/"), "") + "</html>"
+    def replacementString = additionalAssets.replaceAll(Pattern.quote("{@docRoot}/"), "") + "</html>"
     ["allclasses-frame.html", "allclasses-noframe.html", "overview-frame.html"].each {
       def f = new File(destinationDir, it)
       if (f.exists()) {
         f.text = f.getText('UTF-8').replace("</html>", replacementString)
       }
     }
-
     fileTree(dir: destinationDir, include: '**/*.html').each { File f ->
       if (f.text.contains("{@literal @}")) {
         f.text = f.getText('UTF-8').replace("{@literal @}", "@")
       }
     }
   }
+  options.bottom = ext.additionalAssets
+  inputs.property "additionalAssets", ext.additionalAssets
+  inputs.property "groups", options.groups
 }
 
 test {
@@ -247,11 +224,8 @@ task tokeniseManual(type: Sync) {
     head              : """
         <meta charset="utf-8">
         <meta name="viewport" content="width=device-width, initial-scale=1">
-        <link href="css/normalize.css" rel="stylesheet" type="text/css">
-        <!--[if lt IE 8]><link href="css/minimal.css" rel="stylesheet" type="text/css"><![endif]-->
-        <!--[if gt IE 7]><!--><link href="css/manual.css" rel="stylesheet" type="text/css"><!--<![endif]-->
-        <link href="css/fonts.css" rel="stylesheet" type="text/css">
-        <script src="js/all.min.js"></script>
+        <link href="manual.css" rel="stylesheet" type="text/css">
+        <script src="all.min.js"></script>
       """,
     footer            : """
         <h2>Ratpack Manual - $version - ${new Date().format("MMMM, yyyy")}</h2>
@@ -297,22 +271,6 @@ task compileManual {
   }
 }
 
-jrubyPrepare {
-  outputDir file("${gradle.gradleUserHomeDir}/ruby-gems")
-}
-
-compass {
-  gemDir = file("${gradle.gradleUserHomeDir}/ruby-gems")
-  sassDir = file("src/sass")
-  cssDir = file("$buildDir/assets/css")
-  imagesDir = file("$buildDir/assets/images")
-  importPath = files('../ratpack-site/src/assets/shared-styles')
-  fontsDir = file('../ratpack-site/src/assets/shared-styles/fonts')
-  relativeAssets = true
-  quiet = true
-  debugInfo = false
-  environment = 'production'
-}
 
 task jsDev(type: com.eriwen.gradle.js.tasks.CombineJsTask) {
   source = [
@@ -333,8 +291,8 @@ minifyJs {
 task jsAll(type: com.eriwen.gradle.js.tasks.CombineJsTask, dependsOn: minifyJs) {
   source = [
     "${projectDir}/src/assets/js/googleAnalytics.js",
-    "${projectDir}/src/assets/js/modernizr.js",
-    "${projectDir}/src/assets/js/prism.js",
+    "${rootDir}/shared-web-assets/js/modernizr.js",
+    "${rootDir}/shared-web-assets/js/prism.js",
     "${projectDir}/src/assets/js/jquery.js",
     "${projectDir}/src/assets/js/contents.js",
     "${projectDir}/src/assets/js/contentsInitializer.js",
@@ -346,34 +304,17 @@ task jsAll(type: com.eriwen.gradle.js.tasks.CombineJsTask, dependsOn: minifyJs) 
 task stylizeManual(type: Sync) {
   into "$buildDir/stylized-manual"
   from compileManual
-  from(compassCompile) {
-    exclude 'bin/'
-    exclude 'build_info/'
-    exclude 'cache/'
-    exclude 'doc/'
-    exclude 'gems/'
-    exclude 'specifications/'
-  }
+  from compileSass
   from jsAll
-}
 
-file("src/assets").eachDir { File dir ->
-  def task = task("copy${dir.name.capitalize()}", type: Sync) {
-    from dir
-    into "$buildDir/assets/$dir.name"
-  }
-
-  compassCompile.dependsOn task
-
-  stylizeManual {
-    into dir.name, {
-      from task
+  [
+    images: ["src/assets/images", "$rootDir/shared-web-assets/images"],
+    fonts: ["$rootDir/shared-web-assets/fonts"]
+  ].each { destination, source ->
+    into(destination) {
+      from(source)
     }
   }
-}
-
-tasks.withType(com.github.jrubygradle.JRubyExec) {
-  maxHeapSize "128m"
 }
 
 task packageManual(type: Sync) {

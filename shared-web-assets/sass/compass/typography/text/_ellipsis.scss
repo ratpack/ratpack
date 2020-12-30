@@ -1,0 +1,41 @@
+/*!
+ * Copyright 2020 the original author or authors.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *    http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+@import "../../css3/shared";
+
+// To get full firefox support, you must install the ellipsis pattern:
+//
+//     compass install compass/ellipsis
+$use-mozilla-ellipsis-binding: false !default;
+
+// This technique, by [Justin Maxwell](http://code404.com/), was originally
+// published [here](http://mattsnider.com/css/css-string-truncation-with-ellipsis/).
+// Firefox implementation by [Rikkert Koppes](http://www.rikkertkoppes.com/thoughts/2008/6/).
+@mixin ellipsis($no-wrap: true) {
+  @if $no-wrap { white-space: nowrap; }
+  overflow: hidden;
+  @include experimental(text-overflow, ellipsis,
+    not(-moz),
+    not(-webkit),
+    -o,
+    -ms,
+    not(-khtml),
+    official
+  );
+  @if $experimental-support-for-mozilla and $use-mozilla-ellipsis-binding {
+    -moz-binding: stylesheet-url(unquote("xml/ellipsis.xml#ellipsis"));
+  }
+}

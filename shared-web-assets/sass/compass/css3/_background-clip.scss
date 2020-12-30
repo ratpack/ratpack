@@ -1,0 +1,59 @@
+/*!
+ * Copyright 2020 the original author or authors.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *    http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+@import "shared";
+
+// The default value is `padding-box` -- the box model used by modern browsers.
+//
+// If you wish to do so, you can override the default constant with `border-box`
+//
+// To override to the default border-box model, use this code:
+//     $default-background-clip: border-box
+
+$default-background-clip: padding-box !default;
+
+// Clip the background (image and color) at the edge of the padding or border.
+//
+// Legal Values:
+//
+//   * padding-box
+//   * border-box
+//   * text
+
+@mixin background-clip($clip: $default-background-clip) {
+  // webkit and mozilla use the deprecated short [border | padding]
+  $clip: unquote($clip);
+  $deprecated: $clip;
+  @if $clip == padding-box { $deprecated: padding; }
+  @if $clip == border-box { $deprecated: border; }
+  // Support for webkit and mozilla's use of the deprecated short form
+  @include experimental(background-clip, $deprecated,
+    -moz,
+    -webkit,
+    not(-o),
+    not(-ms),
+    not(-khtml),
+    not official
+  );
+  @include experimental(background-clip, $clip,
+    not(-moz),
+    not(-webkit),
+    not(-o),
+    not(-ms),
+    -khtml,
+    official
+  );
+}
