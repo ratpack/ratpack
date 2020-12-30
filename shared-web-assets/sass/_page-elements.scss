@@ -28,7 +28,7 @@ $footer-font-size: 14px !default;
 #page-header {
   @extend .content;
   position: relative;
-	@include rhythm($padding-leader: 1, $trailer: 1);
+	@include rhythm($leader: 1, $padding-leader: 1, $trailer: 1, $padding-trailer: 1);
   @include clearfix;
   @media (max-width: $tablet-portrait - 1px) {
     text-align: center;

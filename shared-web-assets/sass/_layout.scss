@@ -30,7 +30,7 @@ $content-width: 1024px !default;
 $num-columns: 12 !default;
 $column-width: 100% / $num-columns;
 
-@mixin columns($columns) {
+@mixin layout-columns($columns) {
   width: $columns * $column-width;
   @if $columns < $num-columns {
     float: left;

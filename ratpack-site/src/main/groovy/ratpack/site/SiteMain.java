@@ -16,7 +16,6 @@
 
 package ratpack.site;
 
-import asset.pipeline.ratpack.AssetPipelineModule;
 import com.google.common.base.Joiner;
 import com.google.common.collect.FluentIterable;
 import ratpack.dropwizard.metrics.DropwizardMetricsModule;
@@ -48,7 +47,6 @@ public class SiteMain {
         .registry(
           Guice.registry(s -> s
               .module(NewRelicModule.class)
-              .module(new AssetPipelineModule())
               .module(new DropwizardMetricsModule(), c ->
                   c.csv(csv -> csv.enable(false))
               )
@@ -184,7 +182,7 @@ public class SiteMain {
               ctx.getResponse().getHeaders().add("Cache-Control", "max-age=" + longCache + ", public");
               ctx.next();
             })
-            .files(f -> f.dir("public").indexFiles("index.html"));
+            .files(f -> f.dir("public"));
         })
     );
   }

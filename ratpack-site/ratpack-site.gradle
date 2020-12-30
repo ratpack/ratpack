@@ -15,19 +15,24 @@
  */
 import ratpack.gradle.WriteTestConfig
 
+import io.freefair.gradle.plugins.jsass.SassCompile
+
 import static org.apache.commons.io.FileUtils.copyURLToFile
 import static org.apache.commons.lang3.SystemUtils.*
 
 buildscript {
   repositories {
     jcenter()
+    gradlePluginPortal()
+    maven { url 'https://jitpack.io' }
   }
   dependencies {
-    classpath 'com.bertramlabs.plugins:asset-pipeline-gradle:2.6.1'
     classpath 'com.github.jengelman.gradle.plugins:shadow:5.1.0'
-    classpath 'com.bertramlabs.plugins:sass-asset-pipeline:2.6.1'
     classpath 'org.codehaus.groovy.modules.http-builder:http-builder:0.7.2'
-    classpath "org.jruby:jruby-complete:9.1.17.0"
+    classpath "io.freefair.gradle:jsass-plugin:4.1.6"
+    // Use the master version of gradle-js-plugin since it fixes a Gradle 6 deprecation (from JitPack.io)
+    classpath "com.github.eriwen:gradle-js-plugin:d15f4ae"
+    classpath "com.google.javascript:closure-compiler:v20150315"
   }
 }
 
@@ -35,7 +40,7 @@ apply from: "$rootDir/gradle/javaModule.gradle"
 apply plugin: "io.ratpack.ratpack-java"
 apply plugin: "org.gradle.groovy"
 apply plugin: 'com.github.johnrengelman.shadow'
-apply plugin: 'asset-pipeline'
+apply plugin: 'io.freefair.jsass-base'
 
 repositories {
   maven { url "https://oss.jfrog.org/repo" }
@@ -103,24 +108,6 @@ dependencies {
   compile project(":ratpack-newrelic")
   compile "org.pegdown:pegdown:${commonVersions.pegdown}"
 
-  compile('com.bertramlabs.plugins:ratpack-asset-pipeline:2.6.1') {
-    exclude group: "org.slf4j", module: "slf4j-api"
-    exclude group: "io.ratpack", module: "ratpack-guice"
-    exclude group: "commons-logging", module: "commons-logging"
-    exclude group: "com.google.code.gson", module: "gson"
-    exclude group: "com.google.guava", module: "guava"
-    exclude group: "org.codehaus.groovy", module: "groovy-all"
-    exclude group: "com.google.code.findbugs", module: "jsr305"
-  }
-  compile('com.bertramlabs.plugins:sass-asset-pipeline:2.6.1') {
-    exclude group: "org.jruby", module: "jruby-complete"
-    exclude group: "commons-logging", module: "commons-logging"
-    exclude group: "com.google.code.gson", module: "gson"
-    exclude group: "com.google.guava", module: "guava"
-    exclude group: "com.google.code.findbugs", module: "jsr305"
-  }
-  providedRuntime "org.jruby:jruby-complete:1.7.18"
-
   runtime "org.apache.logging.log4j:log4j-slf4j-impl:${commonVersions.log4j}", {
     exclude group: "org.slf4j", module: "slf4j-api"
   }
@@ -157,11 +144,23 @@ tasks.withType(Zip) {
   zip64 = true
 }
 
+task compileSass(type: SassCompile) {
+  doFirst { destinationDir.get().asFile.deleteDir() }
+  source = "src/assets/sass"
+  includePaths.from "$rootDir/shared-web-assets/sass"
+  includePaths.from "$rootDir/shared-web-assets"
+  destinationDir = file("build/assets/css")
+}
+
+task jsAll(type: com.eriwen.gradle.js.tasks.CombineJsTask) {
+  source = [
+    "${rootDir}/shared-web-assets/js/modernizr.js",
+    "${rootDir}/shared-web-assets/js/prism.js",
+  ]
+  dest = file("${buildDir}/assets/js/all.min.js")
+}
+
 shadowJar {
-  dependencies {
-    exclude(dependency("com.bertramlabs.plugins:sass-asset-pipeline:.*"))
-    exclude(dependency("org.jruby:jruby-complete:.*"))
-  }
 }
 
 task downloadChromeDriver {
@@ -245,8 +244,25 @@ processResources {
     configureManualExtraction(configurations["manual-$it"], it)
   }
 
-  from assetCompile, {
-    into "assets"
+  into("public") {
+    from compileSass
+    from jsAll
+
+    [
+      "": ["src/assets/images", "src/assets/css"],
+      images: ["$rootDir/shared-web-assets/images"],
+      fonts: ["$rootDir/shared-web-assets/fonts"]
+    ].each { destination, source ->
+      if (destination) {
+        into("public/$destination") {
+          from(source)
+        }
+      } else {
+        into("public") {
+          from(source)
+        }
+      }
+    }
   }
 }
 

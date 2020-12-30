@@ -1,7 +1,42 @@
+/*!
+ * Copyright 2020 the original author or authors.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *    http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+@import "compass";
+// common stuff from /ratpack-stylesheets
+@import "palette";
+@import "settings";
+@import "breakpoints";
+@import "reset";
+@import "utilities";
+@import "typography";
+@import "layout";
+@import "prism";
+@import "ratpack-logo";
+@import "theme-elements";
+@import "page-elements";
+@import "fonts";
+
+
 .content {
   @include clearfix;
 }
 
+#page-header {
+
+}
 #page-header .social {
   $social-font-size: 1.3rem;
   $social-background-color: $lichtgrau;
@@ -33,7 +68,7 @@
 
   a {
     display: inline-block;
-    $badge-size: image-height('twitter-badge.png');
+    $badge-size: 100px;
     width: $badge-size;
     height: $badge-size;
     text-indent: -9999px;
@@ -136,12 +171,12 @@
     }
 
     article {
-      @include columns(8);
+      @include layout-columns(8);
       @include rem(padding-right, 1rem);
     }
 
     nav {
-      @include columns(4);
+      @include layout-columns(4);
     }
   }
 }
@@ -154,7 +189,7 @@ blockquote {
 
 // this makes the social buttons overlap on top of the promo box
 @media (max-width: $tablet-portrait - 1px) {
-  $overlap: image-height('twitter-badge.png') / 2;
+  $overlap: 50px;
 
   #page-header {
     margin-bottom: -$overlap;
@@ -194,9 +229,9 @@ blockquote {
   @media (min-width: $tablet-portrait) {
     .content {
       $footer-image: 'ratpack-footer.png';
-      $footer-image-width: image-width($footer-image);
-      $footer-image-height: image-height($footer-image);
-      $credits-height: 2 * image-height('bintray.png');
+      $footer-image-width: 300px;
+      $footer-image-height: 260px;
+      $credits-height: 80px;
 
       .about {
         margin-left: $footer-image-width;

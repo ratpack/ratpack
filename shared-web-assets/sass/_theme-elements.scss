@@ -82,18 +82,18 @@
 @mixin starburst($font-size: $base-font-size) {
   $starburst-bitmap-image: 'starburst.png';
   position: relative;
-  padding-left: (image-width($starburst-bitmap-image) / $font-size) + 0.25em;
+  padding-left: (52px / $font-size) + 0.25em;
   &:before {
     position: absolute;
     top: 0;
     left: 0;
-    width: image-width($starburst-bitmap-image);
-    height: image-height($starburst-bitmap-image);
+    width: 52px;
+    height: 42px;
     display: inline-block;
     z-index: 1;
     content: " ";
     background: {
-      image: inline-image('starburst.svg');
+      image: simple-image-url('starburst.svg');
       repeat: no-repeat;
       size: contain;
     }
