@@ -60,9 +60,6 @@ jobs:
       - store_test_results:
           path: ~/junit
 
-      - store_artifacts:
-          path: ~/junit
-
       - persist_to_workspace:
           root: ~/ratpack
           paths:
