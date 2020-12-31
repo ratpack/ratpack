@@ -18,18 +18,12 @@ jobs:
     steps:
       - checkout
 
-      # Download and cache dependencies
       - restore_cache:
           keys:
             - v2-gradle-{{ .Branch }}
             - v2-gradle-master
             - v2-gradle
 
-      - run:
-          name: Download Gradle Dependencies
-          command: ./gradlew downloadDependencies
-
-      # run sanity check
       - run:
           name: Run Sanity Check
           command: ./gradlew sanityCheck --max-workers=2 --build-cache
