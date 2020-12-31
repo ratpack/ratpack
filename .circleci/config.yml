@@ -10,7 +10,6 @@ defaults: &defaults
     TERM: dumb
     _JAVA_OPTIONS: -XX:+UnlockExperimentalVMOptions -XX:+UseCGroupMemoryLimitForHeap
     GRADLE_OPTS: -Dorg.gradle.jvmargs="-Xmx1g"
-    JRUBY_OPTS: -Xmx512m
 
 version: 2
 jobs:
