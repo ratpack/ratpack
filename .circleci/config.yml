@@ -35,7 +35,7 @@ jobs:
       - save_cache:
           paths:
             - ~/.gradle
-          key: v2-gradle-{{ .Branch }}
+          key: v2-gradle-{{ .Branch }}-{{ .Revision }}
           when: always
 
       - run:
