@@ -35,7 +35,7 @@ jobs:
       # run sanity check
       - run:
           name: Run Sanity Check
-          command: ./gradlew sanityCheck --max-workers=2
+          command: ./gradlew sanityCheck --max-workers=2 --build-cache
 
       - save_cache:
           paths:
@@ -44,7 +44,7 @@ jobs:
 
       - run:
           name: Test & Build
-          command: ./gradlew :ratpack-gradle:check :ratpack-site:check :ratpack-core:check build jacocoReport --continue --max-workers=2 -PpublishToSlack
+          command: ./gradlew build jacocoReport --continue --max-workers=2 --build-cache -PpublishToSlack
 
       - run:
           name: Save test results
@@ -79,7 +79,7 @@ jobs:
 
       - run:
           name: Upload Artifacts
-          command: ./gradlew --max-workers=1 artifactoryPublish -PbuildInfo.build.number=${CIRCLE_BUILD_NUM}
+          command: ./gradlew artifactoryPublish --max-workers=1 :ratpack-site:deployToHeroku -PbuildInfo.build.number=${CIRCLE_BUILD_NUM}
 
   deploySite:
     <<: *defaults
@@ -91,7 +91,7 @@ jobs:
 
       - run:
           name: Deploy Site
-          command: ./gradlew --max-workers=1 :ratpack-site:deployToHeroku
+          command: ./gradlew :ratpack-site:deployToHeroku --max-workers=1 --build-cache
 
 workflows:
   version: 2
