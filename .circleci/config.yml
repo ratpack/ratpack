@@ -40,7 +40,6 @@ jobs:
       - save_cache:
           paths:
             - ~/.gradle
-            - ~/.jruby-container
           key: v1-gradle-{{ .Branch }}-{{ checksum "gradle/wrapper/gradle-wrapper.properties" }}-{{ checksum "gradle/dependencies.gradle" }}
 
       - run:
