@@ -29,7 +29,7 @@ buildscript {
   dependencies {
     classpath 'com.github.jengelman.gradle.plugins:shadow:5.1.0'
     classpath 'org.codehaus.groovy.modules.http-builder:http-builder:0.7.2'
-    classpath "io.freefair.gradle:jsass-plugin:4.1.6"
+    classpath "io.freefair.gradle:jsass-plugin:5.3.0"
     // Use the master version of gradle-js-plugin since it fixes a Gradle 6 deprecation (from JitPack.io)
     classpath "com.github.eriwen:gradle-js-plugin:d15f4ae"
     classpath "com.google.javascript:closure-compiler:v20150315"
