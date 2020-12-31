@@ -19,16 +19,16 @@ buildscript {
   }
 
   dependencies {
-    classpath "com.gradle:build-scan-plugin:2.1"
+    classpath "com.gradle:gradle-enterprise-gradle-plugin:3.5"
   }
 }
 
-apply plugin: com.gradle.scan.plugin.BuildScanPlugin
+apply plugin: com.gradle.enterprise.gradleplugin.GradleEnterprisePlugin
 
 def env = System.getenv()
-def publishToSlack = findProperty("publishToSlack") != null
+def publishToSlack = gradle.startParameter.projectProperties.publishToSlack != null
 
-buildScan {
+gradleEnterprise.buildScan {
   background {
     def commitId = env.REVISION
     try {
@@ -43,9 +43,8 @@ buildScan {
   }
 }
 
-if (project.isCi) {
-
-  buildScan {
+if (System.getenv("CI")) {
+  gradleEnterprise.buildScan {
     termsOfServiceUrl = 'https://gradle.com/terms-of-service'
     termsOfServiceAgree = 'yes'
 
