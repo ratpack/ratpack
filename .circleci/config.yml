@@ -37,14 +37,14 @@ jobs:
           name: Run Sanity Check
           command: ./gradlew sanityCheck --max-workers=2 --build-cache
 
+      - run:
+          name: Test & Build
+          command: ./gradlew build jacocoReport --continue --max-workers=2 --build-cache -PpublishToSlack
+
       - save_cache:
           paths:
             - ~/.gradle
           key: v1-gradle-{{ .Branch }}-{{ checksum "gradle/wrapper/gradle-wrapper.properties" }}-{{ checksum "gradle/dependencies.gradle" }}
-
-      - run:
-          name: Test & Build
-          command: ./gradlew build jacocoReport --continue --max-workers=2 --build-cache -PpublishToSlack
 
       - run:
           name: Save test results
