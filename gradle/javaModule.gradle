@@ -105,6 +105,11 @@ tasks.withType(Test) {
         events "started", "failed"
       }
     }
+
+    // Workaround https://github.com/gradle/gradle/issues/1893
+    // Without this, we get Gradle's logging in our tests when we actually want log4j.
+    // This forces gradle to be last in the classpath, so our logging lib is found first by Slf4j.
+    classpath = files(classpath.files - dependencies.gradleTestKit().files) + dependencies.gradleTestKit().files
   }
 
   environment "GRADLE_USER_HOME", gradle.gradleUserHomeDir
