@@ -88,22 +88,6 @@ class NoResponseSentDetectionSpec extends RatpackGroovyDslSpec {
     response.statusCode == 500
   }
 
-  def "message contains custom inner class name when class is empty"() {
-    when:
-    handlers {
-      all new Handler() {
-        @Override
-        void handle(Context context) throws Exception {
-          // can't detect line number when there is no code
-        }
-      }
-    }
-
-    then:
-    getText() == "No response sent for GET request to / (last handler: ratpack.handling.NoResponseSentDetectionSpec\$2)"
-    response.statusCode == 500
-  }
-
   def "sends error response with large request body"() {
     when:
     handlers {
