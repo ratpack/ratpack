@@ -27,11 +27,11 @@ jobs:
 
       - run:
           name: Run Sanity Check
-          command: ./gradlew sanityCheck --continue --max-workers=2 --build-cache
+          command: ./gradlew sanityCheck --continue --max-workers=4 --build-cache
 
       - run:
           name: Test & Build
-          command: ./gradlew build jacocoReport --continue --max-workers=2 --build-cache -PpublishToSlack
+          command: ./gradlew build jacocoReport --continue --max-workers=4 --build-cache -PpublishToSlack
 
       - save_cache:
           paths:
