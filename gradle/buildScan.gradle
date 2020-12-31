@@ -51,17 +51,9 @@ if (System.getenv("CI")) {
     publishAlways()
     tag "CI"
 
-    def buildLink
-    def buildTitle
-
-    if (isSemaphore) {
-      buildLink = "https://semaphoreci.com/ratpack/ratpack/branches/${env.BRANCH_NAME.replace('.', '-')}/builds/${env.SEMAPHORE_BUILD_NUMBER}"
-      buildTitle = "${env.SEMAPHORE_PROJECT_NAME}/${env.BRANCH_NAME}/#${env.SEMAPHORE_BUILD_NUMBER}"
-    }
-
     if (env.CIRCLE_BUILD_URL) {
-      buildLink = env.CIRCLE_BUILD_URL
-      buildTitle = "${env.CIRCLE_PROJECT_REPONAME}/${env.CIRCLE_BRANCH}/#${env.CIRCLE_BUILD_NUM}"
+      def buildLink = env.CIRCLE_BUILD_URL
+      def buildTitle = "${env.CIRCLE_PROJECT_REPONAME}/${env.CIRCLE_BRANCH}/#${env.CIRCLE_BUILD_NUM}"
       link "CI", buildLink
 
       if (publishToSlack) {
