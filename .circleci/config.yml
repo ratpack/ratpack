@@ -20,9 +20,10 @@ jobs:
 
       - restore_cache:
           keys:
-            - v2-gradle-{{ .Branch }}
-            - v2-gradle-master
-            - v2-gradle
+            - v3-gradle-{{ .Branch }}-{{ .Revision }}
+            - v3-gradle-{{ .Branch }}
+            - v3-gradle-master
+            - v3-gradle
 
       - run:
           name: Run Sanity Check
@@ -35,7 +36,7 @@ jobs:
       - save_cache:
           paths:
             - ~/.gradle
-          key: v2-gradle-{{ .Branch }}-{{ .Revision }}
+          key: v3-gradle-{{ .Branch }}-{{ .Revision }}
           when: always
 
       - run:
