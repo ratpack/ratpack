@@ -101,7 +101,7 @@ class NoResponseSentDetectionSpec extends RatpackGroovyDslSpec {
       it.post().body.text("1" * 10000)
     }
 
-    r.body.text == "No response sent for POST request to / (last handler: closure at line 110 of NoResponseSentDetectionSpec.groovy)"
+    r.body.text == "No response sent for POST request to / (last handler: closure at line 94 of NoResponseSentDetectionSpec.groovy)"
     response.statusCode == 500
   }
 
@@ -119,7 +119,7 @@ class NoResponseSentDetectionSpec extends RatpackGroovyDslSpec {
       it.post().body.text("1" * 10000)
     }
 
-    r.body.text == "No response sent for POST request to / (last handler: closure at line 128 of NoResponseSentDetectionSpec.groovy)"
+    r.body.text == "No response sent for POST request to / (last handler: closure at line 112 of NoResponseSentDetectionSpec.groovy)"
     response.statusCode == 500
   }
 }
