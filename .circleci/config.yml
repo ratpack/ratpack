@@ -26,7 +26,7 @@ jobs:
 
       - run:
           name: Run Sanity Check
-          command: ./gradlew sanityCheck --max-workers=2 --build-cache --debug
+          command: ./gradlew sanityCheck --max-workers=2
 
       - run:
           name: Test & Build
