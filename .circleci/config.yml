@@ -21,11 +21,9 @@ jobs:
       # Download and cache dependencies
       - restore_cache:
           keys:
-            - v1-gradle-{{ .Branch }}-{{ checksum "gradle/wrapper/gradle-wrapper.properties" }}-{{ checksum "gradle/dependencies.gradle" }}
-            - v1-gradle-{{ .Branch }}-{{ checksum "gradle/wrapper/gradle-wrapper.properties" }}
-            - v1-gradle-{{ .Branch }}
-            - v1-gradle-master
-            - v1-gradle
+            - v2-gradle-{{ .Branch }}
+            - v2-gradle-master
+            - v2-gradle
 
       - run:
           name: Download Gradle Dependencies
@@ -43,7 +41,7 @@ jobs:
       - save_cache:
           paths:
             - ~/.gradle
-          key: v1-gradle-{{ .Branch }}-{{ checksum "gradle/wrapper/gradle-wrapper.properties" }}-{{ checksum "gradle/dependencies.gradle" }}
+          key: v1-gradle-{{ .Branch }}
 
       - run:
           name: Save test results
