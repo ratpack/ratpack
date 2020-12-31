@@ -36,6 +36,7 @@ jobs:
           paths:
             - ~/.gradle
           key: v1-gradle-{{ .Branch }}
+          when: always
 
       - run:
           name: Save test results
