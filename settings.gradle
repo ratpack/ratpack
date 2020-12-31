@@ -14,6 +14,10 @@
  * limitations under the License.
  */
 
+enableFeaturePreview("GROOVY_COMPILATION_AVOIDANCE")
+
+apply from: 'gradle/buildScan.gradle'
+
 include \
     "ratpack-benchmark",
     "ratpack-config",

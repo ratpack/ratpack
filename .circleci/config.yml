@@ -5,20 +5,18 @@
 defaults: &defaults
   working_directory: ~/ratpack
   docker:
-    - image: cimg/openjdk:8.0.252
+    - image: cimg/openjdk:8.0
   environment:
     TERM: dumb
     _JAVA_OPTIONS: -XX:+UnlockExperimentalVMOptions -XX:+UseCGroupMemoryLimitForHeap
-    GRADLE_OPTS: -Dorg.gradle.parallel.intra=true -Dorg.gradle.jvmargs="-Xmx1g"
-    JRUBY_OPTS: -Xmx512m
+    GRADLE_OPTS: -Dorg.gradle.jvmargs="-Xmx1g"
 
 restore_cache: &restore_cache
   keys:
-    - v1-gradle-{{ .Branch }}-{{ checksum "gradle/wrapper/gradle-wrapper.properties" }}-{{ checksum "gradle/dependencies.gradle" }}
-    - v1-gradle-{{ .Branch }}-{{ checksum "gradle/wrapper/gradle-wrapper.properties" }}
-    - v1-gradle-{{ .Branch }}
-    - v1-gradle-master
-    - v1-gradle
+    - v3-gradle-{{ .Branch }}-{{ .Revision }}
+    - v3-gradle-{{ .Branch }}
+    - v3-gradle-master
+    - v3-gradle
 
 version: 2
 jobs:
@@ -27,27 +25,21 @@ jobs:
     steps:
       - checkout
 
-      # Download and cache dependencies
       - restore_cache: *restore_cache
 
       - run:
-          name: Download Gradle Dependencies
-          command: ./gradlew downloadDependencies
-
-      # run sanity check
-      - run:
           name: Run Sanity Check
-          command: ./gradlew sanityCheck --max-workers=2
+          command: ./gradlew sanityCheck --continue --max-workers=2 --build-cache
+
+      - run:
+          name: Test & Build
+          command: ./gradlew build jacocoReport --continue --max-workers=2 --build-cache -PpublishToSlack
 
       - save_cache:
           paths:
             - ~/.gradle
-            - ~/.jruby-container
-          key: v1-gradle-{{ .Branch }}-{{ checksum "gradle/wrapper/gradle-wrapper.properties" }}-{{ checksum "gradle/dependencies.gradle" }}
-
-      - run:
-          name: Test & Build
-          command: ./gradlew :ratpack-gradle:check :ratpack-site:check :ratpack-core:check build jacocoReport --continue --max-workers=2 -PpublishToSlack
+          key: v3-gradle-{{ .Branch }}-{{ .Revision }}
+          when: always
 
       - run:
           name: Save test results
@@ -62,9 +54,6 @@ jobs:
           when: always
 
       - store_test_results:
-          path: ~/junit
-
-      - store_artifacts:
           path: ~/junit
 
       - persist_to_workspace:
@@ -83,7 +72,7 @@ jobs:
 
       - run:
           name: Upload Artifacts
-          command: ./gradlew --max-workers=1 artifactoryPublish -PbuildInfo.build.number=${CIRCLE_BUILD_NUM}
+          command: ./gradlew artifactoryPublish --max-workers=1 :ratpack-site:deployToHeroku -PbuildInfo.build.number=${CIRCLE_BUILD_NUM}
 
   deploySite:
     <<: *defaults
@@ -95,7 +84,7 @@ jobs:
 
       - run:
           name: Deploy Site
-          command: ./gradlew --max-workers=1 :ratpack-site:deployToHeroku
+          command: ./gradlew :ratpack-site:deployToHeroku --max-workers=1 --build-cache
 
 workflows:
   version: 2

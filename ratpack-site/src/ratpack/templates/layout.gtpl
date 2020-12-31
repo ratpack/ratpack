@@ -13,13 +13,10 @@ head {
   meta(name: 'description', content: 'Ratpack apps are lightweight, fast, composable with other tools and libraries, easy to test and enjoyable to develop.')
   meta(name: 'viewport', content: 'width=device-width, initial-scale=1')
 
-  link(rel: 'author', href: '/assets/humans.txt')
-  link(rel: 'stylesheet', href: assets['normalize/normalize.css'])
-  link(rel: 'stylesheet', href: assets['ratpack.css'])
-  link(rel: 'stylesheet', href: assets['fonts.css'])
+  link(rel: 'stylesheet', href: assets['normalize.css'])
+  link(rel: 'stylesheet', href: assets['site.css'])
 
-  script(src: assets['modernizr/modernizr.js']) {}
-  script(src: assets['prism/prism.js']) {}
+  script(src: assets['all.min.js']) {}
 }
 body {
   header(id: 'page-header') {

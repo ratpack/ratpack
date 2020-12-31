@@ -19,16 +19,16 @@ buildscript {
   }
 
   dependencies {
-    classpath "com.gradle:build-scan-plugin:2.1"
+    classpath "com.gradle:gradle-enterprise-gradle-plugin:3.5"
   }
 }
 
-apply plugin: com.gradle.scan.plugin.BuildScanPlugin
+apply plugin: com.gradle.enterprise.gradleplugin.GradleEnterprisePlugin
 
 def env = System.getenv()
-def publishToSlack = findProperty("publishToSlack") != null
+def publishToSlack = gradle.startParameter.projectProperties.publishToSlack != null
 
-buildScan {
+gradleEnterprise.buildScan {
   background {
     def commitId = env.REVISION
     try {
@@ -43,40 +43,28 @@ buildScan {
   }
 }
 
-if (project.isCi) {
-
-  buildScan {
+if (System.getenv("CI")) {
+  gradleEnterprise.buildScan {
     termsOfServiceUrl = 'https://gradle.com/terms-of-service'
     termsOfServiceAgree = 'yes'
 
     publishAlways()
     tag "CI"
 
-    def buildLink
-    def buildTitle
-
-    if (isSemaphore) {
-      buildLink = "https://semaphoreci.com/ratpack/ratpack/branches/${env.BRANCH_NAME.replace('.', '-')}/builds/${env.SEMAPHORE_BUILD_NUMBER}"
-      buildTitle = "${env.SEMAPHORE_PROJECT_NAME}/${env.BRANCH_NAME}/#${env.SEMAPHORE_BUILD_NUMBER}"
-    }
-
-    if (isCircleCI) {
-      buildLink = env.CIRCLE_BUILD_URL
-      buildTitle = "${env.CIRCLE_PROJECT_REPONAME}/${env.CIRCLE_BRANCH}/#${env.CIRCLE_BUILD_NUM}"
-    }
-
-    if (isCloudCi) {
+    if (env.CIRCLE_BUILD_URL) {
+      def buildLink = env.CIRCLE_BUILD_URL
+      def buildTitle = "${env.CIRCLE_PROJECT_REPONAME}/${env.CIRCLE_BRANCH}/#${env.CIRCLE_BUILD_NUM}"
       link "CI", buildLink
-    }
 
-    if (publishToSlack) {
-      buildFinished { buildResult ->
+      if (publishToSlack) {
+        buildFinished { buildResult ->
 
-        buildScanPublished {
-          def json="{'attachments': [{'fallback': '${buildTitle}', 'color': '${buildResult.failure != null ? 'danger' : 'good'}', 'title': '${buildTitle}', 'title_link': '${buildLink}', 'text': 'Build scan: ${it.buildScanUri}'}]}"
-          ['curl', '-s', '-d', "payload=$json", "https://hooks.slack.com/services/${env.SLACK_TOKEN}"].execute()
+          buildScanPublished {
+            def json="{'attachments': [{'fallback': '${buildTitle}', 'color': '${buildResult.failure != null ? 'danger' : 'good'}', 'title': '${buildTitle}', 'title_link': '${buildLink}', 'text': 'Build scan: ${it.buildScanUri}'}]}"
+            ['curl', '-s', '-d', "payload=$json", "https://hooks.slack.com/services/${env.SLACK_TOKEN}"].execute()
+          }
+
         }
-
       }
     }
 

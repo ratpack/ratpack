@@ -88,22 +88,6 @@ class NoResponseSentDetectionSpec extends RatpackGroovyDslSpec {
     response.statusCode == 500
   }
 
-  def "message contains custom inner class name when class is empty"() {
-    when:
-    handlers {
-      all new Handler() {
-        @Override
-        void handle(Context context) throws Exception {
-          // can't detect line number when there is no code
-        }
-      }
-    }
-
-    then:
-    getText() == "No response sent for GET request to / (last handler: ratpack.core.handling.NoResponseSentDetectionSpec\$2)"
-    response.statusCode == 500
-  }
-
   def "sends error response with large request body"() {
     when:
     handlers {
@@ -117,7 +101,7 @@ class NoResponseSentDetectionSpec extends RatpackGroovyDslSpec {
       it.post().body.text("1" * 10000)
     }
 
-    r.body.text == "No response sent for POST request to / (last handler: closure at line 110 of NoResponseSentDetectionSpec.groovy)"
+    r.body.text == "No response sent for POST request to / (last handler: closure at line 94 of NoResponseSentDetectionSpec.groovy)"
     response.statusCode == 500
   }
 
@@ -135,7 +119,7 @@ class NoResponseSentDetectionSpec extends RatpackGroovyDslSpec {
       it.post().body.text("1" * 10000)
     }
 
-    r.body.text == "No response sent for POST request to / (last handler: closure at line 128 of NoResponseSentDetectionSpec.groovy)"
+    r.body.text == "No response sent for POST request to / (last handler: closure at line 112 of NoResponseSentDetectionSpec.groovy)"
     response.statusCode == 500
   }
 }

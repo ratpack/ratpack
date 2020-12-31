@@ -107,7 +107,7 @@ configureRun.doLast {
   }
 }
 
-task run(type: PerfTestRun, overwrite: true) {
+task runPerf(type: PerfTestRun) {
   dependsOn createApps, { apiModules*.install }, ":ratpack-gradle:install"
   main "ratpack.perf.Harness"
   classpath = sourceSets.main.runtimeClasspath

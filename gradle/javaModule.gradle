@@ -31,6 +31,7 @@ sourceCompatibility = "1.8"
 targetCompatibility = "1.8"
 
 tasks.withType(AbstractCompile) {
+  options.incremental = true
   options.compilerArgs << "-Werror" << "-Xlint:all" << "-Xlint:-options" << "-Xlint:-serial"
   options.compilerArgs << "-Xlint:-classfile" // Needed due to https://issues.jboss.org/browse/JASSIST-245
 }
@@ -97,14 +98,24 @@ tasks.withType(Test) {
     exceptionFormat "full"
   }
 
+  reports {
+    junitXml {
+      outputPerTestCase = true
+    }
+  }
+
   doFirst {
     if (isCloudCi) {
-      maxParallelForks 1
       systemProperty "cloudCi", "true"
       testLogging {
         events "started", "failed"
       }
     }
+
+    // Workaround https://github.com/gradle/gradle/issues/1893
+    // Without this, we get Gradle's logging in our tests when we actually want log4j.
+    // This forces gradle to be last in the classpath, so our logging lib is found first by Slf4j.
+    classpath = files(classpath.files - dependencies.gradleTestKit().files) + dependencies.gradleTestKit().files
   }
 
   environment "GRADLE_USER_HOME", gradle.gradleUserHomeDir

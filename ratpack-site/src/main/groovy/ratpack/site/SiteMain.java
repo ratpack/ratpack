@@ -48,9 +48,6 @@ public class SiteMain {
         .registry(
           Guice.registry(s -> s
               .module(NewRelicModule.class)
-            // TODO-v2: this breaks with the package renames, inlined the code to make it work
-//              .module(new AssetPipelineModule())
-              .module(new AssetPipelineModule())
               .module(new DropwizardMetricsModule(), c ->
                   c.csv(csv -> csv.enable(false))
               )
@@ -186,7 +183,7 @@ public class SiteMain {
               ctx.getResponse().getHeaders().add("Cache-Control", "max-age=" + longCache + ", public");
               ctx.next();
             })
-            .files(f -> f.dir("public").indexFiles("index.html"));
+            .files(f -> f.dir("public"));
         })
     );
   }
