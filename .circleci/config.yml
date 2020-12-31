@@ -9,7 +9,7 @@ defaults: &defaults
   environment:
     TERM: dumb
     _JAVA_OPTIONS: -XX:+UnlockExperimentalVMOptions -XX:+UseCGroupMemoryLimitForHeap
-    GRADLE_OPTS: -Dorg.gradle.parallel.intra=true -Dorg.gradle.jvmargs="-Xmx1g"
+    GRADLE_OPTS: -Dorg.gradle.jvmargs="-Xmx1g"
     JRUBY_OPTS: -Xmx512m
 
 version: 2
