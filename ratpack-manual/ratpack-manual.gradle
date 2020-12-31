@@ -95,7 +95,7 @@ evaluationDependsOn ":ratpack-gradle"
 
 task compileSass(type: SassCompile) {
   doFirst {
-    sleep 2000 // temp debugging
+    sleep 10000 // temp debugging
     destinationDir.get().asFile.deleteDir()
   }
   source = "src/assets/sass"
