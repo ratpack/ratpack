@@ -95,17 +95,12 @@ evaluationDependsOn ":ratpack-gradle"
 
 task compileSass(type: SassCompile) {
   doFirst {
-    println "starting"
-    sleep 10000 // temp debugging
     destinationDir.get().asFile.deleteDir()
   }
   source = "src/assets/sass"
   includePaths.from "$rootDir/shared-web-assets/sass"
   includePaths.from "$rootDir/shared-web-assets"
   destinationDir = file("build/assets/css")
-  doLast {
-    println "finishing"
-  }
 }
 
 task configureApi() {
