@@ -97,6 +97,12 @@ tasks.withType(Test) {
     exceptionFormat "full"
   }
 
+  reports {
+    junitXml {
+      outputPerTestCase = true
+    }
+  }
+
   doFirst {
     if (isCloudCi) {
       maxParallelForks 1
