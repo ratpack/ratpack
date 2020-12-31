@@ -5,7 +5,7 @@
 defaults: &defaults
   working_directory: ~/ratpack
   docker:
-    - image: circleci/openjdk:8-jdk
+    - image: cimg/openjdk:8.0
   environment:
     TERM: dumb
     _JAVA_OPTIONS: -XX:+UnlockExperimentalVMOptions -XX:+UseCGroupMemoryLimitForHeap
