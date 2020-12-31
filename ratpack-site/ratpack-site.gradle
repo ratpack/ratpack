@@ -43,7 +43,19 @@ apply plugin: 'com.github.johnrengelman.shadow'
 apply plugin: 'io.freefair.jsass-base'
 
 repositories {
-  maven { url "https://oss.jfrog.org/repo" }
+  jcenter()
+  exclusiveContent {
+    forRepository {
+      jcenter {
+        name "jcenterNoPom"
+        metadataSources { artifact() }
+      }
+    }
+    filter {
+      // this repository *only* contains artifacts with group "my.company"
+      includeModule("io.ratpack", "ratpack-manual")
+    }
+  }
 }
 
 ext {
