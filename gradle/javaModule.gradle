@@ -31,6 +31,7 @@ sourceCompatibility = "1.8"
 targetCompatibility = "1.8"
 
 tasks.withType(AbstractCompile) {
+  options.incremental = true
   options.compilerArgs << "-Werror" << "-Xlint:all" << "-Xlint:-options" << "-Xlint:-serial"
   options.compilerArgs << "-Xlint:-classfile" // Needed due to https://issues.jboss.org/browse/JASSIST-245
 }
@@ -105,7 +106,6 @@ tasks.withType(Test) {
 
   doFirst {
     if (isCloudCi) {
-      maxParallelForks 1
       systemProperty "cloudCi", "true"
       testLogging {
         events "started", "failed"
