@@ -94,7 +94,10 @@ apiModules.each { evaluationDependsOn(it.path) }
 evaluationDependsOn ":ratpack-gradle"
 
 task compileSass(type: SassCompile) {
-  doFirst { destinationDir.get().asFile.deleteDir() }
+  doFirst {
+    sleep 2000 // temp debugging
+    destinationDir.get().asFile.deleteDir()
+  }
   source = "src/assets/sass"
   includePaths.from "$rootDir/shared-web-assets/sass"
   includePaths.from "$rootDir/shared-web-assets"
