@@ -23,7 +23,7 @@ This is the standard “Dependency Injection” or “Inversion of Control” pa
 
 The [Guice](api/ratpack/guice/Guice.html) class provides static `handler()` factory methods for creating root handlers that are the basis of the application.
 These methods (the commonly used ones) expose [`Chain`](api/ratpack/core/handling/Chain.html) instance that can be used to build the application's handler chain.
-The instance exposed by these methods provide a registry (via the [`getRegistry()`](api/ratpack/core/handling/Chain.html#getRegistry--)) method that can be used
+The instance exposed by these methods provide a registry (via the [`getRegistry()`](api/ratpack/core/handling/Chain.html#getRegistry%28%29)) method that can be used
 to construct dependency injected handler instances.
 
 See the documentation of the [Guice](api/ratpack/guice/Guice.html) class for example code.

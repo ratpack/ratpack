@@ -72,8 +72,8 @@ public class Router implements Handler {
 }
 ```
 
-The key to delegation is the [`context.insert()`](api/ratpack/core/handling/Context.html#insert-ratpack.core.handling.Handler...-) method that passes control to one or more linked handlers.
-The [`context.next()`](api/ratpack/core/handling/Context.html#next--) method passes control to the next linked handler.
+The key to delegation is the [`context.insert()`](api/ratpack/core/handling/Context.html#insert%28ratpack.core.handling.Handler...%29) method that passes control to one or more linked handlers.
+The [`context.next()`](api/ratpack/core/handling/Context.html#next%28%29) method passes control to the next linked handler.
 
 Consider the following…
 
@@ -240,20 +240,20 @@ Instead it is a powerful tool built from the more flexible tool, the handler.
 ### Adding Handlers and Chains
 
 So the chain can most simply be thought of as a list of handlers.
-The most basic way to add a handler to the chain's list is the [`all(Handler)`](api/ratpack/core/handling/Chain.html#all-ratpack.core.handling.Handler-) method.
+The most basic way to add a handler to the chain's list is the [`all(Handler)`](api/ratpack/core/handling/Chain.html#all%28ratpack.core.handling.Handler%29) method.
 The word "all" represents that all requests reaching this point in the chain will flow through the given handler.
 
 If we stretch our minds a little and think of the chain as a handler (one that is just specialized in inserting handlers), then it also stands to reason that we can add additional chains to a chain.
-In fact, we can, and to match the `all(Handler)` method, you may use the [`insert(Action<Chain>)`](api/ratpack/core/handling/Chain.html#insert-ratpack.func.Action-) method.
+In fact, we can, and to match the `all(Handler)` method, you may use the [`insert(Action<Chain>)`](api/ratpack/core/handling/Chain.html#insert%28ratpack.func.Action%29) method.
 Likewise, this inserts a chain through which all requests are routed.
 
 Now, the chain wouldn't be very useful if it just handled a list of handlers, calling each in a row, so there are also several methods than can perform conditional inserts of handlers and chains:
 
-* [`path(String,Handler)`](api/ratpack/core/handling/Chain.html#path-java.lang.String-ratpack.core.handling.Handler-), used in the previous example, is particularly useful for routing to different handlers based upon the request path.
-  It also comes in a [`path(Handler)`](api/ratpack/core/handling/Chain.html#path-ratpack.core.handling.Handler-) flavor to easily match the empty "" path.
-* [`onlyIf(Predicate<Context>, Handler)`](api/ratpack/core/handling/Chain.html#onlyIf-ratpack.func.Predicate-ratpack.core.handling.Handler-) can be used to route based upon a programmatic behavior.
-* [`host(String, Action<Chain>)`](api/ratpack/core/handling/Chain.html#host-java.lang.String-ratpack.func.Action-) inserts another chain when a request has a specific Host header value.
-* [`when(Predicate<Context>, Action<Chain>)`](api/ratpack/core/handling/Chain.html#when-ratpack.func.Predicate-ratpack.func.Action-) will insert a chain when a programmatic behavior is met.
+* [`path(String,Handler)`](api/ratpack/core/handling/Chain.html#path%28java.lang.String,ratpack.core.handling.Handler%29), used in the previous example, is particularly useful for routing to different handlers based upon the request path.
+  It also comes in a [`path(Handler)`](api/ratpack/core/handling/Chain.html#path%28ratpack.core.handling.Handler%29) flavor to easily match the empty "" path.
+* [`onlyIf(Predicate<Context>, Handler)`](api/ratpack/core/handling/Chain.html#onlyIf%28ratpack.func.Predicate,ratpack.core.handling.Handler%29) can be used to route based upon a programmatic behavior.
+* [`host(String, Action<Chain>)`](api/ratpack/core/handling/Chain.html#host%28java.lang.String,ratpack.func.Action%29) inserts another chain when a request has a specific Host header value.
+* [`when(Predicate<Context>, Action<Chain>)`](api/ratpack/core/handling/Chain.html#when%28ratpack.func.Predicate,ratpack.func.Action%29) will insert a chain when a programmatic behavior is met.
 
 ### Registry
 

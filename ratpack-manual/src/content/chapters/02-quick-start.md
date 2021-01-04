@@ -38,7 +38,7 @@ groovy ratpack.groovy
 
 The server will be available via `http://localhost:5050/`.
 
-The [`handlers()` method](api/ratpack/groovy/Groovy.Ratpack.html#handlers-groovy.lang.Closure-) takes a closure that delegates to a [`GroovyChain`](api/ratpack/groovy/handling/GroovyChain.html) object.
+The [`handlers()` method](api/ratpack/groovy/Groovy.Ratpack.html#handlers%28groovy.lang.Closure%29) takes a closure that delegates to a [`GroovyChain`](api/ratpack/groovy/handling/GroovyChain.html) object.
 The “Groovy Handler Chain DSL” is used to build the response handling strategy.
 
 Changes to the file are live during development.
@@ -111,7 +111,7 @@ or by importing the project into your IDE and executing the `my.app.Main` class.
 
 When run, the server will be available via `http://localhost:5050/`.
 
-The [`handlers()` method](api/ratpack/core/server/RatpackServerSpec.html#handlers-ratpack.func.Action-) takes a function that receives a [`Chain`](api/ratpack/core/handling/Chain.html) object.
+The [`handlers()` method](api/ratpack/core/server/RatpackServerSpec.html#handlers%28ratpack.func.Action%29) takes a function that receives a [`Chain`](api/ratpack/core/handling/Chain.html) object.
 The “Handler Chain API” is used to build the response handling strategy.
 
 The Ratpack Gradle plugin supports [Gradle's Continuous Build feature](https://docs.gradle.org/current/userguide/continuous_build.html).
@@ -167,7 +167,7 @@ or by importing the project into your IDE and executing the [`ratpack.groovy.Gro
 
 When run, the server will be available via `http://localhost:5050/`.
 
-The [`handlers()` method](api/ratpack/groovy/Groovy.Ratpack.html#handlers-groovy.lang.Closure-) takes a closure that delegates to a [`GroovyChain`](api/ratpack/groovy/handling/GroovyChain.html) object.
+The [`handlers()` method](api/ratpack/groovy/Groovy.Ratpack.html#handlers%28groovy.lang.Closure%29) takes a closure that delegates to a [`GroovyChain`](api/ratpack/groovy/handling/GroovyChain.html) object.
 The “Groovy Handler Chain DSL” is used to build the response handling strategy.
 
 The Ratpack Gradle plugin supports [Gradle's Continuous Build feature](https://docs.gradle.org/current/userguide/continuous_build.html).

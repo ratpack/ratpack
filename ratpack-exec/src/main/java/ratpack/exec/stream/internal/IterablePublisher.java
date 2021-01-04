@@ -61,6 +61,9 @@ public class IterablePublisher<T> implements TransformablePublisher<T> {
           try {
             while (--n >= 0 && iterator.hasNext() && !isDone()) {
               emitNext(iterator.next());
+              if (n == 0) {
+                n = getDemand();
+              }
             }
           } catch (Exception e) {
             emitError(e);
