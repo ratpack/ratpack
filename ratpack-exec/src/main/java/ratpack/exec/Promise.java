@@ -1458,7 +1458,7 @@ public interface Promise<T> {
    *     List<Integer> routed = Lists.newLinkedList();
    *
    *     ExecResult<Integer> result1 = yield(1, routed);
-   *     assertEquals(new Integer(1), result1.getValue());
+   *     assertEquals(Integer.valueOf(1)), result1.getValue());
    *     assertFalse(result1.isComplete()); // false because promise returned a value before the execution completed
    *     assertTrue(routed.isEmpty());
    *
