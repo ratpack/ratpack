@@ -32,23 +32,23 @@ Each authentication mechanism in `pac4j` is defined as a “client”.
 For example, pac4j provides the [FacebookClient](http://www.pac4j.org/apidocs/pac4j/@pac4j-version@/org/pac4j/oauth/client/FacebookClient.html) type that implements the Facebook authentication protocol.
 Please see [pac4j's documentation on clients](https://github.com/pac4j/pac4j/wiki/Clients) for more information.
 
-The [`RatpackPac4j.authenticator(Client<?, ?>... clients)`](api/ratpack/pac4j/RatpackPac4j.html#authenticator-org.pac4j.core.client.Client...-) method provides a handler that defines the clients for an application.
+The [`RatpackPac4j.authenticator(Client<?, ?>... clients)`](api/ratpack/pac4j/RatpackPac4j.html#authenticator%28org.pac4j.core.client.Client...%29) method provides a handler that defines the clients for an application.
 It must be placed early in the handler chain as it makes the configured client instance(s) available to the downstream handlers that require auth operations. 
 
 There are two ways to initiate auth:
 
-- [`RatpackPac4j.requireAuth(Class<Client>, Authorizer...)`](api/ratpack/pac4j/RatpackPac4j.html#requireAuth-java.lang.Class-org.pac4j.core.authorization.Authorizer...-)
+- [`RatpackPac4j.requireAuth(Class<Client>, Authorizer...)`](api/ratpack/pac4j/RatpackPac4j.html#requireAuth%28java.lang.Class%29org.pac4j.core.authorization.Authorizer...-)
     - a handler implementation that acts as a “filter” (both for authentication and authorizations)
 
-- [`RatpackPac4j.login(Context, Class<Client>)`](api/ratpack/pac4j/RatpackPac4j.html#login-ratpack.handling.Context-java.lang.Class-)
+- [`RatpackPac4j.login(Context, Class<Client>)`](api/ratpack/pac4j/RatpackPac4j.html#login%28ratpack.handling.Context%29java.lang.Class-)
     - method that initiates login if required (to be used within a handler implementation)
 
 > Note that pac4j [provides many `Authorizer` implementations out of the box](https://github.com/pac4j/pac4j/wiki/Authorizers).
 
 These methods take a client type as an argument.
-It is required that a client _instance_ of the given type was specified via the, upstream, [`RatpackPac4j.authenticator(Client<?, ?>... clients)`](api/ratpack/pac4j/RatpackPac4j.html#authenticator-org.pac4j.core.client.Client...-) handler.
+It is required that a client _instance_ of the given type was specified via the, upstream, [`RatpackPac4j.authenticator(Client<?, ?>... clients)`](api/ratpack/pac4j/RatpackPac4j.html#authenticator%28org.pac4j.core.client.Client...%29) handler.
 
-The [`RatpackPac4j.userProfile()`](api/ratpack/pac4j/RatpackPac4j.html#userProfile-ratpack.handling.Context-) method can be used to obtain the user profile if the user is logged in, without requiring authentication.
+The [`RatpackPac4j.userProfile()`](api/ratpack/pac4j/RatpackPac4j.html#userProfile%28ratpack.handling.Context%29) method can be used to obtain the user profile if the user is logged in, without requiring authentication.
 
 ### Session Usage
 

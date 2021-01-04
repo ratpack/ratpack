@@ -23,7 +23,7 @@ Ratpack has built-in metric collectors for:
 * Background operation timing
 
 Ratpack also has support for Dropwizard Metric's JVM instrumentation.
-See [`DropwizardMetricsConfig.jvmMetrics(boolean)`](api/ratpack/dropwizard/metrics/DropwizardMetricsConfig.html#jvmMetrics-boolean-) for usage information.
+See [`DropwizardMetricsConfig.jvmMetrics(boolean)`](api/ratpack/dropwizard/metrics/DropwizardMetricsConfig.html#jvmMetrics%28boolean%29) for usage information.
 
 ## Custom metrics
 
@@ -38,9 +38,9 @@ See [`DropwizardMetricsModule`](api/ratpack/dropwizard/metrics/DropwizardMetrics
 
 Ratpack supports metric reporters for the following outputs:
 
-* [JMX](api/ratpack/dropwizard/metrics/DropwizardMetricsConfig.html#jmx-ratpack.func.Action-)
-* [Console](api/ratpack/dropwizard/metrics/DropwizardMetricsConfig.html#console-ratpack.func.Action-)
-* [CSV](api/ratpack/dropwizard/metrics/DropwizardMetricsConfig.html#csv-ratpack.func.Action-)
-* [Websockets](api/ratpack/dropwizard/metrics/DropwizardMetricsConfig.html#webSocket-ratpack.func.Action-)
+* [JMX](api/ratpack/dropwizard/metrics/DropwizardMetricsConfig.html#jmx%28ratpack.func.Action%29)
+* [Console](api/ratpack/dropwizard/metrics/DropwizardMetricsConfig.html#console%28ratpack.func.Action%29)
+* [CSV](api/ratpack/dropwizard/metrics/DropwizardMetricsConfig.html#csv%28ratpack.func.Action%29)
+* [Websockets](api/ratpack/dropwizard/metrics/DropwizardMetricsConfig.html#webSocket%28ratpack.func.Action%29)
 
 For an example of how to consume real-time metrics with websockets, see the [example-books](https://github.com/ratpack/example-books/blob/master/src/ratpack/ratpack.groovy) project.

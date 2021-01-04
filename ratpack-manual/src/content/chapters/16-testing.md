@@ -15,7 +15,7 @@ While Spock requires writing tests in Groovy, it can effortlessly be used to eff
 
 ### RequestFixture
 
-The [`RequestFixture`](api/ratpack/test/handling/RequestFixture.html#handle-ratpack.handling.Handler-ratpack.func.Action-) class
+The [`RequestFixture`](api/ratpack/test/handling/RequestFixture.html#handle%28ratpack.handling.Handler%29ratpack.func.Action-) class
 facilitates creating a mocked request environment, ostensibly for testing [`Handler`](api/ratpack/handling/Handler.html) implementations.
 However, it is also common to use an ad-hoc handler with a request fixture that integrates with other components (e.g. [`Parser`](api/ratpack/parse/Parser.html) implementations).
 
@@ -63,13 +63,13 @@ This can often be combined with the “after test” lifecycle event of the tes
 Ratpack provides a mechanism for augmenting applications under test for testability, known as [`impositions`](api/ratpack/impose/Impositions.html).
 
 Typically, impositions are specified by sub-classing [`MainClassApplicationUnderTest`](api/ratpack/test/MainClassApplicationUnderTest.html) or similar, and overriding the 
-[`addImpositions(ImpositionsSpec)`](api/ratpack/test/ServerBackedApplicationUnderTest.html#addImpositions-ratpack.impose.ImpositionsSpec-) method.
+[`addImpositions(ImpositionsSpec)`](api/ratpack/test/ServerBackedApplicationUnderTest.html#addImpositions%28ratpack.impose.ImpositionsSpec%29) method.
  
 ### Browser testing
 
 Browser testing works similarly to what has been previously named as functional testing here, except that usage of Ratpack's `TestHttpClient` is replaced with browser automation.
 This typically involves using [`MainClassApplicationUnderTest`](api/ratpack/test/MainClassApplicationUnderTest.html) to start and stop the app, 
-and to provide the application under test's address via the [`getAddress()`](api/ratpack/test/ApplicationUnderTest.html#getAddress--) method.
+and to provide the application under test's address via the [`getAddress()`](api/ratpack/test/ApplicationUnderTest.html#getAddress%28%29) method.
 
 Ratpack users commonly use [Geb](http://www.gebish.org/) for browser tests as its expressive style and synergy with [Spock](http://spockframework.org) suit well. 
 An example of a Ratpack/Geb based test for the `ratpack.io` site is [available for reference](https://github.com/ratpack/ratpack/blob/master/ratpack-site/src/browserTest/groovy/ratpack/site/SiteBrowserSmokeSpec.groovy).

@@ -42,18 +42,18 @@ The static methods of `ServerConfig` can be used to create instances.
  
 #### Base dir
 
-An important aspect of the server config is the [base dir](api/ratpack/server/ServerConfig.html#getBaseDir--).
+An important aspect of the server config is the [base dir](api/ratpack/server/ServerConfig.html#getBaseDir%28%29).
 The base dir is effectively the root of the file system for the application, providing a portable file system.
 All relative paths to be resolved to files during runtime will be resolved relative to the base dir.
 Static assets (e.g. images, scripts) are typically served via the base dir using relative paths.
  
-The [baseDir(Path)](api/ratpack/server/ServerConfigBuilder.html#baseDir-java.nio.file.Path-) method allows setting the base dir to some known location.
+The [baseDir(Path)](api/ratpack/server/ServerConfigBuilder.html#baseDir%28java.nio.file.Path%29) method allows setting the base dir to some known location.
 In order to achieve portability across environments, if necessary, the code that calls this is responsible for determining what the base dir should be for a given runtime.
 
-It is more common to use [BaseDir.find()](api/ratpack/server/BaseDir.html#find--) that supports finding the base dir on the classpath, providing better portability across environments.
+It is more common to use [BaseDir.find()](api/ratpack/server/BaseDir.html#find%28%29) that supports finding the base dir on the classpath, providing better portability across environments.
 This method searches for a resource on the classpath at the path `"/.ratpack"`. 
 
-> To use a different path than the `/.ratpack` default, use the [BaseDir.find(String)](api/ratpack/server/BaseDir.html#find-java.lang.String-) method.
+> To use a different path than the `/.ratpack` default, use the [BaseDir.find(String)](api/ratpack/server/BaseDir.html#find%28java.lang.String%29) method.
 
 The contents of the marker file are entirely ignored.
 It is just used to find the enclosing directory, which will be used as the base dir.
@@ -104,7 +104,7 @@ allowing transparent use of JAR contents as the file system.
 
 #### Port
 
-The [port(int)](api/ratpack/server/ServerConfigBuilder.html#port-int-) method allows setting the port used to connect to the server.
+The [port(int)](api/ratpack/server/ServerConfigBuilder.html#port%28int%29) method allows setting the port used to connect to the server.
 If not configured, the default value is 5050.
 
 ### Registry
@@ -117,7 +117,7 @@ A server registry is just the name given to the registry that backs the applicat
 
 The server [handler](handlers.html) receives all incoming HTTP requests.
 Handlers are composable, and very few applications are actually comprised of only one handler.
-The server handler for most applications is a composite handler, typically created by using the [`handlers(Action)`](api/ratpack/server/RatpackServerSpec.html#handlers-ratpack.func.Action-) method,
+The server handler for most applications is a composite handler, typically created by using the [`handlers(Action)`](api/ratpack/server/RatpackServerSpec.html#handlers%28ratpack.func.Action%29) method,
 that uses the [`Chain`](api/ratpack/handling/Chain.html) DSL to create the composite handler.
 
 ### Start and stop actions

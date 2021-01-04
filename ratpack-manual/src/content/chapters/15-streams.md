@@ -25,7 +25,7 @@ Back pressure allows the data producer to match its rate of production with what
    
 For more info on the importance of back pressure, please see the documentation from the [Reactive Streams](http://www.reactive-streams.org) project.
  
-Streaming a response always occurs via the [`Response.sendStream()`](api/ratpack/http/Response.html#sendStream-org.reactivestreams.Publisher-) method.
+Streaming a response always occurs via the [`Response.sendStream()`](api/ratpack/http/Response.html#sendStream%28org.reactivestreams.Publisher%29) method.
 See the documentation for this method for more precise semantics of what back pressure means when streaming data.
  
 ## Chunked transfer encoding
@@ -38,6 +38,6 @@ Ratpack supports [server-sent events](https://developer.mozilla.org/en-US/docs/S
 
 ## Websockets
 
-Ratpack supports streaming data over [websockets](http://en.wikipedia.org/wiki/WebSocket) by way of the [`WebSockets.websocketBroadcast()`](api/ratpack/websocket/WebSockets.html#websocketBroadcast-ratpack.handling.Context-org.reactivestreams.Publisher-) method.
+Ratpack supports streaming data over [websockets](http://en.wikipedia.org/wiki/WebSocket) by way of the [`WebSockets.websocketBroadcast()`](api/ratpack/websocket/WebSockets.html#websocketBroadcast%28ratpack.handling.Context%29org.reactivestreams.Publisher-) method.
  
 Ratpack also supports bidirectional websocket communication via the other websocket-opening methods of the [`WebSockets`](api/ratpack/websocket/WebSockets.html) class.   

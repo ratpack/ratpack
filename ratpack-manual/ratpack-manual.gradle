@@ -269,6 +269,12 @@ task compileManual {
 
   doLast {
     markdown2book.generate(source, destination, options)
+
+    fileTree(ext.destination) {
+      visit {
+        it.file.text = it.file.text.replace("%28", "(").replace("%29", ")")
+      }
+    }
   }
 }
 

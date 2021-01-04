@@ -29,8 +29,8 @@ want to use these features however, then your application should depend on the `
 
 Hystrix provides three types of Command execution, [synchronous](https://github.com/Netflix/Hystrix/wiki/How-To-Use#Synchronous-Execution), [asynchronous](https://github.com/Netflix/Hystrix/wiki/How-To-Use#asynchronous-execution) and [reactive](https://github.com/Netflix/Hystrix/wiki/How-To-Use#reactive-execution).
 Out of the three only reactive is actually non-blocking.  Synchronous and asynchronous command execution will work with Ratpack, as is demonstrated in the [integration tests](https://github.com/ratpack/ratpack/blob/master/ratpack-hystrix/src/test/groovy/ratpack/hystrix/HystrixRequestCachingSpec.groovy#L128), 
-but for maximum performance only reactive execution is recommended.  If you do not wish to use Observables however, then you can convert them to Ratpack Promises instead using [RxRatpack#promise](api/ratpack/rx/RxRatpack.html#promise-rx.Observable-)
-or [RxRatpack#promiseSingle](api/ratpack/rx/RxRatpack.html#promiseSingle-rx.Observable-).
+but for maximum performance only reactive execution is recommended.  If you do not wish to use Observables however, then you can convert them to Ratpack Promises instead using [RxRatpack#promise](api/ratpack/rx/RxRatpack.html#promise%28rx.Observable%29)
+or [RxRatpack#promiseSingle](api/ratpack/rx/RxRatpack.html#promiseSingle%28rx.Observable%29).
 
 ```language-java
 import com.netflix.hystrix.HystrixCommandGroupKey;

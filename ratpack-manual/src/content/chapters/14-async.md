@@ -109,11 +109,11 @@ public class Example {
 The function submitted as the blocking operation is executed asynchronously (i.e. the `Blocking.get()` method returns a promise instantly), in a separate thread pool.
 The result that it returns will processed back on a request processing (i.e. compute) thread.
 
-See the [Blocking#get()](api/ratpack/exec/Blocking.html#get-ratpack.func.Factory-) method for more details.
+See the [Blocking#get()](api/ratpack/exec/Blocking.html#get%28ratpack.func.Factory%29) method for more details.
 
 ## Performing async operations
 
-The [Promise#async(Upstream<T>>)](api/ratpack/exec/Promise.html#async-ratpack.exec.Upstream-) for integrating with async APIs.
+The [Promise#async(Upstream<T>>)](api/ratpack/exec/Promise.html#async%28ratpack.exec.Upstream%29) for integrating with async APIs.
 It is essentially a mechanism for adapting 3rd party APIs to Ratpack's promise type.
 
 ```language-java

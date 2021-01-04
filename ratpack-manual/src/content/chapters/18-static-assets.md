@@ -6,7 +6,7 @@ Ratpack provides support for serving static files as responses.
 
 Ratpack applications have a notion of a [“base dir”](launching.html#base_dir), which is specified at launch time.
 This is effectively root of the filesystem as far as the application is concerned.
-Files from the base dir can be served, using the [`Chain.files()`](api/ratpack/handling/Chain.html#files-ratpack.func.Action-) method.
+Files from the base dir can be served, using the [`Chain.files()`](api/ratpack/handling/Chain.html#files%28ratpack.func.Action%29) method.
 
 ```language-java
 import ratpack.test.embed.EmbeddedApp;
@@ -41,12 +41,12 @@ If the client sends an `If-Modified-Since` header, Ratpack will respond with a `
 Served files do not include ETags.
 
 By default, files will be GZIP compressed over the wire if the client asks for it.
-This can be disabled on a per request basis by calling the [`Response.noCompress()`](api/ratpack/http/Response.html#noCompress--) method.
+This can be disabled on a per request basis by calling the [`Response.noCompress()`](api/ratpack/http/Response.html#noCompress%28%29) method.
 This is typically used by putting a handler in front of the file serving handler that inspects the request path (e.g. file extension) and disables compression.
 
 ## Ad-hoc files
 
-Individual files can be served by using the [`Context.file()`](api/ratpack/handling/Context.html#file-java.lang.String-) and [`Context.render()`](api/ratpack/handling/Context.html#render-java.lang.Object-) methods.
+Individual files can be served by using the [`Context.file()`](api/ratpack/handling/Context.html#file%28java.lang.String%29) and [`Context.render()`](api/ratpack/handling/Context.html#render%28java.lang.Object%29) methods.
 
 ```language-java
 import ratpack.test.embed.EmbeddedApp;
@@ -75,7 +75,7 @@ public class Example {
 
 If the file returned by `Context.file()` doesn't exist, a `404` will be issued.
 
-Responses are timestamped and compressed in exactly the same manner as described for the [`Chain.files()`](api/ratpack/handling/Chain.html#files-ratpack.func.Action-) method. 
+Responses are timestamped and compressed in exactly the same manner as described for the [`Chain.files()`](api/ratpack/handling/Chain.html#files%28ratpack.func.Action%29) method. 
 
 ## Advanced Asset serving with “Asset Pipeline”
 

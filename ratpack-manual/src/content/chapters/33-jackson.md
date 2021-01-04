@@ -11,7 +11,7 @@ The [`ratpack.jackson.Jackson`](api/ratpack/jackson/Jackson.html) class provides
 
 The Jackson integration adds a [Renderer](api/ratpack/render/Renderer.html) for rendering objects as JSON.
 
-The [`Jackson.json()`](api/ratpack/jackson/Jackson.html#json-java.lang.Object-) method can be used to wrap any object (serializable by Jackson) for use with the [`Context.render()`](api/ratpack/handling/Context.html#render-java.lang.Object-) method. 
+The [`Jackson.json()`](api/ratpack/jackson/Jackson.html#json%28java.lang.Object%29) method can be used to wrap any object (serializable by Jackson) for use with the [`Context.render()`](api/ratpack/handling/Context.html#render%28java.lang.Object%29) method. 
 
 ```language-java
 import ratpack.test.embed.EmbeddedApp;
@@ -52,7 +52,7 @@ See the [`Jackson`](api/ratpack/jackson/Jackson.html) class documentation for mo
 
 The Jackson integration adds a [Parser](api/ratpack/parse/Parser.html) for converting JSON request bodies into objects.
 
-The [`Jackson.jsonNode()`](api/ratpack/jackson/Jackson.html#Jackson.html#jsonNode--) and [`Jackson.fromJson()`](api/ratpack/jackson/Jackson.html#fromJson) methods can be used to create objects to be used with the [`Context.parse()`](api/ratpack/handling/Context.html#parse) method. 
+The [`Jackson.jsonNode()`](api/ratpack/jackson/Jackson.html#Jackson.html#jsonNode%28%29) and [`Jackson.fromJson()`](api/ratpack/jackson/Jackson.html#fromJson) methods can be used to create objects to be used with the [`Context.parse()`](api/ratpack/handling/Context.html#parse) method. 
 
 ```language-java
 import ratpack.guice.Guice;
@@ -114,7 +114,7 @@ public class Example {
 }
 ```
 
-The integration adds a [no opts parser](api/ratpack/parse/NoOptParserSupport.html), which makes it possible to use the [`Context.parse(Class)`](api/ratpack/handling/Context.html#parse-java.lang.Class-) and [`Context.parse(TypeToken)`](api/ratpack/handling/Context.html#parse-com.google.common.reflect.TypeToken-) methods.
+The integration adds a [no opts parser](api/ratpack/parse/NoOptParserSupport.html), which makes it possible to use the [`Context.parse(Class)`](api/ratpack/handling/Context.html#parse%28java.lang.Class%29) and [`Context.parse(TypeToken)`](api/ratpack/handling/Context.html#parse%28com.google.common.reflect.TypeToken%29) methods.
 
 ```language-java
 import ratpack.test.embed.EmbeddedApp;
