@@ -29,9 +29,9 @@ class GroovyRatpackMainSpec extends Specification {
 
   def "starts ratpack app"() {
     given:
-    GroovyRatpackMainSpec.classLoader.addURL(dir.root.toURI().toURL())
+    def loader = new URLClassLoader([dir.root.toURI().toURL()] as URL[])
+    Thread.currentThread().setContextClassLoader(loader)
     File ratpackFile = dir.newFile("ratpack.groovy")
-    this.class.classLoader
     ratpackFile << """
       import static ratpack.groovy.Groovy.*
       import ratpack.server.Stopper
@@ -57,6 +57,7 @@ class GroovyRatpackMainSpec extends Specification {
     response == "foo"
 
     cleanup:
+    Thread.currentThread().setContextClassLoader(GroovyRatpackMainSpec.classLoader)
     aut?.close()
   }
 }

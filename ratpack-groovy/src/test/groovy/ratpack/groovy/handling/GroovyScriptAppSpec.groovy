@@ -62,7 +62,7 @@ class GroovyScriptAppSpec extends RatpackGroovyScriptAppSpec {
     text == "foo"
   }
 
-  def "can use Ratpack.groovy script app"() {
+  def "can use script app with capitalized name"() {
     given:
     compileStatic = true
     def app = new EmbeddedAppSupport() {
@@ -87,13 +87,14 @@ class GroovyScriptAppSpec extends RatpackGroovyScriptAppSpec {
     File customRatpackFile = temporaryFolder.newFile('customFile/Ratpack.groovy')
     customRatpackFile.text = ratpackFile.text
     ratpackFile.delete()
-    GroovyScriptAppSpec.classLoader.addURL(customRatpackFile.parentFile.toURI().toURL())
-
+    def loader = new URLClassLoader(customRatpackFile.parentFile.toURI().toURL())
+    Thread.currentThread().setContextClassLoader(loader)
 
     then:
     app.httpClient.text == "foo"
 
     cleanup:
+    Thread.currentThread().setContextClassLoader(this.class.classLoader)
     app.close()
   }
 
