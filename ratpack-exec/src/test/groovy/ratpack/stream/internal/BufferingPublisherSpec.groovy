@@ -48,7 +48,7 @@ class BufferingPublisherSpec extends Specification {
   def subscriber = new CollectingSubscriber()
   private RuntimeException exception = new RuntimeException("!")
 
-  def "can write/buffer/request/drain"() {
+  def "can write buffer request drain"() {
     when:
     p.subscribe(subscriber)
 
@@ -172,7 +172,7 @@ class BufferingPublisherSpec extends Specification {
     subscriber.received == [1]
   }
 
-  def "can write/buffer/request/drain async"() {
+  def "can write buffer request drain async"() {
     given:
     def latch = new CountDownLatch(1)
     subscriber = new CollectingSubscriber<Integer>({ latch.countDown() }, {}) {
