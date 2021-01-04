@@ -19,7 +19,7 @@ package ratpack.site
 class AssetLinkService {
 
   String getAt(String path) {
-    path.startsWith("/") ? path.substring(1) : path
+    "/$path"
   }
 
 }
