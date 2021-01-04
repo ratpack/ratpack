@@ -137,34 +137,37 @@ task api(type: Javadoc) {
       options.links(*it.apiLinks)
     }
   }
+  ext.additionalAssets = """
+      <script src=\"{@docRoot}/../javadoc.all.min.js\"></script>
+      <link rel="stylesheet" type="text/css" href="{@docRoot}/../javadoc.css">
+    """.replaceAll("(^|\\n)\\s*", "")
+
+  inputs.property "additionalAssets", ext.additionalAssets
+  inputs.property "groups", options.groups
+
   configure(options) {
     splitIndex true
     use = true
     links "http://docs.oracle.com/javase/8/docs/api/"
     windowTitle "Ratpack API ($project.version)"
     docTitle "Ratpack API ($project.version)"
-  }
-  ext.stylesheetFile = file("src/assets/css/blank.css")
-  inputs.file stylesheetFile
-  options.addStringOption "stylesheetfile", stylesheetFile.absolutePath
-  ext.additionalAssets = """
-      <script src=\"{@docRoot}/../all.min.js\"></script>
-      <link rel="stylesheet" type="text/css" href="{@docRoot}/../javadoc.css">
-    """.replaceAll("(^|\\n)\\s*", "")
-  options.addOption new AbstractJavadocOptionFileOption<String>("-allow-script-in-comments", null) {
-    @Override
-    void write(JavadocOptionFileWriterContext context) throws IOException {
-      context.writeOption(getOption())
-    }
+    header = ext.additionalAssets
+    addBooleanOption('-no-module-directories', true)
+    addOption new AbstractJavadocOptionFileOption<String>("-allow-script-in-comments", null) {
+      @Override
+      void write(JavadocOptionFileWriterContext context) throws IOException {
+        context.writeOption(getOption())
+      }
 
-    @Override
-    AbstractJavadocOptionFileOption<String> duplicate() {
-      this
+      @Override
+      AbstractJavadocOptionFileOption<String> duplicate() {
+        this
+      }
     }
   }
   doLast {
     def replacementString = additionalAssets.replaceAll(Pattern.quote("{@docRoot}/"), "") + "</html>"
-    ["allclasses-frame.html", "allclasses-noframe.html", "overview-frame.html"].each {
+    ["allclasses.html"].each {
       def f = new File(destinationDir, it)
       if (f.exists()) {
         f.text = f.getText('UTF-8').replace("</html>", replacementString)
@@ -176,9 +179,6 @@ task api(type: Javadoc) {
       }
     }
   }
-  options.bottom = ext.additionalAssets
-  inputs.property "additionalAssets", ext.additionalAssets
-  inputs.property "groups", options.groups
 }
 
 test {
@@ -226,7 +226,7 @@ task tokeniseManual(type: Sync) {
         <meta charset="utf-8">
         <meta name="viewport" content="width=device-width, initial-scale=1">
         <link href="manual.css" rel="stylesheet" type="text/css">
-        <script src="all.min.js"></script>
+        <script src="manual.all.min.js"></script>
       """,
     footer            : """
         <h2>Ratpack Manual - $version - ${new Date().format("MMMM, yyyy")}</h2>
@@ -273,23 +273,38 @@ task compileManual {
 }
 
 
-task jsDev(type: com.eriwen.gradle.js.tasks.CombineJsTask) {
+task combineManualJs(type: com.eriwen.gradle.js.tasks.CombineJsTask) {
   source = [
     "${projectDir}/src/assets/js/anchorHighlight.js",
     "${projectDir}/src/assets/js/toggleImports.js"
   ]
-  dest = file("${buildDir}/assets/js/all-dev.js")
+  dest = file("${buildDir}/assets/js/manual.js")
 }
 
-minifyJs {
-  source = jsDev
-  dest = file("${buildDir}/assets/js/all-dev.min.js")
+task combineJavadocJs(type: com.eriwen.gradle.js.tasks.CombineJsTask) {
+  source = [
+    "${projectDir}/src/assets/js/toggleImports.js",
+  ]
+  dest = file("${buildDir}/assets/js/javadoc.js")
+}
+
+task minifyManualJs(type: com.eriwen.gradle.js.tasks.MinifyJsTask) {
+  source = combineManualJs
+  dest = file("${buildDir}/assets/js/manual.min.js")
   closure {
     warningLevel = "QUIET"
   }
 }
 
-task jsAll(type: com.eriwen.gradle.js.tasks.CombineJsTask, dependsOn: minifyJs) {
+task minifyJavadocJs(type: com.eriwen.gradle.js.tasks.MinifyJsTask) {
+  source = combineJavadocJs
+  dest = file("${buildDir}/assets/js/javadoc.min.js")
+  closure {
+    warningLevel = "QUIET"
+  }
+}
+
+task allManualJs(type: com.eriwen.gradle.js.tasks.CombineJsTask, dependsOn: minifyManualJs) {
   source = [
     "${projectDir}/src/assets/js/googleAnalytics.js",
     "${rootDir}/shared-web-assets/js/modernizr.js",
@@ -297,16 +312,25 @@ task jsAll(type: com.eriwen.gradle.js.tasks.CombineJsTask, dependsOn: minifyJs) 
     "${projectDir}/src/assets/js/jquery.js",
     "${projectDir}/src/assets/js/contents.js",
     "${projectDir}/src/assets/js/contentsInitializer.js",
-    "${buildDir}/assets/js/all-dev.min.js"
+    "${buildDir}/assets/js/manual.min.js"
   ]
-  dest = file("${buildDir}/assets/js/all.min.js")
+  dest = file("${buildDir}/assets/js/manual.all.min.js")
+}
+
+task allJavadocJs(type: com.eriwen.gradle.js.tasks.CombineJsTask, dependsOn: minifyJavadocJs) {
+  source = [
+    "${rootDir}/shared-web-assets/js/prism.js",
+    "${buildDir}/assets/js/javadoc.min.js"
+  ]
+  dest = file("${buildDir}/assets/js/javadoc.all.min.js")
 }
 
 task stylizeManual(type: Sync) {
   into "$buildDir/stylized-manual"
   from compileManual
   from compileSass
-  from jsAll
+  from allManualJs
+  from allJavadocJs
 
   [
     images: ["src/assets/images", "$rootDir/shared-web-assets/images"],
