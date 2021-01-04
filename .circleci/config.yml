@@ -8,7 +8,6 @@ defaults: &defaults
     - image: cimg/openjdk:11.0
   environment:
     TERM: dumb
-    _JAVA_OPTIONS: -XX:+UnlockExperimentalVMOptions -XX:+UseCGroupMemoryLimitForHeap
     GRADLE_OPTS: -Dorg.gradle.jvmargs="-Xmx1g"
 
 version: 2
