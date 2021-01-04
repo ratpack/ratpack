@@ -306,6 +306,10 @@ run {
   }
 }
 
+distZip {
+  enabled = false
+}
+
 task deployToHeroku(type: SourceTask) {
   source tasks.distTar
 
