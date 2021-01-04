@@ -12,7 +12,6 @@ out/
 *.iml
 *.ipr
 *.iws
-*.idea
 .factorypath
 pom.xml
 target/
