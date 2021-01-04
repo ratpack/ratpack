@@ -249,11 +249,11 @@ Likewise, this inserts a chain through which all requests are routed.
 
 Now, the chain wouldn't be very useful if it just handled a list of handlers, calling each in a row, so there are also several methods than can perform conditional inserts of handlers and chains:
 
-* [`path(String,Handler)`](api/ratpack/handling/Chain.html#path%28java.lang.String%29ratpack.handling.Handler-), used in the previous example, is particularly useful for routing to different handlers based upon the request path.
+* [`path(String,Handler)`](api/ratpack/handling/Chain.html#path%28java.lang.String,ratpack.handling.Handler%29), used in the previous example, is particularly useful for routing to different handlers based upon the request path.
   It also comes in a [`path(Handler)`](api/ratpack/handling/Chain.html#path%28ratpack.handling.Handler%29) flavor to easily match the empty "" path.
-* [`onlyIf(Predicate<Context>, Handler)`](api/ratpack/handling/Chain.html#onlyIf%28ratpack.func.Predicate%29ratpack.handling.Handler-) can be used to route based upon a programmatic behavior.
-* [`host(String, Action<Chain>)`](api/ratpack/handling/Chain.html#host%28java.lang.String%29ratpack.func.Action-) inserts another chain when a request has a specific Host header value.
-* [`when(Predicate<Context>, Action<Chain>)`](api/ratpack/handling/Chain.html#when%28ratpack.func.Predicate%29ratpack.func.Action-) will insert a chain when a programmatic behavior is met.
+* [`onlyIf(Predicate<Context>, Handler)`](api/ratpack/handling/Chain.html#onlyIf%28ratpack.func.Predicate,ratpack.handling.Handler%29) can be used to route based upon a programmatic behavior.
+* [`host(String, Action<Chain>)`](api/ratpack/handling/Chain.html#host%28java.lang.String,ratpack.func.Action%29) inserts another chain when a request has a specific Host header value.
+* [`when(Predicate<Context>, Action<Chain>)`](api/ratpack/handling/Chain.html#when%28ratpack.func.Predicate,ratpack.func.Action%29) will insert a chain when a programmatic behavior is met.
 
 ### Registry
 

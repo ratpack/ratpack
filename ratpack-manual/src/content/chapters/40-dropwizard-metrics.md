@@ -15,7 +15,7 @@ See [`DropwizardMetricsModule`](api/ratpack/dropwizard/metrics/DropwizardMetrics
 ## Built-in metrics
 
 Ratpack provides built-in metric collectors for key metrics.
-When metrics are enabled within your application using [`DropwizardMetricsModule`](api/ratpack/dropwizard/metrics/DropwizardMetricsConfig.html), the built-in metric collectors will automatically be enabled too.
+When metrics are enabled within your application using [`DropwizardMetricsModule`](api/ratpack/dropwizard/metrics/DropwizardMetricsConfig.html), the built,in metric collectors will automatically be enabled too.
 
 Ratpack has built-in metric collectors for:
 

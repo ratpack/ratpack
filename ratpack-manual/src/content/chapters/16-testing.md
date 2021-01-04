@@ -15,7 +15,7 @@ While Spock requires writing tests in Groovy, it can effortlessly be used to eff
 
 ### RequestFixture
 
-The [`RequestFixture`](api/ratpack/test/handling/RequestFixture.html#handle%28ratpack.handling.Handler%29ratpack.func.Action-) class
+The [`RequestFixture`](api/ratpack/test/handling/RequestFixture.html#handle%28ratpack.handling.Handler,ratpack.func.Action%29) class
 facilitates creating a mocked request environment, ostensibly for testing [`Handler`](api/ratpack/handling/Handler.html) implementations.
 However, it is also common to use an ad-hoc handler with a request fixture that integrates with other components (e.g. [`Parser`](api/ratpack/parse/Parser.html) implementations).
 
@@ -30,7 +30,7 @@ If you need to unit test code that uses [`Promise`](api/ratpack/exec/Promise.htm
 
 Ratpack integration tests are tests that test a subset of application components, via the HTTP interface.
  
-The [`EmbeddedApp`](api/ratpack/test/embed/EmbeddedApp.html) fixture facilitates constructing an ad-hoc application that responds to real HTTP requests.
+The [`EmbeddedApp`](api/ratpack/test/embed/EmbeddedApp.html) fixture facilitates constructing an ad,hoc application that responds to real HTTP requests.
 In the context of integration testing, it is typically used to glue together a specific combination of application components to test.
 
 As it constructs a real Ratpack application, it can also be used for testing implementations of Ratpack extension points such as [`Renderer`](api/ratpack/render/Renderer.html), [`Parser`](api/ratpack/parse/Parser.html) and [`ConfigurableModule`](api/ratpack/guice/ConfigurableModule.html).

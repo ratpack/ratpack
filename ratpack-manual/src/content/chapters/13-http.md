@@ -14,7 +14,7 @@ the [URI](api/ratpack/http/Request.html#getUri%28%29) and a key/value model of t
 
 ## Redirecting
 
-The [`redirect(int, Object)`](api/ratpack/handling/Context.html#redirect%28int%29java.lang.Object-) context method supports issuing redirects.
+The [`redirect(int, Object)`](api/ratpack/handling/Context.html#redirect%28int,java.lang.Object%29) context method supports issuing redirects.
 This method obtains the [`Redirector`](api/ratpack/handling/Redirector.html) from the context registry and forwards the arguments.
 
 Ratpack provides a [default implementation](api/ratpack/handling/Redirector.html#standard%28%29) that supports: 
@@ -435,7 +435,7 @@ public class Example {
 }
 ```
 
-Additionally you can [`set(CharSequence, Object)`](api/ratpack/http/MutableHeaders.html#set%28java.lang.CharSequence%29java.lang.Object-), [`remove(CharSequence)`](api/ratpack/http/MutableHeaders.html#remove%28java.lang.CharSequence%29), [`clear()`](api/ratpack/http/MutableHeaders.html#clear%28%29) and more.
+Additionally you can [`set(CharSequence, Object)`](api/ratpack/http/MutableHeaders.html#set%28java.lang.CharSequence,java.lang.Object%29), [`remove(CharSequence)`](api/ratpack/http/MutableHeaders.html#remove%28java.lang.CharSequence%29), [`clear()`](api/ratpack/http/MutableHeaders.html#clear%28%29) and more.
 
 See [`MutableHeaders`](api/ratpack/http/MutableHeaders.html) for more methods.
 
@@ -507,7 +507,7 @@ public class Example {
 
 ### Setting cookies for an outbound response
 
-You can set cookies to be sent with the response [`Response#cookie(String, String)`](api/ratpack/http/Response.html#cookie%28java.lang.String%29java.lang.String-).
+You can set cookies to be sent with the response [`Response#cookie(String, String)`](api/ratpack/http/Response.html#cookie%28java.lang.String,java.lang.String%29).
 To retrieve the set of cookies to be set with the response you may use [`Response#getCookies()`](api/ratpack/http/Response.html#getCookies%28%29).
 
 ```language-java

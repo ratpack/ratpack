@@ -22,7 +22,7 @@ To get started:
 Commonly used file formats can be used via the [`yaml`](api/ratpack/config/ConfigDataBuilder.html#yaml%28java.lang.String%29), [`json`](api/ratpack/config/ConfigDataBuilder.html#json%28java.lang.String%29) and [`props`](api/ratpack/config/ConfigDataBuilder.html#props%28java.lang.String%29) methods.
 The provided signatures can be used to load data from local files (`String` or `Path`), over the network (`URL`), from the classpath (use [`Resources.getResource(String)`](http://google.github.io/guava/releases/18.0/api/docs/com/google/common/io/Resources.html) to get a `URL`), or anywhere else you can treat as a [`ByteSource`](http://google.github.io/guava/releases/18.0/api/docs/com/google/common/io/ByteSource.html).
 Additionally, you can load data from non-file sources such as `Map`s/`Properties` objects (particularly useful for default values; see [example](api/ratpack/config/ConfigDataBuilder.html#props%28java.util.Map%29)), system properties, and environment variables.
-You can also choose to load configuration data from existing objects using the [`object`](api/ratpack/config/ConfigDataBuilder.html#object%28java.lang.String%29java.lang.Object-) method.
+You can also choose to load configuration data from existing objects using the [`object`](api/ratpack/config/ConfigDataBuilder.html#object%28java.lang.String,java.lang.Object%29) method.
 If additional flexibility is needed, you can provide your own [`ConfigSource`](api/ratpack/config/ConfigSource.html) implementation.
 
 ### Flat Config Sources
@@ -75,5 +75,5 @@ If so, this can be accomplished via various signatures of `ConfigData.of(...)` o
 
 Once you've built your [`ConfigData`](api/ratpack/config/ConfigData.html) instance, you can bind the data to configuration objects.
 The simplest option is to define a class that represents the entirety of your application's configuration, and bind to it all at once using [`ConfigData.get(Class)`](api/ratpack/config/ConfigData.html#get%28java.lang.Class%29).
-Alternatively, you can bind objects one-at-a-time at specified paths within the data using [`ConfigData.get(String, Class)`](api/ratpack/config/ConfigData.html#get%28java.lang.String%29java.lang.Class-).
+Alternatively, you can bind objects one-at-a-time at specified paths within the data using [`ConfigData.get(String, Class)`](api/ratpack/config/ConfigData.html#get%28java.lang.String,java.lang.Class%29).
 For the common case of binding to a [`ServerConfig`](api/ratpack/server/ServerConfig.html) object, `ConfigData.getServerConfig(...)` signatures are provided as a convenience.

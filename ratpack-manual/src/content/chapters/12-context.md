@@ -96,7 +96,7 @@ The benefit of avoiding duplication is obvious.
 What's slightly more subtle is that the decoupling makes testing easier when the downstream handlers are not implemented as anonymous classes (see the [Testing chapter](testing.html) for for information).
 
 At `(1)` we are also using contextual objects.
-The [`prefix()`](api/ratpack/handling/Chain.html#prefix%28java.lang.String%29ratpack.func.Action-) chain method binds on a request path, potentially capturing tokens.
+The [`prefix()`](api/ratpack/handling/Chain.html#prefix%28java.lang.String,ratpack.func.Action%29) chain method binds on a request path, potentially capturing tokens.
 If the binding is successful, a [`PathBinding`](api/ratpack/path/PathBinding.html) object is registered with the context that describes the binding result.
 This includes any path tokens that were captured as part of the binding.
 In the case above, we are capturing the second path component as the `id`.
@@ -130,7 +130,7 @@ The context object mechanism supports partitioning application logic by providin
 This is because objects registered with context are implicitly scoped, depending on how they were registered.
 Objects registered with the [`next()`](api/ratpack/handling/Context.html#next%28ratpack.registry.Registry%29) methods are available to all downstream handlers that
 were part of the same insertion (i.e. [`context.insert()`](api/ratpack/handling/Context.html#insert%28ratpack.handling.Handler...%29) including and nested insertions.
-Objects registered with the [`insert()`](api/ratpack/handling/Context.html#insert%28ratpack.registry.Registry%29ratpack.handling.Handler...-) methods are available to the inserted handlers and
+Objects registered with the [`insert()`](api/ratpack/handling/Context.html#insert%28ratpack.registry.Registry,ratpack.handling.Handler...%29) methods are available to the inserted handlers and
 nested insertions.
 
 A typical use for this is using different error handling strategies for different parts of your application.
