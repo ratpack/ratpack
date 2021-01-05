@@ -36,7 +36,7 @@ public interface HttpClientSpec {
   /**
    * The buffer allocator to use.
    * <p>
-   * Defaults to {@link PooledByteBufAllocator#DEFAULT}.
+   * Defaults to {@link ByteBufAllocator#DEFAULT}.
    *
    * @param byteBufAllocator the buffer allocator
    * @return {@code this}

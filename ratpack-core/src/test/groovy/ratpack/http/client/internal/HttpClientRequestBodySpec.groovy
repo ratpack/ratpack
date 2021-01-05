@@ -16,7 +16,7 @@
 
 package ratpack.http.client.internal
 
-import io.netty.buffer.UnpooledByteBufAllocator
+import io.netty.buffer.ByteBufAllocator
 import ratpack.http.client.BaseHttpClientSpec
 import ratpack.http.client.HttpClient
 
@@ -71,7 +71,7 @@ class HttpClientRequestBodySpec extends BaseHttpClientSpec {
     handlers {
       get { HttpClient http ->
         render http.post(otherAppUrl()) {
-          it.body.buffer(UnpooledByteBufAllocator.DEFAULT.buffer().writeBytes("foobar".bytes))
+          it.body.buffer(ByteBufAllocator.DEFAULT.buffer().writeBytes("foobar".bytes))
         }.map { it.body.text }
       }
     }
@@ -88,7 +88,7 @@ class HttpClientRequestBodySpec extends BaseHttpClientSpec {
     handlers {
       get { HttpClient http ->
         render http.post(otherAppUrl()) {
-          it.body.buffer(UnpooledByteBufAllocator.DEFAULT.buffer().writeBytes("foobar".bytes))
+          it.body.buffer(ByteBufAllocator.DEFAULT.buffer().writeBytes("foobar".bytes))
           throw new Exception("!")
         }.map { it.body.text }
       }

@@ -20,7 +20,6 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.base.Throwables;
 import com.google.common.collect.ImmutableList;
 import io.netty.buffer.ByteBufAllocator;
-import io.netty.buffer.PooledByteBufAllocator;
 import ratpack.config.ConfigObject;
 import ratpack.error.ClientErrorHandler;
 import ratpack.error.ServerErrorHandler;
@@ -88,14 +87,14 @@ public abstract class ServerRegistry {
 
       HttpClient httpClient = HttpClient.of(s -> s
         .poolSize(0)
-        .byteBufAllocator(PooledByteBufAllocator.DEFAULT)
+        .byteBufAllocator(ByteBufAllocator.DEFAULT)
         .maxContentLength(serverConfig.getMaxContentLength())
       );
 
       baseRegistryBuilder = Registry.builder()
         .add(ServerConfig.class, serverConfig)
         .add(Impositions.class, impositions)
-        .add(ByteBufAllocator.class, PooledByteBufAllocator.DEFAULT)
+        .add(ByteBufAllocator.class, ByteBufAllocator.DEFAULT)
         .add(ExecController.class, execController)
         .add(MimeTypes.class, ActivationBackedMimeTypes.INSTANCE)
         .add(PublicAddress.class, Optional.ofNullable(serverConfig.getPublicAddress())
@@ -124,7 +123,7 @@ public abstract class ServerRegistry {
         }))
         .add(HttpClient.class, httpClient)
         .add(ServerSentEventStreamClient.class, ServerSentEventStreamClient.of(httpClient))
-        .add(HealthCheckResultsRenderer.TYPE, new HealthCheckResultsRenderer(PooledByteBufAllocator.DEFAULT))
+        .add(HealthCheckResultsRenderer.TYPE, new HealthCheckResultsRenderer(ByteBufAllocator.DEFAULT))
         .add(RequestId.Generator.class, UuidBasedRequestIdGenerator.INSTANCE);
 
       addConfigObjects(serverConfig, baseRegistryBuilder);

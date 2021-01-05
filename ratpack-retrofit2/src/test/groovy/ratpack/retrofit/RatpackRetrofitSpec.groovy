@@ -16,7 +16,7 @@
 
 package ratpack.retrofit
 
-import io.netty.buffer.UnpooledByteBufAllocator
+
 import ratpack.error.ServerErrorHandler
 import ratpack.error.internal.DefaultDevelopmentErrorHandler
 import ratpack.exec.Promise
@@ -74,7 +74,6 @@ class RatpackRetrofitSpec extends Specification {
 
   HttpClient client() {
     HttpClient.of {
-      it.byteBufAllocator(UnpooledByteBufAllocator.DEFAULT)
       it.maxContentLength(ServerConfig.DEFAULT_MAX_CONTENT_LENGTH)
       it.connectTimeout(Duration.ofMillis(3000))
       it.readTimeout(Duration.ofMillis(3000))
@@ -232,7 +231,6 @@ class RatpackRetrofitSpec extends Specification {
     if (connectTimeout != null) {
       builder.httpClient {
         HttpClient.of {
-          it.byteBufAllocator(UnpooledByteBufAllocator.DEFAULT)
           it.maxContentLength(ServerConfig.DEFAULT_MAX_CONTENT_LENGTH)
           it.connectTimeout(Duration.ofMillis(connectTimeout))
           it.readTimeout(Duration.ofMillis(3000))
@@ -280,7 +278,6 @@ class RatpackRetrofitSpec extends Specification {
     if (readTimeout != null) {
       builder.httpClient {
         HttpClient.of {
-          it.byteBufAllocator(UnpooledByteBufAllocator.DEFAULT)
           it.maxContentLength(ServerConfig.DEFAULT_MAX_CONTENT_LENGTH)
           it.connectTimeout(Duration.ofMillis(3000))
           it.readTimeout(Duration.ofMillis(readTimeout))

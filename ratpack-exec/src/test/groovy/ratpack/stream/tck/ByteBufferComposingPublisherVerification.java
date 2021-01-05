@@ -17,9 +17,9 @@
 package ratpack.stream.tck;
 
 import io.netty.buffer.ByteBuf;
+import io.netty.buffer.ByteBufAllocator;
 import io.netty.buffer.CompositeByteBuf;
 import io.netty.buffer.Unpooled;
-import io.netty.buffer.UnpooledByteBufAllocator;
 import org.reactivestreams.Publisher;
 import org.reactivestreams.tck.PublisherVerification;
 import org.reactivestreams.tck.TestEnvironment;
@@ -50,7 +50,7 @@ public class ByteBufferComposingPublisherVerification extends PublisherVerificat
       i < elements * 3 ? i : null
     ).map(Unpooled::copyInt);
 
-    return ByteBufStreams.buffer(periodically, Long.MAX_VALUE, 3, UnpooledByteBufAllocator.DEFAULT);
+    return ByteBufStreams.buffer(periodically, Long.MAX_VALUE, 3, ByteBufAllocator.DEFAULT);
   }
 
   @Override

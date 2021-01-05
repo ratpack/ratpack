@@ -18,6 +18,7 @@ package ratpack.server.internal;
 
 import com.google.common.reflect.TypeToken;
 import io.netty.bootstrap.ServerBootstrap;
+import io.netty.buffer.ByteBufAllocator;
 import io.netty.buffer.PooledByteBufAllocator;
 import io.netty.channel.*;
 import io.netty.channel.socket.SocketChannel;
@@ -259,8 +260,8 @@ public class DefaultRatpackServer implements RatpackServer {
     return serverBootstrap
       .group(execController.getEventLoopGroup())
       .channel(TransportDetector.getServerSocketChannelImpl())
-      .option(ChannelOption.ALLOCATOR, PooledByteBufAllocator.DEFAULT)
-      .childOption(ChannelOption.ALLOCATOR, PooledByteBufAllocator.DEFAULT)
+      .option(ChannelOption.ALLOCATOR, ByteBufAllocator.DEFAULT)
+      .childOption(ChannelOption.ALLOCATOR, ByteBufAllocator.DEFAULT)
       .childHandler(new ChannelInitializer<SocketChannel>() {
         @Override
         protected void initChannel(SocketChannel ch) throws Exception {
@@ -269,7 +270,7 @@ public class DefaultRatpackServer implements RatpackServer {
           new ConnectionIdleTimeout(pipeline, serverConfig.getIdleTimeout());
 
           if (sslContext != null) {
-            SSLEngine sslEngine = sslContext.newEngine(PooledByteBufAllocator.DEFAULT);
+            SSLEngine sslEngine = sslContext.newEngine(ByteBufAllocator.DEFAULT);
             pipeline.addLast("ssl", new SslHandler(sslEngine));
           }
 

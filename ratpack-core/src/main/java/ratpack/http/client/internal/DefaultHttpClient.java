@@ -18,7 +18,6 @@ package ratpack.http.client.internal;
 
 import io.netty.bootstrap.Bootstrap;
 import io.netty.buffer.ByteBufAllocator;
-import io.netty.buffer.PooledByteBufAllocator;
 import io.netty.channel.ChannelOption;
 import io.netty.channel.pool.ChannelHealthChecker;
 import io.netty.channel.pool.ChannelPool;
@@ -191,7 +190,7 @@ public class DefaultHttpClient implements HttpClientInternal {
 
   private static class Spec implements HttpClientSpec {
 
-    private ByteBufAllocator byteBufAllocator = PooledByteBufAllocator.DEFAULT;
+    private ByteBufAllocator byteBufAllocator = ByteBufAllocator.DEFAULT;
     private int poolSize;
     private int poolQueueSize = Integer.MAX_VALUE;
     private Duration idleTimeout = Duration.ofSeconds(0);
