@@ -16,9 +16,9 @@
 
 package ratpack.util.internal
 
-import spock.lang.Specification
+import ratpack.test.internal.BaseRatpackSpec
 
-class PropertiesUtilSpec extends Specification {
+class PropertiesUtilSpec extends BaseRatpackSpec {
   def "extracts matching properties after removing prefix"() {
     given:
     def properties = new Properties([

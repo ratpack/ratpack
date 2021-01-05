@@ -20,10 +20,10 @@ import com.google.common.base.StandardSystemProperty
 import com.google.common.io.Files
 import org.junit.Rule
 import org.junit.rules.TemporaryFolder
+import ratpack.test.internal.BaseRatpackSpec
 import spock.lang.IgnoreIf
-import spock.lang.Specification
 
-class ServerConfigBuilderPropertiesSpec extends Specification {
+class ServerConfigBuilderPropertiesSpec extends BaseRatpackSpec {
 
   @Rule
   TemporaryFolder tempFolder

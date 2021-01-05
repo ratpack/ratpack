@@ -17,9 +17,9 @@
 package ratpack.site
 
 import ratpack.test.http.TestHttpClient
-import spock.lang.Specification
+import ratpack.test.internal.BaseRatpackSpec
 
-class SiteSmokeSpec extends Specification {
+class SiteSmokeSpec extends BaseRatpackSpec {
 
   def aut = new RatpackSiteUnderTest()
 

@@ -16,9 +16,9 @@
 
 package ratpack.groovy.test.embed
 
-import spock.lang.Specification
+import ratpack.test.internal.BaseRatpackSpec
 
-class GroovyEmbeddedAppSpec extends Specification {
+class GroovyEmbeddedAppSpec extends BaseRatpackSpec {
 
   def "embedded app without base dir"() {
     expect:

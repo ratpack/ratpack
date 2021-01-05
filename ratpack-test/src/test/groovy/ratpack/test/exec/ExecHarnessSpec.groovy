@@ -16,14 +16,13 @@
 
 package ratpack.test.exec
 
-
 import ratpack.exec.ExecutionException
 import ratpack.exec.Promise
 import ratpack.func.Action
+import ratpack.test.internal.BaseRatpackSpec
 import spock.lang.AutoCleanup
-import spock.lang.Specification
 
-class ExecHarnessSpec extends Specification {
+class ExecHarnessSpec extends BaseRatpackSpec {
 
   @AutoCleanup
   def harness = ExecHarness.harness()

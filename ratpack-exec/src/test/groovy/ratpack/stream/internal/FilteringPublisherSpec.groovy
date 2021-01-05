@@ -17,9 +17,9 @@
 package ratpack.stream.internal
 
 import ratpack.stream.Streams
-import spock.lang.Specification
+import ratpack.test.internal.BaseRatpackSpec
 
-class FilteringPublisherSpec extends Specification {
+class FilteringPublisherSpec extends BaseRatpackSpec {
 
   def "demand is balanced when items are filtered"() {
     when:

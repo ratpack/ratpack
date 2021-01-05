@@ -18,12 +18,12 @@ package ratpack.exec
 
 import ratpack.func.Action
 import ratpack.test.exec.ExecHarness
+import ratpack.test.internal.BaseRatpackSpec
 import spock.lang.AutoCleanup
-import spock.lang.Specification
 
 import java.util.concurrent.CountDownLatch
 
-class PromiseErrorSpec extends Specification {
+class PromiseErrorSpec extends BaseRatpackSpec {
 
   @AutoCleanup
   ExecHarness execHarness = ExecHarness.harness()

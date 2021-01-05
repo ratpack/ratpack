@@ -19,8 +19,8 @@ package ratpack.exec
 import ratpack.exec.internal.ExecThreadBinding
 import ratpack.func.Action
 import ratpack.test.exec.ExecHarness
+import ratpack.test.internal.BaseRatpackSpec
 import spock.lang.AutoCleanup
-import spock.lang.Specification
 
 import java.util.concurrent.CountDownLatch
 import java.util.concurrent.atomic.AtomicInteger
@@ -28,7 +28,7 @@ import java.util.concurrent.atomic.AtomicInteger
 import static ratpack.func.Action.throwException
 
 @SuppressWarnings("ChangeToOperator")
-class PromiseOperationsSpec extends Specification {
+class PromiseOperationsSpec extends BaseRatpackSpec {
 
   @AutoCleanup
   ExecHarness execHarness = ExecHarness.harness()

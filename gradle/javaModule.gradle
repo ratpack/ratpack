@@ -82,6 +82,9 @@ artifacts {
 }
 
 tasks.withType(Test).configureEach {
+  systemProperty "io.netty.allocator.type", "unpooled"
+  systemProperty "io.netty.leakDetectionLevel", "paranoid"
+
   jvmArgs "-Xss320k", "-XX:MaxDirectMemorySize=64m"
   minHeapSize "256m"
   maxHeapSize "768m"

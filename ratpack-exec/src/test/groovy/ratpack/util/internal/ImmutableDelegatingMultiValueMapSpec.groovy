@@ -16,9 +16,9 @@
 
 package ratpack.util.internal
 
-import spock.lang.Specification
+import ratpack.test.internal.BaseRatpackSpec
 
-class ImmutableDelegatingMultiValueMapSpec extends Specification {
+class ImmutableDelegatingMultiValueMapSpec extends BaseRatpackSpec {
 
   def delegate = Mock(Map)
   def map = new ImmutableDelegatingMultiValueMap<String, String>(delegate)

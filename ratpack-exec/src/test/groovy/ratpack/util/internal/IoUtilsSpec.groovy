@@ -20,14 +20,14 @@ import com.google.common.collect.ImmutableMap
 import io.netty.buffer.ByteBufAllocator
 import org.junit.Rule
 import org.junit.rules.TemporaryFolder
-import spock.lang.Specification
+import ratpack.test.internal.BaseRatpackSpec
 
 import java.nio.charset.StandardCharsets
 import java.nio.file.FileSystems
 import java.util.zip.ZipEntry
 import java.util.zip.ZipOutputStream
 
-class IoUtilsSpec extends Specification {
+class IoUtilsSpec extends BaseRatpackSpec {
   private final ByteBufAllocator allocator = ByteBufAllocator.DEFAULT
 
   @Rule

@@ -16,23 +16,20 @@
 
 package ratpack.file
 
-import ratpack.file.internal.CachingFileSystemChecksumService
-import ratpack.file.internal.FileSystemChecksumServices
-
-import java.nio.file.NoSuchFileException
-import java.nio.file.InvalidPathException
-
 import org.junit.Rule
 import org.junit.rules.TemporaryFolder
-import spock.lang.Specification
+import ratpack.file.internal.CachingFileSystemChecksumService
+import ratpack.file.internal.DefaultFileSystemChecksumService
+import ratpack.file.internal.FileSystemChecksumServices
+import ratpack.server.ServerConfig
+import ratpack.test.embed.EphemeralBaseDir
+import ratpack.test.internal.BaseRatpackSpec
 import spock.lang.AutoCleanup
 
-import ratpack.server.ServerConfig
-import ratpack.file.internal.DefaultFileSystemChecksumService
+import java.nio.file.InvalidPathException
+import java.nio.file.NoSuchFileException
 
-import ratpack.test.embed.EphemeralBaseDir
-
-class FileSystemChecksumServicesSpec extends Specification {
+class FileSystemChecksumServicesSpec extends BaseRatpackSpec {
 
   @Rule
   TemporaryFolder temporaryFolder

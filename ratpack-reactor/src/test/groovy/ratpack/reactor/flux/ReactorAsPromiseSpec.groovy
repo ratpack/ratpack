@@ -20,11 +20,11 @@ import ratpack.exec.Blocking
 import ratpack.exec.Operation
 import ratpack.reactor.ReactorRatpack
 import ratpack.test.exec.ExecHarness
+import ratpack.test.internal.BaseRatpackSpec
 import reactor.core.publisher.Flux
 import spock.lang.AutoCleanup
-import spock.lang.Specification
 
-class ReactorAsPromiseSpec extends Specification {
+class ReactorAsPromiseSpec extends BaseRatpackSpec {
 
   @AutoCleanup
   ExecHarness harness = ExecHarness.harness()

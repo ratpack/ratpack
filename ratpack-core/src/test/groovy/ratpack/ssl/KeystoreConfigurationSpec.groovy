@@ -19,11 +19,11 @@ package ratpack.ssl
 import org.junit.Rule
 import org.junit.rules.TemporaryFolder
 import ratpack.server.ServerConfig
+import ratpack.test.internal.BaseRatpackSpec
 import spock.lang.Ignore
-import spock.lang.Specification
 
 @Ignore("TODO - john")
-class KeystoreConfigurationSpec extends Specification {
+class KeystoreConfigurationSpec extends BaseRatpackSpec {
 
   private static final String KEYSTORE_PATH = "ratpack/ssl/dummy.keystore"
 

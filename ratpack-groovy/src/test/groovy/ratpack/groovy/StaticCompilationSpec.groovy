@@ -18,10 +18,10 @@ package ratpack.groovy
 
 import ratpack.test.MainClassApplicationUnderTest
 import ratpack.test.http.TestHttpClient
+import ratpack.test.internal.BaseRatpackSpec
 import spock.lang.AutoCleanup
-import spock.lang.Specification
 
-class StaticCompilationSpec extends Specification {
+class StaticCompilationSpec extends BaseRatpackSpec {
   @AutoCleanup
   def aut = new MainClassApplicationUnderTest(TestCompileStaticApp)
   def httpClient = TestHttpClient.testHttpClient(aut)

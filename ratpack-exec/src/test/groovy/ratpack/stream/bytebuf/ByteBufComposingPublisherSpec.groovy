@@ -22,9 +22,9 @@ import io.netty.buffer.Unpooled
 import ratpack.stream.StreamEvent
 import ratpack.stream.Streams
 import ratpack.stream.internal.CollectingSubscriber
-import spock.lang.Specification
+import ratpack.test.internal.BaseRatpackSpec
 
-class ByteBufComposingPublisherSpec extends Specification {
+class ByteBufComposingPublisherSpec extends BaseRatpackSpec {
 
   def "can batch requests to publisher"() {
     given:

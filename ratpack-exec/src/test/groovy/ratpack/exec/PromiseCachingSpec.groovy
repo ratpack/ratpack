@@ -20,16 +20,16 @@ import ratpack.exec.util.ParallelBatch
 import ratpack.exec.util.SerialBatch
 import ratpack.func.Action
 import ratpack.test.exec.ExecHarness
+import ratpack.test.internal.BaseRatpackSpec
 import spock.lang.AutoCleanup
 import spock.lang.Issue
-import spock.lang.Specification
 
 import java.time.Duration
 import java.util.concurrent.ConcurrentLinkedQueue
 import java.util.concurrent.CountDownLatch
 import java.util.concurrent.atomic.AtomicInteger
 
-class PromiseCachingSpec extends Specification {
+class PromiseCachingSpec extends BaseRatpackSpec {
 
   @AutoCleanup
   ExecHarness execHarness = ExecHarness.harness()

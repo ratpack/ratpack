@@ -16,8 +16,8 @@
 
 package ratpack.rx2
 
-import io.reactivex.Observer
 import io.reactivex.Observable
+import io.reactivex.Observer
 import io.reactivex.disposables.Disposable
 import io.reactivex.exceptions.CompositeException
 import io.reactivex.exceptions.OnErrorNotImplementedException

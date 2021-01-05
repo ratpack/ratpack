@@ -17,15 +17,15 @@
 package ratpack.server
 
 import com.google.common.io.Resources
+import ratpack.impose.Impositions
 import ratpack.server.internal.DefaultServerConfigBuilder
 import ratpack.server.internal.ServerEnvironment
-import ratpack.impose.Impositions
-import spock.lang.Specification
+import ratpack.test.internal.BaseRatpackSpec
 
 import javax.net.ssl.SSLContext
 import java.nio.file.Paths
 
-class ServerConfigBuilderSystemPropertiesSpec extends Specification {
+class ServerConfigBuilderSystemPropertiesSpec extends BaseRatpackSpec {
 
   ServerConfigBuilder builder
   def properties

@@ -21,9 +21,9 @@ import io.netty.buffer.ByteBufAllocator
 import io.netty.buffer.Unpooled
 import io.netty.util.CharsetUtil
 import ratpack.groovy.script.internal.ScriptEngine
-import spock.lang.Specification
+import ratpack.test.internal.BaseRatpackSpec
 
-class TemplateCompilerSpec extends Specification {
+class TemplateCompilerSpec extends BaseRatpackSpec {
 
   def compiler = new TextTemplateCompiler(new ScriptEngine<DefaultTextTemplateScript>(getClass().classLoader, true, DefaultTextTemplateScript), true, ByteBufAllocator.DEFAULT)
 

@@ -18,12 +18,12 @@ package ratpack.exec
 
 import ratpack.func.Action
 import ratpack.test.exec.ExecHarness
+import ratpack.test.internal.BaseRatpackSpec
 import spock.lang.AutoCleanup
-import spock.lang.Specification
 
 import java.util.concurrent.CountDownLatch
 
-class PromiseOperationsApplySpec extends Specification {
+class PromiseOperationsApplySpec extends BaseRatpackSpec {
 
   @AutoCleanup
   ExecHarness execHarness = ExecHarness.harness()
@@ -36,9 +36,9 @@ class PromiseOperationsApplySpec extends Specification {
       .controller.fork()
       .onError(onError)
       .onComplete {
-      events << "complete"
-      latch.countDown()
-    }.start {
+        events << "complete"
+        latch.countDown()
+      }.start {
       action.execute(it)
     }
 
@@ -89,10 +89,10 @@ class PromiseOperationsApplySpec extends Specification {
     exec({
       Blocking.get { throw new Exception("!@") }
         .apply {
-        events << "in apply"
-        it.map { events << "in apply map"; it }
-      }
-      .onError { events << it.message }
+          events << "in apply"
+          it.map { events << "in apply map"; it }
+        }
+        .onError { events << it.message }
         .then { events << it }
     })
 
@@ -105,10 +105,10 @@ class PromiseOperationsApplySpec extends Specification {
     exec({
       Blocking.get { throw new Exception("!@") }
         .apply {
-        events << "in apply"
-        it.onError { events << "in apply onError" }
-      }
-      .onError { events << "in outer onError" + it }
+          events << "in apply"
+          it.onError { events << "in apply onError" }
+        }
+        .onError { events << "in outer onError" + it }
         .then { events << it }
     })
 
@@ -121,9 +121,9 @@ class PromiseOperationsApplySpec extends Specification {
     exec({
       Blocking.get { 1 }
         .apply {
-        events << "in apply"; it.onError { events << "in apply onError" }
-      }
-      .then { events << it }
+          events << "in apply"; it.onError { events << "in apply onError" }
+        }
+        .then { events << it }
     })
 
     then:

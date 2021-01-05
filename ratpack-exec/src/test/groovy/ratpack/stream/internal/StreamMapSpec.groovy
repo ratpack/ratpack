@@ -20,9 +20,9 @@ import org.reactivestreams.Subscription
 import ratpack.func.Action
 import ratpack.func.Function
 import ratpack.stream.StreamMapper
-import spock.lang.Specification
+import ratpack.test.internal.BaseRatpackSpec
 
-class StreamMapSpec extends Specification {
+class StreamMapSpec extends BaseRatpackSpec {
 
   def "upstream not subscribed if mapper fails to establish"() {
     when:

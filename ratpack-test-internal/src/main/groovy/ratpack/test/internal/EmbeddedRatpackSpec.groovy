@@ -17,30 +17,16 @@
 package ratpack.test.internal
 
 import io.netty.util.CharsetUtil
-import io.netty.util.ResourceLeakDetectorFactory
 import org.junit.Rule
 import org.junit.rules.TemporaryFolder
 import ratpack.http.client.RequestSpec
 import ratpack.test.embed.EmbeddedApp
 import ratpack.test.http.TestHttpClient
-import ratpack.test.internal.spock.InheritedTimeout
-import ratpack.test.internal.spock.InheritedUnroll
-import spock.lang.Specification
-import spock.util.concurrent.PollingConditions
 
 import java.nio.charset.Charset
-import java.util.concurrent.atomic.AtomicReference
 
-@InheritedTimeout(30)
-@InheritedUnroll
-abstract class EmbeddedRatpackSpec extends Specification {
+abstract class EmbeddedRatpackSpec extends BaseRatpackSpec {
 
-  private static final AtomicReference<Boolean> LEAKED = new AtomicReference<>(false)
-
-  static {
-    System.setProperty("io.netty.leakDetectionLevel", "paranoid")
-    ResourceLeakDetectorFactory.resourceLeakDetectorFactory = new FlaggingResourceLeakDetectorFactory(LEAKED)
-  }
   @Rule
   TemporaryFolder temporaryFolder
 
@@ -51,15 +37,11 @@ abstract class EmbeddedRatpackSpec extends Specification {
 
   abstract EmbeddedApp getApplication()
 
-  @SuppressWarnings("FieldName")
-  public static final PollingConditions wait = new PollingConditions(timeout: 3)
-
   void configureRequest(RequestSpec requestSpecification) {
     // do nothing
   }
 
   def setup() {
-    LEAKED.set(false)
     client = testHttpClient({ application.address }) {
       configureRequest(it)
     }
@@ -70,10 +52,6 @@ abstract class EmbeddedRatpackSpec extends Specification {
       application.server.stop()
     } catch (Throwable ignore) {
 
-    }
-
-    if (LEAKED.get() && failOnLeak) {
-      throw new Exception("A resource has leaked in this test!")
     }
   }
 

@@ -21,15 +21,15 @@ import org.reactivestreams.Subscription
 import ratpack.exec.Promise
 import ratpack.func.Action
 import ratpack.test.exec.ExecHarness
+import ratpack.test.internal.BaseRatpackSpec
 import spock.lang.AutoCleanup
-import spock.lang.Specification
 import spock.lang.Timeout
 
 import java.util.concurrent.CountDownLatch
 import java.util.concurrent.CyclicBarrier
 
 @Timeout(180)
-class StreamForkSpec extends Specification {
+class StreamForkSpec extends BaseRatpackSpec {
 
   @AutoCleanup
   def harness = ExecHarness.harness()

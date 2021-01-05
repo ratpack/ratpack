@@ -20,13 +20,13 @@ import io.netty.buffer.ByteBufUtil
 import io.netty.buffer.Unpooled
 import io.netty.util.CharsetUtil
 import ratpack.session.clientside.ClientSideSessionConfig
+import ratpack.test.internal.BaseRatpackSpec
 import ratpack.test.internal.TestByteBufAllocators
-import spock.lang.Specification
 
 import static ratpack.session.clientside.ClientSideSessionSpec.SUPPORTED_ALGORITHMS
 import static ratpack.session.clientside.ClientSideSessionSpec.keyLength
 
-class DefaultCryptoSpec extends Specification {
+class DefaultCryptoSpec extends BaseRatpackSpec {
 
   def "can roundtrip data with #algorithm"() {
     given:

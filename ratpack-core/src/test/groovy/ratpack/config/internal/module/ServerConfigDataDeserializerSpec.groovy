@@ -22,12 +22,12 @@ import ratpack.file.FileSystemBinding
 import ratpack.server.internal.ServerConfigData
 import ratpack.server.internal.ServerEnvironment
 import ratpack.test.embed.EphemeralBaseDir
+import ratpack.test.internal.BaseRatpackSpec
 import spock.lang.AutoCleanup
-import spock.lang.Specification
 
 import java.util.function.Supplier
 
-class ServerConfigDataDeserializerSpec extends Specification {
+class ServerConfigDataDeserializerSpec extends BaseRatpackSpec {
   @AutoCleanup
   def b1 = EphemeralBaseDir.tmpDir()
   def originalClassLoader

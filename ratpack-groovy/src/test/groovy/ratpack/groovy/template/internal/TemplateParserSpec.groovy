@@ -19,9 +19,9 @@ package ratpack.groovy.template.internal
 import io.netty.buffer.ByteBuf
 import io.netty.buffer.Unpooled
 import io.netty.util.CharsetUtil
-import spock.lang.Specification
+import ratpack.test.internal.BaseRatpackSpec
 
-class TemplateParserSpec extends Specification {
+class TemplateParserSpec extends BaseRatpackSpec {
 
   private final TextTemplateParser parser = new TextTemplateParser()
 

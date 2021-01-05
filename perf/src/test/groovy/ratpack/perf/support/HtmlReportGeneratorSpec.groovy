@@ -16,9 +16,9 @@
 
 package ratpack.perf.support
 
-import spock.lang.Specification
+import ratpack.test.internal.BaseRatpackSpec
 
-class HtmlReportGeneratorSpec extends Specification {
+class HtmlReportGeneratorSpec extends BaseRatpackSpec {
 
   def "can generate report"() {
     given:

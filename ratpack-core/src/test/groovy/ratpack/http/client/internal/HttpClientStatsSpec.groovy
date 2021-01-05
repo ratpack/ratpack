@@ -16,9 +16,9 @@
 
 package ratpack.http.client.internal
 
-import spock.lang.Specification
+import ratpack.test.internal.BaseRatpackSpec
 
-class HttpClientStatsSpec extends Specification {
+class HttpClientStatsSpec extends BaseRatpackSpec {
 
   void 'it should collect HttpClientStats'() {
     given:

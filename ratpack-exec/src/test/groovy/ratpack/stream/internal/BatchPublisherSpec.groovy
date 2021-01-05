@@ -17,9 +17,9 @@
 package ratpack.stream.internal
 
 import ratpack.stream.StreamEvent
-import spock.lang.Specification
+import ratpack.test.internal.BaseRatpackSpec
 
-class BatchPublisherSpec extends Specification {
+class BatchPublisherSpec extends BaseRatpackSpec {
 
   def "can batch requests to publisher"() {
     given:

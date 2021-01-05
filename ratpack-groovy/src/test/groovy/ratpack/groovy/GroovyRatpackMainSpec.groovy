@@ -20,9 +20,9 @@ import org.junit.Rule
 import org.junit.rules.TemporaryFolder
 import ratpack.groovy.test.GroovyRatpackMainApplicationUnderTest
 import ratpack.test.MainClassApplicationUnderTest
-import spock.lang.Specification
+import ratpack.test.internal.BaseRatpackSpec
 
-class GroovyRatpackMainSpec extends Specification {
+class GroovyRatpackMainSpec extends BaseRatpackSpec {
 
   @Rule
   TemporaryFolder dir = new TemporaryFolder()

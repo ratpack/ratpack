@@ -16,9 +16,9 @@
 
 package ratpack.stream.internal
 
-import spock.lang.Specification
+import ratpack.test.internal.BaseRatpackSpec
 
-class TakePublisherSpec extends Specification {
+class TakePublisherSpec extends BaseRatpackSpec {
 
   def "taking n elements from a stream producing greater than n, results in n elements received"() {
     given:

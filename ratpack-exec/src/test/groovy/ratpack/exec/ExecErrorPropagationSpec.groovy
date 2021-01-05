@@ -17,10 +17,10 @@
 package ratpack.exec
 
 import ratpack.test.exec.ExecHarness
+import ratpack.test.internal.BaseRatpackSpec
 import spock.lang.AutoCleanup
-import spock.lang.Specification
 
-class ExecErrorPropagationSpec extends Specification {
+class ExecErrorPropagationSpec extends BaseRatpackSpec {
 
   @AutoCleanup
   ExecHarness harness = ExecHarness.harness()

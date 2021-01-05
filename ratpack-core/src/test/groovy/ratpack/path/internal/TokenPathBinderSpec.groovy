@@ -18,9 +18,9 @@ package ratpack.path.internal
 
 import ratpack.path.PathBinder
 import ratpack.path.PathBinding
-import spock.lang.Specification
+import ratpack.test.internal.BaseRatpackSpec
 
-class TokenPathBinderSpec extends Specification {
+class TokenPathBinderSpec extends BaseRatpackSpec {
 
   PathBinding bind(String pattern, String path, boolean exact = false, PathBinding parent = null) {
     PathBinder.parse(pattern, exact).bind(Optional.ofNullable(parent).orElse(new RootPathBinding(path))).orElse(null)

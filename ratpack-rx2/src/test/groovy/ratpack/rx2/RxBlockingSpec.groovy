@@ -24,7 +24,6 @@ import ratpack.test.internal.RatpackGroovyDslSpec
 import ratpack.test.internal.SimpleErrorHandler
 
 import static ratpack.rx2.RxRatpack.observe
-import static ratpack.rx2.RxRatpack.single
 
 class RxBlockingSpec extends RatpackGroovyDslSpec {
 

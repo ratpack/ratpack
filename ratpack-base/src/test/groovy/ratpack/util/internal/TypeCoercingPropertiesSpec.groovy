@@ -16,12 +16,12 @@
 
 package ratpack.util.internal
 
+import ratpack.test.internal.BaseRatpackSpec
 import spock.lang.Shared
-import spock.lang.Specification
 import spock.lang.Subject
 
 @Subject(TypeCoercingProperties)
-class TypeCoercingPropertiesSpec extends Specification {
+class TypeCoercingPropertiesSpec extends BaseRatpackSpec {
 
   def delegateProperties = new Properties()
 

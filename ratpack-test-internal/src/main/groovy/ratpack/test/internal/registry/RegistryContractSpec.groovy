@@ -21,9 +21,9 @@ import ratpack.func.Function
 import ratpack.registry.NotInRegistryException
 import ratpack.registry.Registry
 import ratpack.registry.RegistrySpec
-import spock.lang.Specification
+import ratpack.test.internal.BaseRatpackSpec
 
-abstract class RegistryContractSpec extends Specification {
+abstract class RegistryContractSpec extends BaseRatpackSpec {
 
   abstract Registry build(Action<? super RegistrySpec> spec)
 

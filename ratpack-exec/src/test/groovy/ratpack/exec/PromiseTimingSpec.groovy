@@ -17,12 +17,12 @@
 package ratpack.exec
 
 import ratpack.test.exec.ExecHarness
+import ratpack.test.internal.BaseRatpackSpec
 import spock.lang.AutoCleanup
-import spock.lang.Specification
 
 import java.time.Duration
 
-class PromiseTimingSpec extends Specification {
+class PromiseTimingSpec extends BaseRatpackSpec {
 
   @AutoCleanup
   ExecHarness execHarness = ExecHarness.harness()

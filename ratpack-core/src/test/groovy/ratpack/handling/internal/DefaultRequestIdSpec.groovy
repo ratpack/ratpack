@@ -18,9 +18,9 @@ package ratpack.handling.internal
 
 import io.netty.util.AsciiString
 import ratpack.handling.RequestId
-import spock.lang.Specification
+import ratpack.test.internal.BaseRatpackSpec
 
-class DefaultRequestIdSpec extends Specification {
+class DefaultRequestIdSpec extends BaseRatpackSpec {
 
   def "equals based on id"() {
     expect:

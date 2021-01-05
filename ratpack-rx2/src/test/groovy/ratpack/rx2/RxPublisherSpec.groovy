@@ -16,18 +16,18 @@
 
 package ratpack.rx2
 
-import io.reactivex.Observable
 import io.reactivex.BackpressureStrategy
+import io.reactivex.Observable
 import org.reactivestreams.Publisher
 import org.reactivestreams.Subscriber
 import org.reactivestreams.Subscription
 import ratpack.exec.Blocking
 import ratpack.exec.Promise
 import ratpack.test.exec.ExecHarness
+import ratpack.test.internal.BaseRatpackSpec
 import spock.lang.AutoCleanup
-import spock.lang.Specification
 
-class RxPublisherSpec extends Specification {
+class RxPublisherSpec extends BaseRatpackSpec {
 
   @AutoCleanup
   ExecHarness harness = ExecHarness.harness()

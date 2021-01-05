@@ -23,12 +23,12 @@ import org.h2.jdbcx.JdbcDataSource
 import ratpack.exec.Blocking
 import ratpack.exec.Promise
 import ratpack.test.exec.ExecHarness
-import spock.lang.Specification
+import ratpack.test.internal.BaseRatpackSpec
 
 import javax.sql.DataSource
 import java.sql.Connection
 
-class TransactionSpec extends Specification {
+class TransactionSpec extends BaseRatpackSpec {
 
   DataSource ds = Transaction.dataSource(createDs())
   Sql sql = new Sql(ds)

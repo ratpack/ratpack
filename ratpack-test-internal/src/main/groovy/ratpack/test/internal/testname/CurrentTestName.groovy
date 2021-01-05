@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 the original author or authors.
+ * Copyright 2021 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,22 +14,24 @@
  * limitations under the License.
  */
 
-package ratpack.config
+package ratpack.test.internal.testname
 
-import org.junit.Rule
-import org.junit.rules.TemporaryFolder
-import ratpack.test.internal.BaseRatpackSpec
+import groovy.transform.PackageScope
 
-import java.nio.file.Path
-import java.security.KeyStore
+final class CurrentTestName {
 
-abstract class BaseConfigSpec extends BaseRatpackSpec {
-  @Rule
-  TemporaryFolder tempFolder
+    private static volatile Optional<String> name = Optional.empty()
 
-  protected static void createKeystore(Path path, String password) {
-    def ks = KeyStore.getInstance("JKS")
-    ks.load(null, password.toCharArray())
-    path.withOutputStream { ks.store(it, password.toCharArray()) }
-  }
+    private CurrentTestName() {
+    }
+
+    static Optional<String> get() {
+        name
+    }
+
+    @PackageScope
+    static void set(Optional<String> name) {
+        CurrentTestName.name = name
+    }
+
 }

@@ -17,7 +17,6 @@
 package ratpack.http.client;
 
 import io.netty.buffer.ByteBufAllocator;
-import io.netty.buffer.PooledByteBufAllocator;
 import ratpack.exec.Operation;
 import ratpack.func.Action;
 import ratpack.server.ServerConfig;

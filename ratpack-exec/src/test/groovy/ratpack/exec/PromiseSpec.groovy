@@ -17,12 +17,12 @@
 package ratpack.exec
 
 import ratpack.test.exec.ExecHarness
-import spock.lang.Specification
+import ratpack.test.internal.BaseRatpackSpec
 
 import java.util.concurrent.CountDownLatch
 import java.util.concurrent.TimeUnit
 
-class PromiseSpec extends Specification {
+class PromiseSpec extends BaseRatpackSpec {
 
   def exec = ExecHarness.harness()
 

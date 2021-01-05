@@ -18,15 +18,15 @@ package ratpack.exec
 
 import ratpack.exec.util.ParallelBatch
 import ratpack.test.exec.ExecHarness
+import ratpack.test.internal.BaseRatpackSpec
 import spock.lang.AutoCleanup
-import spock.lang.Specification
 import spock.util.concurrent.PollingConditions
 
 import java.util.concurrent.ConcurrentLinkedQueue
 import java.util.concurrent.CountDownLatch
 import java.util.concurrent.LinkedBlockingQueue
 
-class ThrottleSpec extends Specification {
+class ThrottleSpec extends BaseRatpackSpec {
 
   @AutoCleanup
   ExecHarness execHarness = ExecHarness.harness()

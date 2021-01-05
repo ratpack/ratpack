@@ -16,21 +16,15 @@
 
 package ratpack.rx2
 
-import io.reactivex.Completable
-import io.reactivex.Observable
-import io.reactivex.ObservableEmitter
-import io.reactivex.ObservableOnSubscribe
-import io.reactivex.Single
-import io.reactivex.SingleEmitter
-import io.reactivex.SingleOnSubscribe
+import io.reactivex.*
 import io.reactivex.annotations.NonNull
 import ratpack.exec.Blocking
 import ratpack.exec.Operation
 import ratpack.test.exec.ExecHarness
+import ratpack.test.internal.BaseRatpackSpec
 import spock.lang.AutoCleanup
-import spock.lang.Specification
 
-class RxAsPromiseSpec extends Specification {
+class RxAsPromiseSpec extends BaseRatpackSpec {
 
   @AutoCleanup
   ExecHarness harness = ExecHarness.harness()

@@ -20,11 +20,11 @@ import io.netty.channel.Channel
 import io.netty.channel.ChannelConfig
 import io.netty.channel.ChannelPipeline
 import ratpack.exec.Execution
-import spock.lang.Specification
+import ratpack.test.internal.BaseRatpackSpec
 
 import java.time.Duration
 
-class InstrumentedFixedChannelPoolHandlerSpec extends Specification {
+class InstrumentedFixedChannelPoolHandlerSpec extends BaseRatpackSpec {
 
   int poolSize = 100
   Execution execution = Mock(Execution)

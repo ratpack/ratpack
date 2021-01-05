@@ -40,14 +40,14 @@ import ratpack.server.PublicAddress
 import ratpack.server.RatpackServer
 import ratpack.server.ServerConfig
 import ratpack.server.internal.ServerRegistry
-import spock.lang.Specification
+import ratpack.test.internal.BaseRatpackSpec
 import spock.lang.Subject
 
 import java.nio.file.Path
 
 @Subject(RatpackBaseRegistryModule)
 @SuppressWarnings("UnnecessaryObjectReferences")
-class RatpackBaseRegistryModuleSpec extends Specification {
+class RatpackBaseRegistryModuleSpec extends BaseRatpackSpec {
   def "injector contains bindings based on base registry"() {
     when:
     def ratpackServer = Mock(RatpackServer)

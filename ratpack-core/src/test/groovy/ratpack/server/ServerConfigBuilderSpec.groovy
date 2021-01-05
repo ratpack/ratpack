@@ -17,12 +17,12 @@
 package ratpack.server
 
 import ratpack.ssl.SSLContexts
-import spock.lang.Specification
+import ratpack.test.internal.BaseRatpackSpec
 
 import javax.net.ssl.SSLContext
 import java.nio.file.Paths
 
-class ServerConfigBuilderSpec extends Specification {
+class ServerConfigBuilderSpec extends BaseRatpackSpec {
 
   ServerConfigBuilder builder
 

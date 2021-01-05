@@ -20,11 +20,11 @@ import ratpack.exec.Execution
 import ratpack.exec.Promise
 import ratpack.func.Action
 import ratpack.test.exec.ExecHarness
+import ratpack.test.internal.BaseRatpackSpec
 import spock.lang.AutoCleanup
-import spock.lang.Specification
 import spock.util.concurrent.BlockingVariables
 
-class PromisedSpec extends Specification {
+class PromisedSpec extends BaseRatpackSpec {
 
   @AutoCleanup
   def harness = ExecHarness.harness()

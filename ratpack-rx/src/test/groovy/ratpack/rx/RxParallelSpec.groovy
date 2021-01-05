@@ -19,9 +19,9 @@ package ratpack.rx
 import ratpack.exec.Execution
 import ratpack.registry.RegistrySpec
 import ratpack.test.exec.ExecHarness
+import ratpack.test.internal.BaseRatpackSpec
 import spock.lang.AutoCleanup
 import spock.lang.Ignore
-import spock.lang.Specification
 
 import java.util.concurrent.CountDownLatch
 import java.util.concurrent.CyclicBarrier
@@ -29,7 +29,7 @@ import java.util.concurrent.TimeUnit
 
 import static ratpack.rx.RxRatpack.observe
 
-class RxParallelSpec extends Specification {
+class RxParallelSpec extends BaseRatpackSpec {
 
   @AutoCleanup
   def harness = ExecHarness.harness(12)

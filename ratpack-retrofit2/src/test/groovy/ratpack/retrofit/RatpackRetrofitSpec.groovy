@@ -16,7 +16,6 @@
 
 package ratpack.retrofit
 
-
 import ratpack.error.ServerErrorHandler
 import ratpack.error.internal.DefaultDevelopmentErrorHandler
 import ratpack.exec.Promise
@@ -28,16 +27,16 @@ import ratpack.registry.RegistrySpec
 import ratpack.server.ServerConfig
 import ratpack.test.embed.EmbeddedApp
 import ratpack.test.exec.ExecHarness
+import ratpack.test.internal.BaseRatpackSpec
 import retrofit2.Response
 import retrofit2.http.GET
 import retrofit2.http.POST
 import spock.lang.AutoCleanup
-import spock.lang.Specification
 import spock.lang.Unroll
 
 import java.time.Duration
 
-class RatpackRetrofitSpec extends Specification {
+class RatpackRetrofitSpec extends BaseRatpackSpec {
 
   interface Service {
     @GET("/")

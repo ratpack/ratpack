@@ -19,11 +19,11 @@ package ratpack.config.internal.source
 import com.fasterxml.jackson.databind.ObjectMapper
 import ratpack.config.internal.DefaultConfigDataBuilder
 import ratpack.file.FileSystemBinding
-import spock.lang.Specification
+import ratpack.test.internal.BaseRatpackSpec
 
 import static ratpack.config.ConfigDataBuilder.DEFAULT_PROP_PREFIX
 
-class PropertiesConfigSourceSpec extends Specification {
+class PropertiesConfigSourceSpec extends BaseRatpackSpec {
   private static final SAMPLE_SYS_PROPS = [("user.name"): "jdoe", ("file.encoding"): "UTF-8", ("user.language"): "en"]
   private ObjectMapper mapper = DefaultConfigDataBuilder.newDefaultObjectMapper()
 

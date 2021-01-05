@@ -17,13 +17,13 @@
 package ratpack.exec
 
 import ratpack.test.exec.ExecHarness
-import spock.lang.Specification
+import ratpack.test.internal.BaseRatpackSpec
 
 import java.util.concurrent.CompletableFuture
 import java.util.concurrent.CompletionException
 import java.util.concurrent.CountDownLatch
 
-class PromiseCompletableFutureSpec extends Specification {
+class PromiseCompletableFutureSpec extends BaseRatpackSpec {
 
   def "test toCompletableFuture - success"() {
     given: "A null CompletableFuture"

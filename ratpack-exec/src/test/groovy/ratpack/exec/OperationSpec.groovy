@@ -19,10 +19,10 @@ package ratpack.exec
 import ratpack.handling.Context
 import ratpack.registry.RegistrySpec
 import ratpack.test.exec.ExecHarness
+import ratpack.test.internal.BaseRatpackSpec
 import spock.lang.AutoCleanup
-import spock.lang.Specification
 
-class OperationSpec extends Specification {
+class OperationSpec extends BaseRatpackSpec {
 
   @AutoCleanup
   def exec = ExecHarness.harness()
@@ -59,9 +59,9 @@ class OperationSpec extends Specification {
 
     when: "executing with the registry"
     exec.executeSingle(registry) { Execution execution ->
-        async(execution.current().get(Context).get(Integer))
-          .next { events << it }
-          .operation()
+      async(execution.current().get(Context).get(Integer))
+        .next { events << it }
+        .operation()
     }
 
     then:

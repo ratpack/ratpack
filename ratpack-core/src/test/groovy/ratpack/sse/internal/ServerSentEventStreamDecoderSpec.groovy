@@ -16,16 +16,16 @@
 
 package ratpack.sse.internal
 
+import io.netty.buffer.ByteBufAllocator
 import io.netty.buffer.Unpooled
 import io.netty.util.ByteProcessor
 import ratpack.sse.Event
 import ratpack.test.internal.RatpackGroovyDslSpec
-import ratpack.test.internal.TestByteBufAllocators
 
 class ServerSentEventStreamDecoderSpec extends RatpackGroovyDslSpec {
 
   List<Event<?>> events = []
-  def decoder = new ServerSentEventDecoder(TestByteBufAllocators.LEAKING_UNPOOLED_HEAP, events.&add)
+  def decoder = new ServerSentEventDecoder(ByteBufAllocator.DEFAULT, events.&add)
 
   def "can decode valid server sent event"() {
     given:
@@ -92,6 +92,7 @@ class ServerSentEventStreamDecoderSpec extends RatpackGroovyDslSpec {
 
     when:
     decoder.decode(bytebuf)
+    decoder.close()
 
     then:
     events.empty

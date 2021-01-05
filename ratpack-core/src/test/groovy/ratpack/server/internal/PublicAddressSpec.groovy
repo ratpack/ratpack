@@ -24,14 +24,14 @@ import ratpack.http.Request
 import ratpack.http.internal.NettyHeadersBackedMutableHeaders
 import ratpack.server.PublicAddress
 import ratpack.test.exec.ExecHarness
+import ratpack.test.internal.BaseRatpackSpec
 import spock.lang.AutoCleanup
-import spock.lang.Specification
 
 import static ratpack.http.internal.HttpHeaderConstants.*
 import static ratpack.util.internal.ProtocolUtil.HTTPS_SCHEME
 import static ratpack.util.internal.ProtocolUtil.HTTP_SCHEME
 
-class PublicAddressSpec extends Specification {
+class PublicAddressSpec extends BaseRatpackSpec {
 
   @AutoCleanup
   def harness = ExecHarness.harness()
