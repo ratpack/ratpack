@@ -1,6 +1,6 @@
 // Root project
 
-if (project.findProperty("jacocoReport")) {
+if (project.hasProperty("jacocoReport")) {
   evaluationDependsOnChildren()
 
   apply plugin: "com.github.kt3k.coveralls"
