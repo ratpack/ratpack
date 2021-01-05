@@ -17,16 +17,9 @@
 apply plugin: "maven"
 apply from: "${rootDir}/gradle/pom.gradle"
 apply plugin: "signing"
-apply plugin: "com.jfrog.artifactory"
 
 afterEvaluate {
   assert description: "Project $project.path is published, must have a description"
-}
-
-tasks.withType(Upload).matching { it.name != "install" }.all {
-  rootProject.subprojects {
-    mustRunAfter tasks.matching { it instanceof VerificationTask }
-  }
 }
 
 configurations {
@@ -34,7 +27,7 @@ configurations {
 }
 
 if (!isSnapshot) {
-  tasks.withType(Upload) {
+  tasks.withType(Upload).configureEach {
     repositories.matching { it.name == "mavenInstaller" }.all {
       beforeDeployment { deployment ->
         artifacts {
@@ -47,59 +40,33 @@ if (!isSnapshot) {
   }
 }
 
-signing {
-  if (!isSnapshot) {
-    sign configurations.published
-  }
-}
-
-project.afterEvaluate {
-  project.tasks.matching { t ->
-    t.name == "signPublished"
-  }.each {
-    it.signatures.each {
-      if (it.type == "jar.asc") {
-        it.extension = "jar.asc"
-      }
-      if (it.type == "zip.asc") {
-        it.extension = "zip.asc"
+if (!isSnapshot) {
+  signing.sign configurations.published
+  project.afterEvaluate {
+    project.tasks.named("signPublished", Sign) {
+      it.signatures.each {
+        if (it.type == "jar.asc") {
+          it.extension = "jar.asc"
+        }
+        if (it.type == "zip.asc") {
+          it.extension = "zip.asc"
+        }
       }
     }
   }
 }
 
 configurations {
-  configurations {
-    all {
-      incoming.afterResolve {
-        dependencies.withType(ModuleDependency) { dep ->
-          excludeRules.each {
-            if ([it.group, it.module].any { it == null }) {
-              throw new InvalidUserDataException(
-                "Partial exclude for dependency '$dep.group:$dep.name:$dep.version' of $project: [group: $it.group, module: $it.module]\n\nExcludes must specify both group and module and neither can be '*'."
-              )
-            }
+  all {
+    incoming.afterResolve {
+      dependencies.withType(ModuleDependency) { dep ->
+        excludeRules.each {
+          if ([it.group, it.module].any { it == null }) {
+            throw new InvalidUserDataException(
+              "Partial exclude for dependency '$dep.group:$dep.name:$dep.version' of $project: [group: $it.group, module: $it.module]\n\nExcludes must specify both group and module and neither can be '*'."
+            )
           }
         }
-      }
-    }
-  }
-}
-
-artifactoryPublish { task ->
-  rootProject.artifactory {
-    publish {
-      repository {
-        repoKey = isSnapshot ? 'oss-snapshot-local' : 'oss-release-local'
-        gradle.taskGraph.whenReady { taskGraph ->
-          if (taskGraph.hasTask(task)) {
-            username = ratpackBintrayUser
-            password = ratpackBintrayApiKey
-          }
-        }
-      }
-      defaults {
-        publishConfigs('published', 'signatures', 'pomSignature')
       }
     }
   }
