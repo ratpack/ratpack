@@ -1,5 +1,9 @@
 // Root project
 
+repositories {
+  jcenter()
+}
+
 if (project.hasProperty("jacocoReport")) {
   evaluationDependsOnChildren()
 
