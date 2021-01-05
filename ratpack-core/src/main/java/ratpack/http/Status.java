@@ -426,9 +426,9 @@ public interface Status {
   String getMessage();
 
   /**
-   * If {@link #getCode()} is >= 100 and < 200.
+   * If {@link #getCode()} is &gt;= 100 and &lt; 200.
    *
-   * @return {@code true} if {@link #getCode()} is >= 100 and < 200, else {@code false}
+   * @return {@code true} if {@link #getCode()} is &gt;= 100 and &lt; 200, else {@code false}
    * @since 1.3
    */
   default boolean is1xx() {
@@ -436,9 +436,9 @@ public interface Status {
   }
 
   /**
-   * If {@link #getCode()} is >= 200 and < 300.
+   * If {@link #getCode()} is &gt;= 200 and &lt; 300.
    *
-   * @return {@code true} if {@link #getCode()} is >= 200 and < 300, else {@code false}
+   * @return {@code true} if {@link #getCode()} is &gt;= 200 and &lt; 300, else {@code false}
    * @since 1.3
    */
   default boolean is2xx() {
@@ -446,9 +446,9 @@ public interface Status {
   }
 
   /**
-   * If {@link #getCode()} is >= 300 and < 400.
+   * If {@link #getCode()} is &gt;= 300 and &lt; 400.
    *
-   * @return {@code true} if {@link #getCode()} is >= 300 and < 400, else {@code false}
+   * @return {@code true} if {@link #getCode()} is &gt;= 300 and &lt; 400, else {@code false}
    * @since 1.3
    */
   default boolean is3xx() {
@@ -456,9 +456,9 @@ public interface Status {
   }
 
   /**
-   * If {@link #getCode()} is >= 400 and < 500.
+   * If {@link #getCode()} is &gt;= 400 and &lt; 500.
    *
-   * @return {@code true} if {@link #getCode()} is >= 400 and < 500, else {@code false}
+   * @return {@code true} if {@link #getCode()} is &gt;= 400 and &lt; 500, else {@code false}
    * @since 1.3
    */
   default boolean is4xx() {
@@ -466,9 +466,9 @@ public interface Status {
   }
 
   /**
-   * If {@link #getCode()} is >= 500 and < 600.
+   * If {@link #getCode()} is &gt;= 500 and &lt; 600.
    *
-   * @return {@code true} if {@link #getCode()} is >= 500 and < 600, else {@code false}
+   * @return {@code true} if {@link #getCode()} is &gt;= 500 and &lt; 600, else {@code false}
    * @since 1.3
    */
   default boolean is5xx() {

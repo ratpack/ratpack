@@ -111,7 +111,7 @@ public class FileIo {
    * to “buffer” the data in memory before writing to disk.
    *
    * @param publisher the bytes to write
-   * @param position the position in the file to start writing (must be >= 0)
+   * @param position the position in the file to start writing (must be &gt;= 0)
    * @param file a promise for the file to write to
    * @return a promise for the number of bytes written
    */
@@ -180,8 +180,8 @@ public class FileIo {
    * @param file a promise for the file to write to
    * @param allocator the allocator of byte bufs
    * @param bufferSize the read buffer size (i.e. the size of each emitted buffer)
-   * @param start the position in the file to start reading from (must be >= 0)
-   * @param stop the position in the file to read up to (any value < 1 is treated as EOF)
+   * @param start the position in the file to start reading from (must be &gt;= 0)
+   * @param stop the position in the file to read up to (any value &lt; 1 is treated as EOF)
    * @see #readStream(Promise, ByteBufAllocator, int)
    * @return a publisher of the byte bufs
    */

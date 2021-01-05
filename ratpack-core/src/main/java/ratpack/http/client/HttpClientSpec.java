@@ -48,7 +48,7 @@ public interface HttpClientSpec {
    * <p>
    * Defaults to 0.
    * <p>
-   * Setting this number to > 0 enables connection pooling (a.k.a. HTTP Keep Alive).
+   * Setting this number to &gt; 0 enables connection pooling (a.k.a. HTTP Keep Alive).
    * The given value dictates the number of connections to a given target, not the overall size.
    * Calling {@link HttpClient#close()} will close all current connections.
    *

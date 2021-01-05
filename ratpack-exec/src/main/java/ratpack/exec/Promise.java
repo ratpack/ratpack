@@ -2524,7 +2524,7 @@ public interface Promise<T> {
   }
 
   /**
-   * Specifies the action to take if the Promise signals {@link complete} without emitting a value or an error.
+   * Specifies the action to take if the Promise signals complete without emitting a value or an error.
    * <p>
    * If the given action throws an exception, the exception will be propagated to the Promise's {@link #onError}
    * method.

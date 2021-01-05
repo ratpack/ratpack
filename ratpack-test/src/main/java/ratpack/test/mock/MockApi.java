@@ -74,7 +74,7 @@ import ratpack.util.Exceptions;
  * {@link MockApi} is particularly powerful when combined with
  * Spock's {@code Mock} API by providing a Mock {@link HandlerFactory}
  * to this class. Interactions to a remote API can then be
- * validated inline to the {@link spock.lang.Specification} by
+ * validated inline to the specification by
  * verifying the invocations of the mock {@code HandlerFactory}.
  * <pre class="groovy">{@code
  * import ratpack.groovy.test.embed.GroovyEmbeddedApp

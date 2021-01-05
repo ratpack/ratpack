@@ -19,7 +19,12 @@ package ratpack.session;
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.RemovalListener;
-import com.google.inject.*;
+import com.google.inject.Binder;
+import com.google.inject.Key;
+import com.google.inject.Provides;
+import com.google.inject.Scopes;
+import com.google.inject.Singleton;
+import com.google.inject.TypeLiteral;
 import com.google.inject.name.Names;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.ByteBufAllocator;
@@ -155,7 +160,7 @@ public class SessionModule extends ConfigurableModule<SessionCookieConfig> {
   /**
    * A builder for an alternative cache for the default in memory store.
    * <p>
-   * This method can be used from within a custom {@link Module}.
+   * This method can be used from within a custom {@link com.google.inject.Module}.
    * <pre class="java">{@code
    * import com.google.inject.AbstractModule;
    * import ratpack.session.SessionModule;
