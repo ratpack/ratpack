@@ -5,7 +5,7 @@ buildscript {
   }
 
   dependencies {
-    classpath "org.jfrog.buildinfo:build-info-extractor-gradle:2.2.3"
+    classpath "org.jfrog.buildinfo:build-info-extractor-gradle:4.7.0"
 
     // Artifactory plugin pulls in very old Guava, which conflicts with child projects.
     // Force to newer version here.

@@ -1,6 +1,6 @@
 // Root project
 
-apply plugin: "artifactory"
+apply plugin: "com.jfrog.artifactory"
 
 artifactory {
   contextUrl = 'http://oss.jfrog.org'
