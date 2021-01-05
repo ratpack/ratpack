@@ -125,8 +125,12 @@ jacoco {
   toolVersion = "0.8.2"
 }
 
-task codeQuality {
-  dependsOn tasks.withType(CodeNarc), tasks.withType(Checkstyle)
+tasks.register("codeQuality") {
+  it.dependsOn tasks.withType(CodeNarc), tasks.withType(Checkstyle)
+}
+
+tasks.named("sanityCheck") {
+  it.dependsOn(tasks.named("codeQuality"))
 }
 
 jacocoTestReport {
