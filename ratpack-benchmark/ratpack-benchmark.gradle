@@ -24,17 +24,3 @@ dependencies {
 }
 
 description = "JMH project for writing micro benchmarks for any ratpack module."
-
-idea {
-  module {
-    sourceDirs += sourceSets.jmh.allSource.srcDirs
-    scopes.COMPILE.plus += [configurations.jmh]
-  }
-}
-
-eclipse {
-  classpath {
-    plusConfigurations += [configurations.jmh]
-  }
-}
-
