@@ -1,11 +1,9 @@
-configurations.all { configuration ->
-  resolutionStrategy {
-    gradle.taskGraph.whenReady { taskGraph ->
-      if (configuration.state != Configuration.State.RESOLVED && taskGraph.allTasks.every { it.name != "dependencies" } ) {
-        failOnVersionConflict()
-      }
-    }
+configurations.configureEach { Configuration configuration ->
+  if (!configuration.canBeResolved) {
+    return
+  }
 
+  resolutionStrategy {
     eachDependency {
       // JRuby (used by the manual) pulls in multiple versions of a few modules
       if (configuration.name == "jrubyExec") {
@@ -34,7 +32,7 @@ configurations.all { configuration ->
           it.selected.moduleVersion.group == "org.codehaus.groovy" &&
           it.selected.moduleVersion.name == "groovy" &&
           !configuration.name.startsWith("test") &&
-          project.name != "perf" && 
+          project.name != "perf" &&
           project.name != "ratpack-groovy" &&
           project.name != "ratpack-groovy-test" &&
           project.name != "ratpack-remote" &&
