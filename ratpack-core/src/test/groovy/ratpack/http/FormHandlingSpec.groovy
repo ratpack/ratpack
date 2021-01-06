@@ -76,6 +76,9 @@ class FormHandlingSpec extends RatpackGroovyDslSpec {
     }
     then:
     postText() == "[a:[b, c], d:[e], abc:[]]"
+
+    where:
+    i << [1] * 100
   }
 
   def "can read multi part forms"() {
