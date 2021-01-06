@@ -41,7 +41,7 @@ ext {
     commonsLogging   : "1.2",
     commonsCodec     : "1.10",
     xmlApis          : "1.4.01",
-    snakeyaml        : "1.23",
+    snakeyaml        : "1.27",
     prometheusClient : "0.2.0",
     shadow           : "5.2.0",
     commonsLang3     : "3.3.2"
