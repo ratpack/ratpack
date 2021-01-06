@@ -32,11 +32,11 @@ ext {
     reactiveStreams  : "1.0.3",
     guice            : "4.2.3",
     springBoot       : "1.3.0.RELEASE",
-    caffeine         : "2.8.5",
+    caffeine         : "2.8.8",
     retrofit         : "2.9.0",
     commonsLogging   : "1.2",
     commonsCodec     : "1.14",
-    snakeyaml        : "1.26",
+    snakeyaml        : "1.27",
     prometheusClient : "0.2.0",
     shadow           : "5.2.0",
     commonsLang3     : "3.10"

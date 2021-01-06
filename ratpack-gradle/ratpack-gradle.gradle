@@ -46,6 +46,8 @@ dependencies {
   }
 }
 
+apiModules.each { evaluationDependsOn(it.path) }
+
 test {
   dependsOn install
   dependsOn { apiModules*.install }

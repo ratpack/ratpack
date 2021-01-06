@@ -25,7 +25,7 @@ public class RatpackServerProxy {
 
   public static final String CAPTURER_CLASS_NAME = "ratpack.core.server.internal.ServerCapturer";
   public static final String BLOCK_CLASS_NAME = "ratpack.func.Block";
-  public static final String SERVER_CLASS_NAME = "ratpack.core.server.internal.DefaultRatpackServer";
+  public static final String SERVER_INTERFACE_NAME = "ratpack.core.server.RatpackServer";
   private final Object server;
 
   public RatpackServerProxy(Object server) {
@@ -59,18 +59,9 @@ public class RatpackServerProxy {
       throw new RuntimeException("main(String...) is not static on class: " + mainClassName);
     }
 
-    Class<?> capturer;
-    try {
-      capturer = classLoader.loadClass(CAPTURER_CLASS_NAME);
-    } catch (ClassNotFoundException e) {
-      throw new RuntimeException("could not load " + CAPTURER_CLASS_NAME, e);
-    }
-    Class<?> blockType;
-    try {
-      blockType = classLoader.loadClass(BLOCK_CLASS_NAME);
-    } catch (ClassNotFoundException e) {
-      throw new RuntimeException("could not load " + BLOCK_CLASS_NAME, e);
-    }
+    Class<?> capturer = loadClass(classLoader, CAPTURER_CLASS_NAME);
+    Class<?> blockType = loadClass(classLoader, BLOCK_CLASS_NAME);
+    Class<?> serverType = loadClass(classLoader, SERVER_INTERFACE_NAME);
 
     Method captureMethod;
     try {
@@ -103,11 +94,19 @@ public class RatpackServerProxy {
       throw new RuntimeException("main(String...) of " + mainClassName + " did not start a Ratpack server");
     }
 
-    if (!server.getClass().getName().equals(SERVER_CLASS_NAME)) {
-      throw new RuntimeException("Captured " + server.getClass().getName() + ", not " + SERVER_CLASS_NAME);
+    if (!serverType.isAssignableFrom(server.getClass())) {
+      throw new RuntimeException("Captured " + server.getClass().getName() + ", not a " + SERVER_INTERFACE_NAME);
     }
 
     return new RatpackServerProxy(server);
+  }
+
+  private static Class<?> loadClass(ClassLoader classLoader, String className) {
+    try {
+      return classLoader.loadClass(className);
+    } catch (ClassNotFoundException e) {
+      throw new RuntimeException("could not load " + className, e);
+    }
   }
 
   public boolean isRunning() {

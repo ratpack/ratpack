@@ -16,23 +16,24 @@
 
 package ratpack.exec.internal;
 
+import com.google.common.base.Stopwatch;
 import io.netty.util.internal.PlatformDependent;
-import ratpack.exec.*;
+import ratpack.exec.Downstream;
+import ratpack.exec.ExecResult;
+import ratpack.exec.Promise;
+import ratpack.exec.Result;
+import ratpack.exec.Upstream;
 import ratpack.func.Function;
 
-import java.time.Clock;
 import java.time.Duration;
-import java.time.Instant;
 import java.util.Queue;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicReference;
-import java.util.stream.Stream;
 
 public class CachingUpstream<T> implements Upstream<T> {
 
   private Upstream<? extends T> upstream;
 
-  private final Clock clock;
   private final AtomicReference<Loading> loadingRef = new AtomicReference<>(new Loading());
   private final Function<? super ExecResult<T>, Duration> ttlFunc;
 
@@ -40,55 +41,36 @@ public class CachingUpstream<T> implements Upstream<T> {
   private final Queue<Downstream<? super T>> waiting = PlatformDependent.newMpscQueue();
 
   public CachingUpstream(Upstream<? extends T> upstream, Function<? super ExecResult<T>, Duration> ttl) {
-    this(upstream, ttl, Clock.systemUTC());
-  }
-
-  private CachingUpstream(Upstream<? extends T> upstream, Function<? super ExecResult<T>, Duration> ttl, Clock clock) {
     this.upstream = upstream;
     this.ttlFunc = ttl;
-    this.clock = clock;
   }
 
-  private boolean shouldDrain() {
-    return !waiting.isEmpty() && loadingRef.get().getState() != LoadingState.PENDING;
-  }
-
-  // This uses lazy evaluation of lambdas in an infinite collection in order to
-  // create a tail-call optimization (http://blog.agiledeveloper.com/2013/01/functional-programming-in-java-is-quite.html)
   private void tryDrain() {
-    Stream.iterate(drain(), Drainer::get).filter(Drainer::done).findFirst();
-  }
-
-  private Drainer drain() {
-    if (!shouldDrain()) {
-      return new DrainerEnd();
-    } else {
-      return () -> {
-        if (draining.compareAndSet(false, true)) {
-          try {
-            if (!waiting.isEmpty()) {
-              Loading loading = loadingRef.get();
-              LoadingState state = loading.getState();
-              if (state == LoadingState.INIT) {
-                startLoad(loading);
-              } else if (state == LoadingState.EXPIRED) {
-                Loading newLoading = new Loading();
-                loadingRef.compareAndSet(loading, newLoading);
-                startLoad(loadingRef.get());
-              } else if (state == LoadingState.LOADED) {
-                Downstream<? super T> downstream = waiting.poll();
-                while (downstream != null) {
-                  downstream.accept(loading.cached.result);
-                  downstream = waiting.poll();
-                }
-              }
+    if (draining.compareAndSet(false, true)) {
+      try {
+        if (!waiting.isEmpty()) {
+          Loading loading = loadingRef.get();
+          LoadingState state = loading.getState();
+          if (state == LoadingState.INIT) {
+            startLoad(loading);
+          } else if (state == LoadingState.EXPIRED) {
+            Loading newLoading = new Loading();
+            loadingRef.compareAndSet(loading, newLoading);
+            startLoad(loadingRef.get());
+          } else if (state == LoadingState.LOADED) {
+            Downstream<? super T> downstream = waiting.poll();
+            while (downstream != null) {
+              downstream.accept(loading.cached.result);
+              downstream = waiting.poll();
             }
-          } finally {
-            draining.set(false);
           }
         }
-        return drain();
-      };
+      } finally {
+        draining.set(false);
+      }
+      if (!waiting.isEmpty() && loadingRef.get().getState() != LoadingState.PENDING) {
+        tryDrain();
+      }
     }
   }
 
@@ -147,17 +129,11 @@ public class CachingUpstream<T> implements Upstream<T> {
       }
     }
 
-    Instant expiresAt;
     if (ttl.isNegative()) {
-      expiresAt = null; // eternal
       upstream = null; // release
-    } else if (ttl.isZero()) {
-      expiresAt = clock.instant().minus(Duration.ofSeconds(1));
-    } else {
-      expiresAt = clock.instant().plus(ttl);
     }
 
-    loading.cached = new Cached<>(result, expiresAt);
+    loading.cached = new Cached<>(result, ttl);
     downstream.accept(result);
 
     tryDrain();
@@ -165,11 +141,21 @@ public class CachingUpstream<T> implements Upstream<T> {
 
   private static class Cached<T> {
     final ExecResult<T> result;
-    final Instant expireAt;
+    private final Duration ttl;
+    private final Stopwatch stopwatch;
 
-    Cached(ExecResult<T> result, Instant expireAt) {
+    Cached(ExecResult<T> result, Duration ttl) {
       this.result = result;
-      this.expireAt = expireAt;
+      this.ttl = ttl;
+      if (!ttl.isNegative()) {
+        this.stopwatch = Stopwatch.createStarted();
+      } else {
+        this.stopwatch = null;
+      }
+    }
+
+    boolean isExpired() {
+      return stopwatch != null && stopwatch.elapsed().compareTo(ttl) >= 0;
     }
   }
 
@@ -192,33 +178,14 @@ public class CachingUpstream<T> implements Upstream<T> {
           return LoadingState.INIT;
         }
       } else {
-        if (cached.expireAt == null || cached.expireAt.isAfter(clock.instant())) {
-          return LoadingState.LOADED;
-        } else {
+        if (cached.isExpired()) {
           return LoadingState.EXPIRED;
+        } else {
+          return LoadingState.LOADED;
         }
       }
     }
 
-  }
-
-  @FunctionalInterface
-  interface Drainer {
-    Drainer get();
-
-    default boolean done() {
-      return false;
-    }
-  }
-
-  static class DrainerEnd implements Drainer {
-    public Drainer get() {
-      throw new RuntimeException("should not drain");
-    }
-
-    public boolean done() {
-      return true;
-    }
   }
 
 }
