@@ -77,7 +77,7 @@ import java.util.concurrent.locks.ReadWriteLock;
  *               .get(() ->
  *                 FileIo.read(FileIo.open(f, READ, CREATE), allocator, 8192)
  *                   .apply(access::read)
- *                   .map(b -> { try { return b.toString(Charset.defaultCharset()) } finally { b.release(); })
+ *                   .map(b -> { try { return b.toString(Charset.defaultCharset()); } finally { b.release(); } })
  *                   .then(ctx::render)
  *               )
  *               .post(() ->
