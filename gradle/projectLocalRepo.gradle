@@ -18,6 +18,10 @@ plugins.withType(MavenPlugin) {
   ext.localRepoUrl = "${rootProject.buildDir.toURI()}/localrepo"
 
   install {
+    doFirst {
+      // Underlying wagon lib cannot deal with concurrent creation of this dir
+      file(localRepoUrl).mkdirs()
+    }
     repositories {
       mavenDeployer {
         repository(url: localRepoUrl)
