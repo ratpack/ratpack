@@ -115,21 +115,16 @@ data: Event 3
         })
 
         def stream = publish(1..1000).wiretap {
-          if (it.data) {
-            sentLatch.countDown()
-
-            // the client disconnecting doesn't close the netty channel for some reason, forcibly close it
-            clientClosedLatch.await()
-            context.directChannelAccess.channel.close()
-
-            // wait for the channel to close before letting the element through to the subscriber
-            channelClosedLatch.await()
-          } else if (it.cancel) {
+          if (it.cancel) {
             cancelLatch.countDown()
           }
         }
 
         render serverSentEvents(stream) {
+          if (it.item == 200) {
+            sentLatch.countDown()
+            clientClosedLatch.await()
+          }
           it.id({ it.toString() }).event("add").data({ "Event ${it}".toString() })
         }
       }
