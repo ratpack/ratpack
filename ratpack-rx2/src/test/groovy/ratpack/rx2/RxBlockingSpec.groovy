@@ -35,7 +35,7 @@ class RxBlockingSpec extends RatpackGroovyDslSpec {
     when:
     handlers {
       get(":value") {
-        single(Blocking.get {
+        RxRatpack.single(Blocking.get {
           pathTokens.value
         }) map {
           it * 2
@@ -58,7 +58,7 @@ class RxBlockingSpec extends RatpackGroovyDslSpec {
     }
     handlers {
       get(":value") {
-        single(Blocking.get {
+        RxRatpack.single(Blocking.get {
           pathTokens.value
         }) map {
           it * 2
@@ -82,7 +82,7 @@ class RxBlockingSpec extends RatpackGroovyDslSpec {
     }
     handlers {
       get(":value") {
-        single(Blocking.get {
+        RxRatpack.single(Blocking.get {
           pathTokens.value
         }) map {
           it * 2

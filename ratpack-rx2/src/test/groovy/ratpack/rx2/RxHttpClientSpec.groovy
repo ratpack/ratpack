@@ -35,7 +35,7 @@ class RxHttpClientSpec extends BaseHttpClientSpec {
     when:
     handlers {
       get { HttpClient httpClient ->
-        single(httpClient.get(otherAppUrl("foo"))).toFlowable() map({
+        RxRatpack.single(httpClient.get(otherAppUrl("foo"))).toFlowable() map({
           it.body.text.toUpperCase()
         } as Function) subscribe {
           render it
