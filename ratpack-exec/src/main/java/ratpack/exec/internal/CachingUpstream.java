@@ -71,10 +71,9 @@ public class CachingUpstream<T> implements Upstream<T> {
       } finally {
         draining.set(false);
       }
-    }
-
-    if (!waiting.isEmpty() && loadingRef.get().getState() != LoadingState.PENDING) {
-      tryDrain();
+      if (!waiting.isEmpty() && loadingRef.get().getState() != LoadingState.PENDING) {
+        tryDrain();
+      }
     }
   }
 
