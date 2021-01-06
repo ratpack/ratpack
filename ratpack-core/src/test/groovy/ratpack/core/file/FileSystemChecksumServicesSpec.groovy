@@ -24,12 +24,12 @@ import ratpack.core.file.internal.FileSystemChecksumServices
 import ratpack.core.server.ServerConfig
 import ratpack.test.embed.EphemeralBaseDir
 import spock.lang.AutoCleanup
-import spock.lang.Specification
+import ratpack.test.internal.BaseRatpackSpec
 
 import java.nio.file.InvalidPathException
 import java.nio.file.NoSuchFileException
 
-class FileSystemChecksumServicesSpec extends Specification {
+class FileSystemChecksumServicesSpec extends BaseRatpackSpec {
 
   @Rule
   TemporaryFolder temporaryFolder

@@ -20,11 +20,11 @@ import io.netty.channel.Channel
 import io.netty.channel.ChannelConfig
 import io.netty.channel.ChannelPipeline
 import ratpack.exec.Execution
-import spock.lang.Specification
+import ratpack.test.internal.BaseRatpackSpec
 
 import java.time.Duration
 
-class NoopFixedChannelPoolHandlerSpec extends Specification {
+class NoopFixedChannelPoolHandlerSpec extends BaseRatpackSpec {
 
   Execution execution = Mock(Execution)
   URI uri = new URI('https://ratpack.io')

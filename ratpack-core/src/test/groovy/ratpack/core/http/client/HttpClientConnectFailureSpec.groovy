@@ -16,7 +16,7 @@
 
 package ratpack.core.http.client
 
-import io.netty.buffer.PooledByteBufAllocator
+import io.netty.buffer.ByteBufAllocator
 import ratpack.test.embed.EmbeddedApp
 import ratpack.test.exec.ExecHarness
 import ratpack.test.internal.EmbeddedRatpackSpec
@@ -34,7 +34,7 @@ class HttpClientConnectFailureSpec extends EmbeddedRatpackSpec {
 
   def "should not leak request ByteBuf on connect failure"() {
     setup:
-    def requestBody = PooledByteBufAllocator.DEFAULT.buffer().writeBytes("test".bytes)
+    def requestBody = ByteBufAllocator.DEFAULT.buffer().writeBytes("test".bytes)
     def http = HttpClient.of {}
 
     when:

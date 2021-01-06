@@ -19,9 +19,9 @@ package ratpack.config.internal.source
 import com.fasterxml.jackson.databind.node.ObjectNode
 import ratpack.config.internal.DefaultConfigDataBuilder
 import ratpack.config.FileSystemBinding
-import spock.lang.Specification
+import ratpack.test.internal.BaseRatpackSpec
 
-class ArgsConfigSourceSpec extends Specification {
+class ArgsConfigSourceSpec extends BaseRatpackSpec {
 
   def "can use args"() {
     when:

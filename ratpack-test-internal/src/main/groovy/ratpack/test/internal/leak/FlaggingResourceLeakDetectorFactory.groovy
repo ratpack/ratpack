@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 the original author or authors.
+ * Copyright 2021 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,27 +14,28 @@
  * limitations under the License.
  */
 
-package ratpack.test.internal
+package ratpack.test.internal.leak
 
 import groovy.transform.CompileStatic
 import io.netty.util.ResourceLeakDetector
 import io.netty.util.ResourceLeakDetectorFactory
 
-import java.util.concurrent.atomic.AtomicReference
+import java.util.concurrent.ConcurrentLinkedQueue
 
 @CompileStatic
 class FlaggingResourceLeakDetectorFactory extends ResourceLeakDetectorFactory {
 
-  private final AtomicReference<Boolean> flag
-
-  FlaggingResourceLeakDetectorFactory(AtomicReference<Boolean> flag) {
-    this.flag = flag
+  static void install() {
+    ResourceLeakDetector.setLevel(ResourceLeakDetector.Level.PARANOID)
+    ResourceLeakDetectorFactory.resourceLeakDetectorFactory = new FlaggingResourceLeakDetectorFactory()
   }
+
+  public static final Queue<String> LEAKS = new ConcurrentLinkedQueue<>()
 
   @Override
   @SuppressWarnings("UnnecessaryPublicModifier")
-  public <T> ResourceLeakDetector<T> newResourceLeakDetector(Class<T> resource, int samplingInterval, long maxActive) {
-    return new FlaggingResourceLeakDetector<T>(resource, samplingInterval, maxActive, flag)
+  <T> ResourceLeakDetector<T> newResourceLeakDetector(Class<T> resource, int samplingInterval, long maxActive) {
+    return new FlaggingResourceLeakDetector<T>(resource, samplingInterval, LEAKS)
   }
 
 }

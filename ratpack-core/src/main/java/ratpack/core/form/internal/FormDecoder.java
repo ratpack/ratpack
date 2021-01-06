@@ -49,25 +49,19 @@ public abstract class FormDecoder {
     HttpMethod method = io.netty.handler.codec.http.HttpMethod.valueOf(request.getMethod().getName());
     HttpRequest nettyRequest = new DefaultHttpRequest(HttpVersion.HTTP_1_1, method, request.getUri());
     nettyRequest.headers().add(HttpHeaderNames.CONTENT_TYPE, body.getContentType().toString());
-    HttpPostRequestDecoder decoder = new HttpPostRequestDecoder(nettyRequest);
-
-    HttpContent content = new DefaultHttpContent(body.getBuffer());
-
-    decoder.offer(content);
-    decoder.offer(LastHttpContent.EMPTY_LAST_CONTENT);
 
     Map<String, List<String>> attributes = new LinkedHashMap<>(base.getAll());
     Map<String, List<UploadedFile>> files = new LinkedHashMap<>();
 
+    HttpPostRequestDecoder decoder = new HttpPostRequestDecoder(nettyRequest);
     try {
+      HttpContent content = new DefaultHttpContent(body.getBuffer());
+      decoder.offer(content);
+      decoder.offer(LastHttpContent.EMPTY_LAST_CONTENT);
       InterfaceHttpData data = decoder.next();
       while (data != null) {
         if (data.getHttpDataType().equals(InterfaceHttpData.HttpDataType.Attribute)) {
-          List<String> values = attributes.get(data.getName());
-          if (values == null) {
-            values = new ArrayList<>(1);
-            attributes.put(data.getName(), values);
-          }
+          List<String> values = attributes.computeIfAbsent(data.getName(), k -> new ArrayList<>(1));
           try {
             values.add(((Attribute) data).getValue());
           } catch (IOException e) {

@@ -20,11 +20,11 @@ import com.google.common.io.Resources
 import ratpack.core.impose.Impositions
 import ratpack.core.server.internal.DefaultServerConfigBuilder
 import ratpack.core.server.internal.ServerEnvironment
-import spock.lang.Specification
+import ratpack.test.internal.BaseRatpackSpec
 
 import java.nio.file.Paths
 
-class ServerConfigBuilderEnvVarsSpec extends Specification {
+class ServerConfigBuilderEnvVarsSpec extends BaseRatpackSpec {
 
   private static ServerConfig build(Map<String, String> source, String env = ServerConfigBuilder.DEFAULT_ENV_PREFIX) {
     new DefaultServerConfigBuilder(new ServerEnvironment(source, new Properties()), Impositions.none()).env(env).build()

@@ -292,13 +292,6 @@ distTar {
   version = null
 }
 
-idea {
-  module {
-    testSourceDirs += sourceSets.browserTest.allSource.srcDirs
-    scopes.TEST.plus += [configurations.browserTestCompile]
-  }
-}
-
 run {
   if (it.getClass().name.startsWith("ratpack.gradle.continuous.RatpackContinuousRun")) {
     flattenClassloaders = true

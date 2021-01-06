@@ -16,7 +16,10 @@
 
 package ratpack.exec.stream.bytebuf;
 
-import io.netty.buffer.*;
+import io.netty.buffer.ByteBuf;
+import io.netty.buffer.ByteBufAllocator;
+import io.netty.buffer.ByteBufUtil;
+import io.netty.buffer.CompositeByteBuf;
 import org.reactivestreams.Publisher;
 import ratpack.exec.Promise;
 import ratpack.func.Action;
@@ -40,7 +43,7 @@ public class ByteBufStreams {
   /**
    * Buffers and composes byte bufs together into composites before emitting.
    * <p>
-   * Calls {@link #buffer(Publisher, long, int, ByteBufAllocator)} with {@link PooledByteBufAllocator#DEFAULT}
+   * Calls {@link #buffer(Publisher, long, int, ByteBufAllocator)} with {@link ByteBufAllocator#DEFAULT}
    *
    * @param publisher the publisher of byte bufs to buffer
    * @param sizeWatermark the watermark size for a composite
@@ -48,7 +51,7 @@ public class ByteBufStreams {
    * @return a byte buf composing publisher
    */
   public static TransformablePublisher<CompositeByteBuf> buffer(Publisher<? extends ByteBuf> publisher, long sizeWatermark, int maxNum) {
-    return buffer(publisher, sizeWatermark, maxNum, PooledByteBufAllocator.DEFAULT);
+    return buffer(publisher, sizeWatermark, maxNum, ByteBufAllocator.DEFAULT);
   }
 
   /**
@@ -75,13 +78,13 @@ public class ByteBufStreams {
   /**
    * Reduces the stream to a single composite byte buf.
    * <p>
-   * Calls {@link #compose(Publisher, ByteBufAllocator)} with {@link PooledByteBufAllocator#DEFAULT}.
+   * Calls {@link #compose(Publisher, ByteBufAllocator)} with {@link ByteBufAllocator#DEFAULT}.
    *
    * @param publisher the stream
    * @return the reduced composite buffer
    */
   public static Promise<CompositeByteBuf> compose(Publisher<? extends ByteBuf> publisher) {
-    return compose(publisher, PooledByteBufAllocator.DEFAULT);
+    return compose(publisher, ByteBufAllocator.DEFAULT);
   }
 
   /**

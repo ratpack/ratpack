@@ -17,7 +17,6 @@
 package ratpack.core.http.client;
 
 import io.netty.buffer.ByteBufAllocator;
-import io.netty.buffer.PooledByteBufAllocator;
 import ratpack.core.server.ServerConfig;
 import ratpack.exec.Operation;
 import ratpack.func.Action;
@@ -36,7 +35,7 @@ public interface HttpClientSpec {
   /**
    * The buffer allocator to use.
    * <p>
-   * Defaults to {@link PooledByteBufAllocator#DEFAULT}.
+   * Defaults to {@link ByteBufAllocator#DEFAULT}.
    *
    * @param byteBufAllocator the buffer allocator
    * @return {@code this}
@@ -48,7 +47,7 @@ public interface HttpClientSpec {
    * <p>
    * Defaults to 0.
    * <p>
-   * Setting this number to > 0 enables connection pooling (a.k.a. HTTP Keep Alive).
+   * Setting this number to &gt; 0 enables connection pooling (a.k.a. HTTP Keep Alive).
    * The given value dictates the number of connections to a given target, not the overall size.
    * Calling {@link HttpClient#close()} will close all current connections.
    *

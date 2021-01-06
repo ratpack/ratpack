@@ -16,17 +16,17 @@
 
 package ratpack.session.clientside.internal
 
+import io.netty.buffer.ByteBufAllocator
 import io.netty.buffer.ByteBufUtil
 import io.netty.buffer.Unpooled
 import io.netty.util.CharsetUtil
 import ratpack.session.clientside.ClientSideSessionConfig
-import ratpack.test.internal.TestByteBufAllocators
-import spock.lang.Specification
+import ratpack.test.internal.BaseRatpackSpec
 
 import static ratpack.session.clientside.ClientSideSessionSpec.SUPPORTED_ALGORITHMS
 import static ratpack.session.clientside.ClientSideSessionSpec.keyLength
 
-class DefaultCryptoSpec extends Specification {
+class DefaultCryptoSpec extends BaseRatpackSpec {
 
   def "can roundtrip data with #algorithm"() {
     given:
@@ -41,10 +41,15 @@ class DefaultCryptoSpec extends Specification {
       for (int i = 0; i < 50; i++) {
         byte[] plaintextBytes = randomBytes(len, zeroAllowed)
         def plaintext = Unpooled.wrappedBuffer(plaintextBytes)
-        def encrypted = crytpo.encrypt(plaintext, TestByteBufAllocators.LEAKING_UNPOOLED_HEAP)
-        def decrypted = crytpo.decrypt(encrypted, TestByteBufAllocators.LEAKING_UNPOOLED_HEAP)
-        def decryptedBytes = ByteBufUtil.getBytes(decrypted)
-        assert Arrays.equals(plaintextBytes, decryptedBytes)
+        def encrypted = crytpo.encrypt(plaintext, ByteBufAllocator.DEFAULT)
+        def decrypted = crytpo.decrypt(encrypted, ByteBufAllocator.DEFAULT)
+        try {
+          def decryptedBytes = ByteBufUtil.getBytes(decrypted)
+          assert Arrays.equals(plaintextBytes, decryptedBytes)
+        } finally {
+          encrypted.release()
+          decrypted.release()
+        }
       }
     }
 

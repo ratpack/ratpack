@@ -17,10 +17,10 @@
 package ratpack.core.server.internal
 
 import ratpack.test.embed.EphemeralBaseDir
+import ratpack.test.internal.BaseRatpackSpec
 import spock.lang.AutoCleanup
-import spock.lang.Specification
 
-class BaseDirFinderSpec extends Specification {
+class BaseDirFinderSpec extends BaseRatpackSpec {
 
   @AutoCleanup
   EphemeralBaseDir b1 = EphemeralBaseDir.tmpDir()

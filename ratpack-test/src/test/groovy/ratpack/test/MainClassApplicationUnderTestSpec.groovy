@@ -20,9 +20,9 @@ import ratpack.core.impose.ImpositionsSpec
 import ratpack.core.impose.ServerConfigImposition
 import ratpack.core.server.RatpackServer
 import ratpack.core.server.ServerConfig
-import spock.lang.Specification
+import ratpack.test.internal.BaseRatpackSpec
 
-class MainClassApplicationUnderTestSpec extends Specification {
+class MainClassApplicationUnderTestSpec extends BaseRatpackSpec {
 
   class Main {
     public static void main(String[] args) {

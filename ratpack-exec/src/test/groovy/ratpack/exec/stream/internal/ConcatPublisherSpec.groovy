@@ -16,11 +16,11 @@
 
 package ratpack.exec.stream.internal
 
-import spock.lang.Specification
+import ratpack.test.internal.BaseRatpackSpec
 
 import static ratpack.exec.stream.Streams.concat
 
-class ConcatPublisherSpec extends Specification {
+class ConcatPublisherSpec extends BaseRatpackSpec {
 
   def "can concatenate publishers into a single stream"() {
     given:

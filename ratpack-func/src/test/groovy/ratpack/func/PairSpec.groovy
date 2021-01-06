@@ -16,11 +16,11 @@
 
 package ratpack.func
 
-import spock.lang.Specification
+import ratpack.test.internal.BaseRatpackSpec
 
 import static ratpack.func.Pair.*
 
-class PairSpec extends Specification {
+class PairSpec extends BaseRatpackSpec {
 
   def "can create and transform pair"() {
     given:

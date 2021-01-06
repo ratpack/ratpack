@@ -16,6 +16,8 @@
 
 package ratpack.core.sse.internal
 
+
+import io.netty.buffer.ByteBufAllocator
 import io.netty.util.CharsetUtil
 import org.reactivestreams.Publisher
 import ratpack.core.sse.Event
@@ -25,7 +27,6 @@ import ratpack.func.Action
 import ratpack.exec.stream.Streams
 import ratpack.exec.stream.internal.CollectingSubscriber
 import ratpack.test.internal.RatpackGroovyDslSpec
-import ratpack.test.internal.TestByteBufAllocators
 
 import java.util.concurrent.CountDownLatch
 import java.util.concurrent.atomic.AtomicReference
@@ -36,7 +37,10 @@ class ServerSentEventStreamEncoderSpec extends RatpackGroovyDslSpec {
 
   def "can encode valid server sent events"() {
     expect:
-    encoder.encode(sse, TestByteBufAllocators.LEAKING_UNPOOLED_HEAP).toString(CharsetUtil.UTF_8) == expectedEncoding
+    def byteBuf = encoder.encode(sse, ByteBufAllocator.DEFAULT)
+    def string = byteBuf.toString(CharsetUtil.UTF_8)
+    byteBuf.release()
+    string == expectedEncoding
 
     where:
     sse                                                                                             | expectedEncoding

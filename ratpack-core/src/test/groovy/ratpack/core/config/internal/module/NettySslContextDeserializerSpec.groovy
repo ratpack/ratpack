@@ -22,12 +22,12 @@ import com.fasterxml.jackson.databind.node.JsonNodeFactory
 import com.fasterxml.jackson.databind.node.ObjectNode
 import org.junit.Rule
 import org.junit.rules.TemporaryFolder
-import spock.lang.Specification
+import ratpack.test.internal.BaseRatpackSpec
 
 import java.nio.file.Path
 import java.security.KeyStore
 
-class NettySslContextDeserializerSpec extends Specification {
+class NettySslContextDeserializerSpec extends BaseRatpackSpec {
 
   @Rule
   TemporaryFolder tempFolder

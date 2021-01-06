@@ -16,9 +16,9 @@
 
 package ratpack.exec.registry
 
-import spock.lang.Specification
+import ratpack.test.internal.BaseRatpackSpec
 
-class RegistryBuilderSpec extends Specification {
+class RegistryBuilderSpec extends BaseRatpackSpec {
 
   def "can retrieve successfully"() {
     given:

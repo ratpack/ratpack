@@ -17,20 +17,20 @@
 package ratpack.exec.stream.bytebuf
 
 import io.netty.buffer.ByteBuf
+import io.netty.buffer.ByteBufAllocator
 import io.netty.buffer.Unpooled
-import io.netty.buffer.UnpooledByteBufAllocator
 import ratpack.exec.stream.StreamEvent
 import ratpack.exec.stream.Streams
 import ratpack.exec.stream.internal.CollectingSubscriber
-import spock.lang.Specification
+import ratpack.test.internal.BaseRatpackSpec
 
-class ByteBufComposingPublisherSpec extends Specification {
+class ByteBufComposingPublisherSpec extends BaseRatpackSpec {
 
   def "can batch requests to publisher"() {
     given:
     List<StreamEvent<ByteBuf>> events = []
     def upstream = Streams.yield { it.requestNum < 4 ? Unpooled.copyLong(it.requestNum) : null }.wiretap(events.&add)
-    def p = ByteBufStreams.buffer(upstream, 20, 5, UnpooledByteBufAllocator.DEFAULT)
+    def p = ByteBufStreams.buffer(upstream, 20, 5, ByteBufAllocator.DEFAULT)
     def s = CollectingSubscriber.subscribe(p)
 
     when:

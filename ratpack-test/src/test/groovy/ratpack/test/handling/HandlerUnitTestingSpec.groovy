@@ -30,7 +30,7 @@ import ratpack.core.handling.Handler
 import ratpack.core.handling.RequestOutcome
 import ratpack.exec.registry.Registry
 import ratpack.test.http.MultipartFormSpec
-import spock.lang.Specification
+import ratpack.test.internal.BaseRatpackSpec
 import spock.util.concurrent.BlockingVariable
 
 import java.util.concurrent.CountDownLatch
@@ -39,7 +39,7 @@ import java.util.concurrent.TimeUnit
 import static ratpack.groovy.Groovy.groovyHandler
 import static ratpack.core.handling.Handlers.chain
 
-class HandlerUnitTestingSpec extends Specification {
+class HandlerUnitTestingSpec extends BaseRatpackSpec {
 
   GroovyRequestFixture fixture = GroovyRequestFixture.requestFixture()
 

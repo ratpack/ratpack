@@ -16,7 +16,6 @@
 
 package ratpack.retrofit
 
-import io.netty.buffer.UnpooledByteBufAllocator
 import ratpack.core.error.ServerErrorHandler
 import ratpack.core.error.internal.DefaultDevelopmentErrorHandler
 import ratpack.exec.Promise
@@ -28,16 +27,16 @@ import ratpack.exec.registry.RegistrySpec
 import ratpack.core.server.ServerConfig
 import ratpack.test.embed.EmbeddedApp
 import ratpack.test.exec.ExecHarness
+import ratpack.test.internal.BaseRatpackSpec
 import retrofit2.Response
 import retrofit2.http.GET
 import retrofit2.http.POST
 import spock.lang.AutoCleanup
-import spock.lang.Specification
 import spock.lang.Unroll
 
 import java.time.Duration
 
-class RatpackRetrofitSpec extends Specification {
+class RatpackRetrofitSpec extends BaseRatpackSpec {
 
   interface Service {
     @GET("/")
@@ -74,7 +73,6 @@ class RatpackRetrofitSpec extends Specification {
 
   HttpClient client() {
     HttpClient.of {
-      it.byteBufAllocator(UnpooledByteBufAllocator.DEFAULT)
       it.maxContentLength(ServerConfig.DEFAULT_MAX_CONTENT_LENGTH)
       it.connectTimeout(Duration.ofMillis(3000))
       it.readTimeout(Duration.ofMillis(3000))
@@ -232,7 +230,6 @@ class RatpackRetrofitSpec extends Specification {
     if (connectTimeout != null) {
       builder.httpClient {
         HttpClient.of {
-          it.byteBufAllocator(UnpooledByteBufAllocator.DEFAULT)
           it.maxContentLength(ServerConfig.DEFAULT_MAX_CONTENT_LENGTH)
           it.connectTimeout(Duration.ofMillis(connectTimeout))
           it.readTimeout(Duration.ofMillis(3000))
@@ -280,7 +277,6 @@ class RatpackRetrofitSpec extends Specification {
     if (readTimeout != null) {
       builder.httpClient {
         HttpClient.of {
-          it.byteBufAllocator(UnpooledByteBufAllocator.DEFAULT)
           it.maxContentLength(ServerConfig.DEFAULT_MAX_CONTENT_LENGTH)
           it.connectTimeout(Duration.ofMillis(3000))
           it.readTimeout(Duration.ofMillis(readTimeout))

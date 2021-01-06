@@ -18,11 +18,11 @@ package ratpack.exec.stream.internal
 
 import ratpack.exec.stream.StreamEvent
 import ratpack.exec.stream.Streams
-import spock.lang.Specification
+import ratpack.test.internal.BaseRatpackSpec
 
 import static ratpack.exec.stream.Streams.flatten
 
-class FlattenPublisherSpec extends Specification {
+class FlattenPublisherSpec extends BaseRatpackSpec {
 
   def "can flatten publishers into a single stream"() {
     given:

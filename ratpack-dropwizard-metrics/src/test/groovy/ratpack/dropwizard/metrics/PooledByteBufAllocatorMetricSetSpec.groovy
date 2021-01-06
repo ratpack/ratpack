@@ -19,9 +19,9 @@ package ratpack.dropwizard.metrics
 import com.codahale.metrics.Gauge
 import io.netty.buffer.PooledByteBufAllocator
 import ratpack.dropwizard.metrics.internal.PooledByteBufAllocatorMetricSet
-import spock.lang.Specification
+import ratpack.test.internal.BaseRatpackSpec
 
-class PooledByteBufAllocatorMetricSetSpec extends Specification {
+class PooledByteBufAllocatorMetricSetSpec extends BaseRatpackSpec {
 
   def "initialize metric set"() {
     given:

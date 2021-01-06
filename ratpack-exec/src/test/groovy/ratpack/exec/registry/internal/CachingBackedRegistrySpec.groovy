@@ -18,13 +18,13 @@ package ratpack.exec.registry.internal
 
 import com.google.common.base.Supplier
 import com.google.common.reflect.TypeToken
-import ratpack.func.Function
 import ratpack.exec.registry.NotInRegistryException
 import ratpack.exec.registry.RegistryBacking
+import ratpack.func.Function
 import ratpack.func.Types
-import spock.lang.Specification
+import ratpack.test.internal.BaseRatpackSpec
 
-class CachingBackedRegistrySpec extends Specification {
+class CachingBackedRegistrySpec extends BaseRatpackSpec {
   def r = new CachingBackedRegistryTestImpl()
 
   def "empty registry"() {

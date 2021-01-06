@@ -21,10 +21,10 @@ import org.junit.Rule
 import org.junit.rules.TemporaryFolder
 import ratpack.core.server.RatpackServer
 import ratpack.core.server.ServerConfig
+import ratpack.test.internal.BaseRatpackSpec
 import spock.lang.IgnoreIf
-import spock.lang.Specification
 
-class DefaultRatpackServiceSpec extends Specification {
+class DefaultRatpackServiceSpec extends BaseRatpackSpec {
 
   @Rule
   TemporaryFolder temporaryFolder

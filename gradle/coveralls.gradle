@@ -1,0 +1,34 @@
+// Root project
+
+repositories {
+  jcenter()
+}
+
+if (project.hasProperty("jacocoReport")) {
+  evaluationDependsOnChildren()
+
+  apply plugin: "com.github.kt3k.coveralls"
+  apply plugin: "jacoco"
+
+  task jacocoReport(type: JacocoReport) {
+    def projects = subprojects.findAll { it.plugins.hasPlugin(JacocoPlugin) && it.file("src/test").exists() }
+
+    dependsOn projects*.test
+
+    sourceDirectories.from(files(projects*.sourceSets*.main*.allSource))
+    classDirectories.from(files(projects*.sourceSets*.main*.output))
+    executionData.from(files(projects*.jacocoTestReport*.executionData))
+
+    reports {
+      html.enabled = true
+      xml.enabled = true
+      csv.enabled = false
+    }
+  }
+} else {
+  tasks.register("jacocoReport") {
+    doFirst {
+      throw new GradleException("-PjacocoReport argument also required to produce report")
+    }
+  }
+}

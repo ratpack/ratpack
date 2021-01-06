@@ -19,13 +19,13 @@ package ratpack.config.server
 import com.google.common.io.ByteSource
 import ratpack.config.ConfigData
 import ratpack.core.server.ServerConfig
-import spock.lang.Specification
+import ratpack.test.internal.BaseRatpackSpec
 
 import java.nio.file.Path
 
 import static com.google.common.base.Charsets.UTF_8
 
-abstract class ConfigUsageSpec extends Specification {
+abstract class ConfigUsageSpec extends BaseRatpackSpec {
   protected static ConfigData noData() {
     ConfigData.of {}
   }

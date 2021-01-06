@@ -21,11 +21,11 @@ import io.netty.handler.ssl.SslContext
 import ratpack.core.impose.Impositions
 import ratpack.core.server.internal.DefaultServerConfigBuilder
 import ratpack.core.server.internal.ServerEnvironment
-import spock.lang.Specification
+import ratpack.test.internal.BaseRatpackSpec
 
 import java.nio.file.Paths
 
-class ServerConfigBuilderSystemPropertiesSpec extends Specification {
+class ServerConfigBuilderSystemPropertiesSpec extends BaseRatpackSpec {
 
   ServerConfigBuilder builder
   def properties

@@ -16,12 +16,12 @@
 
 package ratpack.func
 
-import spock.lang.Specification
+import ratpack.test.internal.BaseRatpackSpec
 
 import static ratpack.func.Action.conditional
 import static ratpack.func.Action.noop
 
-class ActionSpec extends Specification {
+class ActionSpec extends BaseRatpackSpec {
 
   def "can conditional execute actions"() {
     given:

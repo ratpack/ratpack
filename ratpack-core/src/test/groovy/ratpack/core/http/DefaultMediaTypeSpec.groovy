@@ -17,11 +17,11 @@
 package ratpack.core.http
 
 import ratpack.core.http.internal.DefaultMediaType
-import spock.lang.Specification
+import ratpack.test.internal.BaseRatpackSpec
 
 import java.nio.charset.Charset
 
-class DefaultMediaTypeSpec extends Specification {
+class DefaultMediaTypeSpec extends BaseRatpackSpec {
 
   def "parsing"() {
     expect:

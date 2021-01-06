@@ -27,9 +27,9 @@ checkstyle {
   configProperties.checkstyleConfigDir = checkstyleConfigDir
 }
 
-plugins.withType(GroovyBasePlugin) {
+plugins.withType(GroovyBasePlugin).configureEach {
   sourceSets.all { sourceSet ->
-    task "${sourceSet.getTaskName('checkstyle', 'groovy')}"(type: Checkstyle) {
+    tasks.register("${sourceSet.getTaskName('checkstyle', 'groovy')}", Checkstyle) {
       configFile = new File(checkstyleConfigDir, "checkstyle-groovy.xml")
       source sourceSet.allGroovy
       classpath = sourceSet.compileClasspath
@@ -40,10 +40,10 @@ plugins.withType(GroovyBasePlugin) {
 
 def checkstyleTasks = tasks.withType(Checkstyle)
 
-task checkstyle(dependsOn: checkstyleTasks)
+tasks.register("checkstyle") { dependsOn checkstyleTasks }
 
-check.dependsOn checkstyleTasks
+tasks.named("check").configure { dependsOn checkstyleTasks }
 
-tasks.withType(Test) {
+tasks.withType(Test).configureEach {
   mustRunAfter checkstyleTasks
 }

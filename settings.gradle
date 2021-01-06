@@ -13,6 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+plugins {
+  id "com.gradle.enterprise" version "3.5"
+}
 
 enableFeaturePreview("GROOVY_COMPILATION_AVOIDANCE")
 

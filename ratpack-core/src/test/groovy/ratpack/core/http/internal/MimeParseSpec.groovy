@@ -16,9 +16,9 @@
 
 package ratpack.core.http.internal
 
-import spock.lang.Specification
+import ratpack.test.internal.BaseRatpackSpec
 
-class MimeParseSpec extends Specification {
+class MimeParseSpec extends BaseRatpackSpec {
 
   def "matching"() {
     expect:

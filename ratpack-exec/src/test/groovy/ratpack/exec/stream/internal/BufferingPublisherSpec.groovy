@@ -19,12 +19,12 @@ package ratpack.exec.stream.internal
 import org.reactivestreams.Subscription
 import ratpack.func.Action
 import ratpack.func.Function
-import spock.lang.Specification
+import ratpack.test.internal.BaseRatpackSpec
 
 import java.util.concurrent.ConcurrentLinkedQueue
 import java.util.concurrent.CountDownLatch
 
-class BufferingPublisherSpec extends Specification {
+class BufferingPublisherSpec extends BaseRatpackSpec {
 
   BufferedWriteStream<Integer> writeStream = null
   long requested

@@ -19,11 +19,13 @@ package ratpack.site
 import groovy.util.logging.Slf4j
 import ratpack.site.crawl.Crawler
 import ratpack.site.crawl.PrettyPrintCollection
+import ratpack.test.internal.BaseRatpackSpec
+import ratpack.test.internal.spock.InheritedTimeout
 import ratpack.exec.util.RatpackVersion
-import spock.lang.Specification
 
 @Slf4j
-class LinkCrawlSpec extends Specification {
+@InheritedTimeout(180)
+class LinkCrawlSpec extends BaseRatpackSpec {
 
   def "site has no bad links"() {
     given:

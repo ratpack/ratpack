@@ -8,6 +8,6 @@ codenarc {
   configFile rootProject.file('gradle/codenarc/codenarc.groovy')
 }
 
-codenarcTest {
+tasks.named("codenarcTest") {
   configFile rootProject.file('gradle/codenarc/codenarcTest.groovy')
 }

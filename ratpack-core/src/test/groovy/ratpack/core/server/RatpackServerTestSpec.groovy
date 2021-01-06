@@ -26,14 +26,14 @@ import ratpack.groovy.test.embed.GroovyEmbeddedApp
 import ratpack.test.ServerBackedApplicationUnderTest
 import ratpack.test.embed.EmbeddedApp
 import ratpack.test.http.TestHttpClient
+import ratpack.test.internal.BaseRatpackSpec
 import spock.lang.AutoCleanup
-import spock.lang.Specification
 
 import java.util.concurrent.Callable
 import java.util.concurrent.Executors
 import java.util.concurrent.atomic.AtomicInteger
 
-class RatpackServerTestSpec extends Specification {
+class RatpackServerTestSpec extends BaseRatpackSpec {
 
   @AutoCleanup("stop")
   RatpackServer server

@@ -17,14 +17,14 @@
 package ratpack.test.http
 
 import ratpack.test.http.internal.DefaultMultipartForm
-import spock.lang.Specification
+import ratpack.test.internal.BaseRatpackSpec
 import spock.lang.Unroll
 
 /*
     As defined in RFC 1867 and 2388 (see https://tools.ietf.org/html/rfc1867)
  */
 
-class DefaultMultipartFormSpec extends Specification {
+class DefaultMultipartFormSpec extends BaseRatpackSpec {
 
     def 'form with single field'() {
         given:

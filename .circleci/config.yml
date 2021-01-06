@@ -32,7 +32,7 @@ jobs:
 
       - run:
           name: Test & Build
-          command: ./gradlew build jacocoReport --continue --max-workers=4 --build-cache -PpublishToSlack
+          command: ./gradlew build jacocoReport -PjacocoReport --continue --max-workers=4 --build-cache -PpublishToSlack
 
       - save_cache:
           paths:

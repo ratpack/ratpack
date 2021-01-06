@@ -19,13 +19,12 @@ package ratpack.consul
 import com.google.common.net.HostAndPort
 import ratpack.groovy.test.embed.GroovyEmbeddedApp
 import ratpack.test.embed.EmbeddedApp
+import ratpack.test.internal.BaseRatpackSpec
 import spock.lang.AutoCleanup
-import spock.lang.Specification
 
 import static ratpack.core.jackson.Jackson.json
 
-
-class ConsulConfigSpec extends Specification {
+class ConsulConfigSpec extends BaseRatpackSpec {
 
   @AutoCleanup
   EmbeddedApp consul = GroovyEmbeddedApp.of {
@@ -52,21 +51,22 @@ class ConsulConfigSpec extends Specification {
   }
 
   Map<String, String> data = [
-    "yaml": 'name: app-yaml',
-    "json": '{"name": "app-json"}',
+    "yaml" : 'name: app-yaml',
+    "json" : '{"name": "app-json"}',
     "props": 'name=app-properties'
   ]
 
   def "can read yaml config from Consul"() {
     given:
     EmbeddedApp app = GroovyEmbeddedApp.of {
-        serverConfig {
-          port 0
-          yaml RatpackConsulConfig.value("yaml") { builder -> builder
-            builder.withHostAndPort(HostAndPort.fromParts("localhost", consul.address.port))
-          }
-          require("", AppConfig)
+      serverConfig {
+        port 0
+        yaml RatpackConsulConfig.value("yaml") { builder ->
+          builder
+          builder.withHostAndPort(HostAndPort.fromParts("localhost", consul.address.port))
         }
+        require("", AppConfig)
+      }
       handlers {
         get { AppConfig config ->
           render json(config)

@@ -1,25 +1,11 @@
-configurations.all { configuration ->
-  resolutionStrategy {
-    gradle.taskGraph.whenReady { taskGraph ->
-      if (configuration.state != Configuration.State.RESOLVED && taskGraph.allTasks.every { it.name != "dependencies" } ) {
-        failOnVersionConflict()
-      }
-    }
+configurations.configureEach { Configuration configuration ->
+  if (!configuration.canBeResolved) {
+    return
+  }
 
-    eachDependency {
-      // JRuby (used by the manual) pulls in multiple versions of a few modules
-      if (configuration.name == "jrubyExec") {
-        if (requested.name == "jcodings" && requested.group == "org.jruby.jcodings") {
-          useVersion "1.0.10"
-        }
-        if (requested.name == "jnr-ffi" && requested.group == "com.github.jnr") {
-          useVersion "1.0.10"
-        }
-        if (requested.name == "jnr-constants" && requested.group == "com.github.jnr") {
-          useVersion "0.8.5"
-        }
-      }
-      if (configuration.name == "codenarc") {
+  if (configuration.name == "codenarc") {
+    resolutionStrategy {
+      eachDependency {
         if (requested.group == "org.codehaus.groovy") {
           useVersion commonVersions.groovy
         }
@@ -27,21 +13,26 @@ configurations.all { configuration ->
     }
   }
 
-  incoming.afterResolve { incoming ->
-    incoming.resolutionResult.allDependencies {
-      if (it instanceof ResolvedDependencyResult) {
-        if (configuration.name != "codenarc" &&
-          it.selected.moduleVersion.group == "org.codehaus.groovy" &&
+  if (
+  configuration.name != "codenarc" && !configuration.name.startsWith("test")
+    && !(project.name in [
+    "perf", "ratpack-groovy", "ratpack-groovy-test",
+    "ratpack-site", "ratpack-test-internal"
+  ])
+
+  ) {
+    incoming.afterResolve { incoming ->
+      incoming.resolutionResult.allDependencies {
+        if (it instanceof ResolvedDependencyResult) {
+          if (
           it.selected.moduleVersion.name == "groovy" &&
-          !configuration.name.startsWith("test") &&
-          project.name != "perf" &&
-          project.name != "ratpack-groovy" &&
-          project.name != "ratpack-groovy-test" &&
-          project.name != "ratpack-site" &&
-          project.name != "ratpack-test-internal") {
-          throw new InvalidUserDataException("groovy in dependency graph of $configuration.name of project $project.name")
+            it.selected.moduleVersion.group == "org.codehaus.groovy"
+          ) {
+            throw new InvalidUserDataException("groovy in dependency graph of $configuration.name of project $project.name")
+          }
         }
       }
     }
   }
+
 }

@@ -20,11 +20,11 @@ import com.fasterxml.jackson.databind.node.ObjectNode
 import ratpack.config.internal.DefaultConfigDataBuilder
 import ratpack.config.FileSystemBinding
 import ratpack.core.server.internal.ServerEnvironment
-import spock.lang.Specification
+import ratpack.test.internal.BaseRatpackSpec
 
 import static ratpack.config.ConfigDataBuilder.DEFAULT_ENV_PREFIX
 
-class EnvironmentConfigSourceSpec extends Specification {
+class EnvironmentConfigSourceSpec extends BaseRatpackSpec {
   private static final SAMPLE_ENV_VARS = [USER: "jdoe", SHELL: "/bin/bash", LANG: "en_US.UTF-8"]
 
   def "supports empty prefix"() {

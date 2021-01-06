@@ -22,10 +22,10 @@ import ratpack.exec.registry.Registry
 import ratpack.func.Utils
 import ratpack.test.ServerBackedApplicationUnderTest
 import ratpack.test.http.TestHttpClient
+import ratpack.test.internal.BaseRatpackSpec
 import spock.lang.AutoCleanup
-import spock.lang.Specification
 
-class ServerDefinitionErrorSpec extends Specification {
+class ServerDefinitionErrorSpec extends BaseRatpackSpec {
 
   @AutoCleanup("stop")
   RatpackServer server

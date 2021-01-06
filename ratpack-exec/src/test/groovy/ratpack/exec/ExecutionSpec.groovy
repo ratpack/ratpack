@@ -23,8 +23,8 @@ import org.reactivestreams.Subscription
 import ratpack.func.Action
 import ratpack.exec.stream.Streams
 import ratpack.test.exec.ExecHarness
+import ratpack.test.internal.BaseRatpackSpec
 import spock.lang.AutoCleanup
-import spock.lang.Specification
 
 import java.util.concurrent.CompletableFuture
 import java.util.concurrent.CountDownLatch
@@ -32,7 +32,7 @@ import java.util.concurrent.atomic.AtomicBoolean
 import java.util.concurrent.atomic.AtomicInteger
 import java.util.concurrent.atomic.AtomicLong
 
-class ExecutionSpec extends Specification {
+class ExecutionSpec extends BaseRatpackSpec {
 
   @AutoCleanup
   ExecHarness harness = ExecHarness.harness()

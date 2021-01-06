@@ -30,27 +30,23 @@ dependencies {
 sourceCompatibility = "1.8"
 targetCompatibility = "1.8"
 
-tasks.withType(AbstractCompile) {
+tasks.withType(AbstractCompile).configureEach {
   options.incremental = true
   options.compilerArgs << "-Werror" << "-Xlint:all" << "-Xlint:-options" << "-Xlint:-serial"
   options.compilerArgs << "-Xlint:-classfile" // Needed due to https://issues.jboss.org/browse/JASSIST-245
 }
 
 if (project.path != ":ratpack-benchmark") {
-  tasks.withType(JavaCompile) {
+  tasks.withType(JavaCompile).configureEach {
     options.compilerArgs = ["-proc:none"]
   }
-  tasks.withType(GroovyCompile) {
-    groovyOptions.forkOptions.memoryMaximumSize = "512m"
-    if (isCi) {
-      groovyOptions.forkOptions.memoryMaximumSize = "256m"
-    }
+  tasks.withType(GroovyCompile).configureEach {
+    groovyOptions.forkOptions.memoryMaximumSize = "256m"
     options.compilerArgs = ["-proc:none"]
-    allprojects { mustRunAfter tasks.withType(CodeNarc) }
   }
 }
 
-tasks.withType(Javadoc) {
+tasks.withType(Javadoc).configureEach {
   options.encoding = "utf-8"
   options.docEncoding = "utf-8"
   options.charSet = "utf-8"
@@ -65,30 +61,29 @@ tasks.withType(Javadoc) {
   }
 }
 
-javadoc {
+tasks.named("javadoc", Javadoc) {
   options.links "http://ratpack.io/manual/${version - "-SNAPSHOT"}/api"
 }
 
-task sourceJar(type: Jar) {
+tasks.register("sourceJar", Jar) {
   description "An archive of the source code for Maven Central"
   classifier "sources"
   from sourceSets.main.allSource
 }
 
-task javadocJar(type: Jar) {
+tasks.register("javadocJar", Jar) {
   description "An archive of the JavaDocs for Maven Central"
   classifier "javadoc"
   from javadoc
 }
 
 artifacts {
-  published javadocJar, sourceJar, jar
+  published tasks.named("javadocJar"), tasks.named("sourceJar"), tasks.named("jar")
 }
 
-tasks.withType(Test) {
-  allprojects {
-    mustRunAfter tasks.withType(Checkstyle)
-  }
+tasks.withType(Test).configureEach {
+  systemProperty "io.netty.allocator.type", "unpooled"
+  systemProperty "io.netty.leakDetectionLevel", "paranoid"
 
   jvmArgs "-Xss320k", "-XX:MaxDirectMemorySize=64m"
   minHeapSize "256m"
@@ -104,13 +99,14 @@ tasks.withType(Test) {
     }
   }
 
-  doFirst {
-    if (isCloudCi) {
-      systemProperty "cloudCi", "true"
-      testLogging {
-        events "started", "failed"
-      }
+  if (isCloudCi) {
+    systemProperty "cloudCi", "true"
+    testLogging {
+      events "started", "failed"
     }
+  }
+
+  doFirst {
 
     // Workaround https://github.com/gradle/gradle/issues/1893
     // Without this, we get Gradle's logging in our tests when we actually want log4j.
@@ -125,15 +121,19 @@ jacoco {
   toolVersion = "0.8.2"
 }
 
-task codeQuality {
-  dependsOn tasks.withType(CodeNarc), tasks.withType(Checkstyle)
+tasks.register("codeQuality") {
+  it.dependsOn tasks.withType(CodeNarc), tasks.withType(Checkstyle)
 }
 
-jacocoTestReport {
-  additionalSourceDirs.from(files(sourceSets.main.allSource.srcDirs))
-  sourceDirectories.from(files(sourceSets.main.allSource.srcDirs))
-  classDirectories.from(files(sourceSets.main.output))
-  reports {
+tasks.named("sanityCheck") {
+  it.dependsOn(tasks.named("codeQuality"))
+}
+
+tasks.named("jacocoTestReport", JacocoReport) {
+  it.additionalSourceDirs.from(files(sourceSets.main.allSource.srcDirs))
+  it.sourceDirectories.from(files(sourceSets.main.allSource.srcDirs))
+  it.classDirectories.from(files(sourceSets.main.output))
+  it.reports {
     html.enabled = true
     xml.enabled = true
     csv.enabled = false

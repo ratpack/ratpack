@@ -18,12 +18,12 @@ package ratpack.config
 
 import org.junit.Rule
 import org.junit.rules.TemporaryFolder
-import spock.lang.Specification
+import ratpack.test.internal.BaseRatpackSpec
 
 import java.nio.file.Path
 import java.security.KeyStore
 
-abstract class BaseConfigSpec extends Specification {
+abstract class BaseConfigSpec extends BaseRatpackSpec {
   @Rule
   TemporaryFolder tempFolder
 

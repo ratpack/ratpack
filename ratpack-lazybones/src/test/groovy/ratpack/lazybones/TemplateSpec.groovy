@@ -21,10 +21,10 @@ import org.junit.rules.TemporaryFolder
 import ratpack.lazybones.fixture.LazybonesTemplateRatpackApp
 import ratpack.lazybones.fixture.TestConfig
 import ratpack.test.http.TestHttpClient
+import ratpack.test.internal.BaseRatpackSpec
 import spock.lang.AutoCleanup
-import spock.lang.Specification
 
-class TemplateSpec extends Specification {
+class TemplateSpec extends BaseRatpackSpec {
 
   TestConfig testConfig = new TestConfig()
 

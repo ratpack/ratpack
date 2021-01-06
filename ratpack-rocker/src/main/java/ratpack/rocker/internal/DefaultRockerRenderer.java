@@ -22,9 +22,9 @@ import com.fizzed.rocker.runtime.ArrayOfByteArraysOutput;
 import com.google.common.collect.Iterables;
 import com.google.inject.Singleton;
 import io.netty.buffer.ByteBuf;
+import io.netty.buffer.ByteBufAllocator;
 import io.netty.buffer.CompositeByteBuf;
 import io.netty.buffer.Unpooled;
-import io.netty.buffer.UnpooledByteBufAllocator;
 import io.netty.util.AsciiString;
 import ratpack.core.handling.Context;
 import ratpack.core.render.RendererException;
@@ -55,7 +55,7 @@ public final class DefaultRockerRenderer extends RendererSupport<RockerModel> im
         byteBuf = Unpooled.wrappedBuffer(arrays.get(0));
       } else {
         byteBuf = new CompositeByteBuf(
-          UnpooledByteBufAllocator.DEFAULT,
+          ByteBufAllocator.DEFAULT,
           false,
           size,
           Iterables.transform(arrays, Unpooled::wrappedBuffer)

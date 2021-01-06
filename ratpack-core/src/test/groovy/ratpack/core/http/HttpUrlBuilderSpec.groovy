@@ -19,10 +19,10 @@ package ratpack.core.http
 import com.google.common.collect.ImmutableMultimap
 import ratpack.func.internal.ImmutableDelegatingMultiValueMap
 import ratpack.groovy.internal.ClosureUtil
-import spock.lang.Specification
+import ratpack.test.internal.BaseRatpackSpec
 import spock.lang.Unroll
 
-class HttpUrlBuilderSpec extends Specification {
+class HttpUrlBuilderSpec extends BaseRatpackSpec {
 
   String build(@DelegatesTo(HttpUrlBuilder) Closure<?> closure) {
     def builder = HttpUrlBuilder.http()

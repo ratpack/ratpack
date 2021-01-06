@@ -229,7 +229,7 @@ public interface Request extends MutableRegistry {
    * <p>
    * The following demonstrates how to use this method to stream the request body to a file, using asynchronous IO.
    *
-   * <pre class="java">
+   * <pre class="java">{@code
    * import com.google.common.io.Files;
    * import io.netty.buffer.ByteBuf;
    * import org.apache.commons.lang3.RandomStringUtils;
@@ -322,7 +322,7 @@ public interface Request extends MutableRegistry {
    *     });
    *   }
    * }
-   * </pre>
+   * }</pre>
    *
    * @return a publisher of the request body
    * @see #getBodyStream(long)

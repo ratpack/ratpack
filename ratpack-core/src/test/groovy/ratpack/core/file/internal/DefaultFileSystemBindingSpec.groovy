@@ -19,14 +19,14 @@ package ratpack.core.file.internal
 import org.junit.Rule
 import org.junit.rules.TemporaryFolder
 import ratpack.config.FileSystemBinding
-import spock.lang.Specification
+import ratpack.test.internal.BaseRatpackSpec
 
 import java.nio.file.Files
 import java.nio.file.Path
 import java.nio.file.Paths
 import java.util.stream.Stream
 
-class DefaultFileSystemBindingSpec extends Specification {
+class DefaultFileSystemBindingSpec extends BaseRatpackSpec {
 
   static Stream<String> dupeDecode(String payload) {
     String decoded = null

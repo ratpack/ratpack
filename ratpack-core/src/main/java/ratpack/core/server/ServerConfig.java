@@ -332,7 +332,7 @@ public interface ServerConfig extends ConfigData {
    * This timeout affects several aspects.
    *
    * <h4>Reading</h4>
-   * <p
+   * <p>
    * After making a connection, this timeout will fire if the client does not send any data within the timeout value.
    * This includes the initial headers and the body.
    * This may occur because the application has not requested more data.

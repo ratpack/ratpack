@@ -22,11 +22,11 @@ import org.reactivestreams.Subscription
 import ratpack.exec.Blocking
 import ratpack.reactor.ReactorRatpack
 import ratpack.test.exec.ExecHarness
+import ratpack.test.internal.BaseRatpackSpec
 import reactor.core.publisher.Flux
 import spock.lang.AutoCleanup
-import spock.lang.Specification
 
-class ReactorPublisherSpec extends Specification {
+class ReactorPublisherSpec extends BaseRatpackSpec {
 
   @AutoCleanup
   ExecHarness harness = ExecHarness.harness()

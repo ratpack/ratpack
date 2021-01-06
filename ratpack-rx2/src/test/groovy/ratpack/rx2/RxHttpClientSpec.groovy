@@ -20,6 +20,8 @@ import io.reactivex.functions.Function
 import ratpack.core.http.client.HttpClient
 import ratpack.http.client.BaseHttpClientSpec
 
+import static ratpack.rx2.RxRatpack.single
+
 class RxHttpClientSpec extends BaseHttpClientSpec {
 
   def setup() {

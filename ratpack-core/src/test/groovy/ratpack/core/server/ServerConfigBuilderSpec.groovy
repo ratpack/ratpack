@@ -19,11 +19,11 @@ package ratpack.core.server
 import io.netty.handler.ssl.SslContext
 import io.netty.handler.ssl.SslContextBuilder
 import ratpack.core.ssl.internal.SslContexts
-import spock.lang.Specification
+import ratpack.test.internal.BaseRatpackSpec
 
 import java.nio.file.Paths
 
-class ServerConfigBuilderSpec extends Specification {
+class ServerConfigBuilderSpec extends BaseRatpackSpec {
 
   ServerConfigBuilder builder
 

@@ -20,13 +20,13 @@ import ratpack.exec.Blocking
 import ratpack.exec.Execution
 import ratpack.exec.Promise
 import ratpack.test.exec.ExecHarness
+import ratpack.test.internal.BaseRatpackSpec
 import spock.lang.AutoCleanup
-import spock.lang.Specification
 
 import java.util.concurrent.ConcurrentLinkedQueue
 import java.util.concurrent.atomic.AtomicInteger
 
-class BatchSpec extends Specification {
+class BatchSpec extends BaseRatpackSpec {
 
   @AutoCleanup
   ExecHarness exec = ExecHarness.harness()

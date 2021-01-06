@@ -19,9 +19,9 @@ package ratpack.core.server
 import ratpack.exec.registry.Registry
 import ratpack.groovy.Groovy
 import ratpack.test.ServerBackedApplicationUnderTest
-import spock.lang.Specification
+import ratpack.test.internal.BaseRatpackSpec
 
-class ServerRegistrySpec extends Specification {
+class ServerRegistrySpec extends BaseRatpackSpec {
 
   def "can create user registry from base registry"() {
     when:

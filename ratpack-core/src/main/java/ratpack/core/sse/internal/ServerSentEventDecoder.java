@@ -30,7 +30,7 @@ import java.util.List;
 
 public class ServerSentEventDecoder implements AutoCloseable {
 
-  private static final ByteBuf NEWLINE_BYTEBUF = Unpooled.wrappedBuffer(new byte[]{'\n'});
+  private static final ByteBuf NEWLINE_BYTEBUF = Unpooled.unreleasableBuffer(Unpooled.wrappedBuffer(new byte[]{'\n'}));
   private static final char[] EVENT_ID_FIELD_NAME = "event".toCharArray();
   private static final char[] DATA_FIELD_NAME = "data".toCharArray();
   private static final char[] ID_FIELD_NAME = "id".toCharArray();
@@ -83,6 +83,7 @@ public class ServerSentEventDecoder implements AutoCloseable {
   public void decode(ByteBuf in) throws Exception {
     if (state == State.Closed) {
       in.release();
+      return;
     }
 
     try {
@@ -230,38 +231,46 @@ public class ServerSentEventDecoder implements AutoCloseable {
     if (bufs.isEmpty()) {
       return null;
     } else {
-      String str;
-      if (bufs.size() == 1) {
-        str = bufs.get(0).toString(StandardCharsets.UTF_8);
-      } else {
-        CompositeByteBuf composite = allocator.compositeBuffer(bufs.size() * 2 - 1);
-        Iterator<ByteBuf> iterator = bufs.iterator();
-        composite.addComponent(true, iterator.next());
-        while (iterator.hasNext()) {
-          composite.addComponent(true, NEWLINE_BYTEBUF.retainedDuplicate());
-          composite.addComponent(true, iterator.next());
+      try {
+        String str;
+        if (bufs.size() == 1) {
+          ByteBuf buf = bufs.get(0);
+          str = buf.toString(StandardCharsets.UTF_8);
+          buf.release();
+        } else {
+          CompositeByteBuf composite = allocator.compositeBuffer(bufs.size() * 2 - 1);
+          try {
+            Iterator<ByteBuf> iterator = bufs.iterator();
+            composite.addComponent(true, iterator.next());
+            while (iterator.hasNext()) {
+              composite.addComponent(true, NEWLINE_BYTEBUF);
+              composite.addComponent(true, iterator.next());
+            }
+            str = composite.toString(StandardCharsets.UTF_8);
+          } finally {
+            composite.release();
+          }
         }
-        str = composite.toString(StandardCharsets.UTF_8);
+        return str;
+      } finally {
+        bufs.clear();
       }
-      bufs.forEach(ByteBuf::release);
-      bufs.clear();
-      return str;
     }
   }
 
   private static Type readCurrentFieldTypeFromBuffer(final ByteBuf fieldNameBuffer) {
-        /*
-         * This code tries to eliminate the need of creating a string from the ByteBuf as the field names are very
-         * constrained. The algorithm is as follows:
-         *
-         * -- Scan the bytes in the buffer.
-         * -- Ignore an leading whitespaces
-         * -- If the first byte matches the expected field names then use the matching field name char array to verify
-         * the rest of the field name.
-         * -- If the first byte does not match, reject the field name.
-         * -- After the first byte, exact match the rest of the field name with the expected field name, byte by byte.
-         * -- If the name does not exactly match the expected value, then reject the field name.
-         */
+    /*
+     * This code tries to eliminate the need of creating a string from the ByteBuf as the field names are very
+     * constrained. The algorithm is as follows:
+     *
+     * -- Scan the bytes in the buffer.
+     * -- Ignore an leading whitespaces
+     * -- If the first byte matches the expected field names then use the matching field name char array to verify
+     * the rest of the field name.
+     * -- If the first byte does not match, reject the field name.
+     * -- After the first byte, exact match the rest of the field name with the expected field name, byte by byte.
+     * -- If the name does not exactly match the expected value, then reject the field name.
+     */
     Type toReturn = Type.Data;
     skipLineDelimiters(fieldNameBuffer);
     int readableBytes = fieldNameBuffer.readableBytes();

@@ -18,10 +18,10 @@ package ratpack.exec
 
 import ratpack.func.Pair
 import ratpack.test.exec.ExecHarness
+import ratpack.test.internal.BaseRatpackSpec
 import spock.lang.AutoCleanup
-import spock.lang.Specification
 
-class PromisePairSpec extends Specification {
+class PromisePairSpec extends BaseRatpackSpec {
 
   @AutoCleanup
   ExecHarness harness = ExecHarness.harness()

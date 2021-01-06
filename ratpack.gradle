@@ -1,35 +1,11 @@
-/*
- * Copyright 2013 the original author or authors.
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *    http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
-import java.util.concurrent.atomic.AtomicBoolean
-import java.util.concurrent.locks.ReentrantLock
-
 buildscript {
   repositories {
     jcenter()
-    maven {
-      url "https://plugins.gradle.org/m2/"
-    }
+    gradlePluginPortal()
   }
 
   dependencies {
-    classpath "org.jfrog.buildinfo:build-info-extractor-gradle:2.2.3"
-
-    // Artifactory plugin pulls in very old Guava, which conflicts with child projects.
-    // Force to newer version here.
-    classpath 'com.google.guava:guava:21.0'
+    classpath "org.jfrog.buildinfo:build-info-extractor-gradle:4.18.3"
 
     classpath 'org.apache.commons:commons-lang3:3.6'
 
@@ -38,9 +14,7 @@ buildscript {
   }
 }
 
-allprojects {
-  version = "2.0.0-SNAPSHOT"
-}
+version = "2.0.0-SNAPSHOT"
 
 ext {
   isSnapshot = version.endsWith("SNAPSHOT")
@@ -101,118 +75,37 @@ if (!JavaVersion.current().java11Compatible) {
   throw new IllegalStateException("Must be built with Java 11 or higher")
 }
 
-apply plugin: "artifactory"
-apply plugin: "com.github.kt3k.coveralls"
-apply plugin: "com.github.ben-manes.versions"
+gradle.beforeProject {
+  it.with {
+    group = "io.ratpack"
 
-artifactory {
-  contextUrl = 'http://oss.jfrog.org'
-}
+    apply plugin: "base"
+    apply from: "$rootDir/gradle/dependencyRules.gradle"
+    apply plugin: "com.github.ben-manes.versions"
 
-artifactoryPublish { task ->
-  gradle.taskGraph.whenReady { taskGraph ->
-    def startParameter = project.gradle.startParameter
-    if (taskGraph.hasTask(task) && startParameter.parallelProjectExecutionEnabled && startParameter.maxWorkerCount > 1) {
-      throw new IllegalStateException("cannot run " + task + " with --parallel and --max-workers > 1")
-    }
-  }
-  skip true
-}
-
-task bintrayPublish() {
-  doLast {
-    if (!project.hasProperty("ratpackBintrayUser")) {
-      throw new InvalidUserDataException("You must provide ratpackBintrayUser")
+    repositories {
+      jcenter()
+      maven { url 'https://oss.jfrog.org/artifactory/repo' }
     }
 
-    if (!project.hasProperty("ratpackBintrayApiKey")) {
-      throw new InvalidUserDataException("You must provide ratpackBintrayApiKey")
+    configurations {
+      published
     }
 
-    if (!project.hasProperty('buildNumber')) {
-      throw new GradleException("Must provide buildNumber of a release binary from oss.jfrog.org")
-    }
-
-    def curl = ['curl',
-                '-X', 'POST',
-                "-u", "${ratpackBintrayUser}:${ratpackBintrayApiKey}",
-                "https://oss.jfrog.org/api/plugins/build/promote/releaseToBintray/ratpack/$buildNumber?params=org=ratpack;repo=maven;package=ratpack"
-    ].execute()
-    println "Received response: ${curl.text}"
-  }
-}
-
-allprojects {
-  group = "io.ratpack"
-
-  apply plugin: "base"
-  apply plugin: "idea"
-  apply plugin: "eclipse"
-  apply from: "$rootDir/gradle/dependencyRules.gradle"
-  apply plugin: "com.github.ben-manes.versions"
-
-  repositories {
-    jcenter()
-    maven { url 'https://oss.jfrog.org/artifactory/repo' }
-  }
-
-  configurations {
-    published
-  }
-
-  if (isCi) {
     tasks.withType(JavaExec) {
       maxHeapSize = "1g"
     }
-  }
-}
 
-apply from: "gradle/idea/idea.gradle"
+    tasks.register("sanityCheck")
 
-apply from: "gradle/dependencies.gradle"
-
-subprojects {
-  apply from: "$rootDir/gradle/ratpackLocal.gradle"
-  if (project in publishedModules) {
-    apply from: "$rootDir/gradle/publish.gradle"
-  }
-}
-
-evaluationDependsOnChildren()
-
-apply plugin: "jacoco"
-task jacocoReport(type: org.gradle.testing.jacoco.tasks.JacocoReport) {
-  def projects = subprojects.findAll { it.plugins.hasPlugin(JacocoPlugin) && it.file("src/test").exists() }
-
-  dependsOn projects*.test
-
-  sourceDirectories.from(files(projects*.sourceSets*.main*.allSource))
-  classDirectories.from(files(projects*.sourceSets*.main*.output))
-  executionData.from(files(projects*.jacocoTestReport*.executionData))
-
-  reports {
-    html.enabled = true
-    xml.enabled = true
-    csv.enabled = false
-  }
-}
-
-task downloadDependencies() {
-  doLast {
-    allprojects { p ->
-      configurations.each { c ->
-        if (c.canBeResolved) {
-          println "Downloading dependencies for $p.path - $c.name"
-          c.files
-        }
-      }
+    apply from: "$rootDir/gradle/ratpackLocal.gradle"
+    if (project in publishedModules) {
+      apply from: "$rootDir/gradle/publish-module.gradle"
     }
   }
 }
 
-task sanityCheck { t ->
-  allprojects {
-    dependsOn it.tasks.withType(CodeNarc)
-    dependsOn it.tasks.withType(Checkstyle)
-  }
-}
+apply from: "gradle/idea.gradle"
+apply from: "gradle/publish.gradle"
+apply from: "gradle/dependencies.gradle"
+apply from: "gradle/coveralls.gradle"

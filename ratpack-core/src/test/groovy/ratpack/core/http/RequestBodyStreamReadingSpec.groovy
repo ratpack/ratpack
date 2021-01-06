@@ -17,7 +17,6 @@
 package ratpack.core.http
 
 import io.netty.buffer.ByteBuf
-import io.netty.buffer.PooledByteBufAllocator
 import io.netty.buffer.Unpooled
 import org.apache.commons.lang3.RandomStringUtils
 import org.reactivestreams.Publisher
@@ -352,7 +351,7 @@ class RequestBodyStreamReadingSpec extends RatpackGroovyDslSpec {
     def error = new BlockingVariable<Throwable>()
     handlers {
       all { ctx ->
-        ByteBufStreams.compose(request.bodyStream, PooledByteBufAllocator.DEFAULT)
+        ByteBufStreams.compose(request.bodyStream)
           .onError { error.set(it); response.send() }
           .then { response.send(it) }
       }

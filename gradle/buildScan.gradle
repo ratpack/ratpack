@@ -13,18 +13,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-buildscript {
-  repositories {
-    gradlePluginPortal()
-  }
-
-  dependencies {
-    classpath "com.gradle:gradle-enterprise-gradle-plugin:3.5"
-  }
-}
-
-apply plugin: com.gradle.enterprise.gradleplugin.GradleEnterprisePlugin
-
 def env = System.getenv()
 def publishToSlack = gradle.startParameter.projectProperties.publishToSlack != null
 

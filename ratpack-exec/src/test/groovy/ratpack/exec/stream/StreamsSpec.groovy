@@ -26,8 +26,8 @@ import ratpack.func.Function
 import ratpack.exec.stream.internal.BufferingPublisher
 import ratpack.exec.stream.internal.CollectingSubscriber
 import ratpack.test.exec.ExecHarness
+import ratpack.test.internal.BaseRatpackSpec
 import spock.lang.AutoCleanup
-import spock.lang.Specification
 
 import java.time.Duration
 import java.util.concurrent.CountDownLatch
@@ -36,7 +36,7 @@ import java.util.concurrent.LinkedBlockingDeque
 import static ratpack.exec.stream.Streams.*
 import static ratpack.test.exec.ExecHarness.yieldSingle
 
-class StreamsSpec extends Specification {
+class StreamsSpec extends BaseRatpackSpec {
 
   @AutoCleanup
   ExecHarness harness = ExecHarness.harness()
