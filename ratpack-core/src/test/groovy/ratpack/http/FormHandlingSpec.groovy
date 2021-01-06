@@ -220,7 +220,7 @@ class FormHandlingSpec extends RatpackGroovyDslSpec {
     postText() == "File type: text/plain; charset=us-ascii"
   }
 
-  def "Error for #message"() {
+  def "parsed form is immutable -  #message"() {
     given:
     handlers {
       post(handler)
