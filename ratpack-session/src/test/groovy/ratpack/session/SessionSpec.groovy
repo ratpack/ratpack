@@ -265,21 +265,25 @@ class SessionSpec extends RatpackGroovyDslSpec {
     when:
     handlers {
       get("set") { Session session ->
-        session.set("test", "foo").then { render context.get(SessionStore).size().map { it.toString() } }
+        session.set("test", "foo").then { next() }
       }
       get("empty") { Session session ->
-        session.remove("test").then { render context.get(SessionStore).size().map { it.toString() } }
+        session.remove("test").then { next() }
       }
       get("get") { Session session ->
-        session.get("test").then { render context.get(SessionStore).size().map { it.toString() } }
+        session.get("test").then { next() }
+      }
+      all {
+        render context.get(SessionStore).size().map { it.toString() }
       }
     }
 
     then:
-    getText("set") == "0" // 0 because not yet stored
-    getText("get") == "1"
-    getText("empty") == "1" // 1 because not yet stored
-    getText("get") == "0"
+    // -1 for store impls that don't support size
+    getText("set") in ["-1", "0"] // 0 because not yet stored
+    getText("get") in ["-1", "1"]
+    getText("empty") in ["-1", "1"] // 1 because not yet stored
+    getText("get") in ["-1", "0"]
   }
 
   def "session cookies are all Secure, can be transmitted via secure protocol"() {
