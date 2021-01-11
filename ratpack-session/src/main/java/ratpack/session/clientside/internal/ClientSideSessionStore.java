@@ -57,6 +57,7 @@ public class ClientSideSessionStore implements SessionStore {
 
   private final CookieOrdering latCookieOrdering;
   private final CookieOrdering dataCookieOrdering;
+  private final long expirySeconds;
 
   private static class CookieOrdering extends Ordering<Cookie> {
     private final int prefixLen;
@@ -84,6 +85,7 @@ public class ClientSideSessionStore implements SessionStore {
     this.bufferAllocator = bufferAllocator;
     this.cookieConfig = cookieConfig;
     this.config = config;
+    this.expirySeconds = cookieConfig.getExpires() == null ? 0 : cookieConfig.getExpires().getSeconds();
 
     this.latCookieOrdering = new CookieOrdering(config.getLastAccessTimeCookieName());
     this.dataCookieOrdering = new CookieOrdering(config.getSessionCookieName());
@@ -96,7 +98,7 @@ public class ClientSideSessionStore implements SessionStore {
       int oldSessionCookiesCount = cookieStorage.data.size();
       String[] sessionCookiePartitions = serialize(sessionData);
       for (int i = 0; i < sessionCookiePartitions.length; i++) {
-        addCookie(config.getSessionCookieName() + "_" + i, sessionCookiePartitions[i]);
+        setCookie(config.getSessionCookieName() + "_" + i, sessionCookiePartitions[i]);
       }
       for (int i = sessionCookiePartitions.length; i < oldSessionCookiesCount; i++) {
         invalidateCookie(config.getSessionCookieName() + "_" + i);
@@ -173,7 +175,7 @@ public class ClientSideSessionStore implements SessionStore {
       int oldCookiesCount = cookieStorage.lastAccessToken.size();
       String[] partitions = serialize(data);
       for (int i = 0; i < partitions.length; i++) {
-        addCookie(config.getLastAccessTimeCookieName() + "_" + i, partitions[i]);
+        setCookie(config.getLastAccessTimeCookieName() + "_" + i, partitions[i]);
       }
       for (int i = partitions.length; i < oldCookiesCount; i++) {
         invalidateCookie(config.getLastAccessTimeCookieName() + "_" + i);
@@ -320,34 +322,37 @@ public class ClientSideSessionStore implements SessionStore {
   }
 
   private void invalidateCookie(String name) {
-    Cookie cookie = response.get().expireCookie(name);
-    if (cookieConfig.getPath() != null) {
-      cookie.setPath(cookieConfig.getPath());
-    }
-    if (cookieConfig.getDomain() != null) {
-      cookie.setDomain(cookieConfig.getDomain());
-    }
-    cookie.setHttpOnly(cookieConfig.isHttpOnly());
-    cookie.setSecure(cookieConfig.isSecure());
+    Cookie cookie = responseCookie(name);
+    cookie.setValue("");
+    cookie.setMaxAge(0);
   }
 
-  private void addCookie(String name, String value) {
-    Response r = response.get();
-    Cookie cookie = r.getCookies().stream().filter(c -> c.name().equals(name)).findFirst().orElseGet(() -> r.cookie(name, value));
+  private void setCookie(String name, String value) {
+    Cookie cookie = responseCookie(name);
     cookie.setValue(value);
-
-    if (cookieConfig.getPath() != null) {
-      cookie.setPath(cookieConfig.getPath());
-    }
-    if (cookieConfig.getDomain() != null) {
-      cookie.setDomain(cookieConfig.getDomain());
-    }
-
-    long expirySeconds = cookieConfig.getExpires() == null ? 0 : cookieConfig.getExpires().getSeconds();
     if (expirySeconds > 0) {
       cookie.setMaxAge(expirySeconds);
     }
-    cookie.setHttpOnly(cookieConfig.isHttpOnly());
-    cookie.setSecure(cookieConfig.isSecure());
+  }
+
+  private Cookie responseCookie(String name) {
+    Response r = response.get();
+    return r.getCookies()
+      .stream()
+      .filter(c -> c.name().equals(name))
+      .findFirst()
+      .orElseGet(() -> {
+        Cookie createdCookie = r.cookie(name, "");
+        if (cookieConfig.getPath() != null) {
+          createdCookie.setPath(cookieConfig.getPath());
+        }
+        if (cookieConfig.getDomain() != null) {
+          createdCookie.setDomain(cookieConfig.getDomain());
+        }
+        createdCookie.setHttpOnly(cookieConfig.isHttpOnly());
+        createdCookie.setSecure(cookieConfig.isSecure());
+
+        return createdCookie;
+      });
   }
 }

@@ -44,8 +44,8 @@ class SessionSpec extends RatpackGroovyDslSpec {
         session
           .set("foo", "bar")
           .then {
-          render session.require("foo")
-        }
+            render session.require("foo")
+          }
       }
     }
 
@@ -60,8 +60,8 @@ class SessionSpec extends RatpackGroovyDslSpec {
         request.get(Session)
           .set("foo", "bar")
           .then {
-          render request.get(Session).require("foo")
-        }
+            render request.get(Session).require("foo")
+          }
       }
     }
 
@@ -79,8 +79,8 @@ class SessionSpec extends RatpackGroovyDslSpec {
         session
           .set("value", pathTokens.value)
           .then {
-          render pathTokens.value
-        }
+            render pathTokens.value
+          }
       }
     }
 
@@ -110,8 +110,8 @@ class SessionSpec extends RatpackGroovyDslSpec {
         render session
           .set(new Holder1(value: value))
           .map {
-          value
-        }
+            value
+          }
       }
     }
 
@@ -261,6 +261,31 @@ class SessionSpec extends RatpackGroovyDslSpec {
     values.findAll { it.contains("JSESSIONID") && !it.contains("HTTPOnly") }.size() == 1
   }
 
+  def "removing last thing from session causes data remove"() {
+    when:
+    handlers {
+      get("set") { Session session ->
+        session.set("test", "foo").then { next() }
+      }
+      get("empty") { Session session ->
+        session.remove("test").then { next() }
+      }
+      get("get") { Session session ->
+        session.get("test").then { next() }
+      }
+      all {
+        render context.get(SessionStore).size().map { it.toString() }
+      }
+    }
+
+    then:
+    // -1 for store impls that don't support size
+    getText("set") in ["-1", "0"] // 0 because not yet stored
+    getText("get") in ["-1", "1"]
+    getText("empty") in ["-1", "1"] // 1 because not yet stored
+    getText("get") in ["-1", "0"]
+  }
+
   def "session cookies are all Secure, can be transmitted via secure protocol"() {
     given:
     modules.clear()
@@ -391,4 +416,5 @@ class SessionSpec extends RatpackGroovyDslSpec {
     then:
     getText("keys") == "[]"
   }
+
 }
