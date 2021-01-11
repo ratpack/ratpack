@@ -20,9 +20,13 @@ gradle.taskGraph.whenReady { taskGraph ->
     if (startParameter.parallelProjectExecutionEnabled && startParameter.maxWorkerCount > 1) {
       throw new IllegalStateException("cannot run artifactoryPublish with --parallel and --max-workers > 1")
     }
-    artifactory.publish.repository {
-      username = ratpackBintrayUser
-      password = ratpackBintrayApiKey
+    artifactory {
+      publish {
+        repository {
+          username = ratpackBintrayUser
+          password = ratpackBintrayApiKey
+        }
+      }
     }
   }
 }
