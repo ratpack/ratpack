@@ -4,22 +4,25 @@ apply plugin: "com.jfrog.artifactory"
 
 artifactory {
   contextUrl = 'http://oss.jfrog.org'
-  gradle.taskGraph.whenReady { taskGraph ->
-    def startParameter = project.gradle.startParameter
-    if (taskGraph.allTasks.any { it.name == "artifactoryPublish" }) {
-      if (startParameter.parallelProjectExecutionEnabled && startParameter.maxWorkerCount > 1) {
-        throw new IllegalStateException("cannot run " + task + " with --parallel and --max-workers > 1")
-      }
-      username = ratpackBintrayUser
-      password = ratpackBintrayApiKey
-    }
-  }
   publish {
     repository {
       repoKey = isSnapshot ? 'oss-snapshot-local' : 'oss-release-local'
     }
     defaults {
       publishConfigs('published', 'signatures', 'pomSignature')
+    }
+  }
+}
+
+gradle.taskGraph.whenReady { taskGraph ->
+  if (taskGraph.allTasks.any { it.name == "artifactoryPublish" }) {
+    def startParameter = project.gradle.startParameter
+    if (startParameter.parallelProjectExecutionEnabled && startParameter.maxWorkerCount > 1) {
+      throw new IllegalStateException("cannot run artifactoryPublish with --parallel and --max-workers > 1")
+    }
+    artifactory.publish.repository {
+      username = ratpackBintrayUser
+      password = ratpackBintrayApiKey
     }
   }
 }
