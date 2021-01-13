@@ -28,6 +28,7 @@ class ContinuousBuildSpec extends FunctionalSpec {
   @Unroll
   def "can use continuous build #gradleVersion"() {
     given:
+    uniqueDaemon = true
     this.gradleVersion = gradleVersion
     buildFile << """
       tasks.all {
@@ -90,7 +91,11 @@ class ContinuousBuildSpec extends FunctionalSpec {
     }
 
     where:
-    gradleVersion << ["4.10.3", "5.1.1"]
+    gradleVersion << [
+      "4.10.3",
+      "5.6.4",
+      "6.8"
+    ]
   }
 
   void determinePort() {
