@@ -171,6 +171,10 @@ public class DefaultResponseTransmitter implements ResponseTransmitter {
     }
   }
 
+  private boolean isHead() {
+    return ratpackRequest.getMethod().isHead();
+  }
+
   private void transmit(final HttpResponseStatus responseStatus, Object body, boolean sendLastHttpContent) {
     ChannelFuture channelFuture = pre(responseStatus, false);
     if (channelFuture == null) {
@@ -192,26 +196,29 @@ public class DefaultResponseTransmitter implements ResponseTransmitter {
 
   @Override
   public void transmit(HttpResponseStatus status, Path file) {
-
-    String sizeString = responseHeaders.getAsString(HttpHeaderConstants.CONTENT_LENGTH);
-    long size = sizeString == null ? 0 : Long.parseLong(sizeString);
-    boolean compress = !responseHeaders.contains(HttpHeaderConstants.CONTENT_ENCODING, HttpHeaderConstants.IDENTITY, true);
-
-    if (!isSsl && !compress && file.getFileSystem().equals(FileSystems.getDefault())) {
-      FileChannel fileChannel;
-      try {
-        fileChannel = FileChannel.open(file, OPEN_OPTIONS);
-      } catch (IOException e) {
-        throw new UncheckedIOException(e);
-      }
-      FileRegion defaultFileRegion = new DefaultFileRegion(fileChannel, 0, size);
-      transmit(status, defaultFileRegion, true);
+    if (isHead()) {
+      transmit(status, LastHttpContent.EMPTY_LAST_CONTENT, false);
     } else {
-      Blocking.get(() ->
-        Files.newByteChannel(file)
-      ).then(fileChannel ->
-        transmit(status, new HttpChunkedInput(new ChunkedNioStream(fileChannel)), false)
-      );
+      String sizeString = responseHeaders.getAsString(HttpHeaderConstants.CONTENT_LENGTH);
+      long size = sizeString == null ? 0 : Long.parseLong(sizeString);
+      boolean compress = !responseHeaders.contains(HttpHeaderConstants.CONTENT_ENCODING, HttpHeaderConstants.IDENTITY, true);
+
+      if (!isSsl && !compress && file.getFileSystem().equals(FileSystems.getDefault())) {
+        FileChannel fileChannel;
+        try {
+          fileChannel = FileChannel.open(file, OPEN_OPTIONS);
+        } catch (IOException e) {
+          throw new UncheckedIOException(e);
+        }
+        FileRegion defaultFileRegion = new DefaultFileRegion(fileChannel, 0, size);
+        transmit(status, defaultFileRegion, true);
+      } else {
+        Blocking.get(() ->
+          Files.newByteChannel(file)
+        ).then(fileChannel ->
+          transmit(status, new HttpChunkedInput(new ChunkedNioStream(fileChannel)), false)
+        );
+      }
     }
   }
 
