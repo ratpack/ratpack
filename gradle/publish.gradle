@@ -16,10 +16,6 @@ artifactory {
 
 gradle.taskGraph.whenReady { taskGraph ->
   if (taskGraph.allTasks.any { it.name == "artifactoryPublish" }) {
-    def startParameter = project.gradle.startParameter
-    if (startParameter.parallelProjectExecutionEnabled && startParameter.maxWorkerCount > 1) {
-      throw new IllegalStateException("cannot run artifactoryPublish with --parallel and --max-workers > 1")
-    }
     artifactory {
       publish {
         repository {
