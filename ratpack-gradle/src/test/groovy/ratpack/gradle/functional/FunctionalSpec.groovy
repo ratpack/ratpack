@@ -17,6 +17,7 @@
 package ratpack.gradle.functional
 
 import com.google.common.base.StandardSystemProperty
+import org.apache.tools.ant.util.TeeOutputStream
 import org.gradle.testfixtures.ProjectBuilder
 import org.gradle.testkit.runner.BuildResult
 import org.gradle.testkit.runner.GradleRunner
@@ -24,6 +25,7 @@ import org.gradle.testkit.runner.internal.DefaultGradleRunner
 import org.junit.Rule
 import org.junit.rules.TemporaryFolder
 import spock.lang.Specification
+import spock.util.concurrent.PollingConditions
 
 import java.util.concurrent.CountDownLatch
 import java.util.concurrent.TimeUnit
@@ -34,15 +36,21 @@ abstract class FunctionalSpec extends Specification {
 
   String gradleVersion
 
+  protected final ByteArrayOutputStream loggingBuffer = new ByteArrayOutputStream()
+
+  protected final PollingConditions polling = new PollingConditions()
+
   private static final String RATPACK_VERSION = FunctionalSpec.classLoader.getResource("ratpack/ratpack-version.txt").text.trim()
 
   boolean uniqueDaemon
 
   GradleRunner runner(String... args) {
+    loggingBuffer.reset()
     def runner = (GradleRunner.create() as DefaultGradleRunner)
       .withJvmArguments("-Xmx256m")
       .withProjectDir(dir.root)
-      .forwardOutput()
+      .forwardStdOutput(new OutputStreamWriter(new TeeOutputStream(loggingBuffer, System.out)))
+      .forwardStdError(new OutputStreamWriter(new TeeOutputStream(loggingBuffer, System.err)))
       .withTestKitDir(uniqueDaemon ? new File(dir.root, "testkit") : getTestKitDir())
       .withArguments(args.toList() + ["-g", getTestKitDir().absolutePath])
 
@@ -51,6 +59,10 @@ abstract class FunctionalSpec extends Specification {
     }
 
     runner
+  }
+
+  String getLogging() {
+    loggingBuffer.toString("UTF-8")
   }
 
   BuildResult run(String... args) {

@@ -22,6 +22,7 @@ import org.gradle.api.tasks.JavaExec;
 import org.gradle.api.tasks.TaskAction;
 import org.gradle.deployment.internal.DeploymentRegistry;
 import org.gradle.internal.Factory;
+import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.process.internal.JavaExecHandleBuilder;
 import org.gradle.util.VersionNumber;
 import ratpack.gradle.continuous.run.*;
@@ -37,9 +38,13 @@ import java.util.List;
 import java.util.Set;
 
 public class RatpackContinuousRun extends JavaExec {
+
+  private final String absoluteRootDirPath;
+
   public RatpackContinuousRun() {
     VersionNumber realVersionNumber = VersionNumber.parse(getProject().getGradle().getGradleVersion());
     this.gradleVersion = new VersionNumber(realVersionNumber.getMajor(), realVersionNumber.getMinor(), realVersionNumber.getMicro(), null);
+    absoluteRootDirPath = getProject().getRootDir().getAbsolutePath();
   }
 
   @TaskAction
@@ -113,7 +118,11 @@ public class RatpackContinuousRun extends JavaExec {
       type = loadClass(getClass().getClassLoader(), "org.gradle.process.internal.worker.WorkerProcessFactory");
     }
 
-    return ((ProjectInternal) getProject()).getServices().get(type);
+    ServiceRegistry serviceRegistry = gradleVersion.compareTo(V5_0) < 0
+      ? ((ProjectInternal) getProject()).getServices()
+      : getServiceRegistry();
+
+    return serviceRegistry.get(type);
   }
 
   private RatpackAdapter createAdapter() {
@@ -202,7 +211,6 @@ public class RatpackContinuousRun extends JavaExec {
     List<URL> changing = new ArrayList<>();
     List<URL> nonChanging = new ArrayList<>();
 
-    String absoluteRootDirPath = getProject().getRootDir().getAbsolutePath();
     for (File file : classpath) {
       if (flattenClassloaders || file.isDirectory() || file.getAbsolutePath().startsWith(absoluteRootDirPath)) {
         changing.add(toUrl(file));
@@ -230,6 +238,8 @@ public class RatpackContinuousRun extends JavaExec {
   private static final VersionNumber V2_13 = VersionNumber.parse("2.13");
   private static final VersionNumber V2_14 = VersionNumber.parse("2.14");
   private static final VersionNumber V4_2 = VersionNumber.parse("4.2");
+  private static final VersionNumber V5_0 = VersionNumber.parse("5.0");
+
   public boolean flattenClassloaders;
   private final VersionNumber gradleVersion;
 
@@ -259,4 +269,10 @@ public class RatpackContinuousRun extends JavaExec {
 
     private final RatpackAdapter delegate;
   }
+
+  @Inject
+  protected ServiceRegistry getServiceRegistry() {
+    throw new UnsupportedOperationException();
+  }
+
 }
