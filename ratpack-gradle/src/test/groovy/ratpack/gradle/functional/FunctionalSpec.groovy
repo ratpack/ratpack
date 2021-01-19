@@ -17,12 +17,15 @@
 package ratpack.gradle.functional
 
 import com.google.common.base.StandardSystemProperty
+import org.apache.tools.ant.util.TeeOutputStream
 import org.gradle.testfixtures.ProjectBuilder
 import org.gradle.testkit.runner.BuildResult
 import org.gradle.testkit.runner.GradleRunner
+import org.gradle.testkit.runner.internal.DefaultGradleRunner
 import org.junit.Rule
 import org.junit.rules.TemporaryFolder
 import spock.lang.Specification
+import spock.util.concurrent.PollingConditions
 
 import java.util.concurrent.CountDownLatch
 import java.util.concurrent.TimeUnit
@@ -33,22 +36,33 @@ abstract class FunctionalSpec extends Specification {
 
   String gradleVersion
 
+  protected final ByteArrayOutputStream loggingBuffer = new ByteArrayOutputStream()
+
+  protected final PollingConditions polling = new PollingConditions()
+
   private static final String RATPACK_VERSION = FunctionalSpec.classLoader.getResource("ratpack/ratpack-version.txt").text.trim()
 
+  boolean uniqueDaemon
+
   GradleRunner runner(String... args) {
-    def runner = GradleRunner.create()
+    loggingBuffer.reset()
+    def runner = (GradleRunner.create() as DefaultGradleRunner)
+      .withJvmArguments("-Xmx256m")
       .withProjectDir(dir.root)
-      .forwardOutput()
-      .withTestKitDir(getTestKitDir())
-      .withArguments(args.toList())
+      .forwardStdOutput(new OutputStreamWriter(new TeeOutputStream(loggingBuffer, System.out)))
+      .forwardStdError(new OutputStreamWriter(new TeeOutputStream(loggingBuffer, System.err)))
+      .withTestKitDir(uniqueDaemon ? new File(dir.root, "testkit") : getTestKitDir())
+      .withArguments(args.toList() + ["-g", getTestKitDir().absolutePath])
 
     if (gradleVersion) {
       runner.withGradleVersion(gradleVersion)
     }
 
     runner
+  }
 
-
+  String getLogging() {
+    loggingBuffer.toString("UTF-8")
   }
 
   BuildResult run(String... args) {
@@ -60,11 +74,7 @@ abstract class FunctionalSpec extends Specification {
   }
 
   private static File getTestKitDir() {
-    def gradleUserHome = System.getenv("GRADLE_USER_HOME")
-    if (!gradleUserHome) {
-      gradleUserHome = new File(System.getProperty("user.home"), ".gradle").absolutePath
-    }
-    return new File(gradleUserHome, "testkit")
+    return new File(TestEnv.buildDir, "testkit")
   }
 
   File getBuildFile() {
@@ -123,6 +133,22 @@ abstract class FunctionalSpec extends Specification {
     """
 
     file("src/ratpack/ratpack.properties") << "port=0\n"
+
+    if (uniqueDaemon) {
+      buildFile << """
+        def stopGradleFile = file(".stopgradle")
+        Thread.startDaemon {
+          while (!stopGradleFile.exists()) { sleep(100) }
+          System.exit(0)
+        }
+      """
+    }
+  }
+
+  def cleanup() {
+    if (uniqueDaemon) {
+      new File(dir.root, ".stopgradle").createNewFile()
+    }
   }
 
   def unzip(File source, File destination) {

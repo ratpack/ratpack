@@ -32,7 +32,7 @@ dependencies {
 
 sourceSets {
   main {
-    groovy.srcDirs = ["src/main/groovy", "../ratpack-gradle/src/main/groovy"]
-    resources.srcDirs = ["src/main/resources", "../ratpack-gradle/src/main/resources"]
+    java.srcDir("../ratpack-gradle/src/main/java")
+    resources.srcDir("../ratpack-gradle/src/main/resources")
   }
 }

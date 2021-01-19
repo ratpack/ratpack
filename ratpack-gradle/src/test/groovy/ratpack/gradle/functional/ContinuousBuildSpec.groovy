@@ -23,11 +23,12 @@ import spock.util.concurrent.PollingConditions
 class ContinuousBuildSpec extends FunctionalSpec {
 
   int port
-  def resultHolder = new BlockingVariable(10)
+  def resultHolder = new BlockingVariable(30)
 
   @Unroll
   def "can use continuous build #gradleVersion"() {
     given:
+    uniqueDaemon = true
     this.gradleVersion = gradleVersion
     buildFile << """
       tasks.all {
@@ -41,18 +42,14 @@ class ContinuousBuildSpec extends FunctionalSpec {
       import static ratpack.groovy.Groovy.*
       import ratpack.core.server.Stopper
       import ratpack.core.server.RatpackServer
+      import java.nio.file.Paths
 
       ratpack {
-        serverConfig { port 0 }
+        serverConfig { portFile(Paths.get("port")) }
         handlers {
-          def server = registry.get(RatpackServer)
-          Thread.start {
-             sleep 1000
-             new File("port").text = server.bindPort
-          }
           files { dir "public" }
           get {
-            onClose { server.stop() }
+            onClose { context.get(RatpackServer).stop() }
             render "stopping"
           }
         }
@@ -90,7 +87,11 @@ class ContinuousBuildSpec extends FunctionalSpec {
     }
 
     where:
-    gradleVersion << ["4.10.3", "5.1.1"]
+    gradleVersion << [
+      "4.10.3",
+      "5.6.4",
+      "6.8"
+    ]
   }
 
   void determinePort() {
