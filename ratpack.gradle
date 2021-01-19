@@ -14,7 +14,9 @@ buildscript {
   }
 }
 
-version = "1.8.1-SNAPSHOT"
+allprojects {
+  version = "1.8.1-SNAPSHOT"
+}
 
 ext {
   isSnapshot = version.endsWith("SNAPSHOT")

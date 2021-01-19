@@ -17,6 +17,7 @@
 apply plugin: "maven"
 apply from: "${rootDir}/gradle/pom.gradle"
 apply plugin: "signing"
+apply plugin: "com.jfrog.artifactory"
 
 afterEvaluate {
   assert description: "Project $project.path is published, must have a description"
