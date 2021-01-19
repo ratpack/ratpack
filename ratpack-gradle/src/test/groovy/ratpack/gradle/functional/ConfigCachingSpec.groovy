@@ -49,8 +49,8 @@ class ConfigCachingSpec extends FunctionalSpec {
 
     file("src/ratpack/ratpack.groovy") << """
       import static ratpack.groovy.Groovy.*
-      import ratpack.server.Stopper
-      import ratpack.server.RatpackServer
+      import ratpack.core.server.Stopper
+      import ratpack.core.server.RatpackServer
       import java.nio.file.Paths
 
       ratpack {
