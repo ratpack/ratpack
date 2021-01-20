@@ -123,7 +123,11 @@ abstract class FunctionalSpec extends Specification {
         jcenter()
       }
       dependencies {
-        compile 'org.slf4j:slf4j-simple:1.7.25'
+        if (configurations.findByName("runtimeOnly")) {
+          runtimeOnly 'org.slf4j:slf4j-simple:1.7.25'
+        } else {
+          runtime 'org.slf4j:slf4j-simple:1.7.25'
+        }
       }
       shadowJar {
         // Needed in Gradle 5.1 due to breaking change in convention mapping

@@ -293,11 +293,7 @@ distTar {
   version = null
 }
 
-run {
-  if (it.getClass().name.startsWith("ratpack.gradle.continuous.RatpackContinuousRun")) {
-    flattenClassloaders = true
-  }
-}
+run.ext.set("ratpack.flattenClassloaders", true)
 
 distZip {
   enabled = false
