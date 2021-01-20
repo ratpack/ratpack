@@ -22,8 +22,8 @@ import org.gradle.api.artifacts.ConfigurationContainer;
 import org.gradle.api.distribution.Distribution;
 import org.gradle.api.distribution.DistributionContainer;
 import org.gradle.api.file.CopySpec;
+import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.plugins.ApplicationPlugin;
-import org.gradle.api.plugins.ApplicationPluginConvention;
 import org.gradle.api.plugins.JavaPluginConvention;
 import org.gradle.api.provider.Property;
 import org.gradle.api.tasks.JavaExec;
@@ -31,11 +31,14 @@ import org.gradle.api.tasks.SourceSet;
 import org.gradle.api.tasks.SourceSetContainer;
 import org.gradle.api.tasks.SourceSetOutput;
 import org.gradle.api.tasks.application.CreateStartScripts;
+import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.jvm.tasks.Jar;
-import ratpack.gradle.continuous.RatpackContinuousRun;
 import ratpack.gradle.internal.IoUtil;
+import ratpack.gradle.internal.RatpackContinuousRunAction;
+import ratpack.gradle.internal.ServiceRegistrySupplier;
 
 import java.io.File;
+import java.util.Collections;
 import java.util.Optional;
 import java.util.concurrent.Callable;
 import java.util.function.Supplier;
@@ -43,6 +46,7 @@ import java.util.function.Supplier;
 public class RatpackPlugin implements Plugin<Project> {
 
   private static final GradleVersion GRADLE_VERSION_BASELINE = GradleVersion.version("2.6");
+  private static final GradleVersion GRADLE_5 = GradleVersion.version("5.0");
   private static final GradleVersion GRADLE_6 = GradleVersion.version("6.0");
 
   public void apply(Project project) {
@@ -61,17 +65,24 @@ public class RatpackPlugin implements Plugin<Project> {
     SourceSet mainSourceSet = sourceSets.getByName(SourceSet.MAIN_SOURCE_SET_NAME);
     mainSourceSet.getResources().srcDir((Callable<File>) ratpackExtension::getBaseDir);
 
-    final ApplicationPluginConvention applicationPluginConvention = project.getConvention().getPlugin(ApplicationPluginConvention.class);
-
     if (project.getGradle().getStartParameter().isContinuous()) {
-      RatpackContinuousRun run = project.getTasks().replace("run", RatpackContinuousRun.class);
-
-      // duplicated from application plugin
-      run.setDescription("Runs this project as a JVM application");
-      run.setGroup("application");
-      run.setClasspath(mainSourceSet.getRuntimeClasspath());
-      run.getConventionMapping().map("main", applicationPluginConvention::getMainClassName);
-      run.getConventionMapping().map("jvmArgs", applicationPluginConvention::getApplicationDefaultJvmArgs);
+      Task run = project.getTasks().getByName("run");
+      Supplier<ServiceRegistry> serviceRegistrySupplier;
+      if (gradleVersion.compareTo(GRADLE_5) < 0) {
+        ServiceRegistry services = ((ProjectInternal) project).getServices();
+        serviceRegistrySupplier = () -> services;
+      } else {
+        serviceRegistrySupplier = new ServiceRegistrySupplier(project.getObjects());
+      }
+      run.setActions(
+        Collections.singletonList(
+          new RatpackContinuousRunAction(
+            project.getGradle().getGradleVersion(),
+            project.getRootDir().getAbsolutePath(),
+            serviceRegistrySupplier
+          )
+        )
+      );
     }
 
     JavaExec run = (JavaExec) project.getTasks().getByName("run");

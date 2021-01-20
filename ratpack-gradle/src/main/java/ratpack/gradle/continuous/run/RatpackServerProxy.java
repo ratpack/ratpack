@@ -16,6 +16,8 @@
 
 package ratpack.gradle.continuous.run;
 
+import ratpack.gradle.internal.Invoker;
+
 import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
@@ -27,14 +29,16 @@ public class RatpackServerProxy {
   public static final String BLOCK_CLASS_NAME = "ratpack.func.Block";
   public static final String SERVER_INTERFACE_NAME = "ratpack.core.server.RatpackServer";
   private final Object server;
+  private final ClassLoader classLoader;
 
-  public RatpackServerProxy(Object server) {
+  public RatpackServerProxy(Object server, ClassLoader classLoader) {
     this.server = server;
+    this.classLoader = classLoader;
   }
 
   public void stop() {
     try {
-      server.getClass().getMethod("stop").invoke(server);
+      Invoker.invokeParamless(classLoader.loadClass(SERVER_INTERFACE_NAME), server, "stop");
     } catch (Exception e) {
       throw new RuntimeException("Failed to stop server", e);
     }
@@ -98,7 +102,7 @@ public class RatpackServerProxy {
       throw new RuntimeException("Captured " + server.getClass().getName() + ", not a " + SERVER_INTERFACE_NAME);
     }
 
-    return new RatpackServerProxy(server);
+    return new RatpackServerProxy(server, classLoader);
   }
 
   private static Class<?> loadClass(ClassLoader classLoader, String className) {

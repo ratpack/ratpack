@@ -21,16 +21,26 @@ import org.gradle.api.Project;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.ConfigurationContainer;
 import org.gradle.api.plugins.GroovyPlugin;
+import org.gradle.api.plugins.JavaApplication;
 
 import java.util.Optional;
 
 public class RatpackGroovyPlugin implements Plugin<Project> {
+
+  private static final GradleVersion V6_0 = GradleVersion.version("6.0");
+  private static final String MAIN_CLASS_NAME = "ratpack.groovy.GroovyRatpackMain";
+
   @Override
   public void apply(Project project) {
     project.getPlugins().apply(RatpackPlugin.class);
     project.getPlugins().apply(GroovyPlugin.class);
 
-    project.setProperty("mainClassName", "ratpack.groovy.GroovyRatpackMain");
+    GradleVersion gradleVersion = GradleVersion.version(project.getGradle().getGradleVersion());
+    if (gradleVersion.compareTo(V6_0) < 0) {
+      project.setProperty("mainClassName", MAIN_CLASS_NAME);
+    } else {
+      project.getExtensions().getByType(JavaApplication.class).setMainClassName(MAIN_CLASS_NAME);
+    }
 
     RatpackExtension ratpackExtension = project.getExtensions().getByType(RatpackExtension.class);
 
