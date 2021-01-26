@@ -24,7 +24,7 @@ def checkstyleConfigDir = new File(buildscript.sourceFile.parentFile, 'checkstyl
 
 checkstyle {
   configFile = new File(checkstyleConfigDir, "checkstyle.xml")
-  configProperties.checkstyleConfigDir = checkstyleConfigDir
+  configDirectory = checkstyleConfigDir
 }
 
 plugins.withType(GroovyBasePlugin).configureEach {
@@ -33,7 +33,7 @@ plugins.withType(GroovyBasePlugin).configureEach {
       configFile = new File(checkstyleConfigDir, "checkstyle-groovy.xml")
       source sourceSet.allGroovy
       classpath = sourceSet.compileClasspath
-      reports.xml.destination new File(checkstyle.reportsDir, "${sourceSet.name}-groovy.xml")
+      reports.xml.destination = new File(checkstyle.reportsDir, "${sourceSet.name}-groovy.xml")
     }
   }
 }
