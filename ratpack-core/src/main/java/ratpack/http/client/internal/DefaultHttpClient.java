@@ -22,12 +22,14 @@ import io.netty.channel.ChannelOption;
 import io.netty.channel.pool.ChannelHealthChecker;
 import io.netty.channel.pool.ChannelPool;
 import io.netty.channel.pool.SimpleChannelPool;
+import io.netty.resolver.AddressResolverGroup;
 import ratpack.exec.ExecController;
 import ratpack.exec.Execution;
 import ratpack.exec.Operation;
 import ratpack.exec.Promise;
 import ratpack.exec.internal.ExecControllerInternal;
 import ratpack.func.Action;
+import ratpack.handling.Context;
 import ratpack.http.client.*;
 import ratpack.server.ServerConfig;
 import ratpack.util.Exceptions;
@@ -49,9 +51,13 @@ public class DefaultHttpClient implements HttpClientInternal {
   private final HttpChannelPoolMap channelPoolMap = new HttpChannelPoolMap() {
     @Override
     protected ChannelPool newPool(HttpChannelKey key) {
+
       Bootstrap bootstrap = new Bootstrap()
         .remoteAddress(key.host, key.port)
         .group(key.execution.getEventLoop())
+        .resolver(key.execution.maybeGet(AddressResolverGroup.class)
+          .orElseGet(() -> key.execution.get(Context.class).get(AddressResolverGroup.class))
+        )
         .channel(TransportDetector.getSocketChannelImpl())
         .option(ChannelOption.CONNECT_TIMEOUT_MILLIS, (int) key.connectTimeout.toMillis())
         .option(ChannelOption.ALLOCATOR, spec.byteBufAllocator)
