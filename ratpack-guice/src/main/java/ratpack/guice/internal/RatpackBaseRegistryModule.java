@@ -23,6 +23,7 @@ import com.google.inject.*;
 import com.google.inject.matcher.AbstractMatcher;
 import com.google.inject.matcher.Matchers;
 import io.netty.buffer.ByteBufAllocator;
+import io.netty.resolver.AddressResolverGroup;
 import org.aopalliance.intercept.MethodInterceptor;
 import ratpack.api.Blocks;
 import ratpack.error.ClientErrorHandler;
@@ -63,7 +64,7 @@ public class RatpackBaseRegistryModule extends AbstractModule {
   private static final List<Class<?>> SIMPLE_TYPES = ImmutableList.of(
     ServerConfig.class, ByteBufAllocator.class, ExecController.class, MimeTypes.class, PublicAddress.class,
     Redirector.class, ClientErrorHandler.class, ServerErrorHandler.class, RatpackServer.class,
-    HttpClient.class, ServerSentEventStreamClient.class
+    HttpClient.class, ServerSentEventStreamClient.class, AddressResolverGroup.class
   );
 
   @SuppressWarnings({"rawtypes"})

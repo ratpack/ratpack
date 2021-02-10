@@ -37,6 +37,7 @@ dependencies {
   compile "io.netty:netty-codec-http:$commonVersions.netty"
   compile "io.netty:netty-handler:$commonVersions.netty"
   compile "io.netty:netty-handler-proxy:$commonVersions.netty"
+  compile "io.netty:netty-resolver-dns:$commonVersions.netty"
   compile 'com.sun.activation:javax.activation:1.2.0'
 
   compile "com.github.ben-manes.caffeine:caffeine:${commonVersions.caffeine}"

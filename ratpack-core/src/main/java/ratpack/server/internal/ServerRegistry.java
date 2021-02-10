@@ -20,6 +20,9 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.base.Throwables;
 import com.google.common.collect.ImmutableList;
 import io.netty.buffer.ByteBufAllocator;
+import io.netty.resolver.AddressResolverGroup;
+import io.netty.resolver.dns.DnsAddressResolverGroup;
+import io.netty.resolver.dns.DnsNameResolverBuilder;
 import ratpack.config.ConfigObject;
 import ratpack.error.ClientErrorHandler;
 import ratpack.error.ServerErrorHandler;
@@ -49,6 +52,7 @@ import ratpack.registry.RegistryBuilder;
 import ratpack.render.internal.*;
 import ratpack.server.*;
 import ratpack.sse.ServerSentEventStreamClient;
+import ratpack.util.internal.TransportDetector;
 
 import java.time.Clock;
 import java.util.Optional;
@@ -91,6 +95,11 @@ public abstract class ServerRegistry {
         .maxContentLength(serverConfig.getMaxContentLength())
       );
 
+      DnsNameResolverBuilder resolverBuilder = new DnsNameResolverBuilder()
+        .eventLoop(execController.getEventLoopGroup().next())
+        .channelType(TransportDetector.getDatagramChannelImpl())
+        .socketChannelType(TransportDetector.getSocketChannelImpl());
+
       baseRegistryBuilder = Registry.builder()
         .add(ServerConfig.class, serverConfig)
         .add(Impositions.class, impositions)
@@ -116,6 +125,7 @@ public abstract class ServerRegistry {
         .add(Clock.class, Clock.systemDefaultZone())
         .add(RatpackServer.class, ratpackServer)
         .add(ObjectMapper.class, new ObjectMapper())
+        .add(AddressResolverGroup.class, new DnsAddressResolverGroup(resolverBuilder))
         // TODO remove Stopper, and just use RatpackServer instead (will need to update perf and gradle tests)
         .add(Stopper.class, () -> uncheck(() -> {
           ratpackServer.stop();

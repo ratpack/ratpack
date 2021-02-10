@@ -17,6 +17,8 @@
 package ratpack.test.internal;
 
 import io.netty.buffer.ByteBuf;
+import io.netty.resolver.AddressResolverGroup;
+import io.netty.resolver.DefaultAddressResolverGroup;
 import ratpack.exec.Downstream;
 import ratpack.exec.ExecController;
 import ratpack.exec.ExecResult;
@@ -46,6 +48,7 @@ public class BlockingHttpClient {
     AtomicReference<ExecResult<ReceivedResponse>> result = new AtomicReference<>();
 
     execController.fork()
+      .register(r -> r.add(AddressResolverGroup.class, DefaultAddressResolverGroup.INSTANCE))
       .start(e ->
         httpClient.request(uri, action.prepend(s -> s.readTimeout(Duration.ofHours(1))))
           .map(response -> {
