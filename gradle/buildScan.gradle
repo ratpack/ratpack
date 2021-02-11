@@ -15,29 +15,14 @@
  */
 def env = System.getenv()
 def publishToSlack = gradle.startParameter.projectProperties.publishToSlack != null
+def ci = System.getenv("CI")
 
 gradleEnterprise.buildScan {
-  background {
-    def commitId = env.REVISION
-    try {
-      commitId = 'git rev-parse --verify HEAD'.execute().text.trim()
-    } catch (ignore) {
-      // ignore
-    }
-
-    if (commitId) {
-      link "Source", "https://github.com/ratpack/ratpack/tree/" + commitId
-    }
-  }
-}
-
-if (System.getenv("CI")) {
-  gradleEnterprise.buildScan {
-    termsOfServiceUrl = 'https://gradle.com/terms-of-service'
-    termsOfServiceAgree = 'yes'
-
+    server = "https://ge.ratpack.io"
+    captureTaskInputFiles = true
+    uploadInBackground = !ci
     publishAlways()
-    tag "CI"
+    publishIfAuthenticated()
 
     if (env.CIRCLE_BUILD_URL) {
       def buildLink = env.CIRCLE_BUILD_URL
@@ -82,4 +67,3 @@ if (System.getenv("CI")) {
       }
     }
   }
-}
