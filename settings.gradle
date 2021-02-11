@@ -67,3 +67,18 @@ def setBuildFile(project) {
 }
 
 setBuildFile(rootProject)
+
+buildCache {
+  remote(HttpBuildCache) {
+    url = 'https://ge.ratpack.io/cache/'
+    def cacheUsername = System.getenv('GRADLE_ENTERPRISE_CACHE_USERNAME')
+    def cachePassword = System.getenv('GRADLE_ENTERPRISE_CACHE_PASSWORD')
+    if (cacheUsername && cachePassword) {
+      push = true
+      credentials {
+        username = cacheUsername
+        password = cachePassword
+      }
+    }
+  }
+}
