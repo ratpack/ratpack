@@ -29,9 +29,9 @@ import ratpack.exec.Operation;
 import ratpack.exec.Promise;
 import ratpack.exec.internal.ExecControllerInternal;
 import ratpack.func.Action;
-import ratpack.handling.Context;
 import ratpack.http.client.*;
 import ratpack.server.ServerConfig;
+import ratpack.server.internal.ServerRegistry;
 import ratpack.util.Exceptions;
 import ratpack.util.internal.TransportDetector;
 
@@ -56,7 +56,7 @@ public class DefaultHttpClient implements HttpClientInternal {
         .remoteAddress(key.host, key.port)
         .group(key.execution.getEventLoop())
         .resolver(key.execution.maybeGet(AddressResolverGroup.class)
-          .orElseGet(() -> key.execution.get(Context.class).get(AddressResolverGroup.class))
+          .orElseGet(() -> ServerRegistry.defaultAddressResolver(key.execution.getController()))
         )
         .channel(TransportDetector.getSocketChannelImpl())
         .option(ChannelOption.CONNECT_TIMEOUT_MILLIS, (int) key.connectTimeout.toMillis())
