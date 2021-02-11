@@ -62,6 +62,16 @@ import static ratpack.util.internal.ProtocolUtil.HTTPS_SCHEME;
 import static ratpack.util.internal.ProtocolUtil.HTTP_SCHEME;
 
 public abstract class ServerRegistry {
+
+  public static AddressResolverGroup<?> defaultAddressResolver(ExecController controller) {
+    DnsNameResolverBuilder resolverBuilder = new DnsNameResolverBuilder()
+      .eventLoop(controller.getEventLoopGroup().next())
+      .channelType(TransportDetector.getDatagramChannelImpl())
+      .socketChannelType(TransportDetector.getSocketChannelImpl());
+
+    return  new DnsAddressResolverGroup(resolverBuilder);
+  }
+
   public static Registry serverRegistry(RatpackServer ratpackServer, Impositions impositions, ExecControllerInternal execController, ServerConfig serverConfig, Function<? super Registry, ? extends Registry> userRegistryFactory) {
     Registry baseRegistry = buildBaseRegistry(ratpackServer, impositions, execController, serverConfig);
     Registry userRegistry = buildUserRegistry(userRegistryFactory, baseRegistry);
@@ -95,11 +105,6 @@ public abstract class ServerRegistry {
         .maxContentLength(serverConfig.getMaxContentLength())
       );
 
-      DnsNameResolverBuilder resolverBuilder = new DnsNameResolverBuilder()
-        .eventLoop(execController.getEventLoopGroup().next())
-        .channelType(TransportDetector.getDatagramChannelImpl())
-        .socketChannelType(TransportDetector.getSocketChannelImpl());
-
       baseRegistryBuilder = Registry.builder()
         .add(ServerConfig.class, serverConfig)
         .add(Impositions.class, impositions)
@@ -125,7 +130,7 @@ public abstract class ServerRegistry {
         .add(Clock.class, Clock.systemDefaultZone())
         .add(RatpackServer.class, ratpackServer)
         .add(ObjectMapper.class, new ObjectMapper())
-        .add(AddressResolverGroup.class, new DnsAddressResolverGroup(resolverBuilder))
+        .add(AddressResolverGroup.class, defaultAddressResolver(execController))
         // TODO remove Stopper, and just use RatpackServer instead (will need to update perf and gradle tests)
         .add(Stopper.class, () -> uncheck(() -> {
           ratpackServer.stop();
