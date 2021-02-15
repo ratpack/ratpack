@@ -17,13 +17,19 @@
 package ratpack.http.client;
 
 import io.netty.buffer.ByteBufAllocator;
+import io.netty.resolver.AddressResolverGroup;
+import io.netty.resolver.DefaultAddressResolverGroup;
+import io.netty.resolver.dns.DnsAddressResolverGroup;
+import io.netty.resolver.dns.DnsNameResolverBuilder;
 import org.reactivestreams.Publisher;
+import ratpack.exec.ExecController;
 import ratpack.exec.Promise;
 import ratpack.func.Action;
 import ratpack.http.client.internal.DefaultHttpClient;
 import ratpack.registry.Registry;
 import ratpack.server.ServerConfig;
 import ratpack.util.Exceptions;
+import ratpack.util.internal.TransportDetector;
 
 import java.net.URI;
 import java.time.Duration;
@@ -91,6 +97,46 @@ public interface HttpClient extends AutoCloseable {
    */
   static HttpClient of(Action<? super HttpClientSpec> action) throws Exception {
     return DefaultHttpClient.of(action);
+  }
+
+  /**
+   * Provides a non-blocking address resolver group implementation.
+   *
+   * @param controller the controller which can provide an event loop for executing resolutions
+   * @return a non-blocking resolver
+   * @since 1.9.0
+   */
+  static AddressResolverGroup<?> addressResolver(ExecController controller) throws Exception {
+    return addressResolver(controller, Action.noop());
+  }
+
+  /**
+   * Provides a non-blocking address resolver group implementation.
+   *
+   * @param controller the controller which can provide an event loop for executing resolutions
+   * @param spec provides additional configuration to the resolver
+   * @return a non-blocking resolver
+   * @since 1.9.0
+   */
+  static AddressResolverGroup<?> addressResolver(ExecController controller, Action<? super DnsNameResolverBuilder> spec) throws Exception {
+    DnsNameResolverBuilder resolverBuilder = new DnsNameResolverBuilder()
+      .eventLoop(controller.getEventLoopGroup().next())
+      .channelType(TransportDetector.getDatagramChannelImpl())
+      .socketChannelType(TransportDetector.getSocketChannelImpl());
+
+    spec.execute(resolverBuilder);
+
+    return new DnsAddressResolverGroup(resolverBuilder);
+  }
+
+  /**
+   * Provides a blocking address resolve group implementation.
+   *
+   * @return a blocking resolver
+   * @since 1.9.0
+   */
+  static AddressResolverGroup<?> blockingResolver() {
+    return DefaultAddressResolverGroup.INSTANCE;
   }
 
   /**

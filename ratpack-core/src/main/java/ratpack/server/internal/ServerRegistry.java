@@ -20,9 +20,6 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.base.Throwables;
 import com.google.common.collect.ImmutableList;
 import io.netty.buffer.ByteBufAllocator;
-import io.netty.resolver.AddressResolverGroup;
-import io.netty.resolver.dns.DnsAddressResolverGroup;
-import io.netty.resolver.dns.DnsNameResolverBuilder;
 import ratpack.config.ConfigObject;
 import ratpack.error.ClientErrorHandler;
 import ratpack.error.ServerErrorHandler;
@@ -52,7 +49,6 @@ import ratpack.registry.RegistryBuilder;
 import ratpack.render.internal.*;
 import ratpack.server.*;
 import ratpack.sse.ServerSentEventStreamClient;
-import ratpack.util.internal.TransportDetector;
 
 import java.time.Clock;
 import java.util.Optional;
@@ -62,15 +58,6 @@ import static ratpack.util.internal.ProtocolUtil.HTTPS_SCHEME;
 import static ratpack.util.internal.ProtocolUtil.HTTP_SCHEME;
 
 public abstract class ServerRegistry {
-
-  public static AddressResolverGroup<?> defaultAddressResolver(ExecController controller) {
-    DnsNameResolverBuilder resolverBuilder = new DnsNameResolverBuilder()
-      .eventLoop(controller.getEventLoopGroup().next())
-      .channelType(TransportDetector.getDatagramChannelImpl())
-      .socketChannelType(TransportDetector.getSocketChannelImpl());
-
-    return  new DnsAddressResolverGroup(resolverBuilder);
-  }
 
   public static Registry serverRegistry(RatpackServer ratpackServer, Impositions impositions, ExecControllerInternal execController, ServerConfig serverConfig, Function<? super Registry, ? extends Registry> userRegistryFactory) {
     Registry baseRegistry = buildBaseRegistry(ratpackServer, impositions, execController, serverConfig);
@@ -103,6 +90,7 @@ public abstract class ServerRegistry {
         .poolSize(0)
         .byteBufAllocator(ByteBufAllocator.DEFAULT)
         .maxContentLength(serverConfig.getMaxContentLength())
+        .addressResolver(HttpClient.addressResolver(execController))
       );
 
       baseRegistryBuilder = Registry.builder()
@@ -130,7 +118,6 @@ public abstract class ServerRegistry {
         .add(Clock.class, Clock.systemDefaultZone())
         .add(RatpackServer.class, ratpackServer)
         .add(ObjectMapper.class, new ObjectMapper())
-        .add(AddressResolverGroup.class, defaultAddressResolver(execController))
         // TODO remove Stopper, and just use RatpackServer instead (will need to update perf and gradle tests)
         .add(Stopper.class, () -> uncheck(() -> {
           ratpackServer.stop();

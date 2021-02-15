@@ -23,6 +23,8 @@ import io.netty.channel.pool.ChannelHealthChecker;
 import io.netty.channel.pool.ChannelPool;
 import io.netty.channel.pool.SimpleChannelPool;
 import io.netty.resolver.AddressResolverGroup;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import ratpack.exec.ExecController;
 import ratpack.exec.Execution;
 import ratpack.exec.Operation;
@@ -31,7 +33,6 @@ import ratpack.exec.internal.ExecControllerInternal;
 import ratpack.func.Action;
 import ratpack.http.client.*;
 import ratpack.server.ServerConfig;
-import ratpack.server.internal.ServerRegistry;
 import ratpack.util.Exceptions;
 import ratpack.util.internal.TransportDetector;
 
@@ -42,6 +43,8 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
 
 public class DefaultHttpClient implements HttpClientInternal {
+
+  private static final Logger LOGGER = LoggerFactory.getLogger(HttpClient.class);
 
   private static final ChannelHealthChecker ALWAYS_UNHEALTHY = channel ->
     channel.eventLoop().newSucceededFuture(Boolean.FALSE);
@@ -55,9 +58,7 @@ public class DefaultHttpClient implements HttpClientInternal {
       Bootstrap bootstrap = new Bootstrap()
         .remoteAddress(key.host, key.port)
         .group(key.execution.getEventLoop())
-        .resolver(key.execution.maybeGet(AddressResolverGroup.class)
-          .orElseGet(() -> ServerRegistry.defaultAddressResolver(key.execution.getController()))
-        )
+        .resolver(spec.resolver)
         .channel(TransportDetector.getSocketChannelImpl())
         .option(ChannelOption.CONNECT_TIMEOUT_MILLIS, (int) key.connectTimeout.toMillis())
         .option(ChannelOption.ALLOCATOR, spec.byteBufAllocator)
@@ -93,6 +94,10 @@ public class DefaultHttpClient implements HttpClientInternal {
       this.proxy = new DefaultProxy(proxySpec);
     } else {
       proxy = null;
+    }
+    if (spec.resolver == null) {
+      LOGGER.warn("DNS resolver not specified for HttpClientSpec, defaulting to JVM blocking implementation");
+      spec.resolver = HttpClient.blockingResolver();
     }
   }
 
@@ -209,6 +214,7 @@ public class DefaultHttpClient implements HttpClientInternal {
     private Action<? super Throwable> errorInterceptor = Action.noop();
     private boolean enableMetricsCollection;
     private Action<? super ProxySpec> proxy;
+    private AddressResolverGroup<?> resolver;
 
     private Spec() {
     }
@@ -226,6 +232,7 @@ public class DefaultHttpClient implements HttpClientInternal {
       this.responseInterceptor = spec.responseInterceptor;
       this.enableMetricsCollection = spec.enableMetricsCollection;
       this.proxy = spec.proxy;
+      this.resolver = spec.resolver;
     }
 
     @Override
@@ -309,6 +316,12 @@ public class DefaultHttpClient implements HttpClientInternal {
     @Override
     public HttpClientSpec proxy(Action<? super ProxySpec> proxy) {
       this.proxy = proxy;
+      return this;
+    }
+
+    @Override
+    public HttpClientSpec addressResolver(AddressResolverGroup<?> resolver) {
+      this.resolver = resolver;
       return this;
     }
   }
