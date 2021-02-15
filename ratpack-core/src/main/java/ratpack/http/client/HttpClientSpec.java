@@ -17,6 +17,8 @@
 package ratpack.http.client;
 
 import io.netty.buffer.ByteBufAllocator;
+import io.netty.resolver.AddressResolverGroup;
+import ratpack.exec.ExecController;
 import ratpack.exec.Operation;
 import ratpack.func.Action;
 import ratpack.server.ServerConfig;
@@ -193,5 +195,18 @@ public interface HttpClientSpec {
    * @since 1.8.0
    */
   HttpClientSpec proxy(Action<? super ProxySpec> proxy);
+
+  /**
+   * Specifies the DNS resolver implementation to use when resolving hostnames to IP addresses.
+   * <p>
+   * The server configures a default non-blocking implementation using {@link io.netty.resolver.dns.DnsNameResolver}.
+   *
+   * @param resolver the resolver group
+   * @return {@code this}
+   * @since 1.9.0
+   * @see HttpClient#addressResolver(ExecController, Action)
+   * @see HttpClient#blockingResolver()
+   */
+  HttpClientSpec addressResolver(AddressResolverGroup<?> resolver);
 
 }

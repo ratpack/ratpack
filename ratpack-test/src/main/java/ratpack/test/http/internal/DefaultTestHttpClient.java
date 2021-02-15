@@ -256,6 +256,7 @@ public class DefaultTestHttpClient implements TestHttpClient {
       .byteBufAllocator(TestByteBufAllocators.LEAKING_UNPOOLED_HEAP)
       .maxContentLength(Integer.MAX_VALUE)
       .poolSize(8)
+      .addressResolver(HttpClient.blockingResolver())
     ));
   }
 
