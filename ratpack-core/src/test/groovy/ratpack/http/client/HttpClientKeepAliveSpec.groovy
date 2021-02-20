@@ -26,7 +26,7 @@ import java.util.concurrent.CountDownLatch
 
 class HttpClientKeepAliveSpec extends BaseHttpClientSpec {
 
-  def poolingHttpClient = HttpClient.of { it.poolSize(1) }
+  def poolingHttpClient = clientOf { it.poolSize(1) }
 
   def "connection can be reused"() {
     when:

@@ -26,12 +26,12 @@ import java.time.Duration
 @Unroll
 class HttpClientIdleTimeoutSpec extends BaseHttpClientSpec {
 
-  def poolingIdleHttpClient = HttpClient.of {
+  def poolingIdleHttpClient = clientOf {
     it.poolSize(1)
     it.idleTimeout(Duration.ofMillis(1500))
   }
 
-  def poolingHttpClient = HttpClient.of {
+  def poolingHttpClient = clientOf {
     it.poolSize(1)
   }
 

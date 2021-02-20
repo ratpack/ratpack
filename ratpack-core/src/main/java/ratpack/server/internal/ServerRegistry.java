@@ -90,7 +90,7 @@ public abstract class ServerRegistry {
         .poolSize(0)
         .byteBufAllocator(ByteBufAllocator.DEFAULT)
         .maxContentLength(serverConfig.getMaxContentLength())
-        .addressResolver(HttpClient.addressResolver(execController))
+        .execController(execController)
       );
 
       baseRegistryBuilder = Registry.builder()
