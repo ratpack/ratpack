@@ -16,6 +16,8 @@
 
 package ratpack.http.client.internal
 
+import ratpack.http.client.HostStats
+import ratpack.http.client.HttpClientStats
 import ratpack.test.internal.BaseRatpackSpec
 
 class HttpClientStatsSpec extends BaseRatpackSpec {

@@ -23,8 +23,7 @@ import com.google.inject.Singleton;
 import ratpack.dropwizard.metrics.DropwizardMetricsConfig;
 import ratpack.exec.ExecController;
 import ratpack.http.client.HttpClient;
-import ratpack.http.client.internal.DefaultHttpClient;
-import ratpack.http.client.internal.HttpClientStats;
+import ratpack.http.client.HttpClientStats;
 import ratpack.service.Service;
 import ratpack.service.StartEvent;
 
@@ -64,7 +63,7 @@ public class HttpClientMetrics implements Service, Runnable {
       boolean enabled = httpClientConfig.isEnabled();
       int pollingFrequency = httpClientConfig.getPollingFrequencyInSeconds();
 
-      if (enabled && httpClient instanceof DefaultHttpClient) {
+      if (enabled) {
         ExecController execController = event.getRegistry().get(ExecController.class);
         execController.getExecutor().scheduleAtFixedRate(this, 0, pollingFrequency, TimeUnit.SECONDS);
       }
@@ -73,7 +72,7 @@ public class HttpClientMetrics implements Service, Runnable {
 
   @Override
   public void run() {
-    HttpClientStats httpClientStats = ((DefaultHttpClient) httpClient).getHttpClientStats();
+    HttpClientStats httpClientStats = httpClient.getHttpClientStats();
     gauge(TOTAL_ACTIVE_CONNECTIONS).setValue(httpClientStats.getTotalActiveConnectionCount());
     gauge(TOTAL_IDLE_CONNECTIONS).setValue(httpClientStats.getTotalIdleConnectionCount());
     gauge(TOTAL_CONNECTIONS).setValue(httpClientStats.getTotalConnectionCount());

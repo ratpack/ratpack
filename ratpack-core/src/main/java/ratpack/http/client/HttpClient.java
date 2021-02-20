@@ -227,6 +227,14 @@ public interface HttpClient extends AutoCloseable {
   Promise<StreamedResponse> requestStream(URI uri, final Action<? super RequestSpec> requestConfigurer);
 
   /**
+   * Connection pools metrics that are tracked by this client.
+   *
+   * @return the current metrics for the client.
+   * @since 1.9
+   */
+  HttpClientStats getHttpClientStats();
+
+  /**
    * @deprecated since 1.4, use {@link #of(Action)}
    */
   @Deprecated

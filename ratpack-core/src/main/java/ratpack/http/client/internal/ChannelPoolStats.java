@@ -16,6 +16,8 @@
 
 package ratpack.http.client.internal;
 
+import ratpack.http.client.HostStats;
+
 public interface ChannelPoolStats {
 
   String getHost();
