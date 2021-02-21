@@ -1,5 +1,5 @@
 /*
- * Copyright 2021 the original author or authors.
+ * Copyright 2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,15 +14,10 @@
  * limitations under the License.
  */
 
-package ratpack.http.client;
+package ratpack.http.client.internal;
 
 import java.util.Map;
 
-/**
- * Http client metrics.
- *
- * @since 1.9
- */
 public class HttpClientStats {
 
   private final Map<String, HostStats> statsPerHost;

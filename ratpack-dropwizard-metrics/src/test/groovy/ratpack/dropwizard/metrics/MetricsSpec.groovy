@@ -39,9 +39,9 @@ import ratpack.exec.ExecController
 import ratpack.exec.Promise
 import ratpack.groovy.handling.GroovyChain
 import ratpack.groovy.test.embed.GroovyEmbeddedApp
-import ratpack.http.client.BaseHttpClientSpec
 import ratpack.http.client.HttpClient
 import ratpack.test.embed.EmbeddedApp
+import ratpack.test.internal.RatpackGroovyDslSpec
 import ratpack.websocket.RecordingWebSocketClient
 import spock.lang.AutoCleanup
 import spock.util.concurrent.BlockingVariable
@@ -51,7 +51,7 @@ import java.time.Duration
 import java.util.concurrent.CountDownLatch
 import java.util.concurrent.TimeUnit
 
-class MetricsSpec extends BaseHttpClientSpec {
+class MetricsSpec extends RatpackGroovyDslSpec {
 
   @SuppressWarnings("GroovyUnusedDeclaration")
   PollingConditions polling = new PollingConditions()
@@ -845,9 +845,10 @@ class MetricsSpec extends BaseHttpClientSpec {
 
   def "it should report http client metrics"() {
     given:
+    MetricRegistry registry
     String ok = 'ok'
     def result = new BlockingVariable<String>()
-    def httpClient = clientOf { spec ->
+    def httpClient = HttpClient.of { spec ->
       spec.poolSize(0)
       spec.enableMetricsCollection(true)
     }
@@ -863,7 +864,6 @@ class MetricsSpec extends BaseHttpClientSpec {
       }
     }
 
-    when:
     otherApp {
       get {
         Blocking.get({
@@ -874,7 +874,8 @@ class MetricsSpec extends BaseHttpClientSpec {
       }
     }
 
-    handlers {
+    handlers { MetricRegistry metrics ->
+      registry = metrics
       get {
         ExecController execController = it.get(ExecController)
         execController.fork().start({
@@ -887,14 +888,10 @@ class MetricsSpec extends BaseHttpClientSpec {
       }
     }
 
-    then:
-    assert httpClient.getHttpClientStats().totalActiveConnectionCount == 0
-
     when:
-    assert text == "ok"
+    text == ok
 
     then:
-    def registry = application.server.registry.get().get(MetricRegistry)
     polling.within(2) {
       assert registry.getGauges().get('httpclient.total.active.connections').value == 1
       assert registry.getGauges().get('httpclient.total.idle.connections').value == 0
@@ -902,6 +899,8 @@ class MetricsSpec extends BaseHttpClientSpec {
       assert registry.getGauges().get("httpclient.${otherAppUrl().host}.total.active.connections").value == 1
       assert registry.getGauges().get("httpclient.${otherAppUrl().host}.total.idle.connections").value == 0
       assert registry.getGauges().get("httpclient.${otherAppUrl().host}.total.connections").value == 1
+
+
     }
 
     when:

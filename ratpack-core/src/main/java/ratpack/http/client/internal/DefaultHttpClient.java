@@ -261,7 +261,6 @@ public class DefaultHttpClient implements HttpClientInternal {
       );
   }
 
-  @Override
   public HttpClientStats getHttpClientStats() {
     return new HttpClientStats(
       hostStats.entrySet().stream().collect(Collectors.toMap(

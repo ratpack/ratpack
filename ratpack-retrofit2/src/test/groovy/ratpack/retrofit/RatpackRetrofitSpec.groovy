@@ -18,7 +18,6 @@ package ratpack.retrofit
 
 import ratpack.error.ServerErrorHandler
 import ratpack.error.internal.DefaultDevelopmentErrorHandler
-import ratpack.exec.ExecController
 import ratpack.exec.Promise
 import ratpack.groovy.test.embed.GroovyEmbeddedApp
 import ratpack.handling.Context
@@ -74,7 +73,6 @@ class RatpackRetrofitSpec extends BaseRatpackSpec {
 
   HttpClient client() {
     HttpClient.of {
-      it.execController(server.server.registry.get().get(ExecController))
       it.maxContentLength(ServerConfig.DEFAULT_MAX_CONTENT_LENGTH)
       it.connectTimeout(Duration.ofMillis(3000))
       it.readTimeout(Duration.ofMillis(3000))
