@@ -35,7 +35,6 @@ When you've got the release announcement set, copy it to the description of the 
         1. Enter your user/pass - this is your oss.sonatype.org credentials
         1. Click “Close repository when done”
         1. Click “Sync”
-1. Publish Lazybones templates to Bintray: `./gradlew publishAllTemplates` - See below for credential requirements.
 1. Publish to Gradle Plugin Portal: `./gradlew publishPlugins -i` - See below for credential requirements.
 <p>If you run this task more than once you may need to delete the published templates in Bintray first. 
 
@@ -66,7 +65,6 @@ When you've got the release announcement set, copy it to the description of the 
     1. Create an account [for oss.sonatype.org](https://issues.sonatype.org/secure/Signup!default.jspa)
     1. Add a comment to [this JIRA ticket](https://issues.sonatype.org/browse/OSSRH-8283) with your new account, asking for permission to publish to `io.ratpack`.
 1. Bintray credentials/config
-    1. Lazybones templates are published to Bintray using your Bintray account.  You need to be a member of the Ratpack organization with permission to publish to the Lazybones repo.
     1. You also need Bintray credentials to publish to the Gradle Plugin Portal repo.  You need to be a member of the Ratpack organization with permission to publish to the gradle-plugins-meta repo.
     1. Create a gradle.properties file in the root of the Ratpack project and add properties for `ratpackBintrayUser` and `ratpackBintrayApiKey` with your Bintray details.  This file does not get committed.
 1. Gradle Plugin Portal config
