@@ -44,7 +44,6 @@ include \
     "ratpack-h2",
     "ratpack-thymeleaf",
     "ratpack-thymeleaf3",
-    "ratpack-lazybones",
     "ratpack-hikari",
     "ratpack-newrelic",
     "ratpack-pac4j",
