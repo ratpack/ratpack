@@ -70,13 +70,16 @@ abstract class RequestActionSupport<T> implements Upstream<T> {
 
   private boolean fired;
   private boolean disposed;
+  private boolean expectContinue;
+  private boolean receivedContinue;
 
-  RequestActionSupport(URI uri, HttpClientInternal client, int redirectCount, Execution execution, Action<? super RequestSpec> requestConfigurer) throws Exception {
+  RequestActionSupport(URI uri, HttpClientInternal client, int redirectCount, boolean expectContinue, Execution execution, Action<? super RequestSpec> requestConfigurer) throws Exception {
     this.requestConfigurer = requestConfigurer;
     this.requestConfig = RequestConfig.of(uri, client, requestConfigurer);
     this.client = client;
     this.execution = execution;
     this.redirectCount = redirectCount;
+    this.expectContinue = expectContinue;
     this.channelKey = new HttpChannelKey(requestConfig.uri, requestConfig.connectTimeout, execution);
     this.channelPool = client.getChannelPoolMap().get(channelKey);
 
@@ -114,7 +117,7 @@ abstract class RequestActionSupport<T> implements Upstream<T> {
   private void send(Downstream<? super T> downstream, Channel channel) throws Exception {
     channel.config().setAutoRead(true);
 
-    FullHttpRequest request = new DefaultFullHttpRequest(
+    HttpMessage request = new DefaultFullHttpRequest(
       HttpVersion.HTTP_1_1,
       requestConfig.method.getNettyMethod(),
       getFullPath(requestConfig.uri),
@@ -122,6 +125,15 @@ abstract class RequestActionSupport<T> implements Upstream<T> {
       requestConfig.headers.getNettyHeaders(),
       EmptyHttpHeaders.INSTANCE
     );
+    if (HttpUtil.is100ContinueExpected(request)) {
+      request = new DefaultHttpRequest(
+        HttpVersion.HTTP_1_1,
+        requestConfig.method.getNettyMethod(),
+        getFullPath(requestConfig.uri),
+        requestConfig.headers.getNettyHeaders()
+      );
+      expectContinue = true;
+    }
 
     addCommonResponseHandlers(channel.pipeline(), downstream);
 
@@ -132,9 +144,10 @@ abstract class RequestActionSupport<T> implements Upstream<T> {
       channelFuture = channel.newSucceededFuture();
     }
 
+    final HttpMessage msg = request;
     channelFuture.addListener(firstFuture -> {
       if (firstFuture.isSuccess()) {
-        channel.writeAndFlush(request).addListener(writeFuture -> {
+        channel.writeAndFlush(msg).addListener(writeFuture -> {
           if (!writeFuture.isSuccess()) {
             error(downstream, writeFuture.cause());
           }
@@ -225,7 +238,32 @@ abstract class RequestActionSupport<T> implements Upstream<T> {
 
       @Override
       protected void channelRead0(ChannelHandlerContext ctx, HttpObject msg) throws Exception {
+        // received the end frame of the 100 Continue, send the body, then process the resulting response
+        if (msg instanceof LastHttpContent && expectContinue && receivedContinue) {
+          LastHttpContent bodyMsg = new DefaultLastHttpContent(requestConfig.body.touch());
+          expectContinue = false;
+          receivedContinue = false;
+          ctx.writeAndFlush(bodyMsg).addListener(writeFuture -> {
+            if (!writeFuture.isSuccess()) {
+              error(downstream, writeFuture.cause());
+            }
+          });
+          return;
+        }
         if (msg instanceof HttpResponse) {
+          if (expectContinue) {
+            // need to wait for a 100 Continue to come in
+            int status = ((HttpResponse) msg).status().code();
+            if (status == HttpResponseStatus.CONTINUE.code()) {
+              // received the continue, now wait for the end frame before sending the body
+              receivedContinue = true;
+              return;
+            } else if (!isRedirect(status)) {
+              // Received a response other than 100 Continue and not a redirect, so clear that we expect a 100
+              // and process this as the normal response without sending the body.
+              expectContinue = false;
+            }
+          }
           this.response = (HttpResponse) msg;
           int maxRedirects = requestConfig.maxRedirects;
           int status = response.status().code();
@@ -257,7 +295,7 @@ abstract class RequestActionSupport<T> implements Upstream<T> {
                 locationUri = new URI(channelKey.ssl ? "https" : "http", null, channelKey.host, channelKey.port, partial.getPath(), partial.getQuery(), null);
               }
 
-              onRedirect(locationUri, redirectCount + 1, redirectRequestConfig).connect(downstream);
+              onRedirect(locationUri, redirectCount + 1, expectContinue, redirectRequestConfig).connect(downstream);
 
               redirected = true;
               dispose(ctx.pipeline(), response);
@@ -300,7 +338,7 @@ abstract class RequestActionSupport<T> implements Upstream<T> {
     return sslContext.newEngine(client.getByteBufAllocator(), requestConfig.uri.getHost(), port);
   }
 
-  protected abstract Upstream<T> onRedirect(URI locationUrl, int redirectCount, Action<? super RequestSpec> redirectRequestConfig) throws Exception;
+  protected abstract Upstream<T> onRedirect(URI locationUrl, int redirectCount, boolean expectContinue, Action<? super RequestSpec> redirectRequestConfig) throws Exception;
 
   protected void success(Downstream<? super T> downstream, T value) {
     if (!fired) {

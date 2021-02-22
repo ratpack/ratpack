@@ -18,8 +18,12 @@ package ratpack.http.client
 
 import io.netty.buffer.Unpooled
 import io.netty.handler.codec.http.HttpResponseStatus
+import io.netty.util.CharsetUtil
 import ratpack.stream.Streams
 
+import java.time.Duration
+import java.time.Instant
+import java.util.concurrent.CountDownLatch
 import java.util.zip.GZIPInputStream
 
 import static ratpack.http.ResponseChunks.stringChunks
@@ -420,8 +424,160 @@ connection: close
     status << noBodyResponseStatuses()
   }
 
+  def "can proxy a 100-continue request"() {
+    given:
+    def initialRequestLatch = new CountDownLatch(1)
+    def responseLatch = new CountDownLatch(1)
+
+    when:
+    otherApp {
+      post {
+        request.body.then {
+          responseLatch.countDown()
+          response.status(200).send(it.text)
+        }
+      }
+    }
+
+    handlers {
+      post {
+        def client = get(HttpClient)
+        initialRequestLatch.countDown()
+        request.body.flatMap { td ->
+          client.requestStream(otherAppUrl()) { spec ->
+            spec.method(request.method)
+            spec.headers.copy(request.headers)
+            spec.headers.set('foo', "bar")
+            spec.body { b ->
+              b.bytes(td.bytes)
+            }
+          }
+        }.then {
+          responseLatch.await()
+          it.forwardTo(response)
+        }
+      }
+    }
+    def s = withSocket {
+      write("POST / HTTP/1.1\r\n")
+      write("Expect: 100-continue\r\n")
+      write("Connection: close\r\n")
+      write("Content-Type: application/json\r\n")
+      write("Content-Length: 17\r\n")
+      write("\r\n")
+      flush()
+    }
+
+    initialRequestLatch.await()
+    def response = readStream(s.inputStream, Duration.ofSeconds(1))
+
+    then:
+    response == """HTTP/1.1 100 Continue\r\n\r\n"""
+
+    when:
+    withSocket(s) {
+      write("{\"message\": \"hi\"}\r\n")
+      flush()
+    }
+    response = s.inputStream.getText(CharsetUtil.UTF_8.name()).normalize()
+
+    then:
+    response == """HTTP/1.1 200 OK
+content-type: text/plain;charset=UTF-8
+content-length: 17
+connection: close
+
+{\"message\": \"hi\"}"""
+    cleanup:
+    s.close()
+  }
+
+  def "can proxy a 100-continue request with failed expectation"() {
+    def initialRequestLatch = new CountDownLatch(1)
+    def replyLatch = new CountDownLatch(1)
+    def replied = false
+
+    when:
+    otherApp {
+      post {
+        request.getBody(10).then {
+          replied = true
+          response.status(200).send(it.text)
+        }
+      }
+    }
+
+    handlers {
+      post {
+        def client = get(HttpClient)
+        initialRequestLatch.countDown()
+        request.body.flatMap { td ->
+          client.requestStream(otherAppUrl()) { spec ->
+            spec.method(request.method)
+            spec.headers.copy(request.headers)
+            spec.headers.set('foo', "bar")
+            spec.body { b ->
+              b.bytes(td.bytes)
+            }
+          }
+        }.then {
+          replyLatch.countDown()
+          it.forwardTo(response)
+        }
+      }
+    }
+    def s = withSocket {
+      write("POST / HTTP/1.1\r\n")
+      write("Expect: 100-continue\r\n")
+      write("Connection: close\r\n")
+      write("Content-Type: application/json\r\n")
+      write("Content-Length: 17\r\n")
+      write("\r\n")
+      flush()
+    }
+
+    initialRequestLatch.await()
+    def response = readStream(s.inputStream, Duration.ofSeconds(1))
+
+    then:
+    response == """HTTP/1.1 100 Continue\r\n\r\n"""
+
+    when:
+    withSocket(s) {
+      write("{\"message\": \"hi\"}\r\n")
+      flush()
+    }
+    replyLatch.await()
+    response = s.inputStream.getText(CharsetUtil.UTF_8.name()).normalize()
+
+    then:
+    response == """HTTP/1.1 413 Request Entity Too Large
+content-type: text/plain;charset=UTF-8
+content-length: 16
+connection: close
+
+Client error 413"""
+    !replied
+
+    cleanup:
+    s.close()
+  }
+
   static List<HttpResponseStatus> noBodyResponseStatuses() {
     [HttpResponseStatus.valueOf(100), HttpResponseStatus.valueOf(150), HttpResponseStatus.valueOf(199), HttpResponseStatus.valueOf(204), HttpResponseStatus.valueOf(304)]
+  }
+
+  String readStream(InputStream is, Duration timeout) {
+    def now = Instant.now()
+    StringBuilder sb = new StringBuilder()
+    while (Instant.now().isBefore(now.plus(timeout))) {
+      if (is.available() > 0) {
+        def bytes = new byte[is.available()]
+        def len = is.read(bytes)
+        sb.append(new String(bytes[0..len-1] as byte[], CharsetUtil.UTF_8.name()))
+      }
+    }
+    return sb.toString()
   }
 
 }
