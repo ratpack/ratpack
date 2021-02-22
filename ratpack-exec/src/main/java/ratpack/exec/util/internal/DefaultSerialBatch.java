@@ -59,7 +59,7 @@ public class DefaultSerialBatch<T> implements SerialBatch<T> {
   public Promise<List<T>> yield() {
     List<T> results = new ArrayList<>();
     return Promise.async(d ->
-      forEach((i, r) -> results.add(r))
+      forEach(promises, (i, r) -> results.add(r))
         .onError(d::error)
         .then(() -> d.success(results))
     );
@@ -67,6 +67,10 @@ public class DefaultSerialBatch<T> implements SerialBatch<T> {
 
   @Override
   public Operation forEach(BiAction<? super Integer, ? super T> consumer) {
+    return forEach(promises, consumer);
+  }
+
+  private static <T> Operation forEach(Iterable<? extends Promise<T>> promises, BiAction<? super Integer, ? super T> consumer) {
     return Promise.<Void>async(d ->
       yieldPromise(promises.iterator(), 0, (i, r) -> consumer.execute(i, r.getValue()), (i, r) -> {
         d.error(r.getThrowable());
