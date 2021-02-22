@@ -49,11 +49,31 @@ class OperationErrorSpec extends BaseRatpackSpec {
     exec {
       Operation.of { throw new IllegalArgumentException("!") }
         .onError {
-        throw new NullPointerException("!")
-      }
-      .then {
-        events << "then"
-      }
+          throw new NullPointerException("!")
+        }
+        .then {
+          events << "then"
+        }
+    } {
+      events << it
+    }
+
+    then:
+    events.size() == 2
+    events[0] instanceof NullPointerException
+    (events[0] as Exception).suppressed[0] instanceof IllegalArgumentException
+  }
+
+  def "on error can be async"() {
+    when:
+    exec {
+      Operation.of { throw new IllegalArgumentException("!") }
+        .onError {
+          Operation.of { throw new NullPointerException("!") }.then()
+        }
+        .then {
+          events << "then"
+        }
     } {
       events << it
     }
@@ -70,8 +90,8 @@ class OperationErrorSpec extends BaseRatpackSpec {
       Operation.of { throw new IllegalArgumentException("!") }
         .onError { throw it }
         .then {
-        events << "then"
-      }
+          events << "then"
+        }
     } {
       events << it
     }
@@ -88,8 +108,8 @@ class OperationErrorSpec extends BaseRatpackSpec {
       Operation.of { throw new IllegalArgumentException("!") }
         .onError { it.message == "!" } { events << "error" }
         .then {
-        events << "then"
-      }
+          events << "then"
+        }
     } {
       events << it
     }
@@ -104,8 +124,8 @@ class OperationErrorSpec extends BaseRatpackSpec {
       Operation.of { throw new IllegalArgumentException("!") }
         .onError { it.message != "!" } { events << "error" }
         .then {
-        events << "then"
-      }
+          events << "then"
+        }
     } {
       events << it
     }
@@ -121,8 +141,8 @@ class OperationErrorSpec extends BaseRatpackSpec {
       Operation.of { throw new IllegalArgumentException("!") }
         .onError(IllegalArgumentException) { events << "error" }
         .then {
-        events << "then"
-      }
+          events << "then"
+        }
     } {
       events << it
     }
@@ -137,8 +157,8 @@ class OperationErrorSpec extends BaseRatpackSpec {
       Operation.of { throw new IllegalArgumentException("!") }
         .onError(NullPointerException) { events << "error" }
         .then {
-        events << "then"
-      }
+          events << "then"
+        }
     } {
       events << it
     }
@@ -155,8 +175,8 @@ class OperationErrorSpec extends BaseRatpackSpec {
         .onError { t -> t.message == "foo" } { events << "error1" }
         .onError(IllegalArgumentException) { events << "error2" }
         .then {
-        events << "then"
-      }
+          events << "then"
+        }
     } {
       events << it
     }
