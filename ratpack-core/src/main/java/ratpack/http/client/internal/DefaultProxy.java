@@ -23,29 +23,38 @@ import java.util.Collections;
 
 public class DefaultProxy implements ProxyInternal {
 
-  private final Spec spec;
+  private final String host;
+  private final int port;
+  private final Collection<String> nonProxyHosts;
+
+  public DefaultProxy(String host, int port, Collection<String> nonProxyHosts) {
+    this.host = host;
+    this.port = port;
+    this.nonProxyHosts = nonProxyHosts;
+  }
 
   @Override
   public String getHost() {
-    return spec.host;
+    return host;
   }
 
   @Override
   public int getPort() {
-    return spec.port;
+    return port;
   }
 
   @Override
   public Collection<String> getNonProxyHosts() {
-    return spec.nonProxyHosts;
+    return nonProxyHosts;
   }
 
   @Override
-  public boolean shouldProxy(String host)  {
+  public boolean shouldProxy(String host) {
     return !isIgnoredForHost(host);
   }
 
   // Captured from https://github.com/AsyncHttpClient/async-http-client/blob/758dcf214bf0ec08142ba234a3967d98a3dc60ef/client/src/main/java/org/asynchttpclient/proxy/ProxyServer.java
+
   /**
    * Checks whether proxy should be used according to nonProxyHosts settings of
    * it, or we want to go directly to target host. If <code>null</code> proxy is
@@ -61,8 +70,8 @@ public class DefaultProxy implements ProxyInternal {
    * Properties</a>
    */
   public boolean isIgnoredForHost(String hostname) {
-    if (spec.nonProxyHosts != null && spec.nonProxyHosts.size() > 0) {
-      for (String nonProxyHost : spec.nonProxyHosts) {
+    if (nonProxyHosts != null && nonProxyHosts.size() > 0) {
+      for (String nonProxyHost : nonProxyHosts) {
         if (matchNonProxyHost(hostname, nonProxyHost)) {
           return true;
         }
@@ -87,11 +96,7 @@ public class DefaultProxy implements ProxyInternal {
     return nonProxyHost.equalsIgnoreCase(targetHost);
   }
 
-  public DefaultProxy(Spec spec) {
-    this.spec = spec;
-  }
-
-  public static class Spec implements ProxySpec {
+  public static class Builder implements ProxySpec {
 
     private String host;
     private int port;
@@ -113,6 +118,10 @@ public class DefaultProxy implements ProxyInternal {
     public ProxySpec nonProxyHosts(Collection<String> nonProxyHosts) {
       this.nonProxyHosts = nonProxyHosts;
       return this;
+    }
+
+    ProxyInternal build() {
+      return new DefaultProxy(host, port, nonProxyHosts);
     }
   }
 }

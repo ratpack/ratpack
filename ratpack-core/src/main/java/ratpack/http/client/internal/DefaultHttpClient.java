@@ -22,15 +22,14 @@ import io.netty.channel.ChannelOption;
 import io.netty.channel.pool.ChannelHealthChecker;
 import io.netty.channel.pool.ChannelPool;
 import io.netty.channel.pool.SimpleChannelPool;
+import io.netty.resolver.AddressResolverGroup;
+import ratpack.api.Nullable;
 import ratpack.exec.ExecController;
 import ratpack.exec.Execution;
-import ratpack.exec.Operation;
 import ratpack.exec.Promise;
 import ratpack.exec.internal.ExecControllerInternal;
 import ratpack.func.Action;
 import ratpack.http.client.*;
-import ratpack.server.ServerConfig;
-import ratpack.util.Exceptions;
 import ratpack.util.internal.TransportDetector;
 
 import java.net.URI;
@@ -44,6 +43,23 @@ public class DefaultHttpClient implements HttpClientInternal {
   private static final ChannelHealthChecker ALWAYS_UNHEALTHY = channel ->
     channel.eventLoop().newSucceededFuture(Boolean.FALSE);
 
+  final ByteBufAllocator byteBufAllocator;
+  final int poolSize;
+  final int poolQueueSize;
+  final Duration idleTimeout;
+  final int maxContentLength;
+  final int responseMaxChunkSize;
+  final Duration readTimeout;
+  final Duration connectTimeout;
+  final Action<? super RequestSpec> requestInterceptor;
+  final Action<? super HttpResponse> responseInterceptor;
+  final Action<? super Throwable> errorInterceptor;
+  final boolean enableMetricsCollection;
+  final AddressResolverGroup<?> resolver;
+
+  @Nullable
+  final ProxyInternal proxy;
+
   private final Map<String, ChannelPoolStats> hostStats = new ConcurrentHashMap<>();
 
   private final HttpChannelPoolMap channelPoolMap = new HttpChannelPoolMap() {
@@ -52,9 +68,10 @@ public class DefaultHttpClient implements HttpClientInternal {
       Bootstrap bootstrap = new Bootstrap()
         .remoteAddress(key.host, key.port)
         .group(key.execution.getEventLoop())
+        .resolver(resolver)
         .channel(TransportDetector.getSocketChannelImpl())
         .option(ChannelOption.CONNECT_TIMEOUT_MILLIS, (int) key.connectTimeout.toMillis())
-        .option(ChannelOption.ALLOCATOR, spec.byteBufAllocator)
+        .option(ChannelOption.ALLOCATOR, byteBufAllocator)
         .option(ChannelOption.AUTO_READ, false)
         .option(ChannelOption.SO_KEEPALIVE, isPooling());
 
@@ -75,49 +92,67 @@ public class DefaultHttpClient implements HttpClientInternal {
     }
   };
 
-  private final DefaultHttpClient.Spec spec;
-  private final ProxyInternal proxy;
-
-  private DefaultHttpClient(DefaultHttpClient.Spec spec) {
-    this.spec = spec;
-
-    if (spec.proxy != null) {
-      DefaultProxy.Spec proxySpec = new DefaultProxy.Spec();
-      Exceptions.uncheck(() -> spec.proxy.execute(proxySpec));
-      this.proxy = new DefaultProxy(proxySpec);
-    } else {
-      proxy = null;
-    }
+  public DefaultHttpClient(
+    ByteBufAllocator byteBufAllocator,
+    int poolSize,
+    int poolQueueSize,
+    Duration idleTimeout,
+    int maxContentLength,
+    int responseMaxChunkSize,
+    Duration readTimeout,
+    Duration connectTimeout,
+    Action<? super RequestSpec> requestInterceptor,
+    Action<? super HttpResponse> responseInterceptor,
+    Action<? super Throwable> errorInterceptor,
+    boolean enableMetricsCollection,
+    AddressResolverGroup<?> resolver,
+    @Nullable ProxyInternal proxy
+  ) {
+    this.byteBufAllocator = byteBufAllocator;
+    this.poolSize = poolSize;
+    this.poolQueueSize = poolQueueSize;
+    this.idleTimeout = idleTimeout;
+    this.maxContentLength = maxContentLength;
+    this.responseMaxChunkSize = responseMaxChunkSize;
+    this.readTimeout = readTimeout;
+    this.connectTimeout = connectTimeout;
+    this.requestInterceptor = requestInterceptor;
+    this.responseInterceptor = responseInterceptor;
+    this.errorInterceptor = errorInterceptor;
+    this.enableMetricsCollection = enableMetricsCollection;
+    this.resolver = resolver;
+    this.proxy = proxy;
   }
 
   private InstrumentedChannelPoolHandler getPoolingHandler(HttpChannelKey key) {
-
-    if (spec.enableMetricsCollection) {
+    if (enableMetricsCollection) {
       return new InstrumentedFixedChannelPoolHandler(key, getPoolSize(), getIdleTimeout(), proxy);
+    } else {
+      return new NoopFixedChannelPoolHandler(key, getIdleTimeout(), proxy);
     }
-    return new NoopFixedChannelPoolHandler(key, getIdleTimeout(), proxy);
   }
 
   private InstrumentedChannelPoolHandler getSimpleHandler(HttpChannelKey key) {
-    if (spec.enableMetricsCollection) {
+    if (enableMetricsCollection) {
       return new InstrumentedSimpleChannelPoolHandler(key, proxy);
+    } else {
+      return new NoopSimpleChannelPoolHandler(key, proxy);
     }
-    return new NoopSimpleChannelPoolHandler(key, proxy);
   }
 
   @Override
   public int getPoolSize() {
-    return spec.poolSize;
+    return poolSize;
   }
 
   @Override
   public int getPoolQueueSize() {
-    return spec.poolQueueSize;
+    return poolQueueSize;
   }
 
   @Override
   public Duration getIdleTimeout() {
-    return spec.idleTimeout;
+    return idleTimeout;
   }
 
   private boolean isPooling() {
@@ -131,33 +166,33 @@ public class DefaultHttpClient implements HttpClientInternal {
 
   @Override
   public Action<? super RequestSpec> getRequestInterceptor() {
-    return spec.requestInterceptor;
+    return requestInterceptor;
   }
 
   @Override
   public Action<? super HttpResponse> getResponseInterceptor() {
-    return spec.responseInterceptor;
+    return responseInterceptor;
   }
 
   public ByteBufAllocator getByteBufAllocator() {
-    return spec.byteBufAllocator;
+    return byteBufAllocator;
   }
 
   public int getMaxContentLength() {
-    return spec.maxContentLength;
+    return maxContentLength;
   }
 
   @Override
   public int getMaxResponseChunkSize() {
-    return spec.responseMaxChunkSize;
+    return responseMaxChunkSize;
   }
 
   public Duration getReadTimeout() {
-    return spec.readTimeout;
+    return readTimeout;
   }
 
   public Duration getConnectTimeout() {
-    return spec.connectTimeout;
+    return connectTimeout;
   }
 
   @Override
@@ -172,139 +207,9 @@ public class DefaultHttpClient implements HttpClientInternal {
 
   @Override
   public HttpClient copyWith(Action<? super HttpClientSpec> action) throws Exception {
-    return of(new DefaultHttpClient.Spec(spec), action);
-  }
-
-  public static HttpClient of(Action<? super HttpClientSpec> action) throws Exception {
-    DefaultHttpClient.Spec spec = new DefaultHttpClient.Spec();
-    return of(spec, action);
-  }
-
-  private static HttpClient of(DefaultHttpClient.Spec spec, Action<? super HttpClientSpec> action) throws Exception {
-    action.execute(spec);
-
-    return new DefaultHttpClient(
-      spec
-    );
-  }
-
-  private static class Spec implements HttpClientSpec {
-
-    private ByteBufAllocator byteBufAllocator = ByteBufAllocator.DEFAULT;
-    private int poolSize;
-    private int poolQueueSize = Integer.MAX_VALUE;
-    private Duration idleTimeout = Duration.ofSeconds(0);
-    private int maxContentLength = ServerConfig.DEFAULT_MAX_CONTENT_LENGTH;
-    private int responseMaxChunkSize = 8192;
-    private Duration readTimeout = Duration.ofSeconds(30);
-    private Duration connectTimeout = Duration.ofSeconds(30);
-    private Action<? super RequestSpec> requestInterceptor = Action.noop();
-    private Action<? super HttpResponse> responseInterceptor = Action.noop();
-    private Action<? super Throwable> errorInterceptor = Action.noop();
-    private boolean enableMetricsCollection;
-    private Action<? super ProxySpec> proxy;
-
-    private Spec() {
-    }
-
-    private Spec(Spec spec) {
-      this.byteBufAllocator = spec.byteBufAllocator;
-      this.poolSize = spec.poolSize;
-      this.poolQueueSize = spec.poolQueueSize;
-      this.idleTimeout = spec.idleTimeout;
-      this.maxContentLength = spec.maxContentLength;
-      this.responseMaxChunkSize = spec.responseMaxChunkSize;
-      this.readTimeout = spec.readTimeout;
-      this.connectTimeout = spec.connectTimeout;
-      this.requestInterceptor = spec.requestInterceptor;
-      this.responseInterceptor = spec.responseInterceptor;
-      this.enableMetricsCollection = spec.enableMetricsCollection;
-      this.proxy = spec.proxy;
-    }
-
-    @Override
-    public HttpClientSpec poolSize(int poolSize) {
-      this.poolSize = poolSize;
-      return this;
-    }
-
-    @Override
-    public HttpClientSpec poolQueueSize(int poolQueueSize) {
-      this.poolQueueSize = poolQueueSize;
-      return this;
-    }
-
-    @Override
-    public HttpClientSpec idleTimeout(Duration idleTimeout) {
-      this.idleTimeout = idleTimeout;
-      return this;
-    }
-
-    @Override
-    public HttpClientSpec byteBufAllocator(ByteBufAllocator byteBufAllocator) {
-      this.byteBufAllocator = byteBufAllocator;
-      return this;
-    }
-
-    @Override
-    public HttpClientSpec maxContentLength(int maxContentLength) {
-      this.maxContentLength = maxContentLength;
-      return this;
-    }
-
-    @Override
-    public HttpClientSpec responseMaxChunkSize(int numBytes) {
-      this.responseMaxChunkSize = numBytes;
-      return this;
-    }
-
-    @Override
-    public HttpClientSpec readTimeout(Duration readTimeout) {
-      this.readTimeout = readTimeout;
-      return this;
-    }
-
-    @Override
-    public HttpClientSpec connectTimeout(Duration connectTimeout) {
-      this.connectTimeout = connectTimeout;
-      return this;
-    }
-
-    @Override
-    public HttpClientSpec requestIntercept(Action<? super RequestSpec> interceptor) {
-      requestInterceptor = requestInterceptor.append(interceptor);
-      return this;
-    }
-
-    @Override
-    public HttpClientSpec responseIntercept(Action<? super HttpResponse> interceptor) {
-      responseInterceptor = responseInterceptor.append(interceptor);
-      return this;
-    }
-
-    @Override
-    public HttpClientSpec responseIntercept(Operation operation) {
-      responseInterceptor = responseInterceptor.append(response -> operation.then());
-      return this;
-    }
-
-    @Override
-    public HttpClientSpec errorIntercept(Action<? super Throwable> interceptor) {
-      errorInterceptor = errorInterceptor.append(interceptor);
-      return this;
-    }
-
-    @Override
-    public HttpClientSpec enableMetricsCollection(boolean enableMetricsCollection) {
-      this.enableMetricsCollection = enableMetricsCollection;
-      return this;
-    }
-
-    @Override
-    public HttpClientSpec proxy(Action<? super ProxySpec> proxy) {
-      this.proxy = proxy;
-      return this;
-    }
+    HttpClientBuilder builder = new HttpClientBuilder(this);
+    action.execute(builder);
+    return builder.build();
   }
 
   @Override
@@ -320,18 +225,18 @@ public class DefaultHttpClient implements HttpClientInternal {
   @Override
   public Promise<ReceivedResponse> request(URI uri, final Action<? super RequestSpec> requestConfigurer) {
     return intercept(
-      Promise.async(downstream -> new ContentAggregatingRequestAction(uri, this, 0, Execution.current(), requestConfigurer.append(spec.requestInterceptor)).connect(downstream)),
-      spec.responseInterceptor,
-      spec.errorInterceptor
+      Promise.async(downstream -> new ContentAggregatingRequestAction(uri, this, 0, Execution.current(), requestConfigurer.append(requestInterceptor)).connect(downstream)),
+      responseInterceptor,
+      errorInterceptor
     );
   }
 
   @Override
   public Promise<StreamedResponse> requestStream(URI uri, Action<? super RequestSpec> requestConfigurer) {
     return intercept(
-      Promise.async(downstream -> new ContentStreamingRequestAction(uri, this, 0, Execution.current(), requestConfigurer.append(spec.requestInterceptor)).connect(downstream)),
-      spec.responseInterceptor,
-      spec.errorInterceptor
+      Promise.async(downstream -> new ContentStreamingRequestAction(uri, this, 0, Execution.current(), requestConfigurer.append(requestInterceptor)).connect(downstream)),
+      responseInterceptor,
+      errorInterceptor
     );
   }
 

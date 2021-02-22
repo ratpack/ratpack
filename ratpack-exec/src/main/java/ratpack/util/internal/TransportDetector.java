@@ -18,8 +18,10 @@ package ratpack.util.internal;
 
 import io.netty.channel.EventLoopGroup;
 import io.netty.channel.nio.NioEventLoopGroup;
+import io.netty.channel.socket.DatagramChannel;
 import io.netty.channel.socket.ServerSocketChannel;
 import io.netty.channel.socket.SocketChannel;
+import io.netty.channel.socket.nio.NioDatagramChannel;
 import io.netty.channel.socket.nio.NioServerSocketChannel;
 import io.netty.channel.socket.nio.NioSocketChannel;
 import org.slf4j.Logger;
@@ -61,6 +63,10 @@ public abstract class TransportDetector {
     return TRANSPORT.getSocketChannelImpl();
   }
 
+  public static Class<? extends DatagramChannel> getDatagramChannelImpl() {
+    return TRANSPORT.getDatagramChannelImpl();
+  }
+
   public static EventLoopGroup eventLoopGroup(int nThreads, ThreadFactory threadFactory) {
     return TRANSPORT.eventLoopGroup(nThreads, threadFactory);
   }
@@ -72,6 +78,8 @@ public abstract class TransportDetector {
     Class<? extends ServerSocketChannel> getServerSocketChannelImpl();
 
     Class<? extends SocketChannel> getSocketChannelImpl();
+
+    Class<? extends DatagramChannel> getDatagramChannelImpl();
 
     EventLoopGroup eventLoopGroup(int nThreads, ThreadFactory threadFactory);
   }
@@ -91,6 +99,11 @@ public abstract class TransportDetector {
     @Override
     public Class<? extends SocketChannel> getSocketChannelImpl() {
       return NioSocketChannel.class;
+    }
+
+    @Override
+    public Class<? extends DatagramChannel> getDatagramChannelImpl() {
+      return NioDatagramChannel.class;
     }
 
     @Override
@@ -129,6 +142,11 @@ public abstract class TransportDetector {
     }
 
     @Override
+    public Class<? extends DatagramChannel> getDatagramChannelImpl() {
+      return impl.datagramChannelClass;
+    }
+
+    @Override
     public EventLoopGroup eventLoopGroup(int nThreads, ThreadFactory threadFactory) {
       return impl.eventLoopGroup(nThreads, threadFactory);
     }
@@ -137,9 +155,10 @@ public abstract class TransportDetector {
       try {
         Class<? extends ServerSocketChannel> serverSocketChannelClass = loadClass(ServerSocketChannel.class, packageName, classPrefix, ServerSocketChannel.class.getSimpleName());
         Class<? extends SocketChannel> socketChannelClass = loadClass(SocketChannel.class, packageName, classPrefix, SocketChannel.class.getSimpleName());
+        Class<? extends DatagramChannel> datagramChannelClass = loadClass(DatagramChannel.class, packageName, classPrefix, DatagramChannel.class.getSimpleName());
         Class<? extends EventLoopGroup> eventLoopGroupClass = loadClass(EventLoopGroup.class, packageName, classPrefix, EventLoopGroup.class.getSimpleName());
         Constructor<? extends EventLoopGroup> constructor = eventLoopGroupClass.getConstructor(int.class, ThreadFactory.class);
-        return new NativeTransportImpl(serverSocketChannelClass, socketChannelClass, constructor);
+        return new NativeTransportImpl(serverSocketChannelClass, socketChannelClass, datagramChannelClass, constructor);
       } catch (ReflectiveOperationException e) {
         LOGGER.debug("Failed to load {}", classPrefix, e);
         return null;
@@ -210,15 +229,18 @@ public abstract class TransportDetector {
   private static class NativeTransportImpl {
     private final Class<? extends ServerSocketChannel> serverSocketChannelClass;
     private final Class<? extends SocketChannel> socketChannelClass;
+    private final Class<? extends DatagramChannel> datagramChannelClass;
     private final Constructor<? extends EventLoopGroup> constructor;
 
     NativeTransportImpl(
       Class<? extends ServerSocketChannel> serverSocketChannelClass,
       Class<? extends SocketChannel> socketChannelClass,
+      Class<? extends DatagramChannel> datagramChannelClass,
       Constructor<? extends EventLoopGroup> constructor
     ) {
       this.serverSocketChannelClass = serverSocketChannelClass;
       this.socketChannelClass = socketChannelClass;
+      this.datagramChannelClass = datagramChannelClass;
       this.constructor = constructor;
     }
 

@@ -20,7 +20,7 @@ import io.netty.buffer.ByteBufAllocator;
 import org.reactivestreams.Publisher;
 import ratpack.exec.Promise;
 import ratpack.func.Action;
-import ratpack.http.client.internal.DefaultHttpClient;
+import ratpack.http.client.internal.HttpClientBuilder;
 import ratpack.registry.Registry;
 import ratpack.server.ServerConfig;
 import ratpack.util.Exceptions;
@@ -90,7 +90,9 @@ public interface HttpClient extends AutoCloseable {
    * @since 1.4
    */
   static HttpClient of(Action<? super HttpClientSpec> action) throws Exception {
-    return DefaultHttpClient.of(action);
+    HttpClientBuilder builder = new HttpClientBuilder();
+    action.execute(builder);
+    return builder.build();
   }
 
   /**

@@ -17,25 +17,18 @@
 package ratpack.http.client
 
 import io.netty.buffer.ByteBufAllocator
-import ratpack.test.embed.EmbeddedApp
 import ratpack.test.exec.ExecHarness
-import ratpack.test.internal.EmbeddedRatpackSpec
 import spock.lang.AutoCleanup
 
-class HttpClientConnectFailureSpec extends EmbeddedRatpackSpec {
+class HttpClientConnectFailureSpec extends BaseHttpClientSpec {
 
   @AutoCleanup
   ExecHarness exec = ExecHarness.harness()
 
-  @Override
-  EmbeddedApp getApplication() {
-    null
-  }
-
   def "should not leak request ByteBuf on connect failure"() {
     setup:
     def requestBody = ByteBufAllocator.DEFAULT.buffer().writeBytes("test".bytes)
-    def http = HttpClient.of {}
+    def http = clientOf {}
 
     when:
     exec.yield { e ->

@@ -58,6 +58,7 @@ import static ratpack.util.internal.ProtocolUtil.HTTPS_SCHEME;
 import static ratpack.util.internal.ProtocolUtil.HTTP_SCHEME;
 
 public abstract class ServerRegistry {
+
   public static Registry serverRegistry(RatpackServer ratpackServer, Impositions impositions, ExecControllerInternal execController, ServerConfig serverConfig, Function<? super Registry, ? extends Registry> userRegistryFactory) {
     Registry baseRegistry = buildBaseRegistry(ratpackServer, impositions, execController, serverConfig);
     Registry userRegistry = buildUserRegistry(userRegistryFactory, baseRegistry);
@@ -89,6 +90,7 @@ public abstract class ServerRegistry {
         .poolSize(0)
         .byteBufAllocator(ByteBufAllocator.DEFAULT)
         .maxContentLength(serverConfig.getMaxContentLength())
+        .execController(execController)
       );
 
       baseRegistryBuilder = Registry.builder()
