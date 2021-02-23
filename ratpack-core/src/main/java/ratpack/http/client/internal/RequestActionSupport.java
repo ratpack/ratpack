@@ -117,15 +117,8 @@ abstract class RequestActionSupport<T> implements Upstream<T> {
   private void send(Downstream<? super T> downstream, Channel channel) throws Exception {
     channel.config().setAutoRead(true);
 
-    HttpMessage request = new DefaultFullHttpRequest(
-      HttpVersion.HTTP_1_1,
-      requestConfig.method.getNettyMethod(),
-      getFullPath(requestConfig.uri),
-      requestConfig.body.touch(),
-      requestConfig.headers.getNettyHeaders(),
-      EmptyHttpHeaders.INSTANCE
-    );
-    if (HttpUtil.is100ContinueExpected(request)) {
+    HttpMessage request;
+    if (requestConfig.headers.getNettyHeaders().contains(HttpHeaderNames.EXPECT, HttpHeaderValues.CONTINUE, true)) {
       request = new DefaultHttpRequest(
         HttpVersion.HTTP_1_1,
         requestConfig.method.getNettyMethod(),
@@ -133,6 +126,15 @@ abstract class RequestActionSupport<T> implements Upstream<T> {
         requestConfig.headers.getNettyHeaders()
       );
       expectContinue = true;
+    } else {
+      request = new DefaultFullHttpRequest(
+        HttpVersion.HTTP_1_1,
+        requestConfig.method.getNettyMethod(),
+        getFullPath(requestConfig.uri),
+        requestConfig.body.touch(),
+        requestConfig.headers.getNettyHeaders(),
+        EmptyHttpHeaders.INSTANCE
+      );
     }
 
     addCommonResponseHandlers(channel.pipeline(), downstream);
