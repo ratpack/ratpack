@@ -47,7 +47,7 @@ dependencies {
   compile 'org.javassist:javassist:3.22.0-GA'
 
   compile commonDependencies.jackson
-  compile("com.fasterxml.jackson.dataformat:jackson-dataformats-text:${commonVersions.jackson}") {
+  compile("com.fasterxml.jackson-dataformats-text:2.12.1") {
     exclude group: "org.yaml", module: "snakeyaml"
   }
   compile("com.fasterxml.jackson.datatype:jackson-datatype-guava:${commonVersions.jackson}") {
