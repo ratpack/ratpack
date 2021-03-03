@@ -32,7 +32,7 @@ dependencies {
   compile project(":ratpack-func")
 
   compile commonDependencies.jackson
-  compile("com.fasterxml.jackson.dataformat:jackson-dataformat-yaml:${commonVersions.jackson}") {
+  compile("com.fasterxml.jackson.dataformat:jackson-dataformats-text:${commonVersions.jackson}") {
     exclude group: "org.yaml", module: "snakeyaml"
   }
   compile("com.fasterxml.jackson.datatype:jackson-datatype-guava:${commonVersions.jackson}") {
