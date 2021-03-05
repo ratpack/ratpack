@@ -31,7 +31,7 @@ import static ratpack.http.internal.HttpHeaderConstants.*
 import static ratpack.util.internal.ProtocolUtil.HTTPS_SCHEME
 import static ratpack.util.internal.ProtocolUtil.HTTP_SCHEME
 
-class PublicAddressSpec extends BaseRatpackSpec {
+class InferringAddressSpec extends BaseRatpackSpec {
 
   @AutoCleanup
   def harness = ExecHarness.harness()
@@ -44,41 +44,37 @@ class PublicAddressSpec extends BaseRatpackSpec {
 
   def "Get URL #publicURL, #scheme, #requestUri, #headers, #bindHost:#bindPort -> #expected"() {
     given:
-    def publicAddress = get(publicURL ? PublicAddress.of(new URI(publicURL)) : PublicAddress.inferred(scheme), mockRequest(requestUri, mockHeaders(headers), HostAndPort.fromParts(bindHost, bindPort)))
+    def publicAddress = get(PublicAddress.inferred(scheme), mockRequest(requestUri, mockHeaders(headers), HostAndPort.fromParts(bindHost, bindPort)))
 
     expect:
     publicAddress == expected
 
     where:
-    publicURL                       | scheme       | requestUri                                    | headers                           | bindHost            | bindPort || expected
+    scheme       | requestUri                                    | headers                           | bindHost            | bindPort || expected
 
-    "http://conf.example.com"       | HTTP_SCHEME  | "http://request.example.com/user/12345"       | [(HOST): "host.example.com"]      | "localhost"         | 80       || "http://conf.example.com"
-    "https://conf.example.com"      | HTTP_SCHEME  | "http://request.example.com/user/12345"       | [(HOST): "host.example.com"]      | "localhost"         | 8080     || "https://conf.example.com"
-    "https://conf.example.com:8443" | HTTPS_SCHEME | "http://request.example.com/user/12345"       | [(HOST): "host.example.com"]      | "localhost"         | 8443     || "https://conf.example.com:8443"
+    HTTP_SCHEME  | "http://request.example.com/user/12345"       | [(HOST): "host.example.com"]      | "localhost"         | 80       || "http://request.example.com"
+    HTTPS_SCHEME | "https://request.example.com:8443/user/12345" | [(HOST): "host.example.com"]      | "localhost"         | 8443     || "https://request.example.com:8443"
 
-    null                            | HTTP_SCHEME  | "http://request.example.com/user/12345"       | [(HOST): "host.example.com"]      | "localhost"         | 80       || "http://request.example.com"
-    null                            | HTTPS_SCHEME | "https://request.example.com:8443/user/12345" | [(HOST): "host.example.com"]      | "localhost"         | 8443     || "https://request.example.com:8443"
+    HTTP_SCHEME  | "http://request.example.com/user/12345"       | [(X_FORWARDED_HOST) : "fhost.example.com",
+                                                                    (HOST)             : "host.example.com",
+                                                                    (X_FORWARDED_PROTO): "https"]    | "localhost"         | 8080     || "https://fhost.example.com"
+    HTTP_SCHEME  | "/user/12345"                                 | [(HOST)             : "host.example.com",
+                                                                    (X_FORWARDED_PROTO): "https"]    | "localhost"         | 8080     || "https://host.example.com"
+    HTTP_SCHEME  | "/user/12345"                                 | [(HOST)             : "host.example.com",
+                                                                    (X_FORWARDED_PROTO): "https"]    | "localhost"         | 8080     || "https://host.example.com"
+    HTTP_SCHEME  | "/user/12345"                                 | [(HOST)           : "host.example.com",
+                                                                    (X_FORWARDED_SSL): "on"]         | "localhost"         | 8080     || "https://host.example.com"
 
-    null                            | HTTP_SCHEME  | "http://request.example.com/user/12345"       | [(X_FORWARDED_HOST) : "fhost.example.com",
-                                                                                                      (HOST)             : "host.example.com",
-                                                                                                      (X_FORWARDED_PROTO): "https"]    | "localhost"         | 8080     || "https://fhost.example.com"
-    null                            | HTTP_SCHEME  | "/user/12345"                                 | [(HOST)             : "host.example.com",
-                                                                                                      (X_FORWARDED_PROTO): "https"]    | "localhost"         | 8080     || "https://host.example.com"
-    null                            | HTTP_SCHEME  | "/user/12345"                                 | [(HOST)             : "host.example.com",
-                                                                                                      (X_FORWARDED_PROTO): "https"]    | "localhost"         | 8080     || "https://host.example.com"
-    null                            | HTTP_SCHEME  | "/user/12345"                                 | [(HOST)           : "host.example.com",
-                                                                                                      (X_FORWARDED_SSL): "on"]         | "localhost"         | 8080     || "https://host.example.com"
+    HTTP_SCHEME  | "/user/12345"                                 | [(HOST): "host.example.com"]      | "localhost"         | 8080     || "http://host.example.com"
+    HTTPS_SCHEME | "/user/12345"                                 | [(HOST): "host.example.com"]      | "localhost"         | 8443     || "https://host.example.com"
+    HTTP_SCHEME  | "/user/12345"                                 | [(HOST): "host.example.com:8080"] | "localhost"         | 8080     || "http://host.example.com:8080"
+    HTTPS_SCHEME | "/user/12345"                                 | [(HOST): "host.example.com:8443"] | "localhost"         | 8443     || "https://host.example.com:8443"
 
-    null                            | HTTP_SCHEME  | "/user/12345"                                 | [(HOST): "host.example.com"]      | "localhost"         | 8080     || "http://host.example.com"
-    null                            | HTTPS_SCHEME | "/user/12345"                                 | [(HOST): "host.example.com"]      | "localhost"         | 8443     || "https://host.example.com"
-    null                            | HTTP_SCHEME  | "/user/12345"                                 | [(HOST): "host.example.com:8080"] | "localhost"         | 8080     || "http://host.example.com:8080"
-    null                            | HTTPS_SCHEME | "/user/12345"                                 | [(HOST): "host.example.com:8443"] | "localhost"         | 8443     || "https://host.example.com:8443"
-
-    null                            | HTTP_SCHEME  | "/user/12345"                                 | [:]                               | "localhost"         | 80       || "http://localhost"
-    null                            | HTTP_SCHEME  | "/user/12345"                                 | [:]                               | "localhost"         | 8080     || "http://localhost:8080"
-    null                            | HTTPS_SCHEME | "/user/12345"                                 | [:]                               | "localhost"         | 443      || "https://localhost"
-    null                            | HTTPS_SCHEME | "/user/12345"                                 | [:]                               | "localhost"         | 8443     || "https://localhost:8443"
-    null                            | HTTP_SCHEME  | "/user/12345"                                 | [:]                               | "[0:0:0:0:0:0:0:1]" | 5050     || "http://[0:0:0:0:0:0:0:1]:5050"
+    HTTP_SCHEME  | "/user/12345"                                 | [:]                               | "localhost"         | 80       || "http://localhost"
+    HTTP_SCHEME  | "/user/12345"                                 | [:]                               | "localhost"         | 8080     || "http://localhost:8080"
+    HTTPS_SCHEME | "/user/12345"                                 | [:]                               | "localhost"         | 443      || "https://localhost"
+    HTTPS_SCHEME | "/user/12345"                                 | [:]                               | "localhost"         | 8443     || "https://localhost:8443"
+    HTTP_SCHEME  | "/user/12345"                                 | [:]                               | "[0:0:0:0:0:0:0:1]" | 5050     || "http://[0:0:0:0:0:0:0:1]:5050"
   }
 
   def "Absolute request URIs are supported: #uri -> #expectedUri"() {

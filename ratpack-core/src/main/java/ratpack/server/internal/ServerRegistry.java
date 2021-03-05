@@ -101,7 +101,7 @@ public abstract class ServerRegistry {
         .add(MimeTypes.class, ActivationBackedMimeTypes.INSTANCE)
         .add(PublicAddress.class, Optional.ofNullable(serverConfig.getPublicAddress())
           .map(PublicAddress::of)
-          .orElseGet(() -> PublicAddress.inferred(serverConfig.getNettySslContext() == null ? HTTP_SCHEME : HTTPS_SCHEME))
+          .orElseGet(() -> PublicAddress.bindAddress(ratpackServer))
         )
         .add(Redirector.TYPE, Redirector.standard())
         .add(ClientErrorHandler.class, errorHandler)
