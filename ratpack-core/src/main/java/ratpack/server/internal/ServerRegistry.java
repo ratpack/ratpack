@@ -54,8 +54,6 @@ import java.time.Clock;
 import java.util.Optional;
 
 import static ratpack.util.Exceptions.uncheck;
-import static ratpack.util.internal.ProtocolUtil.HTTPS_SCHEME;
-import static ratpack.util.internal.ProtocolUtil.HTTP_SCHEME;
 
 public abstract class ServerRegistry {
 
