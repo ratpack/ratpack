@@ -17,10 +17,8 @@
 package ratpack.session.clientside;
 
 import ratpack.api.Nullable;
-import ratpack.api.UncheckedException;
 
 import java.nio.charset.StandardCharsets;
-import java.security.NoSuchAlgorithmException;
 import java.security.SecureRandom;
 import java.time.Duration;
 
@@ -30,14 +28,11 @@ import java.time.Duration;
 public class ClientSideSessionConfig {
 
   private static final String LAST_ACCESS_TIME_TOKEN = "ratpack_lat";
+  private static final SecureRandom SECURE_RANDOM = new SecureRandom();
 
   private static String randomString(int byteLength) {
     byte[] bytes = new byte[byteLength];
-    try {
-      SecureRandom.getInstanceStrong().nextBytes(bytes);
-    } catch (NoSuchAlgorithmException e) {
-      throw new UncheckedException(e);
-    }
+    SECURE_RANDOM.nextBytes(bytes);
     return new String(bytes, StandardCharsets.ISO_8859_1);
   }
 
