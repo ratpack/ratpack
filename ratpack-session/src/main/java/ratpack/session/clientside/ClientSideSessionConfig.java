@@ -16,8 +16,13 @@
 
 package ratpack.session.clientside;
 
+import ratpack.api.Nullable;
+import ratpack.api.UncheckedException;
+
+import java.nio.charset.StandardCharsets;
+import java.security.NoSuchAlgorithmException;
+import java.security.SecureRandom;
 import java.time.Duration;
-import java.util.UUID;
 
 /**
  * Client side session configuration.
@@ -26,10 +31,20 @@ public class ClientSideSessionConfig {
 
   private static final String LAST_ACCESS_TIME_TOKEN = "ratpack_lat";
 
+  private static String randomString(int byteLength) {
+    byte[] bytes = new byte[byteLength];
+    try {
+      SecureRandom.getInstanceStrong().nextBytes(bytes);
+    } catch (NoSuchAlgorithmException e) {
+      throw new UncheckedException(e);
+    }
+    return new String(bytes, StandardCharsets.ISO_8859_1);
+  }
+
   private String sessionCookieName = "ratpack_session";
-  private String secretToken = UUID.randomUUID().toString();
+  private String secretToken = randomString(64);
   private String macAlgorithm = "HmacSHA1";
-  private String secretKey;
+  private String secretKey = randomString(16);
   private String cipherAlgorithm = "AES/CBC/PKCS5Padding";
   private int maxSessionCookieSize = 1932;
   private Duration maxInactivityInterval = Duration.ofHours(24);
@@ -41,6 +56,7 @@ public class ClientSideSessionConfig {
    * cookies. Every session cookie has a postfix {@code _index}, where {@code index} is the partition number.
    * <p>
    * <b>Defaults to: </b> {@code ratpack_session}
+   *
    * @return the name of the {@code cookie} used to store session data.
    */
   public String getSessionCookieName() {
@@ -60,6 +76,7 @@ public class ClientSideSessionConfig {
    * The name of the {@code cookie} used to store session's last access time.
    * <p>
    * Last access time is updated on every session load or store
+   *
    * @return the name of the {@code cookie} with session's last access time
    */
   public String getLastAccessTimeCookieName() {
@@ -118,8 +135,14 @@ public class ClientSideSessionConfig {
 
   /**
    * Set the secret key used in the symmetric-key encryption/decryption of the serialized session data.
+   * <p>
+   * Defaults to a randomly generated value.
+   * <p>
+   * Can be set to {@code null} only if {@link #setCipherAlgorithm(String)} is null.
+   *
    * @param secretKey a secret key
    */
+  @Nullable
   public void setSecretKey(String secretKey) {
     this.secretKey = secretKey;
   }
@@ -137,6 +160,8 @@ public class ClientSideSessionConfig {
 
   /**
    * Set the cipher algorithm used to encrypt/decrypt the serialized session data.
+   * <p>
+   * Defaults to {@code "AES/CBC/PKCS5Padding"}.
    *
    * @param cipherAlgorithm a cipher algorithm
    */
@@ -144,13 +169,14 @@ public class ClientSideSessionConfig {
     this.cipherAlgorithm = cipherAlgorithm;
   }
 
-    /**
+  /**
    * Maximum size of the session cookie. If encrypted cookie exceeds it, it will be partitioned.
    * <p>
    * According to the <a href="http://www.ietf.org/rfc/rfc2109.txt">RFC 2109</a> web cookies should be at least
    * 4096 bytes per cookie and at least 20 cookies per domain should be supported.
    * <p>
    * <b>Defaults to: </b> {@code 1932}.
+   *
    * @return the maximum size of the cookie session.
    */
   public int getMaxSessionCookieSize() {
