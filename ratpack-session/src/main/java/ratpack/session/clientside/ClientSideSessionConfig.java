@@ -129,6 +129,7 @@ public class ClientSideSessionConfig {
    *
    * @return the secret key used in encryption/decryption of the serialized session data.
    */
+  @Nullable
   public String getSecretKey() {
     return secretKey;
   }
@@ -136,14 +137,13 @@ public class ClientSideSessionConfig {
   /**
    * Set the secret key used in the symmetric-key encryption/decryption of the serialized session data.
    * <p>
-   * Defaults to a randomly generated value.
+   * Defaults to a randomly generated 16 byte value.
    * <p>
    * Can be set to {@code null} only if {@link #setCipherAlgorithm(String)} is null.
    *
    * @param secretKey a secret key
    */
-  @Nullable
-  public void setSecretKey(String secretKey) {
+  public void setSecretKey(@Nullable String secretKey) {
     this.secretKey = secretKey;
   }
 
@@ -154,6 +154,7 @@ public class ClientSideSessionConfig {
    *
    * @return the algorithm used to encrypt/decrypt the serialized session.
    */
+  @Nullable
   public String getCipherAlgorithm() {
     return cipherAlgorithm;
   }
@@ -165,7 +166,7 @@ public class ClientSideSessionConfig {
    *
    * @param cipherAlgorithm a cipher algorithm
    */
-  public void setCipherAlgorithm(String cipherAlgorithm) {
+  public void setCipherAlgorithm(@Nullable String cipherAlgorithm) {
     this.cipherAlgorithm = cipherAlgorithm;
   }
 
