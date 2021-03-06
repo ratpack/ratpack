@@ -35,7 +35,7 @@ public class ServerBindPublicAddress implements PublicAddress {
       String scheme = server.getScheme();
       int port = server.getBindPort();
       String portSuffix = scheme.equals("http") && port == 80 || scheme.equals("https") && port == 443 ? "" : ":" + port;
-      return URI.create(scheme + ":// " + server.getBindHost() + portSuffix);
+      return URI.create(scheme + "://" + server.getBindHost() + portSuffix);
     } else {
       throw new IllegalStateException("Server has not yet started");
     }
