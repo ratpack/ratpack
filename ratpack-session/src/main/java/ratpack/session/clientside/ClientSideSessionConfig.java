@@ -17,6 +17,7 @@
 package ratpack.session.clientside;
 
 import java.time.Duration;
+import java.util.UUID;
 
 /**
  * Client side session configuration.
@@ -26,7 +27,7 @@ public class ClientSideSessionConfig {
   private static final String LAST_ACCESS_TIME_TOKEN = "ratpack_lat";
 
   private String sessionCookieName = "ratpack_session";
-  private String secretToken = Long.toString(System.currentTimeMillis() / 10000);
+  private String secretToken = UUID.randomUUID().toString();
   private String macAlgorithm = "HmacSHA1";
   private String secretKey;
   private String cipherAlgorithm = "AES/CBC/PKCS5Padding";
@@ -68,7 +69,7 @@ public class ClientSideSessionConfig {
   /**
    * The token used to sign the serialized session to prevent tampering.
    * <p>
-   * If not set, this is set to a time based value.
+   * If not set, this is set to a random value.
    * <p>
    * <b>Important: </b> if working with clustered sessions, not being tied to any ratpack app instance,
    * {@code secretToken} has to be the same in every ratpack instance configuration.
