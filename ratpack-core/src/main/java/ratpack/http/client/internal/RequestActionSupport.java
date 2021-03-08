@@ -397,18 +397,17 @@ abstract class RequestActionSupport<T> implements Upstream<T> {
     //2. Given Starting Slash prepend public facing domain:port if provided if not use base URL of request
     //3. Given relative URL prepend public facing domain:port plus parent path of request URL otherwise full parent path
 
+    URI redirectLocationUri = URI.create(redirectLocation);
     if (redirectLocation.startsWith("http://") || redirectLocation.startsWith("https://")) { // absolute URI
-      return URI.create(redirectLocation);
+      return redirectLocationUri;
     } else {
       if (redirectLocation.startsWith("//")) { // protocol relative
         return URI.create(requestUri.getScheme() + ":" + redirectLocation);
       } else {
-        String path;
-        if (redirectLocation.startsWith("/")) { // absolute path
-          path = redirectLocation;
-        } else { // relative path
-          //Rule 3
-          path = getParentPath(requestUri.getPath()) + redirectLocation;
+
+        String path = redirectLocationUri.getPath();
+        if (!path.startsWith("/")) { // absolute path
+          path = getParentPath(requestUri.getPath()) + path;
         }
         return new URI(
           requestUri.getScheme(),
@@ -416,7 +415,7 @@ abstract class RequestActionSupport<T> implements Upstream<T> {
           requestUri.getHost(),
           requestUri.getPort(),
           path,
-          null,
+          redirectLocationUri.getQuery(),
           null
         );
       }
