@@ -179,7 +179,7 @@ class StaticFileSpec extends RatpackGroovyDslSpec {
 
     with(get("dir")) {
       statusCode == 302
-      headers.get(LOCATION) == "http://${server.bindHost}:${server.bindPort}/dir/${suffix}"
+      headers.get(LOCATION) == "/dir/${suffix}"
     }
 
     where:

@@ -391,4 +391,31 @@ class HttpClientRedirectionSpec extends BaseHttpClientSpec {
     response.body.text == 'Ratpack'
   }
 
+  def "handles relative redirects"() {
+    when:
+    handlers {
+      get("to") {
+        render "ok1"
+      }
+      get("abs-path") {
+        redirect "/to"
+      }
+      get("rel-path") {
+        redirect "to"
+      }
+      get("rel-path/to") {
+        render "ok2"
+      }
+      get("rel-protocol") {
+        redirect "//localhost:$server.bindPort/to"
+      }
+    }
+
+    then:
+    getText("abs-path") == "ok1"
+    getText("rel-path") == "ok1"
+    getText("rel-path/") == "ok2"
+    getText("rel-protocol") == "ok1"
+  }
+
 }
