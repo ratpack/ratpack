@@ -127,7 +127,7 @@ public class ClientSideSessionModule extends ConfigurableModule<ClientSideSessio
   @Provides
   @Singleton
   Signer signer(ClientSideSessionConfig config) {
-    byte[] token = config.getSecretToken().getBytes(CharsetUtil.UTF_8);
+    byte[] token = config.getSecretToken().getBytes(CharsetUtil.ISO_8859_1);
     return new DefaultSigner(new SecretKeySpec(token, config.getMacAlgorithm()));
   }
 
@@ -137,7 +137,7 @@ public class ClientSideSessionModule extends ConfigurableModule<ClientSideSessio
     if (config.getSecretKey() == null || config.getCipherAlgorithm() == null) {
       return NoCrypto.INSTANCE;
     } else {
-      return new DefaultCrypto(config.getSecretKey().getBytes(CharsetUtil.UTF_8), config.getCipherAlgorithm());
+      return new DefaultCrypto(config.getSecretKey().getBytes(CharsetUtil.ISO_8859_1), config.getCipherAlgorithm());
     }
   }
 
