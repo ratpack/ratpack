@@ -22,6 +22,7 @@ import org.pac4j.http.credentials.authenticator.test.SimpleTestUsernamePasswordA
 import org.slf4j.Logger
 import ratpack.handling.RequestId
 import ratpack.handling.RequestLogger
+import ratpack.pac4j.Pac4jSessionModule
 import ratpack.pac4j.RatpackPac4j
 import ratpack.session.SessionModule
 import ratpack.test.internal.RatpackGroovyDslSpec
@@ -38,6 +39,7 @@ class Pac4jSessionSpec extends RatpackGroovyDslSpec {
     given:
     bindings {
       module SessionModule
+      module Pac4jSessionModule
     }
 
     handlers {
@@ -135,6 +137,7 @@ class Pac4jSessionSpec extends RatpackGroovyDslSpec {
     given:
     bindings {
       module SessionModule
+      module Pac4jSessionModule
     }
     handlers {
       all RequestLogger.ncsa(logger)

@@ -20,6 +20,7 @@ import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.RemovalListener;
 import com.google.inject.*;
+import com.google.inject.binder.LinkedBindingBuilder;
 import com.google.inject.multibindings.Multibinder;
 import com.google.inject.name.Names;
 import io.netty.buffer.ByteBuf;
@@ -57,7 +58,7 @@ import java.util.function.Consumer;
  * <h3>Serialization</h3>
  * <p>
  * Objects must be serialized to be stored in the session.
- * In order to prevent <a href="https://portswigger.net/web-security/deserialization>insecure deserialization</a>,
+ * In order to prevent <a href="https://portswigger.net/web-security/deserialization">insecure deserialization</a>,
  * types that are to be used in a session must be declared to be safe.
  * The simplest way to do this is to annotate the type with {@link AllowedSessionType} or use
  * {@link #allowTypes} to register the type. See {@link SessionTypeFilter} for more information.
@@ -196,15 +197,25 @@ public class SessionModule extends ConfigurableModule<SessionCookieConfig> {
 
   /**
    * Registers the given types as being session safe.
-   *
+   * <p>
    * This method is only effectual if the implementation of {@link SessionTypeFilter} provided by this module is not overridden.
+   *
    * @param binder the binder
    * @param types the types to allow to be used in a session
    * @since 1.9
    */
   public static void allowTypes(Binder binder, Class<?>... types) {
-    Multibinder.newSetBinder(binder, SessionTypeFilterPlugin.class)
-      .addBinding().toInstance(new ClassAllowListSessionTypeFilter(Arrays.asList(types))::allow);
+    bindSessionTypeFilterPlugin(binder).toInstance(new ClassAllowListSessionTypeFilter(Arrays.asList(types))::allow);
+  }
+
+  /**
+   * Creates a multi-binding binder for a {@link SessionTypeFilterPlugin}.
+   *
+   * @param binder the binder
+   * @return a binding builder for a {@link SessionTypeFilterPlugin}
+   */
+  public static LinkedBindingBuilder<SessionTypeFilterPlugin> bindSessionTypeFilterPlugin(Binder binder) {
+    return Multibinder.newSetBinder(binder, SessionTypeFilterPlugin.class).addBinding();
   }
 
   @Override

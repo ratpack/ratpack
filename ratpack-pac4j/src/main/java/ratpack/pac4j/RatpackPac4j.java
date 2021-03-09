@@ -157,6 +157,7 @@ public class RatpackPac4j {
    * import org.pac4j.http.credentials.authenticator.test.SimpleTestUsernamePasswordAuthenticator;
    * import ratpack.guice.Guice;
    * import ratpack.session.SessionModule;
+   * import ratpack.pac4j.Pac4jSessionModule;
    * import ratpack.test.embed.EmbeddedApp;
    *
    * import static org.junit.Assert.assertEquals;
@@ -165,7 +166,7 @@ public class RatpackPac4j {
    * public class Example {
    *   public static void main(String... args) throws Exception {
    *     EmbeddedApp.of(s -> s
-   *         .registry(Guice.registry(b -> b.module(SessionModule.class)))
+   *         .registry(Guice.registry(b -> b.module(SessionModule.class).module(Pac4jSessionModule.class)))
    *         .handlers(c -> c
    *             .all(ratpack.pac4j.RatpackPac4j.authenticator(new IndirectBasicAuthClient(new SimpleTestUsernamePasswordAuthenticator())))
    *             .get("logout", ctx -> ratpack.pac4j.RatpackPac4j.logout(ctx).then(() -> ctx.render("logged out")))
@@ -235,6 +236,7 @@ public class RatpackPac4j {
    * import ratpack.guice.Guice;
    * import ratpack.http.client.ReceivedResponse;
    * import ratpack.session.SessionModule;
+   * import ratpack.pac4j.Pac4jSessionModule;
    * import ratpack.test.embed.EmbeddedApp;
    *
    * import java.util.Optional;
@@ -245,7 +247,7 @@ public class RatpackPac4j {
    * public class Example {
    *   public static void main(String... args) throws Exception {
    *     EmbeddedApp.of(s -> s
-   *         .registry(Guice.registry(b -> b.module(SessionModule.class)))
+   *         .registry(Guice.registry(b -> b.module(SessionModule.class).module(Pac4jSessionModule.class)))
    *         .handlers(c -> c
    *             .all(ratpack.pac4j.RatpackPac4j.authenticator(new IndirectBasicAuthClient(new SimpleTestUsernamePasswordAuthenticator())))
    *             .get("auth", ctx -> ratpack.pac4j.RatpackPac4j.login(ctx, IndirectBasicAuthClient.class).then(p -> ctx.redirect("/")))
@@ -314,6 +316,7 @@ public class RatpackPac4j {
    * import ratpack.guice.Guice;
    * import ratpack.http.client.ReceivedResponse;
    * import ratpack.session.SessionModule;
+   * import ratpack.pac4j.Pac4jSessionModule;
    * import ratpack.test.embed.EmbeddedApp;
    *
    * import java.util.Optional;
@@ -325,7 +328,7 @@ public class RatpackPac4j {
    * public class Example {
    *   public static void main(String... args) throws Exception {
    *     EmbeddedApp.of(s -> s
-   *         .registry(Guice.registry(b -> b.module(SessionModule.class)))
+   *         .registry(Guice.registry(b -> b.module(SessionModule.class).module(Pac4jSessionModule.class)))
    *         .handlers(c -> c
    *             .all(ratpack.pac4j.RatpackPac4j.authenticator(new IndirectBasicAuthClient(new SimpleTestUsernamePasswordAuthenticator())))
    *             .prefix("auth", a -> a
@@ -419,6 +422,7 @@ public class RatpackPac4j {
    * import ratpack.guice.Guice;
    * import ratpack.http.client.ReceivedResponse;
    * import ratpack.session.SessionModule;
+   * import ratpack.pac4j.Pac4jSessionModule;
    * import ratpack.test.embed.EmbeddedApp;
    *
    * import java.util.Optional;
@@ -428,7 +432,7 @@ public class RatpackPac4j {
    * public class Example {
    *   public static void main(String... args) throws Exception {
    *     EmbeddedApp.of(s -> s
-   *         .registry(Guice.registry(b -> b.module(SessionModule.class)))
+   *         .registry(Guice.registry(b -> b.module(SessionModule.class).module(Pac4jSessionModule.class)))
    *         .handlers(c -> c
    *             .all(ratpack.pac4j.RatpackPac4j.authenticator(new IndirectBasicAuthClient(new SimpleTestUsernamePasswordAuthenticator())))
    *             .get("auth", ctx -> ratpack.pac4j.RatpackPac4j.login(ctx, IndirectBasicAuthClient.class).then(p -> ctx.redirect("/")))

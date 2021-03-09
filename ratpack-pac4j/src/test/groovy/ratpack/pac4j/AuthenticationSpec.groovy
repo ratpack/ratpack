@@ -37,6 +37,7 @@ class AuthenticationSpec extends RatpackGroovyDslSpec {
     }
     bindings {
       module SessionModule
+      module Pac4jSessionModule
     }
     handlers {
       all RatpackPac4j.authenticator(new IndirectBasicAuthClient(new SimpleTestUsernamePasswordAuthenticator()))
@@ -69,6 +70,7 @@ class AuthenticationSpec extends RatpackGroovyDslSpec {
     }
     bindings {
       module SessionModule
+      module Pac4jSessionModule
     }
     handlers {
       all RatpackPac4j.authenticator(new DirectBasicAuthClient(new SimpleTestUsernamePasswordAuthenticator()))
@@ -98,6 +100,7 @@ class AuthenticationSpec extends RatpackGroovyDslSpec {
     given:
     bindings {
       module SessionModule
+      module Pac4jSessionModule
     }
 
     handlers {
@@ -139,6 +142,7 @@ class AuthenticationSpec extends RatpackGroovyDslSpec {
     }
     bindings {
       module SessionModule
+      module Pac4jSessionModule
     }
     handlers {
       all RatpackPac4j.authenticator(new DirectBasicAuthClient(new SimpleTestUsernamePasswordAuthenticator()))
@@ -180,6 +184,7 @@ class AuthenticationSpec extends RatpackGroovyDslSpec {
     }
     bindings {
       module SessionModule
+      module Pac4jSessionModule
     }
     handlers {
       all RatpackPac4j.authenticator(new IndirectBasicAuthClient(new SimpleTestUsernamePasswordAuthenticator()))
@@ -215,6 +220,7 @@ class AuthenticationSpec extends RatpackGroovyDslSpec {
     }
     bindings {
       module SessionModule
+      module Pac4jSessionModule
     }
     handlers {
       all RatpackPac4j.authenticator(new DirectBasicAuthClient(new SimpleTestUsernamePasswordAuthenticator()))
@@ -257,6 +263,7 @@ class AuthenticationSpec extends RatpackGroovyDslSpec {
     }
     bindings {
       module SessionModule
+      module Pac4jSessionModule
     }
     handlers {
       def parameterClient = new ParameterClient(paramName, new JwtAuthenticator(secret))
