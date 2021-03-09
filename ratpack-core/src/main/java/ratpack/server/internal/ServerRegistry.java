@@ -54,8 +54,6 @@ import java.time.Clock;
 import java.util.Optional;
 
 import static ratpack.util.Exceptions.uncheck;
-import static ratpack.util.internal.ProtocolUtil.HTTPS_SCHEME;
-import static ratpack.util.internal.ProtocolUtil.HTTP_SCHEME;
 
 public abstract class ServerRegistry {
 
@@ -101,7 +99,7 @@ public abstract class ServerRegistry {
         .add(MimeTypes.class, ActivationBackedMimeTypes.INSTANCE)
         .add(PublicAddress.class, Optional.ofNullable(serverConfig.getPublicAddress())
           .map(PublicAddress::of)
-          .orElseGet(() -> PublicAddress.inferred(serverConfig.getNettySslContext() == null ? HTTP_SCHEME : HTTPS_SCHEME))
+          .orElseGet(() -> PublicAddress.bindAddress(ratpackServer))
         )
         .add(Redirector.TYPE, Redirector.standard())
         .add(ClientErrorHandler.class, errorHandler)

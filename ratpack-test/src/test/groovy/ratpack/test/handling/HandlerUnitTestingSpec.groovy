@@ -459,7 +459,7 @@ class HandlerUnitTestingSpec extends BaseRatpackSpec {
     then:
     result.sentResponse
     result.status.code == 302
-    result.headers.location == "http://localhost:5050/foo"
+    result.headers.location == "/foo"
   }
 
   def "can get remote host and port"() {

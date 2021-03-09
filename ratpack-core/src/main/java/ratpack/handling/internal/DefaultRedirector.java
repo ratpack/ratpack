@@ -18,16 +18,11 @@ package ratpack.handling.internal;
 
 import ratpack.handling.Context;
 import ratpack.handling.Redirector;
-import ratpack.http.Request;
 import ratpack.http.internal.HttpHeaderConstants;
-import ratpack.server.PublicAddress;
 
 import java.net.URI;
-import java.util.regex.Pattern;
 
 public class DefaultRedirector implements Redirector {
-
-  private static final Pattern ABSOLUTE_PATTERN = Pattern.compile("^https?://.*");
 
   public static final Redirector INSTANCE = new DefaultRedirector();
 
@@ -43,54 +38,8 @@ public class DefaultRedirector implements Redirector {
       stringValue = to.toString();
     }
     context.getResponse().status(code);
-    String normalizedLocation = generateRedirectLocation(context, context.getRequest(), stringValue);
-    context.getResponse().getHeaders().set(HttpHeaderConstants.LOCATION, normalizedLocation);
+    context.getResponse().getHeaders().set(HttpHeaderConstants.LOCATION, stringValue);
     context.getResponse().send();
   }
 
-  private String generateRedirectLocation(Context ctx, Request request, String path) {
-    //Rules
-    //1. Given absolute URL use it
-    //1a. Protocol Relative URL given starting of // we use the protocol from the request
-    //2. Given Starting Slash prepend public facing domain:port if provided if not use base URL of request
-    //3. Given relative URL prepend public facing domain:port plus parent path of request URL otherwise full parent path
-
-    PublicAddress publicAddress = ctx.get(PublicAddress.class);
-    String generatedPath;
-
-    if (ABSOLUTE_PATTERN.matcher(path).matches()) {
-      //Rule 1 - Path is absolute
-      generatedPath = path;
-    } else {
-      URI host = publicAddress.get();
-      if (path.startsWith("//")) {
-        //Rule 1a - Protocol relative url
-        generatedPath = host.getScheme() + ":" + path;
-      } else {
-        if (path.startsWith("/")) {
-          //Rule 2 - Starting Slash
-          generatedPath = host.toString() + path;
-        } else {
-          //Rule 3
-          generatedPath = host.toString() + getParentPath(request.getUri()) + path;
-        }
-      }
-    }
-
-    return generatedPath;
-  }
-
-  private String getParentPath(String path) {
-    String parentPath = "/";
-
-    int indexOfSlash = path.lastIndexOf('/');
-    if (indexOfSlash >= 0) {
-      parentPath = path.substring(0, indexOfSlash) + '/';
-    }
-
-    if (!parentPath.startsWith("/")) {
-      parentPath = "/" + parentPath;
-    }
-    return parentPath;
-  }
 }

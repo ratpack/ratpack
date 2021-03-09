@@ -19,7 +19,7 @@ package ratpack.http.internal
 import ratpack.http.client.RequestSpec
 import ratpack.test.internal.RatpackGroovyDslSpec
 
-class RedirectionHandleSpec extends RatpackGroovyDslSpec {
+class RedirectionHandlerSpec extends RatpackGroovyDslSpec {
 
   @Override
   void configureRequest(RequestSpec requestSpecification) {
