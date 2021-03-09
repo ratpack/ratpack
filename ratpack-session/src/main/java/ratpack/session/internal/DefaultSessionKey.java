@@ -19,12 +19,16 @@ package ratpack.session.internal;
 import ratpack.api.Nullable;
 import ratpack.session.SessionKey;
 
+import java.util.Objects;
+
 public class DefaultSessionKey<T> implements SessionKey<T> {
 
+  @Nullable
   private final String name;
+  @Nullable
   private final Class<T> type;
 
-  public DefaultSessionKey(String name, Class<T> type) {
+  public DefaultSessionKey(@Nullable String name, @Nullable Class<T> type) {
     this.name = name;
     this.type = type;
   }
@@ -35,6 +39,7 @@ public class DefaultSessionKey<T> implements SessionKey<T> {
     return name;
   }
 
+  @Nullable
   @Override
   public Class<T> getType() {
     return type;
@@ -51,7 +56,7 @@ public class DefaultSessionKey<T> implements SessionKey<T> {
 
     DefaultSessionKey<?> that = (DefaultSessionKey<?>) o;
 
-    return !(name != null ? !name.equals(that.name) : that.name != null) && !(type != null ? !type.equals(that.type) : that.type != null);
+    return Objects.equals(name, that.name) && Objects.equals(type, that.type);
   }
 
   @Override
@@ -63,6 +68,6 @@ public class DefaultSessionKey<T> implements SessionKey<T> {
 
   @Override
   public String toString() {
-    return "SessionKey[name='" + name + '\'' + ", type=" + type.getName() + ']';
+    return "SessionKey[name='" + name + '\'' + ", type=" + (type == null ? null : type.getName()) + ']';
   }
 }

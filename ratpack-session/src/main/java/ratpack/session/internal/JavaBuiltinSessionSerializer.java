@@ -17,21 +17,22 @@
 package ratpack.session.internal;
 
 import ratpack.session.JavaSessionSerializer;
+import ratpack.session.SessionTypeFilter;
 
 import java.io.*;
 
 public class JavaBuiltinSessionSerializer implements JavaSessionSerializer {
 
   @Override
-  public <T> void serialize(Class<T> type, T value, OutputStream outputStream) throws IOException {
-    try (ObjectOutputStream objectOutputStream = new ObjectOutputStream(outputStream)) {
+  public <T> void serialize(Class<T> type, T value, OutputStream outputStream, SessionTypeFilter typeFilter) throws IOException {
+    try (ObjectOutputStream objectOutputStream = new TypeFilteringObjectOutputStream(outputStream, typeFilter)) {
       objectOutputStream.writeObject(value);
     }
   }
 
   @Override
-  public <T> T deserialize(Class<T> type, InputStream in) throws IOException, ClassNotFoundException {
-    try (ObjectInputStream objectInputStream = new ObjectInputStream(in)) {
+  public <T> T deserialize(Class<T> type, InputStream in, SessionTypeFilter typeFilter) throws IOException, ClassNotFoundException {
+    try (ObjectInputStream objectInputStream = new TypeFilteringObjectInputStream(in, typeFilter)) {
       Object value = objectInputStream.readObject();
       if (type.isInstance(value)) {
         return type.cast(value);
@@ -39,5 +40,37 @@ public class JavaBuiltinSessionSerializer implements JavaSessionSerializer {
         throw new ClassCastException("Expected to read object of type " + type.getName() + " from string, but got: " + value.getClass().getName());
       }
     }
+  }
+
+  private static final class TypeFilteringObjectOutputStream extends ObjectOutputStream {
+    private final SessionTypeFilter typeFilter;
+
+    public TypeFilteringObjectOutputStream(OutputStream out, SessionTypeFilter typeFilter) throws IOException {
+      super(out);
+      this.typeFilter = typeFilter;
+    }
+
+    @Override
+    protected void writeClassDescriptor(ObjectStreamClass desc) throws IOException {
+      typeFilter.assertAllowed(desc.forClass());
+      super.writeClassDescriptor(desc);
+    }
+  }
+
+  private static final class TypeFilteringObjectInputStream extends ObjectInputStream {
+    private final SessionTypeFilter typeFilter;
+
+    public TypeFilteringObjectInputStream(InputStream in, SessionTypeFilter typeFilter) throws IOException {
+      super(in);
+      this.typeFilter = typeFilter;
+    }
+
+    @Override
+    protected Class<?> resolveClass(ObjectStreamClass desc) throws IOException, ClassNotFoundException {
+      Class<?> type = super.resolveClass(desc);
+      typeFilter.assertAllowed(type);
+      return type;
+    }
+
   }
 }

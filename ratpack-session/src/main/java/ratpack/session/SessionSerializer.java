@@ -16,6 +16,8 @@
 
 package ratpack.session;
 
+import ratpack.session.internal.InsecureSessionSerializerWarning;
+
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -31,17 +33,50 @@ public interface SessionSerializer {
 
   /**
    * Writes the given value to the output stream as bytes.
+   * <p>
+   * This method has been superseded by {@link #serialize(Class, Object, OutputStream, SessionTypeFilter)} in 1.9.
+   * Implementations should not implement this method, but that instead.
    *
    * @param type the declared type of the object
    * @param value the value to serialize
    * @param out the destination for the bytes
    * @param <T> the type of the object
    * @throws Exception if the value could not be serialized
+   * @deprecated since 1.9
    */
-  <T> void serialize(Class<T> type, T value, OutputStream out) throws Exception;
+  @Deprecated
+  default <T> void serialize(Class<T> type, T value, OutputStream out) throws Exception {
+    throw new UnsupportedOperationException();
+  }
+
+  /**
+   * Writes the given value to the output stream as bytes.
+   * <p>
+   * Implementations <b>MUST</b> take care to check that <i>all</i> types serialized are allowed to be as per
+   * {@code typeFilter}. This includes the type of {@code value} and the transitive types referenced by it.
+   * Implementations should use {@link SessionTypeFilter#assertAllowed(Class)}.
+   * <p>
+   * To enable backwards compatibility, the default implementation delegates to {@link #serialize(Class, Object, OutputStream)}
+   * after logging a warning about the inherent security vulnerability in not checking the suitability of types.
+   * All implementations should implement this method and not that method.
+   *
+   * @param type the declared type of the object
+   * @param value the value to serialize
+   * @param out the destination for the bytes
+   * @param typeFilter the filter that determines whether a type is session safe and allowed to be serialized
+   * @param <T> the type of the object
+   * @throws Exception if the value could not be serialized
+   */
+  default <T> void serialize(Class<T> type, T value, OutputStream out, @SuppressWarnings("unused") SessionTypeFilter typeFilter) throws Exception {
+    InsecureSessionSerializerWarning.log(getClass());
+    serialize(type, value, out);
+  }
 
   /**
    * Reads the bytes of the given input stream, creating a new object.
+   * <p>
+   * This method has been superseded by {@link #serialize(Class, Object, OutputStream, SessionTypeFilter)} in 1.9.
+   * Implementations should not implement this method, but that instead.
    *
    * @param type the expected type of the object
    * @param in the source of the bytes
@@ -49,7 +84,35 @@ public interface SessionSerializer {
    * @return the object
    * @throws IOException any thrown by {@code in}
    * @throws Exception the the value could not be deserialized
+   * @deprecated since 1.9
    */
-  <T> T deserialize(Class<T> type, InputStream in) throws Exception;
+  @Deprecated
+  default <T> T deserialize(Class<T> type, InputStream in) throws Exception {
+    throw new UnsupportedOperationException();
+  }
+
+  /**
+   * Reads the bytes of the given input stream, creating a new object.
+   * <p>
+   * Implementations <b>MUST</b> take care to check that <i>all</i> types to be deserialized are allowed to be as per
+   * {@code typeFilter}. This includes the type of the object being deserialized and the transitive types referenced by it.
+   * Implementations should use {@link SessionTypeFilter#assertAllowed(Class)}.
+   * <p>
+   * To enable backwards compatibility, the default implementation delegates to {@link #deserialize(Class, InputStream)}
+   * after logging a warning about the inherent security vulnerability in not checking the suitability of types.
+   * All implementations should implement this method and not that method.
+   *
+   * @param type the expected type of the object
+   * @param in the source of the bytes
+   * @param typeFilter the filter that determines whether a type is session safe and allowed to be deserialized
+   * @param <T> the type of the object
+   * @return the object
+   * @throws IOException any thrown by {@code in}
+   * @throws Exception the the value could not be deserialized
+   */
+  default <T> T deserialize(Class<T> type, InputStream in, @SuppressWarnings("unused") SessionTypeFilter typeFilter) throws Exception {
+    InsecureSessionSerializerWarning.log(getClass());
+    return deserialize(type, in);
+  }
 
 }
