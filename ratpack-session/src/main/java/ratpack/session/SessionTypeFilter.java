@@ -17,7 +17,7 @@
 package ratpack.session;
 
 import org.slf4j.LoggerFactory;
-import ratpack.session.internal.AllowAllSessionTypeFilter;
+import ratpack.session.internal.UnsafeAllowAllSessionTypeFilter;
 
 import java.io.NotSerializableException;
 
@@ -76,7 +76,7 @@ public interface SessionTypeFilter {
   @Deprecated
   static SessionTypeFilter unsafeAllowAll() {
     LoggerFactory.getLogger(SessionTypeFilter.class).warn("SessionTypeFilter.unsafeAllowAll() used which is a security risk due to insecure deserialization. Please consult documentation for SessionModule.");
-    return new AllowAllSessionTypeFilter();
+    return new UnsafeAllowAllSessionTypeFilter();
   }
 
 }

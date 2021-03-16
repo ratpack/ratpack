@@ -18,7 +18,9 @@ package ratpack.session.internal;
 
 import ratpack.session.SessionTypeFilter;
 
-public class AllowAllSessionTypeFilter implements SessionTypeFilter {
+@Deprecated
+@SuppressWarnings("DeprecatedIsStillUsed")
+public class UnsafeAllowAllSessionTypeFilter implements SessionTypeFilter {
   @Override
   public boolean allow(Class<?> type) {
     return true;
