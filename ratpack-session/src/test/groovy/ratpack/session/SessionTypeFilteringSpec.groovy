@@ -41,7 +41,7 @@ class SessionTypeFilteringSpec extends RatpackGroovyDslSpec {
         })
         Multibinder.newSetBinder(binder(), SessionTypeFilterPlugin).addBinding().toInstance(new SessionTypeFilterPlugin() {
           @Override
-          boolean allow(Class<?> type) {
+          boolean allow(String type) {
             return allowAll
           }
         })
@@ -74,7 +74,7 @@ class SessionTypeFilteringSpec extends RatpackGroovyDslSpec {
     if (failingType == null) {
       assert getText("write") == "ok"
     } else {
-      assert getText("write") == new NonAllowedSessionTypeException(failingType).toString()
+      assert getText("write") == new NonAllowedSessionTypeException(failingType.name).toString()
     }
 
     assert getText("forceWrite") == "ok"
@@ -100,22 +100,7 @@ class SessionTypeFilteringSpec extends RatpackGroovyDslSpec {
     test(List, ["foo"])
   }
 
-  @AllowedSessionType
-  static class Annotated1 implements Serializable {
-    String str = "str"
-    @AllowedSessionType
-    static class Child implements Serializable {
-
-    }
-    Child child = new Child()
-  }
-
-  def "allows annotated types"() {
-    expect:
-    test(Annotated1, new Annotated1())
-  }
-
-  static class NonAnnotated1 implements Serializable {
+  static class Outer implements Serializable {
     String str = "str"
     static class Child implements Serializable {
 
@@ -126,11 +111,21 @@ class SessionTypeFilteringSpec extends RatpackGroovyDslSpec {
   def "validates transient types"() {
     given:
     bindings {
-      binder { SessionModule.allowTypes(it, NonAnnotated1) }
+      binder { SessionModule.allowTypes(it, Outer) }
     }
 
     expect:
-    test(NonAnnotated1, new NonAnnotated1(), NonAnnotated1.Child)
+    test(Outer, new Outer(), Outer.Child)
+  }
+
+  def "can allow transient types"() {
+    given:
+    bindings {
+      binder { SessionModule.allowTypes(it, Outer, Outer.Child) }
+    }
+
+    expect:
+    test(Outer, new Outer())
   }
 
 }

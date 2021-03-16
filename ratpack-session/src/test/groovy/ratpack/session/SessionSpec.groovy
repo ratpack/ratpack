@@ -37,7 +37,7 @@ class SessionSpec extends RatpackGroovyDslSpec {
     }
     bindings {
       binder {
-        SessionModule.allowTypes(it, Holder1)
+        SessionModule.allowTypes(it, Holder1, Holder2)
       }
     }
   }
@@ -100,7 +100,6 @@ class SessionSpec extends RatpackGroovyDslSpec {
     String value
   }
 
-  @AllowedSessionType
   static class Holder2 implements Serializable {
     String value
   }

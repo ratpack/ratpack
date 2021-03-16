@@ -28,4 +28,5 @@ package ratpack.session;
  * @since 1.9
  */
 public interface SessionTypeFilterPlugin extends SessionTypeFilter {
+
 }

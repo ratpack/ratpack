@@ -27,8 +27,7 @@ import java.io.NotSerializableException;
  * Most applications should not need to use or implement this interface.
  * By default, an implementation is used that allows:
  * <ul>
- * <li>types annotated with {@link AllowedSessionType}</li>
- * <li>types from {@code java.lang} or {@code java.util}</li>
+ * <li>Typical data types from {@code java.lang} and {@code java.util}</li>
  * <li>{@link NotSerializableException} and its super types</li>
  * <li>types registered with {@link SessionModule#allowTypes}</li>
  * <li>types allowed by any multi-bound {@link SessionTypeFilterPlugin} implementations</li>
@@ -42,10 +41,10 @@ public interface SessionTypeFilter {
   /**
    * Indicates whether the given type is allowed to be stored or loaded from session data.
    *
-   * @param type the type in question
+   * @param className the name of a class to check
    * @return whether or the not type can be used
    */
-  boolean allow(Class<?> type);
+  boolean allow(String className);
 
   /**
    * Throws {@link NonAllowedSessionTypeException} if the given type is not allowed by this filterer.
@@ -53,11 +52,11 @@ public interface SessionTypeFilter {
    * This method is typically called by {@link SessionSerializer} implementations before serializing or deserializing a type.
    * It does not need to be overridden by implementations of this type.
    *
-   * @param type the type to assert
+   * @param className the class name to the assert
    */
-  default void assertAllowed(Class<?> type) throws NonAllowedSessionTypeException {
-    if (!allow(type)) {
-      throw new NonAllowedSessionTypeException(type);
+  default void assertAllowed(String className) throws NonAllowedSessionTypeException {
+    if (!allow(className)) {
+      throw new NonAllowedSessionTypeException(className);
     }
   }
 

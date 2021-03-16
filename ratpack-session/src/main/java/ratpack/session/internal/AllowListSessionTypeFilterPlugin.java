@@ -16,25 +16,29 @@
 
 package ratpack.session.internal;
 
-import ratpack.session.SessionTypeFilter;
+import com.google.common.collect.Lists;
 import ratpack.session.SessionTypeFilterPlugin;
 
-public class CompositeSessionTypeFilter implements SessionTypeFilter {
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.HashSet;
+import java.util.Set;
 
-  private final Iterable<SessionTypeFilterPlugin> filters;
+public class AllowListSessionTypeFilterPlugin implements SessionTypeFilterPlugin {
 
-  public CompositeSessionTypeFilter(Iterable<SessionTypeFilterPlugin> filters) {
-    this.filters = filters;
+  private final Set<String> types = new HashSet<>();
+
+  public AllowListSessionTypeFilterPlugin(Collection<String> types) {
+    this.types.addAll(types);
+  }
+
+  public static AllowListSessionTypeFilterPlugin ofClasses(Class<?>... classes) {
+    return new AllowListSessionTypeFilterPlugin(Lists.transform(Arrays.asList(classes), Class::getName));
   }
 
   @Override
   public boolean allow(String type) {
-    for (SessionTypeFilter filter : filters) {
-      if (filter.allow(type)) {
-        return true;
-      }
-    }
-    return false;
+    return types.contains(type);
   }
 
 }

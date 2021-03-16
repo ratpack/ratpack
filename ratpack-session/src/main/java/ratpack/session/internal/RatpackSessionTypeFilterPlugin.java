@@ -14,21 +14,20 @@
  * limitations under the License.
  */
 
-package ratpack.session;
+package ratpack.session.internal;
 
-import java.lang.annotation.*;
+import com.google.common.collect.Lists;
 
-/**
- * Indicates that the annotated type is always safe to store in a session.
- * <p>
- * The default implementation of {@link SessionTypeFilter} provided by {@link SessionModule}
- * allows any class that carries this annotation to be used in a session.
- *
- * @see SessionModule
- * @since 1.9
- */
-@Documented
-@Target(ElementType.TYPE)
-@Retention(RetentionPolicy.RUNTIME)
-public @interface AllowedSessionType {
+import java.util.Collections;
+
+public class RatpackSessionTypeFilterPlugin extends AllowListSessionTypeFilterPlugin {
+
+  public static final RatpackSessionTypeFilterPlugin INSTANCE = new RatpackSessionTypeFilterPlugin();
+
+  private RatpackSessionTypeFilterPlugin() {
+    super(Lists.transform(Collections.singletonList(
+      DefaultSession.SerializedForm.class
+    ), Class::getName));
+  }
+
 }

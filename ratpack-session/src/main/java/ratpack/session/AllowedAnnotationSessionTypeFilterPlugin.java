@@ -14,26 +14,12 @@
  * limitations under the License.
  */
 
-package ratpack.session.internal;
+package ratpack.session;
 
-import com.google.common.collect.Sets;
-import ratpack.session.SessionTypeFilter;
-
-import java.util.Collection;
-import java.util.Set;
-
-public class ClassAllowListSessionTypeFilter implements SessionTypeFilter {
-
-  private final Set<Class<?>> types;
-
-  public ClassAllowListSessionTypeFilter(Collection<Class<?>> types) {
-    this.types = Sets.newIdentityHashSet();
-    this.types.addAll(types);
-  }
+public class AllowedAnnotationSessionTypeFilterPlugin implements SessionTypeFilterPlugin {
 
   @Override
-  public boolean allow(Class<?> type) {
-    return types.contains(type);
+  public boolean allow(String className) {
+    return false;
   }
-
 }

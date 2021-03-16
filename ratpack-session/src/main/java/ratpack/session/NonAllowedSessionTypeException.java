@@ -25,17 +25,17 @@ package ratpack.session;
 public class NonAllowedSessionTypeException extends IllegalStateException {
 
   /**
-   * The type thas was not allowed.
+   * The type that was not allowed.
    */
-  public final Class<?> type;
+  public final String className;
 
   /**
    * Constructor.
    *
-   * @param type the non allowed type.
+   * @param className the non allowed type.
    */
-  public NonAllowedSessionTypeException(Class<?> type) {
-    super("Type " + type.getName() + " is not an allowed session type. Annotate it with @AllowedSessionType or register a SessionTypeFilterPlugin allowing it.");
-    this.type = type;
+  public NonAllowedSessionTypeException(String className) {
+    super("Type " + className + " is not an allowed session type. Register a SessionTypeFilterPlugin allowing it. See SessionModule.allowTypes().");
+    this.className = className;
   }
 }

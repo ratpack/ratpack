@@ -37,8 +37,7 @@ import ratpack.util.Types;
 
 import javax.inject.Named;
 import java.io.Serializable;
-import java.util.Arrays;
-import java.util.LinkedHashSet;
+import java.util.HashSet;
 import java.util.Set;
 import java.util.function.Consumer;
 
@@ -60,10 +59,10 @@ import java.util.function.Consumer;
  * Objects must be serialized to be stored in the session.
  * In order to prevent <a href="https://portswigger.net/web-security/deserialization">insecure deserialization</a>,
  * types that are to be used in a session must be declared to be safe.
- * The simplest way to do this is to annotate the type with {@link AllowedSessionType} or use
- * {@link #allowTypes} to register the type. See {@link SessionTypeFilter} for more information.
+ * The simplest way to do this is to use {@link #allowTypes} to register the type.
+ * See {@link SessionTypeFilter} for more information.
  * Trying to store or load a type that has not been allowed will result in a runtime exception.
- * Note that
+ * Note that all types involved in serializing/deserializing a type must be registered, including super types.
  * <p>
  * The get/set methods {@link SessionData} allow supplying a {@link SessionSerializer} to be used for the specific value.
  * For variants of the get/set methods where a serializer is not provided, the implementation of {@link SessionSerializer} bound with Guice will be used.
@@ -161,6 +160,7 @@ public class SessionModule extends ConfigurableModule<SessionCookieConfig> {
    * @return an action that binds the cache
    * @see #memoryStore(Binder, Consumer)
    */
+  @SuppressWarnings("unused")
   public static Action<Binder> memoryStore(Consumer<? super CacheBuilder<AsciiString, ByteBuf>> config) {
     return b -> memoryStore(b, config);
   }
@@ -205,7 +205,7 @@ public class SessionModule extends ConfigurableModule<SessionCookieConfig> {
    * @since 1.9
    */
   public static void allowTypes(Binder binder, Class<?>... types) {
-    bindSessionTypeFilterPlugin(binder).toInstance(new ClassAllowListSessionTypeFilter(Arrays.asList(types))::allow);
+    bindSessionTypeFilterPlugin(binder).toInstance(AllowListSessionTypeFilterPlugin.ofClasses(types));
   }
 
   /**
@@ -222,6 +222,8 @@ public class SessionModule extends ConfigurableModule<SessionCookieConfig> {
   protected void configure() {
     memoryStore(binder(), s -> s.maximumSize(1000));
     Multibinder.newSetBinder(binder(), SessionTypeFilterPlugin.class);
+    bindSessionTypeFilterPlugin(binder()).toInstance(JdkSessionTypeFilterPlugin.INSTANCE);
+    bindSessionTypeFilterPlugin(binder()).toInstance(RatpackSessionTypeFilterPlugin.INSTANCE);
   }
 
   @Provides
@@ -254,14 +256,7 @@ public class SessionModule extends ConfigurableModule<SessionCookieConfig> {
 
   @Provides
   SessionTypeFilter sessionTypeFilter(Set<SessionTypeFilterPlugin> plugins) {
-    if (plugins.isEmpty()) {
-      return DefaultSessionTypeFilter.INSTANCE;
-    } else {
-      Set<SessionTypeFilter> filters = new LinkedHashSet<>();
-      filters.add(DefaultSessionTypeFilter.INSTANCE);
-      filters.addAll(plugins);
-      return new CompositeSessionTypeFilter(filters);
-    }
+    return new CompositeSessionTypeFilter(new HashSet<>(plugins));
   }
 
   @Provides

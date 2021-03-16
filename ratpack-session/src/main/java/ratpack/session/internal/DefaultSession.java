@@ -58,8 +58,7 @@ public class DefaultSession implements Session {
 
   private final SessionData data = new Data();
 
-  @AllowedSessionType
-  private static class SerializedForm implements Externalizable {
+  static class SerializedForm implements Externalizable {
 
     private static final long serialVersionUID = 2;
 

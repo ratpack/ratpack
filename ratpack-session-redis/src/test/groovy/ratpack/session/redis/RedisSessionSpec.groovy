@@ -17,7 +17,6 @@
 package ratpack.session.redis
 
 import com.lambdaworks.redis.RedisClient
-import ratpack.session.AllowedSessionType
 import ratpack.session.Session
 import ratpack.session.SessionModule
 import ratpack.session.SessionStore
@@ -46,6 +45,9 @@ class RedisSessionSpec extends RatpackGroovyDslSpec {
     failOnLeak = false
     modules << new SessionModule()
     modules << new RedisSessionModule()
+    bindings {
+      binder { SessionModule.allowTypes(it, Holder1, Holder2) }
+    }
     supportsSize = false
     if (!isRedisAlreadyRunning()) {
       redisServer.start()
@@ -94,12 +96,10 @@ class RedisSessionSpec extends RatpackGroovyDslSpec {
     getText() == "foo"
   }
 
-  @AllowedSessionType
   static class Holder1 implements Serializable {
     String value
   }
 
-  @AllowedSessionType
   static class Holder2 implements Serializable {
     String value
   }

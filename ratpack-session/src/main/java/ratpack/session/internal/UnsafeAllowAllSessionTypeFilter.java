@@ -22,7 +22,7 @@ import ratpack.session.SessionTypeFilter;
 @SuppressWarnings("DeprecatedIsStillUsed")
 public class UnsafeAllowAllSessionTypeFilter implements SessionTypeFilter {
   @Override
-  public boolean allow(Class<?> type) {
+  public boolean allow(String className) {
     return true;
   }
 }

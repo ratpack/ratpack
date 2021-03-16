@@ -16,25 +16,10 @@
 
 package ratpack.session.internal;
 
-import ratpack.session.SessionTypeFilter;
-import ratpack.session.SessionTypeFilterPlugin;
+public class ClassWithStaticInit {
 
-public class CompositeSessionTypeFilter implements SessionTypeFilter {
-
-  private final Iterable<SessionTypeFilterPlugin> filters;
-
-  public CompositeSessionTypeFilter(Iterable<SessionTypeFilterPlugin> filters) {
-    this.filters = filters;
-  }
-
-  @Override
-  public boolean allow(String type) {
-    for (SessionTypeFilter filter : filters) {
-      if (filter.allow(type)) {
-        return true;
-      }
-    }
-    return false;
+  static {
+    System.out.println("HERE!!!!!!!!!!!!!!!!!!!");
   }
 
 }

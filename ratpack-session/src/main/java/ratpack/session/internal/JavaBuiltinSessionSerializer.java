@@ -52,7 +52,7 @@ public class JavaBuiltinSessionSerializer implements JavaSessionSerializer {
 
     @Override
     protected void writeClassDescriptor(ObjectStreamClass desc) throws IOException {
-      typeFilter.assertAllowed(desc.forClass());
+      typeFilter.assertAllowed(desc.getName());
       super.writeClassDescriptor(desc);
     }
   }
@@ -67,9 +67,8 @@ public class JavaBuiltinSessionSerializer implements JavaSessionSerializer {
 
     @Override
     protected Class<?> resolveClass(ObjectStreamClass desc) throws IOException, ClassNotFoundException {
-      Class<?> type = super.resolveClass(desc);
-      typeFilter.assertAllowed(type);
-      return type;
+      typeFilter.assertAllowed(desc.getName());
+      return super.resolveClass(desc);
     }
 
   }
