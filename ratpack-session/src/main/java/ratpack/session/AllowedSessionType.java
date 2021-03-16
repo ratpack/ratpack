@@ -27,7 +27,6 @@ import java.lang.annotation.*;
  * @see SessionModule
  * @since 1.9
  */
-@Inherited
 @Documented
 @Target(ElementType.TYPE)
 @Retention(RetentionPolicy.RUNTIME)
