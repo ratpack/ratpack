@@ -19,7 +19,7 @@ apply plugin: 'idea'
 apply from: '../gradle/versionFile.gradle'
 
 repositories {
-  jcenter()
+  mavenCentral()
 }
 
 dependencies {

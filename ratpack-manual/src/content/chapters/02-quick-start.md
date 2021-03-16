@@ -66,7 +66,7 @@ Create a `build.gradle` file with the following contents:
 ```language-groovy gradle
 buildscript {
   repositories {
-    jcenter()
+    mavenCentral()
   }
   dependencies {
     classpath "io.ratpack:ratpack-gradle:@ratpack-version@"
@@ -77,7 +77,7 @@ apply plugin: "io.ratpack.ratpack-java"
 apply plugin: "idea"
 
 repositories {
-  jcenter()
+  mavenCentral()
 }
 
 dependencies {
@@ -126,7 +126,7 @@ Create a `build.gradle` file with the following contents:
 ```language-groovy gradle
 buildscript {
   repositories {
-    jcenter()
+    mavenCentral()
   }
   dependencies {
     classpath "io.ratpack:ratpack-gradle:@ratpack-version@"
@@ -137,7 +137,7 @@ apply plugin: "io.ratpack.ratpack-groovy"
 apply plugin: "idea"
 
 repositories {
-  jcenter()
+  mavenCentral()
 }
 
 dependencies {

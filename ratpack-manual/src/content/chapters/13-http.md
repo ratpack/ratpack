@@ -577,7 +577,7 @@ When you just started out your gradle file will look like this:
 ```language-groovy gradle
 buildscript {
   repositories {
-    jcenter()
+    mavenCentral()
   }
   dependencies {
     classpath "io.ratpack:ratpack-gradle:@ratpack-version@"
@@ -587,7 +587,7 @@ buildscript {
 apply plugin: "io.ratpack.ratpack-groovy"
 
 repositories {
-  jcenter()
+  mavenCentral()
 }
 
 dependencies {

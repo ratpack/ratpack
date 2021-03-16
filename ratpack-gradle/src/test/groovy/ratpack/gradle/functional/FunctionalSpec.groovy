@@ -106,9 +106,9 @@ abstract class FunctionalSpec extends Specification {
       buildscript {
         repositories {
           maven { url "${localRepo.toURI()}" }
-          jcenter()
+          mavenCentral()
         }
-        repositories { jcenter() }
+        repositories { mavenCentral() }
         dependencies {
           classpath 'com.github.jengelman.gradle.plugins:shadow:4.0.3'
           classpath 'io.ratpack:ratpack-gradle:${RATPACK_VERSION}'
@@ -120,7 +120,7 @@ abstract class FunctionalSpec extends Specification {
       version = "1.0"
       repositories {
         maven { url "${localRepo.toURI()}" }
-        jcenter()
+        mavenCentral()
       }
       dependencies {
         if (configurations.findByName("runtimeOnly")) {

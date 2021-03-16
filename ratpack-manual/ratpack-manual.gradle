@@ -23,7 +23,7 @@ import static org.pegdown.Extensions.*
 
 buildscript {
   repositories {
-    jcenter()
+    mavenCentral()
     gradlePluginPortal()
     maven { url 'https://jitpack.io' }
   }
@@ -44,7 +44,7 @@ apply plugin: "com.eriwen.gradle.js"
 apply plugin: 'io.freefair.jsass-base'
 
 repositories {
-  jcenter()
+  mavenCentral()
 }
 
 dependencies {
