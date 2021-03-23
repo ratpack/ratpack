@@ -29,6 +29,9 @@ public class DefaultSessionKey<T> implements SessionKey<T> {
   private final Class<T> type;
 
   public DefaultSessionKey(@Nullable String name, @Nullable Class<T> type) {
+    if (name == null && type == null) {
+      throw new IllegalArgumentException("one of name or type must not be null");
+    }
     this.name = name;
     this.type = type;
   }
