@@ -34,7 +34,7 @@ class HttpClientConnectionPoolSpec extends BaseHttpClientSpec {
     def resumeRequestLatch = new CountDownLatch(2)
     def activeCounter = new AtomicInteger()
 
-    def poolingHttpClient = HttpClient.of {
+    def poolingHttpClient = clientOf {
       it.poolSize(1).poolQueueSize(1)
     }
 

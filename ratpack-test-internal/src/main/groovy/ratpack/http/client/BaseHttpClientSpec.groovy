@@ -18,6 +18,9 @@ package ratpack.http.client
 
 import ratpack.core.error.ServerErrorHandler
 import ratpack.core.error.internal.DefaultDevelopmentErrorHandler
+import ratpack.core.http.client.HttpClient
+import ratpack.core.http.client.HttpClientSpec
+import ratpack.func.Action
 import ratpack.groovy.handling.GroovyChain
 import ratpack.groovy.test.embed.GroovyEmbeddedApp
 import ratpack.test.embed.EmbeddedApp
@@ -38,6 +41,10 @@ abstract class BaseHttpClientSpec extends RatpackGroovyDslSpec {
 
   URI otherAppUrl(String path = "") {
     new URI("$otherApp.address$path")
+  }
+
+  HttpClient clientOf(Action<? super HttpClientSpec> conf) {
+    new HttpClientRef(conf, application)
   }
 
 }

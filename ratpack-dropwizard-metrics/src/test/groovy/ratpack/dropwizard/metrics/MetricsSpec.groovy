@@ -35,7 +35,7 @@ import ratpack.dropwizard.metrics.internal.UnpooledByteBufAllocatorMetricSet
 import ratpack.core.error.ServerErrorHandler
 import ratpack.core.error.internal.DefaultDevelopmentErrorHandler
 import ratpack.exec.Blocking
-import ratpack.exec.ExecController
+import ratpack.exec.Execution
 import ratpack.exec.Promise
 import ratpack.groovy.handling.GroovyChain
 import ratpack.groovy.test.embed.GroovyEmbeddedApp
@@ -106,11 +106,11 @@ class MetricsSpec extends RatpackGroovyDslSpec {
       }
 
       isInfoEnabled(_) >> {
-        return  true
+        return true
       }
     }
     def graphite = Mock(GraphiteSender) {
-      send(_,_,_) >> {args -> println(args)}
+      send(_, _, _) >> { args -> println(args) }
       isConnected() >> true
       getFailures() >> 0
     }
@@ -213,10 +213,10 @@ class MetricsSpec extends RatpackGroovyDslSpec {
     public AnnotatedMetricService triggerTimer3() { this }
 
     @Timed(name = 'foo.timer.promise', absolute = true)
-    public Promise<String> triggerTimerPromise() { Promise.sync{sleep(50); "resultPromise"} }
+    public Promise<String> triggerTimerPromise() { Promise.sync { sleep(50); "resultPromise" } }
 
-    @Timed(name = 'foo.timer.sync', absolute=true)
-    public String triggerTimerSync() {sleep(50); "resultSync"}
+    @Timed(name = 'foo.timer.sync', absolute = true)
+    public String triggerTimerSync() { sleep(50); "resultSync" }
 
   }
 
@@ -614,7 +614,7 @@ class MetricsSpec extends RatpackGroovyDslSpec {
     }
 
     def graphite = Mock(GraphiteSender) {
-      send(_,_,_) >> {args -> println(args)}
+      send(_, _, _) >> { args -> println(args) }
       isConnected() >> true
       getFailures() >> 0
     }
@@ -626,7 +626,7 @@ class MetricsSpec extends RatpackGroovyDslSpec {
         it.slf4j { it.logger(log).reporterInterval(Duration.ofSeconds(1)).prefix("test").includeFilter(".*ar.*").excludeFilter(".*bar.*") }
         it.jmx { it.includeFilter(".*ar.*") }
         it.csv { it.reportDirectory(reportDirectory.root).reporterInterval(Duration.ofSeconds(1)).includeFilter(".*foo.*") }
-        it.graphite {it.sender(graphite).prefix("graphite").reporterInterval(Duration.ofSeconds(1)).includeFilter(".*ar.*").excludeFilter(".*bar.*")}
+        it.graphite { it.sender(graphite).prefix("graphite").reporterInterval(Duration.ofSeconds(1)).includeFilter(".*ar.*").excludeFilter(".*bar.*") }
       }
     }
 
@@ -848,13 +848,12 @@ class MetricsSpec extends RatpackGroovyDslSpec {
     MetricRegistry registry
     String ok = 'ok'
     def result = new BlockingVariable<String>()
-    def httpClient = HttpClient.of { spec ->
-      spec.poolSize(0)
-      spec.enableMetricsCollection(true)
-    }
 
     bindings {
-      bindInstance(HttpClient, httpClient)
+      bindInstance(HttpClient, HttpClient.of {
+        it.poolSize(0)
+        it.enableMetricsCollection(true)
+      })
       module new DropwizardMetricsModule(), { spec ->
         spec.httpClient { config ->
           config
@@ -876,13 +875,12 @@ class MetricsSpec extends RatpackGroovyDslSpec {
 
     handlers { MetricRegistry metrics ->
       registry = metrics
-      get {
-        ExecController execController = it.get(ExecController)
-        execController.fork().start({
+      get { HttpClient httpClient ->
+        Execution.fork().start({
           httpClient.get(otherAppUrl())
             .then({ val ->
-            assert val.body.text == ok
-          })
+              assert val.body.text == ok
+            })
         })
         render ok
       }

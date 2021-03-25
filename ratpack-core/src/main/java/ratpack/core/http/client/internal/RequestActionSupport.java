@@ -46,13 +46,11 @@ import javax.net.ssl.SSLEngine;
 import javax.net.ssl.SSLException;
 import javax.net.ssl.SSLParameters;
 import java.net.URI;
-import java.security.NoSuchAlgorithmException;
+import java.net.URISyntaxException;
 import java.util.concurrent.TimeUnit;
-import java.util.regex.Pattern;
 
 abstract class RequestActionSupport<T> implements Upstream<T> {
 
-  private static final Pattern ABSOLUTE_PATTERN = Pattern.compile("^https?://.*");
   private static final String SSL_HANDLER_NAME = "ssl";
   private static final String CLIENT_CODEC_HANDLER_NAME = "clientCodec";
   private static final String READ_TIMEOUT_HANDLER_NAME = "readTimeout";
@@ -64,19 +62,22 @@ abstract class RequestActionSupport<T> implements Upstream<T> {
   protected final Execution execution;
 
   private final HttpChannelKey channelKey;
-  private ChannelPool channelPool;
+  private final ChannelPool channelPool;
   private final int redirectCount;
   private final Action<? super RequestSpec> requestConfigurer;
 
   private boolean fired;
   private boolean disposed;
+  private boolean expectContinue;
+  private boolean receivedContinue;
 
-  RequestActionSupport(URI uri, HttpClientInternal client, int redirectCount, Execution execution, Action<? super RequestSpec> requestConfigurer) throws Exception {
+  RequestActionSupport(URI uri, HttpClientInternal client, int redirectCount, boolean expectContinue, Execution execution, Action<? super RequestSpec> requestConfigurer) throws Exception {
     this.requestConfigurer = requestConfigurer;
     this.requestConfig = RequestConfig.of(uri, client, requestConfigurer);
     this.client = client;
     this.execution = execution;
     this.redirectCount = redirectCount;
+    this.expectContinue = expectContinue;
     this.channelKey = new HttpChannelKey(requestConfig.uri, requestConfig.connectTimeout, execution);
     this.channelPool = client.getChannelPoolMap().get(channelKey);
 
@@ -114,14 +115,25 @@ abstract class RequestActionSupport<T> implements Upstream<T> {
   private void send(Downstream<? super T> downstream, Channel channel) throws Exception {
     channel.config().setAutoRead(true);
 
-    FullHttpRequest request = new DefaultFullHttpRequest(
-      HttpVersion.HTTP_1_1,
-      requestConfig.method.getNettyMethod(),
-      getFullPath(requestConfig.uri),
-      requestConfig.body.touch(),
-      requestConfig.headers.getNettyHeaders(),
-      EmptyHttpHeaders.INSTANCE
-    );
+    HttpMessage request;
+    if (requestConfig.headers.getNettyHeaders().contains(HttpHeaderNames.EXPECT, HttpHeaderValues.CONTINUE, true)) {
+      request = new DefaultHttpRequest(
+        HttpVersion.HTTP_1_1,
+        requestConfig.method.getNettyMethod(),
+        getFullPath(requestConfig.uri),
+        requestConfig.headers.getNettyHeaders()
+      );
+      expectContinue = true;
+    } else {
+      request = new DefaultFullHttpRequest(
+        HttpVersion.HTTP_1_1,
+        requestConfig.method.getNettyMethod(),
+        getFullPath(requestConfig.uri),
+        requestConfig.body.touch(),
+        requestConfig.headers.getNettyHeaders(),
+        EmptyHttpHeaders.INSTANCE
+      );
+    }
 
     addCommonResponseHandlers(channel.pipeline(), downstream);
 
@@ -132,9 +144,10 @@ abstract class RequestActionSupport<T> implements Upstream<T> {
       channelFuture = channel.newSucceededFuture();
     }
 
+    final HttpMessage msg = request;
     channelFuture.addListener(firstFuture -> {
       if (firstFuture.isSuccess()) {
-        channel.writeAndFlush(request).addListener(writeFuture -> {
+        channel.writeAndFlush(msg).addListener(writeFuture -> {
           if (!writeFuture.isSuccess()) {
             error(downstream, writeFuture.cause());
           }
@@ -219,13 +232,38 @@ abstract class RequestActionSupport<T> implements Upstream<T> {
       HttpResponse response;
 
       @Override
-      public void channelInactive(ChannelHandlerContext ctx) throws Exception {
+      public void channelInactive(ChannelHandlerContext ctx) {
         ctx.fireExceptionCaught(new PrematureChannelClosureException("Server " + requestConfig.uri + " closed the connection prematurely"));
       }
 
       @Override
       protected void channelRead0(ChannelHandlerContext ctx, HttpObject msg) throws Exception {
+        // received the end frame of the 100 Continue, send the body, then process the resulting response
+        if (msg instanceof LastHttpContent && expectContinue && receivedContinue) {
+          LastHttpContent bodyMsg = new DefaultLastHttpContent(requestConfig.body.touch());
+          expectContinue = false;
+          receivedContinue = false;
+          ctx.writeAndFlush(bodyMsg).addListener(writeFuture -> {
+            if (!writeFuture.isSuccess()) {
+              error(downstream, writeFuture.cause());
+            }
+          });
+          return;
+        }
         if (msg instanceof HttpResponse) {
+          if (expectContinue) {
+            // need to wait for a 100 Continue to come in
+            int status = ((HttpResponse) msg).status().code();
+            if (status == HttpResponseStatus.CONTINUE.code()) {
+              // received the continue, now wait for the end frame before sending the body
+              receivedContinue = true;
+              return;
+            } else if (!isRedirect(status)) {
+              // Received a response other than 100 Continue and not a redirect, so clear that we expect a 100
+              // and process this as the normal response without sending the body.
+              expectContinue = false;
+            }
+          }
           this.response = (HttpResponse) msg;
           int maxRedirects = requestConfig.maxRedirects;
           int status = response.status().code();
@@ -249,15 +287,8 @@ abstract class RequestActionSupport<T> implements Upstream<T> {
                 }
               };
               redirectRequestConfig = redirectConfigurer.append(redirectRequestConfig);
-              URI locationUri;
-              if (ABSOLUTE_PATTERN.matcher(locationValue).matches()) {
-                locationUri = new URI(locationValue);
-              } else {
-                URI partial = URI.create(locationValue);
-                locationUri = new URI(channelKey.ssl ? "https" : "http", null, channelKey.host, channelKey.port, partial.getPath(), partial.getQuery(), null);
-              }
-
-              onRedirect(locationUri, redirectCount + 1, redirectRequestConfig).connect(downstream);
+              URI locationUri = absolutizeRedirect(requestConfig.uri, locationValue);
+              onRedirect(locationUri, redirectCount + 1, expectContinue, redirectRequestConfig).connect(downstream);
 
               redirected = true;
               dispose(ctx.pipeline(), response);
@@ -278,7 +309,7 @@ abstract class RequestActionSupport<T> implements Upstream<T> {
     addResponseHandlers(p, downstream);
   }
 
-  private SslHandler createSslHandler() throws NoSuchAlgorithmException, SSLException {
+  private SslHandler createSslHandler() throws SSLException {
     SSLEngine sslEngine;
     if (requestConfig.sslContext != null) {
       sslEngine = createSslEngine(requestConfig.sslContext);
@@ -300,7 +331,7 @@ abstract class RequestActionSupport<T> implements Upstream<T> {
     return sslContext.newEngine(client.getByteBufAllocator(), requestConfig.uri.getHost(), port);
   }
 
-  protected abstract Upstream<T> onRedirect(URI locationUrl, int redirectCount, Action<? super RequestSpec> redirectRequestConfig) throws Exception;
+  protected abstract Upstream<T> onRedirect(URI locationUrl, int redirectCount, boolean expectContinue, Action<? super RequestSpec> redirectRequestConfig) throws Exception;
 
   protected void success(Downstream<? super T> downstream, T value) {
     if (!fired) {
@@ -357,6 +388,52 @@ abstract class RequestActionSupport<T> implements Upstream<T> {
       }
       return sb.toString();
     }
+  }
+
+  private static URI absolutizeRedirect(URI requestUri, String redirectLocation) throws URISyntaxException {
+    //Rules
+    //1. Given absolute URL use it
+    //1a. Protocol Relative URL given starting of // we use the protocol from the request
+    //2. Given Starting Slash prepend public facing domain:port if provided if not use base URL of request
+    //3. Given relative URL prepend public facing domain:port plus parent path of request URL otherwise full parent path
+
+    URI redirectLocationUri = URI.create(redirectLocation);
+    if (redirectLocation.startsWith("http://") || redirectLocation.startsWith("https://")) { // absolute URI
+      return redirectLocationUri;
+    } else {
+      if (redirectLocation.startsWith("//")) { // protocol relative
+        return URI.create(requestUri.getScheme() + ":" + redirectLocation);
+      } else {
+
+        String path = redirectLocationUri.getPath();
+        if (!path.startsWith("/")) { // absolute path
+          path = getParentPath(requestUri.getPath()) + path;
+        }
+        return new URI(
+          requestUri.getScheme(),
+          requestUri.getUserInfo(),
+          requestUri.getHost(),
+          requestUri.getPort(),
+          path,
+          redirectLocationUri.getQuery(),
+          null
+        );
+      }
+    }
+  }
+
+  private static String getParentPath(String path) {
+    String parentPath = "/";
+
+    int indexOfSlash = path.lastIndexOf('/');
+    if (indexOfSlash >= 0) {
+      parentPath = path.substring(0, indexOfSlash) + '/';
+    }
+
+    if (!parentPath.startsWith("/")) {
+      parentPath = "/" + parentPath;
+    }
+    return parentPath;
   }
 
 }

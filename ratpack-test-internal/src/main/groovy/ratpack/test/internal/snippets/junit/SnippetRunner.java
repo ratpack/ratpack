@@ -22,6 +22,8 @@ import org.junit.runner.notification.Failure;
 import org.junit.runner.notification.RunNotifier;
 import ratpack.test.internal.snippets.TestCodeSnippet;
 
+import java.time.Duration;
+
 import static ratpack.func.Exceptions.uncheck;
 
 public class SnippetRunner extends Runner {
@@ -50,7 +52,8 @@ public class SnippetRunner extends Runner {
 
     try {
       notifier.fireTestStarted(description);
-      snippet.getExecuter().execute(snippet);
+      new TimeoutInterceptor(Duration.ofSeconds(30))
+        .intercept(() -> snippet.getExecuter().execute(snippet), description);
     } catch (Throwable t) {
       Throwable transform;
       try {

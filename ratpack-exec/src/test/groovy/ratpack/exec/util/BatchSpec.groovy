@@ -16,6 +16,8 @@
 
 package ratpack.exec.util
 
+
+import com.google.common.collect.Iterators
 import ratpack.exec.Blocking
 import ratpack.exec.Execution
 import ratpack.exec.Promise
@@ -25,6 +27,7 @@ import spock.lang.AutoCleanup
 
 import java.util.concurrent.ConcurrentLinkedQueue
 import java.util.concurrent.atomic.AtomicInteger
+import java.util.function.Function
 
 class BatchSpec extends BaseRatpackSpec {
 
@@ -177,5 +180,19 @@ class BatchSpec extends BaseRatpackSpec {
     r.size() == 2
     r[0].value == null
     r[1].value == 1
+  }
+
+  def "iterable is only consumed once"() {
+    when:
+    Function<List<Integer>, Iterable<Promise<Integer>>> createIterable = { List<Integer> list ->
+      def source = list.collect(Promise.&value)
+      def iterator = Iterators.consumingIterator(source.iterator())
+      return { iterator } as Iterable
+    }
+
+    then:
+    def iterable = createIterable.apply([1, 2, 3])
+    exec.yield { ParallelBatch.of(iterable).yield() }.valueOrThrow == [1, 2, 3]
+    exec.yield { SerialBatch.of(createIterable.apply([1, 2, 3])).yield() }.valueOrThrow == [1, 2, 3]
   }
 }

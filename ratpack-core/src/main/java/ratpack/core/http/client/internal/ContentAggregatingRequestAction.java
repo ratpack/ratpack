@@ -40,10 +40,11 @@ class ContentAggregatingRequestAction extends RequestActionSupport<ReceivedRespo
     URI uri,
     HttpClientInternal client,
     int redirectCount,
+    boolean expectContinue,
     Execution execution,
     Action<? super RequestSpec> requestConfigurer
   ) throws Exception {
-    super(uri, client, redirectCount, execution, requestConfigurer);
+    super(uri, client, redirectCount, expectContinue, execution, requestConfigurer);
   }
 
   @Override
@@ -82,8 +83,8 @@ class ContentAggregatingRequestAction extends RequestActionSupport<ReceivedRespo
   }
 
   @Override
-  protected Upstream<ReceivedResponse> onRedirect(URI locationUrl, int redirectCount, Action<? super RequestSpec> redirectRequestConfig) throws Exception {
-    return new ContentAggregatingRequestAction(locationUrl, client, redirectCount, execution, redirectRequestConfig);
+  protected Upstream<ReceivedResponse> onRedirect(URI locationUrl, int redirectCount, boolean expectContinue, Action<? super RequestSpec> redirectRequestConfig) throws Exception {
+    return new ContentAggregatingRequestAction(locationUrl, client, redirectCount, expectContinue, execution, redirectRequestConfig);
   }
 
 }

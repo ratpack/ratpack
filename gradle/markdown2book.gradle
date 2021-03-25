@@ -15,7 +15,7 @@
  */
 
 buildscript {
-  repositories.jcenter()
+  repositories.mavenCentral()
   dependencies {
     classpath  \
         "commons-io:commons-io:1.4",

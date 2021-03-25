@@ -83,7 +83,7 @@ class ExpectContinueSpec extends RatpackGroovyDslSpec {
     con.responseCode == 302
 
     when:
-    con = new URL(con.getHeaderField("Location")).openConnection() as HttpURLConnection
+    con = new URL("http://localhost:$server.bindPort" + con.getHeaderField("Location")).openConnection() as HttpURLConnection
     con.setRequestMethod("POST")
     con.setRequestProperty("Expect", "100-Continue")
     con.fixedLengthStreamingMode = bytes.length

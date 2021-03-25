@@ -23,7 +23,6 @@ starth2
 ratpack-groovy/Expression$*.class
 /.java-version
 Expression$*.class
-ratpack-lazybones/templates/**/VERSION
 ratpack-version.txt
 deploy
 .jruby-container

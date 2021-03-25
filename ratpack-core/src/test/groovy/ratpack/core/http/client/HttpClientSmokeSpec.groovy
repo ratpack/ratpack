@@ -864,7 +864,7 @@ BAR
     given:
     String ok = 'ok'
     def result = new BlockingVariable<String>()
-    def httpClient = HttpClient.of {
+    def httpClient = clientOf {
       it.poolSize(0)
       it.enableMetricsCollection(true)
     }
@@ -884,12 +884,6 @@ BAR
       }
     }
 
-    then:
-    assert httpClient.getHttpClientStats().totalActiveConnectionCount == 0
-    assert httpClient.getHttpClientStats().totalIdleConnectionCount == 0
-    assert httpClient.getHttpClientStats().totalConnectionCount == 0
-
-    when:
     handlers {
       get {
         ExecController execController = it.get(ExecController)
@@ -904,8 +898,14 @@ BAR
     }
 
     then:
-    text == "ok"
+    assert httpClient.getHttpClientStats().totalActiveConnectionCount == 0
+    assert httpClient.getHttpClientStats().totalIdleConnectionCount == 0
+    assert httpClient.getHttpClientStats().totalConnectionCount == 0
 
+    when:
+    assert text == "ok"
+
+    then:
     polling.within(2) {
       assert httpClient.getHttpClientStats().totalActiveConnectionCount == 1
       assert httpClient.getHttpClientStats().totalIdleConnectionCount == 0

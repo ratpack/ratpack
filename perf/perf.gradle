@@ -71,7 +71,7 @@ task createApps {
 buildscript {
   repositories {
     maven { url "${rootDir.toURI()}build/localrepo" }
-    jcenter()
+    mavenCentral()
   }
   dependencies {
     classpath "io.ratpack:ratpack-gradle:$params.version"
@@ -82,7 +82,7 @@ apply plugin: "io.ratpack.ratpack-groovy"
 
 repositories {
   maven { url "${rootDir.toURI()}build/localrepo" }
-  jcenter()
+  mavenCentral()
 }
 
 dependencies {

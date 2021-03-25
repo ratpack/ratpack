@@ -1,7 +1,7 @@
 // Root project
 
 repositories {
-  jcenter()
+  mavenCentral()
 }
 
 if (project.hasProperty("jacocoReport")) {

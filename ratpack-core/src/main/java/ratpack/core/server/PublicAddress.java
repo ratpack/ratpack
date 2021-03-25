@@ -20,6 +20,7 @@ import ratpack.core.http.HttpUrlBuilder;
 import ratpack.core.server.internal.ConstantPublicAddress;
 import ratpack.core.server.internal.InferringPublicAddress;
 import ratpack.func.Action;
+import ratpack.server.internal.ServerBindPublicAddress;
 
 import java.net.URI;
 
@@ -62,12 +63,32 @@ public interface PublicAddress {
    * <p>
    * This implementation is implicitly used if no {@link ServerConfigBuilder#publicAddress(URI)} was specified.
    *
+   * <b>WARNING:</b> this implementation is unsafe to use if untrusted clients can influence the request headers mentioned above,
+   * as this can lead to <a href="https://portswigger.net/web-security/web-cache-poisoning">cache poisoning attacks</a>.
+   * It should only be used when the values for those headers are guaranteed to be trusted,
+   * such as when they are guaranteed to be set by a trusted upstream proxy.
+   *
    * @param defaultScheme the scheme ({@code http} or {@code https}) if what to use can't be determined from the request
    * @return a public address
    * @since 1.2
    */
   static PublicAddress inferred(String defaultScheme) {
     return new InferringPublicAddress(defaultScheme);
+  }
+
+  /**
+   * Uses the serves bind address as the current address.
+   * <p>
+   * This is the default implementation used if no explicit public address was set as part of {@link ServerConfigBuilder#publicAddress(URI)}
+   * <p>
+   * This implementation throws an {@link IllegalStateException} if the address is queried and the server is not running.
+   *
+   * @param server the server to use the bind address of
+   * @return a public address
+   * @since 1.9
+   */
+  static PublicAddress bindAddress(RatpackServer server) {
+    return new ServerBindPublicAddress(server);
   }
 
   /**

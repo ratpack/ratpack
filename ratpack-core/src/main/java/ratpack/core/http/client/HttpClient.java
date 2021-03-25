@@ -19,7 +19,7 @@ package ratpack.core.http.client;
 import io.netty.buffer.ByteBufAllocator;
 import org.reactivestreams.Publisher;
 import ratpack.core.http.Response;
-import ratpack.core.http.client.internal.DefaultHttpClient;
+import ratpack.core.http.client.internal.HttpClientBuilder;
 import ratpack.exec.Promise;
 import ratpack.func.Action;
 
@@ -88,7 +88,9 @@ public interface HttpClient extends AutoCloseable {
    * @since 1.4
    */
   static HttpClient of(Action<? super HttpClientSpec> action) throws Exception {
-    return DefaultHttpClient.of(action);
+    HttpClientBuilder builder = new HttpClientBuilder();
+    action.execute(builder);
+    return builder.build();
   }
 
   /**
@@ -166,6 +168,7 @@ public interface HttpClient extends AutoCloseable {
 
   /**
    * The configured proxy instance for the client.
+   *
    * @return The configure proxy instance for the client
    * @since 1.8.0
    */
@@ -217,7 +220,6 @@ public interface HttpClient extends AutoCloseable {
    * @param uri the request URL (as a URI), must be of the {@code http} or {@code https} protocol
    * @param requestConfigurer an action that will act on the {@link RequestSpec}
    * @return a promise for a {@link StreamedResponse}
-   *
    * @see StreamedResponse
    */
   Promise<StreamedResponse> requestStream(URI uri, final Action<? super RequestSpec> requestConfigurer);

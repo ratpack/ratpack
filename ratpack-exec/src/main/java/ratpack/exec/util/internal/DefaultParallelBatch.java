@@ -91,11 +91,15 @@ public class DefaultParallelBatch<T> implements ParallelBatch<T> {
     }
 
     List<T> results = Types.cast(promises);
-    return Promise.async(d -> forEach(results::set).onError(d::error).then(() -> d.success(results)));
+    return Promise.async(d -> forEach(promises, execInit, results::set).onError(d::error).then(() -> d.success(results)));
   }
 
   @Override
   public Operation forEach(BiAction<? super Integer, ? super T> consumer) {
+    return forEach(promises, execInit, consumer);
+  }
+
+  private static <T> Operation forEach(Iterable<? extends Promise<T>> promises, Action<? super Execution> execInit, BiAction<? super Integer, ? super T> consumer) {
     AtomicReference<Throwable> error = new AtomicReference<>();
     AtomicBoolean done = new AtomicBoolean();
     AtomicInteger wip = new AtomicInteger();

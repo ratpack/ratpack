@@ -18,6 +18,10 @@ package ratpack.core.http.client;
 
 import io.netty.buffer.ByteBufAllocator;
 import ratpack.core.server.ServerConfig;
+import io.netty.resolver.AddressResolverGroup;
+import io.netty.resolver.DefaultAddressResolverGroup;
+import io.netty.resolver.dns.DnsNameResolverBuilder;
+import ratpack.exec.ExecController;
 import ratpack.exec.Operation;
 import ratpack.func.Action;
 
@@ -41,6 +45,20 @@ public interface HttpClientSpec {
    * @return {@code this}
    */
   HttpClientSpec byteBufAllocator(ByteBufAllocator byteBufAllocator);
+
+  /**
+   * The exec controller to associate with.
+   * <p>
+   * Defaults to {@link ExecController#current()}, when the HttpClient is constructed.
+   * <p>
+   * If the HTTP client is being constructed outside of a managed thread,
+   * explicitly specifying the execution controller may be necessary dependending on the configuration of the HTTP client.
+   *
+   * @param execController the execution controller
+   * @return {@code this}
+   * @since 1.9
+   */
+  HttpClientSpec execController(ExecController execController);
 
   /**
    * The maximum number of connections to maintain to a given protocol/host/port.
@@ -116,17 +134,17 @@ public interface HttpClientSpec {
    */
   HttpClientSpec connectTimeout(Duration connectTimeout);
 
-    /**
-     * The max size of the chunks to emit when reading a response as a stream.
-     * <p>
-     * Defaults to 8192.
-     * <p>
-     * Increasing this value can increase throughput at the expense of memory use.
-     *
-     * @param numBytes the max number of bytes to emit
-     * @return {@code this}
-     * @since 1.5
-     */
+  /**
+   * The max size of the chunks to emit when reading a response as a stream.
+   * <p>
+   * Defaults to 8192.
+   * <p>
+   * Increasing this value can increase throughput at the expense of memory use.
+   *
+   * @param numBytes the max number of bytes to emit
+   * @return {@code this}
+   * @since 1.5
+   */
   HttpClientSpec responseMaxChunkSize(int numBytes);
 
   /**
@@ -178,7 +196,7 @@ public interface HttpClientSpec {
    * Enable metric collection on HTTP Client.
    * <p>
    * Defaults to false.
-   * <p>
+   *
    * @param enableMetricsCollection A boolean used to enable metric collection.
    * @return {@code this}
    * @since 1.6
@@ -190,8 +208,39 @@ public interface HttpClientSpec {
    *
    * @param proxy the proxy configuration
    * @return {@code this}
-   * @since 1.8.0
+   * @since 1.8
    */
   HttpClientSpec proxy(Action<? super ProxySpec> proxy);
+
+  /**
+   * Specifies a custom name resolver to use.
+   *
+   * @param resolver the resolver group
+   * @return {@code this}
+   * @since 1.9
+   */
+  HttpClientSpec addressResolver(AddressResolverGroup<?> resolver);
+
+  /**
+   * Specifies a custom name resolver to use.
+   *
+   * @param resolver the configuration of the resolver to use
+   * @return {@code this}
+   * @since 1.9
+   */
+  HttpClientSpec addressResolver(Action<? super DnsNameResolverBuilder> resolver);
+
+  /**
+   * Specifies that the JDK name resolver should be used.
+   * <p>
+   * This option should only be used when it is absolutely necessary to use the JDK implementation.
+   * By default, a Netty based implementation is used that provides better performance.
+   *
+   * @return this
+   * @since 1.9
+   */
+  default HttpClientSpec useJdkAddressResolver() {
+    return addressResolver(DefaultAddressResolverGroup.INSTANCE);
+  }
 
 }

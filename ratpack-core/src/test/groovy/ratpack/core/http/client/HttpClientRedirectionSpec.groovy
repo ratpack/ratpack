@@ -17,6 +17,7 @@
 package ratpack.core.http.client
 
 import ratpack.core.http.internal.HttpHeaderConstants
+import io.netty.handler.codec.http.HttpResponseStatus
 import ratpack.func.Action
 import ratpack.http.client.BaseHttpClientSpec
 
@@ -353,4 +354,69 @@ class HttpClientRedirectionSpec extends BaseHttpClientSpec {
     then:
     getText() == "ok"
   }
+
+  def "Should set cookies from redirect"() {
+    given:
+    requestSpec { r -> r.redirects(1) }
+
+    and:
+    handlers {
+      get {
+        response.send(request.oneCookie("value") ?: 'none')
+      }
+      get(':cookie') {
+        response.cookie('value', pathTokens.cookie)
+        redirect '/'
+      }
+    }
+
+    when:
+    get()
+
+    then:
+    response.statusCode == HttpResponseStatus.OK.code()
+    response.body.text == 'none'
+
+    when:
+    get('Ratpack')
+
+    then:
+    response.statusCode == HttpResponseStatus.OK.code()
+    response.body.text == 'Ratpack'
+
+    when:
+    get()
+
+    then:
+    response.statusCode == HttpResponseStatus.OK.code()
+    response.body.text == 'Ratpack'
+  }
+
+  def "handles relative redirects"() {
+    when:
+    handlers {
+      get("to") {
+        render "ok1"
+      }
+      get("abs-path") {
+        redirect "/to"
+      }
+      get("rel-path") {
+        redirect "to"
+      }
+      get("rel-path/to") {
+        render "ok2"
+      }
+      get("rel-protocol") {
+        redirect "//localhost:$server.bindPort/to"
+      }
+    }
+
+    then:
+    getText("abs-path") == "ok1"
+    getText("rel-path") == "ok1"
+    getText("rel-path/") == "ok2"
+    getText("rel-protocol") == "ok1"
+  }
+
 }

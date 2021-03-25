@@ -49,8 +49,8 @@ public class ContentStreamingRequestAction extends RequestActionSupport<Streamed
 
   private static final String HANDLER_NAME = "streaming";
 
-  ContentStreamingRequestAction(URI uri, HttpClientInternal client, int redirectCount, Execution execution, Action<? super RequestSpec> requestConfigurer) throws Exception {
-    super(uri, client, redirectCount, execution, requestConfigurer);
+  ContentStreamingRequestAction(URI uri, HttpClientInternal client, int redirectCount, boolean expectContinue, Execution execution, Action<? super RequestSpec> requestConfigurer) throws Exception {
+    super(uri, client, redirectCount, expectContinue, execution, requestConfigurer);
   }
 
   @Override
@@ -65,8 +65,8 @@ public class ContentStreamingRequestAction extends RequestActionSupport<Streamed
   }
 
   @Override
-  protected Upstream<StreamedResponse> onRedirect(URI locationUrl, int redirectCount, Action<? super RequestSpec> redirectRequestConfig) throws Exception {
-    return new ContentStreamingRequestAction(locationUrl, client, redirectCount, execution, redirectRequestConfig);
+  protected Upstream<StreamedResponse> onRedirect(URI locationUrl, int redirectCount, boolean expectContinue, Action<? super RequestSpec> redirectRequestConfig) throws Exception {
+    return new ContentStreamingRequestAction(locationUrl, client, redirectCount, expectContinue, execution, redirectRequestConfig);
   }
 
   private class Handler extends SimpleChannelInboundHandler<HttpObject> {
@@ -109,7 +109,6 @@ public class ContentStreamingRequestAction extends RequestActionSupport<Streamed
         HttpContent httpContent = ((HttpContent) httpObject).touch();
         boolean hasContent = httpContent.content().readableBytes() > 0;
         boolean isLast = httpObject instanceof LastHttpContent;
-
         if (write == null) { // the stream has not yet been subscribed to
           if (hasContent || isLast) {
             if (received == null) {

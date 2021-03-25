@@ -234,7 +234,7 @@ public class DefaultTestHttpClient implements TestHttpClient {
   public ReceivedResponse request(String path, Action<? super RequestSpec> requestAction) {
     try (ExecController execController = new DefaultExecController(2)) {
       URI uri = builder(path).params(params).build();
-      try (HttpClient httpClient = httpClient()) {
+      try (HttpClient httpClient = httpClient(execController)) {
         response = client.request(httpClient, uri, execController, Duration.ofMinutes(60), requestSpec -> {
           final RequestSpec decorated = new CookieHandlingRequestSpec(requestSpec);
           decorated.get();
@@ -251,11 +251,12 @@ public class DefaultTestHttpClient implements TestHttpClient {
     return response;
   }
 
-  private HttpClient httpClient() {
+  private HttpClient httpClient(ExecController execController) {
     return Exceptions.uncheck(() -> HttpClient.of(s -> s
       .byteBufAllocator(TestByteBufAllocators.LEAKING_UNPOOLED_HEAP)
       .maxContentLength(Integer.MAX_VALUE)
       .poolSize(8)
+      .execController(execController)
     ));
   }
 

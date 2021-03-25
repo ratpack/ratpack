@@ -22,6 +22,7 @@ import ratpack.func.Action;
 import ratpack.func.Block;
 import ratpack.func.Factory;
 import ratpack.func.Function;
+import ratpack.func.Predicate;
 
 import java.util.Optional;
 
@@ -86,7 +87,38 @@ public interface Operation {
     return new DefaultOperation(Promise.flatten(() -> factory.create().promise()));
   }
 
-  Operation onError(Action<? super Throwable> onError);
+  default Operation onError(Action<? super Throwable> onError) {
+    return onError(Predicate.TRUE, onError);
+  }
+
+  /**
+   * Specifies the action to take if the an error occurs performing the operation that the given predicate applies to.
+   * <p>
+   * If the given action throws an exception, the original exception will be rethrown with the exception thrown
+   * by the action added to the suppressed exceptions list.
+   *
+   * @param predicate the predicate to test against the error
+   * @param errorHandler the action to take if an error occurs
+   * @return An operation for the successful result
+   * @since 1.9
+   */
+  Operation onError(Predicate<? super Throwable> predicate, Action<? super Throwable> errorHandler);
+
+  /**
+   * Specifies the action to take if the an error of the given type occurs trying to perform the operation.
+   *
+   * If the given action throws an exception, the original exception will be rethrown with the exception thrown
+   * by the action added to the suppressed exceptions list.
+   *
+   * @param errorType the type of exception to handle with the given action
+   * @param errorHandler the action to take if an error occurs
+   * @param <E> the type of exception to handle with the given action
+   * @return An operation for the successful result
+   * @since 1.9
+   */
+  default <E extends Throwable> Operation onError(Class<E> errorType, Action<? super E> errorHandler) {
+    return onError(errorType::isInstance, t -> errorHandler.execute(errorType.cast(t)));
+  }
 
   /**
    * Convert an error to a success or different error.

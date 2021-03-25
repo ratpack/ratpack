@@ -33,7 +33,7 @@ class HttpClientKeepAliveInstrumentationSpec extends BaseHttpClientSpec {
 
   PollingConditions polling = new PollingConditions()
 
-  def poolingHttpClient = HttpClient.of {
+  def poolingHttpClient = clientOf {
     it.poolSize(1)
     it.enableMetricsCollection(true)
   }
@@ -153,43 +153,40 @@ class HttpClientKeepAliveInstrumentationSpec extends BaseHttpClientSpec {
     String ok = 'ok'
     def result = new BlockingVariable<String>()
 
-    when:
-    otherApp {
-      get {
-        Blocking.get({
-          return result.get()
-        })
-          .onError(it.&error)
-          .then(it.&render)
-      }
-    }
-
-    then:
-    assert poolingHttpClient.getHttpClientStats().totalActiveConnectionCount == 0
-    assert poolingHttpClient.getHttpClientStats().totalIdleConnectionCount == 0
-    assert poolingHttpClient.getHttpClientStats().totalConnectionCount == 0
-
-    when:
     handlers {
       get {
         ExecController execController = it.get(ExecController)
         execController.fork().start({
           poolingHttpClient.get(otherAppUrl())
             .then({ val ->
-            assert val.body.text == ok
-          })
+              assert val.body.text == ok
+            })
         })
         render ok
       }
     }
 
-    then:
-    text == "ok"
+    otherApp {
+      get {
+        Blocking.get(result.&get)
+          .onError(it.&error)
+          .then(it.&render)
+      }
+    }
 
+    expect:
+    poolingHttpClient.getHttpClientStats().totalActiveConnectionCount == 0
+    poolingHttpClient.getHttpClientStats().totalIdleConnectionCount == 0
+    poolingHttpClient.getHttpClientStats().totalConnectionCount == 0
+
+    when:
+    assert text == "ok"
+
+    then:
     polling.within(2) {
-      assert poolingHttpClient.getHttpClientStats().totalActiveConnectionCount == 1
-      assert poolingHttpClient.getHttpClientStats().totalIdleConnectionCount == 0
-      assert poolingHttpClient.getHttpClientStats().totalConnectionCount == 1
+      poolingHttpClient.getHttpClientStats().totalActiveConnectionCount == 1
+      poolingHttpClient.getHttpClientStats().totalIdleConnectionCount == 0
+      poolingHttpClient.getHttpClientStats().totalConnectionCount == 1
     }
 
     when:
@@ -197,9 +194,9 @@ class HttpClientKeepAliveInstrumentationSpec extends BaseHttpClientSpec {
 
     then:
     polling.within(2) {
-      assert poolingHttpClient.getHttpClientStats().totalActiveConnectionCount == 0
-      assert poolingHttpClient.getHttpClientStats().totalIdleConnectionCount == 1
-      assert poolingHttpClient.getHttpClientStats().totalConnectionCount == 1
+      poolingHttpClient.getHttpClientStats().totalActiveConnectionCount == 0
+      poolingHttpClient.getHttpClientStats().totalIdleConnectionCount == 1
+      poolingHttpClient.getHttpClientStats().totalConnectionCount == 1
     }
   }
 

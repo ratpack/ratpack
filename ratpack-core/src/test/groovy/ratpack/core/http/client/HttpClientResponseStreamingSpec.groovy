@@ -191,7 +191,7 @@ class HttpClientResponseStreamingSpec extends BaseHttpClientSpec {
         }
       }
     }
-    def http = HttpClient.of { it.poolSize(30) }
+    def http = clientOf{ it.poolSize(30) }
 
     then:
     def p = (1..100).collect { http.get(applicationUnderTest.address) }

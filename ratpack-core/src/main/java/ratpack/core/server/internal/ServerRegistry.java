@@ -54,10 +54,9 @@ import java.time.Clock;
 import java.util.Optional;
 
 import static ratpack.func.Exceptions.uncheck;
-import static ratpack.exec.util.internal.ProtocolUtil.HTTPS_SCHEME;
-import static ratpack.exec.util.internal.ProtocolUtil.HTTP_SCHEME;
 
 public abstract class ServerRegistry {
+
   public static Registry serverRegistry(RatpackServer ratpackServer, Impositions impositions, ExecControllerInternal execController, ServerConfig serverConfig, Function<? super Registry, ? extends Registry> userRegistryFactory) {
     Registry baseRegistry = buildBaseRegistry(ratpackServer, impositions, execController, serverConfig);
     Registry userRegistry = buildUserRegistry(userRegistryFactory, baseRegistry);
@@ -89,6 +88,7 @@ public abstract class ServerRegistry {
         .poolSize(0)
         .byteBufAllocator(ByteBufAllocator.DEFAULT)
         .maxContentLength(serverConfig.getMaxContentLength())
+        .execController(execController)
       );
 
       baseRegistryBuilder = Registry.builder()
@@ -99,7 +99,7 @@ public abstract class ServerRegistry {
         .add(MimeTypes.class, ActivationBackedMimeTypes.INSTANCE)
         .add(PublicAddress.class, Optional.ofNullable(serverConfig.getPublicAddress())
           .map(PublicAddress::of)
-          .orElseGet(() -> PublicAddress.inferred(serverConfig.getSslContext() == null ? HTTP_SCHEME : HTTPS_SCHEME))
+          .orElseGet(() -> PublicAddress.bindAddress(ratpackServer))
         )
         .add(Redirector.TYPE, Redirector.standard())
         .add(ClientErrorHandler.class, errorHandler)

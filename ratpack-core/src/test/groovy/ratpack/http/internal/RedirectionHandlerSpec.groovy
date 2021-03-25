@@ -14,12 +14,12 @@
  * limitations under the License.
  */
 
-package ratpack.core.http.internal
+package ratpack.http.internal
 
 import ratpack.core.http.client.RequestSpec
 import ratpack.test.internal.RatpackGroovyDslSpec
 
-class RedirectionHandleSpec extends RatpackGroovyDslSpec {
+class RedirectionHandlerSpec extends RatpackGroovyDslSpec {
 
   @Override
   void configureRequest(RequestSpec requestSpecification) {

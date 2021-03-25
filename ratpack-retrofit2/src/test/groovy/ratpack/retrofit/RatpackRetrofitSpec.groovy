@@ -18,6 +18,7 @@ package ratpack.retrofit
 
 import ratpack.core.error.ServerErrorHandler
 import ratpack.core.error.internal.DefaultDevelopmentErrorHandler
+import ratpack.exec.ExecController
 import ratpack.exec.Promise
 import ratpack.groovy.test.embed.GroovyEmbeddedApp
 import ratpack.core.handling.Context
@@ -71,11 +72,14 @@ class RatpackRetrofitSpec extends BaseRatpackSpec {
 
   Context mockContext = Mock()
 
-  HttpClient client() {
+  HttpClient client(ExecController execController = null) {
     HttpClient.of {
       it.maxContentLength(ServerConfig.DEFAULT_MAX_CONTENT_LENGTH)
       it.connectTimeout(Duration.ofMillis(3000))
       it.readTimeout(Duration.ofMillis(3000))
+      if (execController) {
+        it.execController(execController)
+      }
     }
   }
 
@@ -209,14 +213,18 @@ class RatpackRetrofitSpec extends BaseRatpackSpec {
 
   def "get client from execution"() {
     when:
-    def value = ExecHarness.yieldSingle { r ->
-      r.add(client())
+    def harness = ExecHarness.harness()
+    def value = harness.yieldSingle { r ->
+      r.add(client(harness.controller))
     } {
       service.root()
     }.valueOrThrow
 
     then:
     value == "OK"
+
+    cleanup:
+    harness.close()
   }
 
   @Unroll

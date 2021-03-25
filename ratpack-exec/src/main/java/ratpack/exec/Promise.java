@@ -342,15 +342,35 @@ public interface Promise<T> {
       up.connect(down.onError(throwable -> {
         if (predicate.apply(throwable)) {
           try {
-            errorHandler.execute(throwable);
+            Promise.<Void>sync(() -> {
+              errorHandler.execute(throwable);
+              return null;
+            })
+              .connect(new Downstream<Void>() {
+                @Override
+                public void success(Void value) {
+                  down.complete();
+                }
+
+                @Override
+                public void error(Throwable e) {
+                  if (e != throwable) {
+                    e.addSuppressed(throwable);
+                  }
+                  down.error(e);
+                }
+
+                @Override
+                public void complete() {
+                  down.complete();
+                }
+              });
           } catch (Throwable e) {
             if (e != throwable) {
               e.addSuppressed(throwable);
             }
             down.error(e);
-            return;
           }
-          down.complete();
         } else {
           down.error(throwable);
         }
@@ -770,7 +790,7 @@ public interface Promise<T> {
    * <p>
    * If the upstream promise fails, its error will propagate downstream and the given promise will never be subscribed to.
    *
-   *  <pre class="java">{@code
+   * <pre class="java">{@code
    * import ratpack.test.exec.ExecHarness;
    * import ratpack.exec.ExecResult;
    * import ratpack.exec.Promise;
@@ -1711,10 +1731,10 @@ public interface Promise<T> {
    *
    * @param cacheFor a function that determines how long to cache the given result for
    * @return a caching promise
-   * @since 1.5
    * @see #cache()
    * @see #cacheIf(Predicate)
    * @see #cacheResultIf(Predicate)
+   * @since 1.5
    */
   default Promise<T> cacheResultFor(Function<? super ExecResult<T>, Duration> cacheFor) {
     return transform(up -> new CachingUpstream<>(up, cacheFor));
@@ -1991,8 +2011,8 @@ public interface Promise<T> {
    * This method is then called on the returned promise to cleanup the resource.
    *
    * @param closeable the closeable to close
-   * @see #close(Operation)
    * @return a promise
+   * @see #close(Operation)
    * @since 1.3
    */
   default Promise<T> close(AutoCloseable closeable) {
@@ -2116,9 +2136,9 @@ public interface Promise<T> {
    * If the promise succeeds and this method throws an exception, the thrown exception will propagate.
    *
    * @param action a callback for the time
-   * @since 1.3
-   * @see #timeResult(BiAction)
    * @return effectively {@code this}
+   * @see #timeResult(BiAction)
+   * @since 1.3
    */
   default Promise<T> time(Action<? super Duration> action) {
     return timeResult((r, d) -> action.execute(d));
@@ -2133,9 +2153,9 @@ public interface Promise<T> {
    * If the promise succeeds and this method throws an exception, the thrown exception will propagate.
    *
    * @param action a callback for the time
-   * @since 1.5
-   * @see #time(Action)
    * @return effectively {@code this}
+   * @see #time(Action)
+   * @since 1.5
    */
   default Promise<T> timeResult(BiAction<? super ExecResult<T>, ? super Duration> action) {
     return around(System::nanoTime, (start, result) -> {
@@ -2281,8 +2301,8 @@ public interface Promise<T> {
    * This method delegates to {@link #fork(Action)} with {@link Action#noop()}.
    *
    * @return a promise
-   * @since 1.4
    * @see #fork(Action)
+   * @since 1.4
    */
   default Promise<T> fork() {
     return Exceptions.uncheck(() -> fork(Action.noop()));
@@ -2419,6 +2439,7 @@ public interface Promise<T> {
   /**
    * Convert this promise into a {@link CompletableFuture}.
    * <p>
+   *
    * @return a {@link CompletableFuture} that will complete successfully or exceptionally on the current execution thread.
    * @since 1.6
    */
@@ -2453,6 +2474,7 @@ public interface Promise<T> {
   /**
    * Convert a {@link CompletableFuture} into a promise.
    * <p>
+   *
    * @param future the {@link CompletableFuture} to convert into a {@link Promise}
    * @param <T> The type of the promised value
    * @return a {@link Promise} that will be consumed on the current execution thread.
