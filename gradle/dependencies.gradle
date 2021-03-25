@@ -26,7 +26,7 @@ ext {
     rxjava           : "1.1.2",
     rxjava2          : "2.1.12",
     reactor          : "3.1.8.RELEASE",
-    hystrix          : "1.5.13",
+    hystrix          : "1.5.18",
     jackson          : "2.10.3",
     dropwizardMetrics: "4.1.6",
     pegdown          : "1.6.0",
