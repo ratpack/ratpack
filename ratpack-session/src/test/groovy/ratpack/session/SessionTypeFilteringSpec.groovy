@@ -18,9 +18,9 @@ package ratpack.session
 
 import com.google.inject.AbstractModule
 import com.google.inject.multibindings.Multibinder
-import ratpack.api.Nullable
-import ratpack.error.ServerErrorHandler
-import ratpack.handling.Context
+import ratpack.core.error.ServerErrorHandler
+import ratpack.core.handling.Context
+import ratpack.func.Nullable
 import ratpack.test.internal.RatpackGroovyDslSpec
 
 class SessionTypeFilteringSpec extends RatpackGroovyDslSpec {
