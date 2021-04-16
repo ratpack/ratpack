@@ -35,6 +35,11 @@ class SessionSpec extends RatpackGroovyDslSpec {
         bind(SimpleErrorHandler)
       }
     }
+    bindings {
+      binder {
+        SessionModule.allowTypes(it, Holder1, Holder2)
+      }
+    }
   }
 
   def "can use session"() {
@@ -371,8 +376,8 @@ class SessionSpec extends RatpackGroovyDslSpec {
     def error = false
     def sessionSerializer = new JavaBuiltinSessionSerializer() {
       @Override
-      def <T> T deserialize(Class<T> type, InputStream inputStream) throws Exception {
-        error ? { throw new UnsupportedOperationException() }() : super.deserialize(type, inputStream)
+      def <T> T deserialize(Class<T> type, InputStream inputStream, SessionTypeFilter typeFilter) throws Exception {
+        error ? { throw new UnsupportedOperationException() }() : super.deserialize(type, inputStream, typeFilter)
       }
     }
 

@@ -36,13 +36,15 @@ import ratpack.core.http.MutableHeaders;
 import ratpack.core.http.Response;
 import ratpack.core.http.Status;
 import ratpack.exec.Operation;
-import ratpack.func.Nullable;
 import ratpack.func.Action;
+import ratpack.func.Exceptions;
 import ratpack.func.MultiValueMap;
+import ratpack.func.Nullable;
 
 import java.nio.CharBuffer;
 import java.nio.file.Path;
 import java.util.*;
+import java.util.function.Consumer;
 import java.util.function.Supplier;
 
 public class DefaultResponse implements Response {
@@ -273,6 +275,8 @@ public class DefaultResponse implements Response {
     finalizeResponse(() -> {
       setCookieHeader();
       responseTransmitter.transmit(status.getNettyStatus(), file);
+    }, t -> {
+      throw t;
     });
   }
 
@@ -281,6 +285,8 @@ public class DefaultResponse implements Response {
     finalizeResponse(() -> {
       setCookieHeader();
       stream.subscribe(responseTransmitter.transmitter(status.getNettyStatus()));
+    }, t -> {
+      throw t;
     });
   }
 
@@ -337,6 +343,9 @@ public class DefaultResponse implements Response {
     finalizeResponse(() -> {
       setCookieHeader();
       responseTransmitter.transmit(status.getNettyStatus(), buffer);
+    }, t -> {
+      buffer.release();
+      throw t;
     });
   }
 
@@ -345,27 +354,32 @@ public class DefaultResponse implements Response {
     return (code >= 100 && code < 200) || code == 204 || code == 304;
   }
 
-  private void finalizeResponse(Runnable then) {
+  private void finalizeResponse(Runnable then, Consumer<? super RuntimeException> onError) {
     List<Action<? super Response>> finalizersCopy = ImmutableList.copyOf(responseFinalizers);
     responseFinalizers.clear();
     if (finalizersCopy.isEmpty()) {
-      then.run();
+      try {
+        then.run();
+      } catch (Exception t) {
+        onError.accept(Exceptions.uncheck(t));
+      }
     } else {
-      finalizeResponse(finalizersCopy.iterator(), then);
+      finalizeResponse(finalizersCopy.iterator(), then, onError);
     }
   }
 
-  private void finalizeResponse(Iterator<Action<? super Response>> finalizers, Runnable then) {
+  private void finalizeResponse(Iterator<Action<? super Response>> finalizers, Runnable then, Consumer<? super RuntimeException> onError) {
     if (finalizers.hasNext()) {
       finalizers
         .next()
         .curry(this)
         .map(Operation::of)
+        .onError(t -> onError.accept(Exceptions.uncheck(t)))
         .then(() ->
-          finalizeResponse(finalizers, then)
+          finalizeResponse(finalizers, then, onError)
         );
     } else {
-      finalizeResponse(then);
+      finalizeResponse(then, onError);
     }
   }
 
