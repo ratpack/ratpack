@@ -16,12 +16,16 @@
 
 package ratpack.pac4j.openid
 
+import org.openid4java.discovery.DiscoveryInformation
+import org.openid4java.discovery.UrlIdentifier
 import org.pac4j.core.profile.UserProfile
+import org.pac4j.openid.profile.OpenIdProfile
 import org.pac4j.openid.profile.yahoo.YahooOpenIdProfile
 import ratpack.func.Action
 import ratpack.groovy.handling.GroovyChainAction
 import ratpack.http.client.ReceivedResponse
 import ratpack.http.client.RequestSpec
+import ratpack.pac4j.Pac4jSessionModule
 import ratpack.pac4j.RatpackPac4j
 import ratpack.session.SessionModule
 import ratpack.test.internal.RatpackGroovyDslSpec
@@ -52,6 +56,8 @@ class OpenIdRpSpec extends RatpackGroovyDslSpec {
 
     bindings {
       module SessionModule
+      module Pac4jSessionModule
+      binder { SessionModule.allowTypes(it, DiscoveryInformation, UrlIdentifier, URL, YahooOpenIdProfile, OpenIdProfile) }
     }
 
     handlers {

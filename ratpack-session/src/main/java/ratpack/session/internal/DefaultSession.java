@@ -47,6 +47,7 @@ public class DefaultSession implements Session {
   private final Response response;
   private final SessionSerializer defaultSerializer;
   private final JavaSessionSerializer javaSerializer;
+  private final SessionTypeFilter typeFilter;
 
   private enum State {
     NOT_LOADED, CLEAN, DIRTY
@@ -57,7 +58,7 @@ public class DefaultSession implements Session {
 
   private final SessionData data = new Data();
 
-  private static class SerializedForm implements Externalizable {
+  static class SerializedForm implements Externalizable {
 
     private static final long serialVersionUID = 2;
 
@@ -139,13 +140,14 @@ public class DefaultSession implements Session {
     }
   }
 
-  public DefaultSession(SessionId sessionId, ByteBufAllocator bufferAllocator, SessionStore storeAdapter, Response response, SessionSerializer defaultSerializer, JavaSessionSerializer javaSerializer) {
+  public DefaultSession(SessionId sessionId, ByteBufAllocator bufferAllocator, SessionStore storeAdapter, Response response, SessionSerializer defaultSerializer, JavaSessionSerializer javaSerializer, SessionTypeFilter typeFilter) {
     this.sessionId = sessionId;
     this.bufferAllocator = bufferAllocator;
     this.storeAdapter = storeAdapter;
     this.response = response;
     this.defaultSerializer = defaultSerializer;
     this.javaSerializer = javaSerializer;
+    this.typeFilter = typeFilter;
   }
 
   @Override
@@ -170,10 +172,10 @@ public class DefaultSession implements Session {
     }
   }
 
-  private void hydrate(ByteBuf bytes) throws Exception {
+  private void hydrate(ByteBuf bytes) {
     if (bytes.readableBytes() > 0) {
       try {
-        SerializedForm deserialized = defaultSerializer.deserialize(SerializedForm.class, new ByteBufInputStream(bytes));
+        SerializedForm deserialized = defaultSerializer.deserialize(SerializedForm.class, new ByteBufInputStream(bytes), typeFilter);
         if (deserialized == null) {
           this.entries = new HashMap<>();
         } else {
@@ -210,7 +212,7 @@ public class DefaultSession implements Session {
     ByteBuf buffer = bufferAllocator.buffer();
     OutputStream outputStream = new ByteBufOutputStream(buffer);
     try {
-      defaultSerializer.serialize(SerializedForm.class, serializable, outputStream);
+      defaultSerializer.serialize(SerializedForm.class, serializable, outputStream, typeFilter);
       outputStream.close();
       return buffer;
     } catch (Throwable e) {
@@ -277,7 +279,7 @@ public class DefaultSession implements Session {
         return Optional.empty();
       } else {
         try {
-          T value = serializer.deserialize(key.getType(), new ByteArrayInputStream(bytes));
+          T value = serializer.deserialize(key.getType(), new ByteArrayInputStream(bytes), typeFilter);
           return Optional.ofNullable(value);
         } catch (Exception e) {
           LOGGER.warn("Exception thrown deserializing entry " + key + " with serializer " + serializer + " (value will be discarded from session)", e);
@@ -307,7 +309,7 @@ public class DefaultSession implements Session {
       Objects.requireNonNull(value, "session value for key " + key.getName() + " cannot be null");
 
       ByteArrayOutputStream out = new ByteArrayOutputStream();
-      serializer.serialize(key.getType(), value, out);
+      serializer.serialize(key.getType(), value, out, typeFilter);
 
       entries.put(key, out.toByteArray());
       markDirty();
@@ -347,4 +349,5 @@ public class DefaultSession implements Session {
       return DefaultSession.this;
     }
   }
+
 }

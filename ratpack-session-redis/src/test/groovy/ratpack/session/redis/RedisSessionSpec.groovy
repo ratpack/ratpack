@@ -45,6 +45,9 @@ class RedisSessionSpec extends RatpackGroovyDslSpec {
     failOnLeak = false
     modules << new SessionModule()
     modules << new RedisSessionModule()
+    bindings {
+      binder { SessionModule.allowTypes(it, Holder1, Holder2) }
+    }
     supportsSize = false
     if (!isRedisAlreadyRunning()) {
       redisServer.start()

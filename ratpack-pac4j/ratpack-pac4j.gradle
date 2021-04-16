@@ -37,6 +37,10 @@ dependencies {
     exclude group: "org.slf4j", module: "slf4j-api"
     exclude group: "com.google.inject", module: "guice"
   }
+  compile("org.pac4j:pac4j-http:${commonVersions.pac4j}") {
+    exclude group: "org.slf4j", module: "slf4j-api"
+    exclude group: "com.google.inject", module: "guice"
+  }
 
   testCompile("org.pac4j:pac4j-jwt:${commonVersions.pac4j}") {
     exclude group: "org.slf4j", module: "slf4j-api"
@@ -52,11 +56,6 @@ dependencies {
   }
   testCompile "commons-codec:commons-codec:${commonVersions.commonsCodec}"
   testCompile "xml-apis:xml-apis:${commonVersions.xmlApis}"
-
-  testCompile("org.pac4j:pac4j-http:${commonVersions.pac4j}") {
-    exclude group: "org.slf4j", module: "slf4j-api"
-    exclude group: "com.google.inject", module: "guice"
-  }
 
   testCompile project(":ratpack-groovy-test")
   testCompile commonDependencies.spock

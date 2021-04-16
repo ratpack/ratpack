@@ -25,6 +25,7 @@ import ratpack.exec.Blocking
 import ratpack.exec.Execution
 import ratpack.exec.Promise
 import ratpack.handling.Context
+import ratpack.pac4j.Pac4jSessionModule
 import ratpack.pac4j.RatpackPac4j
 import ratpack.path.PathBinding
 import ratpack.server.PublicAddress
@@ -91,6 +92,7 @@ class Pac4jAuthenticatorSpec extends RatpackGroovyDslSpec {
     and:
     bindings {
       module(SessionModule)
+      module Pac4jSessionModule
     }
     handlers {
       all(RatpackPac4j.authenticator(client))
