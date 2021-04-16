@@ -39,7 +39,7 @@ class PooledByteBufAllocatorMetricSetSpec extends BaseRatpackSpec {
       (it.numHeapArenas as Gauge).value == 1
       (it.numThreadLocalCaches as Gauge).value == 0
       (it.smallCacheSize as Gauge).value == 1
-      (it.tinyCacheSize as Gauge).value == 1
+      (it.tinyCacheSize as Gauge).value == 0
       (it.normalCacheSize as Gauge).value == 1
       (it.chunkSize as Gauge).value == 8192
       (it.usedDirectMemory as Gauge).value == 0
@@ -63,7 +63,7 @@ class PooledByteBufAllocatorMetricSetSpec extends BaseRatpackSpec {
       (it.numHeapArenas as Gauge).value == 1
       (it.numThreadLocalCaches as Gauge).value == 0
       (it.smallCacheSize as Gauge).value == 1
-      (it.tinyCacheSize as Gauge).value == 1
+      (it.tinyCacheSize as Gauge).value == 0
       (it.normalCacheSize as Gauge).value == 1
       (it.chunkSize as Gauge).value == 8192
       (it.usedDirectMemory as Gauge).value == 0
@@ -72,8 +72,8 @@ class PooledByteBufAllocatorMetricSetSpec extends BaseRatpackSpec {
       (it.'poolArena.0.numDeallocations' as Gauge).value == 0
       (it.'poolArena.0.numActiveNormalAllocations' as Gauge).value == 0
       (it.'poolArena.0.numSmallAllocations' as Gauge).value == 0
-      (it.'poolArena.0.numSmallSubpages' as Gauge).value == 3
-      (it.'poolArena.0.numTinySubpages' as Gauge).value == 32
+      (it.'poolArena.0.numSmallSubpages' as Gauge).value == 32
+      (it.'poolArena.0.numTinySubpages' as Gauge).value == 0
       (it.'poolArena.0.numNormalAllocations' as Gauge).value == 0
       (it.'poolArena.0.numActiveTinyAllocations' as Gauge).value == 0
       (it.'poolArena.0.numTinyAllocations' as Gauge).value == 0
