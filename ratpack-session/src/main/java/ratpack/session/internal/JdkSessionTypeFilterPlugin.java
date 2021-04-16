@@ -23,6 +23,7 @@ import java.io.NotSerializableException;
 import java.io.ObjectStreamException;
 import java.math.BigDecimal;
 import java.math.BigInteger;
+import java.time.Instant;
 import java.util.*;
 
 public class JdkSessionTypeFilterPlugin extends AllowListSessionTypeFilterPlugin {
@@ -49,7 +50,9 @@ public class JdkSessionTypeFilterPlugin extends AllowListSessionTypeFilterPlugin
       Byte.class,
       byte[].class,
 
+      String.class,
       Number.class,
+      Instant.class,
 
       ArrayList.class,
       LinkedList.class,
