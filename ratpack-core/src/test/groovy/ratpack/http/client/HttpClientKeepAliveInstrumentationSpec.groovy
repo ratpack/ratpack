@@ -86,29 +86,6 @@ class HttpClientKeepAliveInstrumentationSpec extends BaseHttpClientSpec {
     text == "ok"
   }
 
-  def "clients can safely be used across different exec controllers"() {
-    when:
-    Channel channel
-    handlers { get { render poolingHttpClient.get(otherAppUrl()).map { it.body.text } } }
-    otherApp {
-      get {
-        channel = directChannelAccess.channel
-        render "ok"
-      }
-    }
-
-    then:
-    text == "ok"
-    channel.isOpen()
-
-    when:
-    application.close()
-    channel.closeFuture().get()
-
-    then:
-    text == "ok"
-  }
-
   def "connection is removed from pool if server closes the connection"() {
     when:
     Channel channel1
