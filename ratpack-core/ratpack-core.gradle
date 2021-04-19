@@ -38,6 +38,7 @@ dependencies {
   compile "io.netty:netty-handler:$commonVersions.netty"
   compile "io.netty:netty-handler-proxy:$commonVersions.netty"
   compile "io.netty:netty-resolver-dns:$commonVersions.netty"
+  runtime "io.netty:netty-resolver-dns-native-macos:$commonVersions.netty:osx-x86_64"
   compile 'com.sun.activation:javax.activation:1.2.0'
 
   compile "com.github.ben-manes.caffeine:caffeine:${commonVersions.caffeine}"
