@@ -33,6 +33,7 @@ include \
     "ratpack-guice",
     "ratpack-session",
     "ratpack-session-redis",
+    "ratpack-session-serialization-kryo",
     "ratpack-gradle",
     "ratpack-handlebars",
     "ratpack-reactor",

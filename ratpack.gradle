@@ -58,6 +58,7 @@ ext {
     "ratpack-rx", "ratpack-rx2",
     "ratpack-session",
     "ratpack-session-redis",
+    "ratpack-session-serialization-kryo",
     "ratpack-spring-boot",
     "ratpack-spring-boot-starter",
     "ratpack-test",

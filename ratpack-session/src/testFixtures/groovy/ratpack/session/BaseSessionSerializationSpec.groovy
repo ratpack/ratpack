@@ -23,7 +23,7 @@ import ratpack.error.ServerErrorHandler
 import ratpack.handling.Context
 import ratpack.test.internal.RatpackGroovyDslSpec
 
-class SessionTypeFilteringSpec extends RatpackGroovyDslSpec {
+class BaseSessionSerializationSpec extends RatpackGroovyDslSpec {
 
   boolean allowAll
 
@@ -74,7 +74,7 @@ class SessionTypeFilteringSpec extends RatpackGroovyDslSpec {
     if (failingType == null) {
       assert getText("write") == "ok"
     } else {
-      assert getText("write") == new NonAllowedSessionTypeException(failingType.name).toString()
+      assert getText("write").contains(new NonAllowedSessionTypeException(failingType.name).toString())
     }
 
     assert getText("forceWrite") == "ok"
