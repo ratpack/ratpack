@@ -19,21 +19,14 @@ package ratpack.session.internal;
 import ratpack.api.Nullable;
 import ratpack.session.SessionKey;
 
-import java.io.Externalizable;
-import java.io.IOException;
-import java.io.ObjectInput;
-import java.io.ObjectOutput;
 import java.util.Objects;
 
-public class DefaultSessionKey<T> implements SessionKey<T>, Externalizable {
+public class DefaultSessionKey<T> implements SessionKey<T> {
 
   @Nullable
-  private String name;
+  private final String name;
   @Nullable
-  private Class<T> type;
-
-  public DefaultSessionKey() {
-  }
+  private final Class<T> type;
 
   public DefaultSessionKey(@Nullable String name, @Nullable Class<T> type) {
     if (name == null && type == null) {
@@ -74,56 +67,6 @@ public class DefaultSessionKey<T> implements SessionKey<T>, Externalizable {
     int result = name != null ? name.hashCode() : 0;
     result = 31 * result + (type != null ? type.hashCode() : 0);
     return result;
-  }
-
-  private enum Type {
-    NAME_ONLY, TYPE_ONLY, NAME_AND_TYPE;
-
-    static Type typeOf(DefaultSessionKey<?> key) {
-      if (key.name == null) {
-        return Type.TYPE_ONLY;
-      } else if (key.type == null) {
-        return Type.NAME_ONLY;
-      } else {
-        return Type.NAME_AND_TYPE;
-      }
-    }
-  }
-
-  @Override
-  public void writeExternal(ObjectOutput out) throws IOException {
-    out.writeByte(1);
-    out.writeByte(Type.typeOf(this).ordinal());
-    if (name != null) {
-      out.writeUTF(name);
-    }
-    if (type != null) {
-      out.writeUTF(type.getName());
-    }
-  }
-
-  @Override
-  public void readExternal(ObjectInput in) throws IOException, ClassNotFoundException {
-    int version = in.readUnsignedByte();
-    if (version != 1) {
-      throw new UnsupportedOperationException("Unexpected version: " + version);
-    }
-    int typeOrdinal = in.readUnsignedByte();
-    if (typeOrdinal >= Type.values().length) {
-      throw new IllegalArgumentException("invalid type ordinal: " + typeOrdinal);
-    }
-    Type type = Type.values()[typeOrdinal];
-
-    if (type != Type.TYPE_ONLY) {
-      this.name = in.readUTF();
-    }
-
-    if (type != Type.NAME_ONLY) {
-      String className = in.readUTF();
-      ClassLoader classLoader = Thread.currentThread().getContextClassLoader();
-      @SuppressWarnings("unchecked") Class<T> cast = (Class<T>) classLoader.loadClass(className);
-      this.type = cast;
-    }
   }
 
   @Override
