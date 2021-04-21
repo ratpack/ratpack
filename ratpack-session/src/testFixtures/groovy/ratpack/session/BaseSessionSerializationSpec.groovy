@@ -108,6 +108,34 @@ class BaseSessionSerializationSpec extends RatpackGroovyDslSpec {
     Child child = new Child()
   }
 
+  static class OuterExternalizable implements Externalizable {
+    String str = "str"
+    static class Child implements Externalizable {
+      @Override
+      void writeExternal(ObjectOutput out) throws IOException {
+
+      }
+
+      @Override
+      void readExternal(ObjectInput objectInput) throws IOException, ClassNotFoundException {
+
+      }
+    }
+    Child child = new Child()
+
+    @Override
+    void writeExternal(ObjectOutput out) throws IOException {
+      out.writeUTF(str)
+      out.writeObject(child)
+    }
+
+    @Override
+    void readExternal(ObjectInput objectInput) throws IOException, ClassNotFoundException {
+      str = objectInput.readUTF()
+      child = objectInput.readObject() as Child
+    }
+  }
+
   def "validates transient types"() {
     given:
     bindings {
@@ -126,6 +154,26 @@ class BaseSessionSerializationSpec extends RatpackGroovyDslSpec {
 
     expect:
     test(Outer, new Outer())
+  }
+
+  def "validates transient externalizable types"() {
+    given:
+    bindings {
+      binder { SessionModule.allowTypes(it, OuterExternalizable) }
+    }
+
+    expect:
+    test(OuterExternalizable, new OuterExternalizable(), OuterExternalizable.Child)
+  }
+
+  def "can allow transient externalizable types"() {
+    given:
+    bindings {
+      binder { SessionModule.allowTypes(it, OuterExternalizable, OuterExternalizable.Child) }
+    }
+
+    expect:
+    test(OuterExternalizable, new OuterExternalizable())
   }
 
 }
