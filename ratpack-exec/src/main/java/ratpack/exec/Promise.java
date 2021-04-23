@@ -380,9 +380,9 @@ public interface Promise<T> {
    * @return A promise for the successful result
    * @since 1.1
    */
-  default Promise<T> onError(Predicate<? super Throwable> predicate, Action<? super Throwable> errorHandler) {
+  default Promise<T> onError(Predicate<? super Throwable> predicate, @NonBlocking Action<? super Throwable> errorHandler) {
     return transform(up -> down ->
-      up.connect(down.onError(throwable -> {
+      Promise.async(up).connect(down.onError(throwable -> {
         if (predicate.apply(throwable)) {
           try {
             Promise.<Void>sync(() -> {
