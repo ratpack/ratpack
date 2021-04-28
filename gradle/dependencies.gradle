@@ -17,8 +17,8 @@
 ext {
   commonVersions = [
     slf4j            : "1.7.30",
-    netty            : "4.1.50.Final",
-    nettyTCNative    : "2.0.31.Final",
+    netty            : "4.1.63.Final",
+    nettyTCNative    : "2.0.38.Final",
     guava            : "29.0-jre",
     groovy           : "2.5.4",
     rxjava2          : "2.2.19",

@@ -39,6 +39,7 @@ import ratpack.core.http.internal.*;
 import ratpack.exec.Downstream;
 import ratpack.exec.Execution;
 import ratpack.exec.Upstream;
+import ratpack.exec.internal.DefaultExecution;
 import ratpack.func.Action;
 import ratpack.func.Function;
 
@@ -272,7 +273,7 @@ abstract class RequestActionSupport<T> implements Upstream<T> {
           if (isRedirect(status) && redirectCount < maxRedirects && locationValue != null) {
             final Function<? super ReceivedResponse, Action<? super RequestSpec>> onRedirect = requestConfig.onRedirect;
             if (onRedirect != null) {
-              final Action<? super RequestSpec> onRedirectResult = onRedirect.apply(toReceivedResponse(response));
+              final Action<? super RequestSpec> onRedirectResult = ((DefaultExecution) execution).runSync(() -> onRedirect.apply(toReceivedResponse(response)));
               if (onRedirectResult == null) {
                 redirectConfigurer = null;
               } else {
@@ -286,9 +287,16 @@ abstract class RequestActionSupport<T> implements Upstream<T> {
                   s.get();
                 }
               };
-              redirectRequestConfig = redirectConfigurer.append(redirectRequestConfig);
+              Action<? super RequestSpec> finalRedirectRequestConfig = redirectConfigurer.append(redirectRequestConfig);
+
+              Action<? super RequestSpec> executionBoundRedirectRequestConfig = request -> {
+                ((DefaultExecution) execution).runSync(() -> {
+                  finalRedirectRequestConfig.execute(request);
+                  return null;
+                });
+              };
               URI locationUri = absolutizeRedirect(requestConfig.uri, locationValue);
-              onRedirect(locationUri, redirectCount + 1, expectContinue, redirectRequestConfig).connect(downstream);
+              onRedirect(locationUri, redirectCount + 1, expectContinue, executionBoundRedirectRequestConfig).connect(downstream);
 
               redirected = true;
               dispose(ctx.pipeline(), response);

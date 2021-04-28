@@ -18,15 +18,16 @@ package ratpack.session.internal;
 
 import com.google.common.collect.Lists;
 
-import java.util.Collections;
+import java.util.Arrays;
 
 public class RatpackSessionTypeFilterPlugin extends AllowListSessionTypeFilterPlugin {
 
   public static final RatpackSessionTypeFilterPlugin INSTANCE = new RatpackSessionTypeFilterPlugin();
 
   private RatpackSessionTypeFilterPlugin() {
-    super(Lists.transform(Collections.singletonList(
-      DefaultSession.SerializedForm.class
+    super(Lists.transform(Arrays.asList(
+      DefaultSession.SerializedForm.class,
+      DefaultSessionKey.class
     ), Class::getName));
   }
 

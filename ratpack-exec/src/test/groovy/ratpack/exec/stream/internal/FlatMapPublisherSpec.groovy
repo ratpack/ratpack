@@ -35,5 +35,14 @@ class FlatMapPublisherSpec extends BaseExecutionSpec {
     c.max() == 1
   }
 
+  def "errors are propagated"() {
+    expect:
+    execHarness.yield {
+      Streams.publish([0])
+        .flatMap { i -> Promise.sync { throw new Exception("!") }.operation().map { i } }
+        .toList()
+    }.throwable.message == "!"
+  }
+
 }
 
