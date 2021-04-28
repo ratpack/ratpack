@@ -91,10 +91,10 @@ ext {
     "1.9.0-SNAPSHOT"
   ]
 
-//  if (!isHeroku && !isCi) {
-//    println "Only including latest manual in site due to this being a development build."
-//    manualVersions = [manualVersions.last()]
-//  }
+  if (!isHeroku && !isCi) {
+    println "Only including latest manual in site due to this being a development build."
+    manualVersions = [manualVersions.last()]
+  }
 }
 
 configurations {
