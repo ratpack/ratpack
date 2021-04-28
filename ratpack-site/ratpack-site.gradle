@@ -47,17 +47,25 @@ repositories {
   jcenter()
   exclusiveContent {
     forRepository {
+      maven {
+        url "https://oss.jfrog.org/oss-snapshot-local"
+        metadataSources { artifact() }
+      }
+    }
+    filter {
+      it.includeVersionByRegex("io.ratpack", "ratpack-manual", ".+-SNAPSHOT")
+    }
+  }
+  exclusiveContent {
+    forRepository {
       jcenter {
         name "jcenterNoPom"
         metadataSources { artifact() }
       }
     }
     filter {
-      includeModule("io.ratpack", "ratpack-manual")
+      it.includeVersionByRegex("io.ratpack", "ratpack-manual", ".*(?<!-SNAPSHOT)\$")
     }
-  }
-  maven {
-    url "https://oss.jfrog.org/oss-snapshot-local"
   }
 }
 
@@ -83,10 +91,10 @@ ext {
     "1.9.0-SNAPSHOT"
   ]
 
-  if (!isHeroku && !isCi) {
-    println "Only including latest manual in site due to this being a development build."
-    manualVersions = [manualVersions.last()]
-  }
+//  if (!isHeroku && !isCi) {
+//    println "Only including latest manual in site due to this being a development build."
+//    manualVersions = [manualVersions.last()]
+//  }
 }
 
 configurations {
