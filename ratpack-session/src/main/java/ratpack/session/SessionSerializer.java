@@ -45,6 +45,7 @@ public interface SessionSerializer {
    * @deprecated since 1.9
    */
   @Deprecated
+  @SuppressWarnings("RedundantThrows")
   default <T> void serialize(Class<T> type, T value, OutputStream out) throws Exception {
     throw new UnsupportedOperationException();
   }
@@ -54,7 +55,7 @@ public interface SessionSerializer {
    * <p>
    * Implementations <b>MUST</b> take care to check that <i>all</i> types serialized are allowed to be as per
    * {@code typeFilter}. This includes the type of {@code value} and the transitive types referenced by it.
-   * Implementations should use {@link SessionTypeFilter#assertAllowed(Class)}.
+   * Implementations should use {@link SessionTypeFilter#assertAllowed(String)}.
    * <p>
    * To enable backwards compatibility, the default implementation delegates to {@link #serialize(Class, Object, OutputStream)}
    * after logging a warning about the inherent security vulnerability in not checking the suitability of types.
@@ -87,6 +88,7 @@ public interface SessionSerializer {
    * @deprecated since 1.9
    */
   @Deprecated
+  @SuppressWarnings("RedundantThrows")
   default <T> T deserialize(Class<T> type, InputStream in) throws Exception {
     throw new UnsupportedOperationException();
   }
@@ -96,7 +98,7 @@ public interface SessionSerializer {
    * <p>
    * Implementations <b>MUST</b> take care to check that <i>all</i> types to be deserialized are allowed to be as per
    * {@code typeFilter}. This includes the type of the object being deserialized and the transitive types referenced by it.
-   * Implementations should use {@link SessionTypeFilter#assertAllowed(Class)}.
+   * Implementations should use {@link SessionTypeFilter#assertAllowed(String)}.
    * <p>
    * To enable backwards compatibility, the default implementation delegates to {@link #deserialize(Class, InputStream)}
    * after logging a warning about the inherent security vulnerability in not checking the suitability of types.
