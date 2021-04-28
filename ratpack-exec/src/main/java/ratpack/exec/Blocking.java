@@ -23,7 +23,6 @@ import ratpack.exec.internal.ExecThreadBinding;
 import ratpack.func.Block;
 import ratpack.func.Factory;
 
-import java.util.Iterator;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.atomic.AtomicReference;
@@ -65,7 +64,7 @@ public abstract class Blocking {
               public Result<T> get() {
                 try {
                   execution.bindToThread();
-                  intercept(execution, execution.getAllInterceptors().iterator(), () -> {
+                  DefaultExecution.intercept(execution, ExecInterceptor.ExecType.BLOCKING, execution.getAllInterceptors().iterator(), () -> {
                     try {
                       result = Result.success(factory.create());
                     } catch (Throwable e) {
@@ -239,11 +238,4 @@ public abstract class Blocking {
     op(block).then();
   }
 
-  private static void intercept(Execution execution, final Iterator<? extends ExecInterceptor> interceptors, Runnable runnable) throws Exception {
-    if (interceptors.hasNext()) {
-      interceptors.next().intercept(execution, ExecInterceptor.ExecType.BLOCKING, () -> intercept(execution, interceptors, runnable));
-    } else {
-      runnable.run();
-    }
-  }
 }

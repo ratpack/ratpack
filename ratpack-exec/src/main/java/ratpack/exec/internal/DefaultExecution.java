@@ -29,6 +29,7 @@ import ratpack.api.Nullable;
 import ratpack.exec.*;
 import ratpack.func.Action;
 import ratpack.func.Block;
+import ratpack.func.Factory;
 import ratpack.registry.MutableRegistry;
 import ratpack.registry.NotInRegistryException;
 import ratpack.registry.Registry;
@@ -200,6 +201,40 @@ public class DefaultExecution implements Execution {
   public void bindToThread() {
     thread = Thread.currentThread();
     ExecThreadBinding.require().setExecution(this);
+  }
+
+  public <T> T runSync(Factory<T> factory) throws Exception {
+    if (isBound()) {
+      return factory.create();
+    }
+
+    if (ExecThreadBinding.require().getExecution() != null) {
+      throw new IllegalStateException("execution already bound");
+    }
+    class Work implements Block {
+      T result;
+
+      @Override
+      public void execute() throws Exception {
+        result = factory.create();
+      }
+    }
+    Work work = new Work();
+    bindToThread();
+    try {
+      intercept(this, ExecInterceptor.ExecType.COMPUTE, interceptors.iterator(), work);
+    } finally {
+      unbindFromThread();
+    }
+    return work.result;
+  }
+
+  public static void intercept(Execution execution, ExecInterceptor.ExecType execType, final Iterator<? extends ExecInterceptor> interceptors, Block runnable) throws Exception {
+    if (interceptors.hasNext()) {
+      interceptors.next().intercept(execution, execType, () -> intercept(execution, execType, interceptors, runnable));
+    } else {
+      runnable.execute();
+    }
   }
 
   public static void interceptorError(Throwable e) {

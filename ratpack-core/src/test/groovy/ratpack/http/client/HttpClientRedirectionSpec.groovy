@@ -16,9 +16,12 @@
 
 package ratpack.http.client
 
+import ratpack.exec.Execution
 import io.netty.handler.codec.http.HttpResponseStatus
 import ratpack.func.Action
 import ratpack.http.internal.HttpHeaderConstants
+
+import java.time.Duration
 
 class HttpClientRedirectionSpec extends BaseHttpClientSpec {
 
@@ -319,6 +322,36 @@ class HttpClientRedirectionSpec extends BaseHttpClientSpec {
 
     where:
     pooled << [true, false]
+  }
+
+  def "redirect strategy can access execution"() {
+    when:
+    otherApp {
+      get {
+        execution.sleep(Duration.ofSeconds(1)) {
+          redirect "/other"
+        }
+      }
+      get("other") {
+        render header("value").get()
+      }
+    }
+
+    handlers {
+      get { HttpClient httpClient ->
+        Execution.current().add("foo")
+        httpClient.get(otherAppUrl()) { RequestSpec r ->
+          r.onRedirect { ReceivedResponse res ->
+            return { it.headers.set("value", Execution.current().get(String)) } as Action
+          }
+        }.then {
+          render it.body.text
+        }
+      }
+    }
+
+    then:
+    text == "foo"
   }
 
   def "can follow a redirect when sending a large request"() {
