@@ -56,6 +56,9 @@ repositories {
       includeModule("io.ratpack", "ratpack-manual")
     }
   }
+  maven {
+    url "https://oss.jfrog.org/oss-snapshot-local"
+  }
 }
 
 ext {
