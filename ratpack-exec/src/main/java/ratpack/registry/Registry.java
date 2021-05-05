@@ -188,8 +188,8 @@ public interface Registry {
    * @param function a function to apply to each item
    * @param <T> the type of the object to search for
    * @param <O> the type of transformed object
-   * @throws Exception any thrown by the function
    * @return An optional of the object of the specified type that satisfied the specified predicate
+   * @throws Exception any thrown by the function
    */
   default <T, O> Optional<O> first(TypeToken<T> type, Function<? super T, ? extends O> function) throws Exception {
     Iterable<? extends T> all = getAll(type);
@@ -210,8 +210,8 @@ public interface Registry {
    * @param function a function to apply to each item
    * @param <T> the type of the object to search for
    * @param <O> the type of transformed object
-   * @throws Exception any thrown by the function
    * @return An optional of the object of the specified type that satisfied the specified predicate
+   * @throws Exception any thrown by the function
    * @see #first(TypeToken, Function)
    */
   default <T, O> Optional<O> first(Class<T> type, Function<? super T, ? extends O> function) throws Exception {

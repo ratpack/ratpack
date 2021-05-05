@@ -42,4 +42,28 @@ class ImposingBindingsSpec extends RatpackGroovyDslSpec {
     t == "bar"
   }
 
+  def "can impose on impositions"() {
+    when:
+    bindings {
+      bindInstance(String, "foo")
+    }
+    handlers {
+      get {
+        render get(String)
+      }
+    }
+
+    then:
+    def t = Impositions.of {
+      it.add(BindingsImposition.of { it.bindInstance(String, "bar") })
+    } impose {
+      Impositions.of {
+        it.add(BindingsImposition.of { it.bindInstance(String, "baz") })
+      } impose {
+        text
+      }
+    }
+
+    t == "baz"
+  }
 }

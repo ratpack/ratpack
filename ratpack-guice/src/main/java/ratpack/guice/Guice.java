@@ -37,7 +37,6 @@ import ratpack.registry.Registry;
 import ratpack.server.ServerConfig;
 
 import java.util.List;
-import java.util.Optional;
 
 import static com.google.inject.Guice.createInjector;
 import static ratpack.util.Exceptions.uncheck;
@@ -231,9 +230,7 @@ public abstract class Guice {
 
     modules.add(new AdHocModule(binderActions));
 
-    Optional<BindingsImposition> bindingsImposition = Impositions.current().get(BindingsImposition.class);
-    if (bindingsImposition.isPresent()) {
-      BindingsImposition imposition = bindingsImposition.get();
+    for (BindingsImposition imposition : Impositions.current().getAll(BindingsImposition.class)) {
       List<Action<? super Binder>> imposedBinderActions = Lists.newLinkedList();
       List<Module> imposedModules = Lists.newLinkedList();
 

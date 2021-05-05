@@ -185,11 +185,11 @@ public class DefaultRatpackServer implements RatpackServer {
 
       this.userRegistryFactory = baseRegistry -> {
         Registry userRegistry = definition.getRegistry().apply(baseRegistry);
-        Registry userRegistryOverrides = impositions.get(UserRegistryImposition.class)
-          .orElse(UserRegistryImposition.none())
-          .build(userRegistry);
+        for (UserRegistryImposition userRegistryImposition : impositions.getAll(UserRegistryImposition.class)) {
+          userRegistry = userRegistryImposition.build(userRegistry);
+        }
 
-        return userRegistry.join(userRegistryOverrides);
+        return userRegistry;
       };
     }
 
