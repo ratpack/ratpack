@@ -37,7 +37,7 @@ import java.io.*;
  * <p>
  * For use in combination with {@link SessionModule}.
  * To use, override the {@link JavaSessionSerializer} binding provided by that module with an instance of this class.
- *
+ * <p>
  * This serializer supports session type filtering via {@link SessionTypeFilter}.
  *
  * @since 1.9
@@ -96,6 +96,7 @@ public class KryoSessionSerializer implements JavaSessionSerializer {
     kryo = new Kryo(new FilteringClassResolver(filter), null);
     kryo.setRegistrationRequired(false);
     kryo.addDefaultSerializer(Externalizable.class, new ExternalizableSerializer());
+    kryo.setClassLoader(Thread.currentThread().getContextClassLoader());
 
     configureKryo(kryo);
     return kryo;
