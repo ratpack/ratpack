@@ -34,7 +34,7 @@ import java.time.Duration
 class ClientSideSessionSpec extends SessionSpec {
 
   private List<Cookie> getCookies(String startsWith, String path) {
-    getCookies(path).findAll { it.name().startsWith(startsWith) }
+    getCookies(path).findAll { it.name() ==~ /${startsWith}_\d+/ }
   }
 
   final static SUPPORTED_ALGORITHMS = [
@@ -124,12 +124,12 @@ class ClientSideSessionSpec extends SessionSpec {
     }
 
     then:
-    !get("nosessionaccess").headers.getAll("Set-Cookie").contains("ratpack_lat")
+    !get("nosessionaccess").headers.getAll("Set-Cookie").contains("ratpack_session_lat")
     def values = get("store").headers.getAll("Set-Cookie")
-    def value = values.find { it.contains("ratpack_lat") }
+    def value = values.find { it.contains("ratpack_session_lat") }
     value
     def values2 = get("load").headers.getAll("Set-Cookie")
-    def value2 = values2.find { it.contains("ratpack_lat") }
+    def value2 = values2.find { it.contains("ratpack_session_lat") }
     value2 != value
   }
 
@@ -204,7 +204,7 @@ class ClientSideSessionSpec extends SessionSpec {
     get("set")
 
     then:
-    getCookies("ratpack_lat", "/").size() == 1
+    getCookies("ratpack_session_lat", "/").size() == 1
     getCookies("ratpack_session", "/").size() == 1
 
     when:
@@ -212,7 +212,7 @@ class ClientSideSessionSpec extends SessionSpec {
     get("get")
 
     then:
-    getCookies("ratpack_lat", "/").size() == 0
+    getCookies("ratpack_session_lat", "/").size() == 0
     getCookies("ratpack_session", "/").size() == 0
   }
 
@@ -269,8 +269,8 @@ class ClientSideSessionSpec extends SessionSpec {
     then:
     def values = get("foo").headers.getAll("Set-Cookie")
     values.findAll { it.contains("JSESSIONID") && it.contains("HTTPOnly") }.size() == 1
-    values.findAll { it.contains("ratpack_lat") && it.contains("HTTPOnly") }.size() == 1
-    values.findAll { it.contains("ratpack_session") && it.contains("HTTPOnly") }.size() == 1
+    values.findAll { it.contains("ratpack_session_lat_0") && it.contains("HTTPOnly") }.size() == 1
+    values.findAll { it.contains("ratpack_session_0") && it.contains("HTTPOnly") }.size() == 1
   }
 
   def "session cookies are not HTTPOnly, when config.isHttpOnly() is false"() {
@@ -293,8 +293,8 @@ class ClientSideSessionSpec extends SessionSpec {
 
     then:
     values.findAll { it.contains("JSESSIONID") && !it.contains("HTTPOnly") }.size() == 1
-    values.findAll { it.contains("ratpack_lat") && !it.contains("HTTPOnly") }.size() == 1
-    values.findAll { it.contains("ratpack_session") && !it.contains("HTTPOnly") }.size() == 1
+    values.findAll { it.contains("ratpack_session_lat_0") && !it.contains("HTTPOnly") }.size() == 1
+    values.findAll { it.contains("ratpack_session_0") && !it.contains("HTTPOnly") }.size() == 1
   }
 
   def "session cookies are secure, when config.isSecure() is true"() {
@@ -317,8 +317,8 @@ class ClientSideSessionSpec extends SessionSpec {
 
     then:
     values.findAll { it.contains("JSESSIONID") && it.contains("Secure") }.size() == 1
-    values.findAll { it.contains("ratpack_lat") && it.contains("Secure") }.size() == 1
-    values.findAll { it.contains("ratpack_session") && it.contains("Secure") }.size() == 1
+    values.findAll { it.contains("ratpack_session_lat_0") && it.contains("Secure") }.size() == 1
+    values.findAll { it.contains("ratpack_session_0") && it.contains("Secure") }.size() == 1
   }
 
   def "can use algorithm #algorithm"() {
@@ -438,7 +438,7 @@ class ClientSideSessionSpec extends SessionSpec {
     then:
     getText() == "ok"
     def values = get().headers.getAll("Set-Cookie")
-    values.findAll { it.contains("ratpack_lat") }.size() == 1
+    values.findAll { it.contains("ratpack_session_lat") }.size() == 1
   }
 
   def "accessing empty session doesn't cause lat cookie to be set"() {
@@ -468,7 +468,7 @@ class ClientSideSessionSpec extends SessionSpec {
   }
 
   private List<Cookie> latCookies() {
-    getCookies("ratpack_lat", "/")
+    getCookies("ratpack_session_lat", "/")
   }
 
   private List<Cookie> dataCookies() {
@@ -501,5 +501,52 @@ class ClientSideSessionSpec extends SessionSpec {
     def r = get("store")
     r.headers.getAll("Set-Cookie").size() == 2 // last access token and session
     getText("load") == "bar" // session still works
+  }
+
+  def "can set cookie name"() {
+    given:
+    modules.clear()
+    bindings {
+      module SessionModule
+      module ClientSideSessionModule, {
+        it.sessionCookieName = "foo"
+      }
+    }
+    handlers {
+      get("foo") { Session session ->
+        render session.set("foo", "bar").map { "ok" }
+      }
+    }
+
+    when:
+    get("foo")
+
+    then:
+    getCookies("foo", "/").size() == 1
+    getCookies("foo_lat", "/").size() == 1
+  }
+
+  def "can set lat cookie name"() {
+    given:
+    modules.clear()
+    bindings {
+      module SessionModule
+      module ClientSideSessionModule, {
+        it.sessionCookieName = "foo"
+        it.lastAccessTimeCookieName = "lat"
+      }
+    }
+    handlers {
+      get("foo") { Session session ->
+        render session.set("foo", "bar").map { "ok" }
+      }
+    }
+
+    when:
+    get("foo")
+
+    then:
+    getCookies("foo", "/").size() == 1
+    getCookies("lat", "/").size() == 1
   }
 }

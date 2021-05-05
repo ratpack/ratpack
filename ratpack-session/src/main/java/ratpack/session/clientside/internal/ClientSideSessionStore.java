@@ -42,6 +42,7 @@ import ratpack.session.clientside.Signer;
 import javax.inject.Provider;
 import java.nio.CharBuffer;
 import java.util.Optional;
+import java.util.regex.Pattern;
 
 public class ClientSideSessionStore implements SessionStore {
 
@@ -61,11 +62,11 @@ public class ClientSideSessionStore implements SessionStore {
 
   private static class CookieOrdering extends Ordering<Cookie> {
     private final int prefixLen;
-    private final String prefix;
+    private final Pattern pattern;
 
     public CookieOrdering(String prefix) {
-      this.prefix = prefix;
       this.prefixLen = prefix.length() + 1;
+      this.pattern = Pattern.compile(Pattern.quote(prefix) + "_" + "\\d+");
     }
 
     @Override
@@ -313,7 +314,7 @@ public class ClientSideSessionStore implements SessionStore {
   }
 
   private ImmutableList<Cookie> readCookies(CookieOrdering cookieOrdering, Request request) {
-    Iterable<Cookie> iterable = Iterables.filter(request.getCookies(), c -> c.name().startsWith(cookieOrdering.prefix));
+    Iterable<Cookie> iterable = Iterables.filter(request.getCookies(), c -> cookieOrdering.pattern.matcher(c.name()).matches());
     return cookieOrdering.immutableSortedCopy(iterable);
   }
 
