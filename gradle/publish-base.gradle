@@ -1,0 +1,89 @@
+/*
+ * Copyright 2021 the original author or authors.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *    http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+apply plugin: "signing"
+apply plugin: "maven-publish"
+
+afterEvaluate {
+  assert description: "Project $project.path is published, must have a description"
+}
+
+List<Closure<?>> pomModifications = []
+ext {
+  modifyPom = { Closure<?> cl -> pomModifications.add(cl) }
+}
+
+def publishing = extensions.getByType(PublishingExtension)
+publishing.repositories {
+  maven {
+    name = "ossrh"
+    def releaseRepo = "https://oss.sonatype.org/service/local/staging/deploy/maven2/"
+    def snapshotRepo = "https://oss.sonatype.org/content/repositories/snapshots/"
+    url = project.isSnapshot ? snapshotRepo : releaseRepo
+  }
+  mavenLocal {
+    it.name("projectLocal")
+    it.url("${rootProject.buildDir.toURI()}/localrepo")
+  }
+}
+
+extensions.findByType(SigningExtension).with {
+  it.required(!project.isSnapshot)
+}
+
+publishing.publications.withType(MavenPublication).configureEach {
+  it.pom {
+    name.set(project.name)
+    description.set(project.description.toString())
+    url.set("http://www.ratpack.io")
+    licenses {
+      license {
+        name.set("The Apache Software License, Version 2.0")
+        url.set("http://www.apache.org/licenses/LICENSE-2.0.txt")
+        distribution.set("repo")
+      }
+    }
+    scm {
+      connection.set("scm:https://ratpack@github.com/ratpack/ratpack")
+      developerConnection.set("scm:git@github.com:ratpack/ratpack.git")
+      url.set("https://github.com/ratpack/ratpack")
+    }
+    developers {
+      developer {
+        id.set("ratpack")
+        name.set("Team Ratpack")
+      }
+    }
+  }
+  pomModifications*.with(it.pom)
+}
+
+configurations {
+  all {
+    incoming.afterResolve {
+      dependencies.withType(ModuleDependency) { dep ->
+        excludeRules.each {
+          if ([it.group, it.module].any { it == null }) {
+            throw new InvalidUserDataException(
+              "Partial exclude for dependency '$dep.group:$dep.name:$dep.version' of $project: [group: $it.group, module: $it.module]\n\nExcludes must specify both group and module and neither can be '*'."
+            )
+          }
+        }
+      }
+    }
+  }
+}
+

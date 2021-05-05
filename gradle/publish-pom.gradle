@@ -14,18 +14,22 @@
  * limitations under the License.
  */
 
-plugins.withType(MavenPlugin) {
-  ext.localRepoUrl = "${rootProject.buildDir.toURI()}/localrepo"
+apply from: "${rootDir}/gradle/publish-base.gradle"
+apply plugin: 'java-platform'
 
-  install {
-    doFirst {
-      // Underlying wagon lib cannot deal with concurrent creation of this dir
-      file(localRepoUrl).mkdirs()
-    }
-    repositories {
-      mavenDeployer {
-        repository(url: localRepoUrl)
-      }
-    }
-  }
+
+println "applying to $project.name"
+
+javaPlatform {
+  allowDependencies()
 }
+
+def publishing = extensions.getByType(PublishingExtension)
+def publication = publishing.publications.create("mavenPom", MavenPublication) {
+  it.from(components.javaPlatform)
+}
+
+extensions.findByType(SigningExtension).with {
+  it.sign(publication)
+}
+

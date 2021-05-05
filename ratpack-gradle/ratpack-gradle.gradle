@@ -29,7 +29,6 @@ description = "Build time Ratpack support with the Gradle build tool - http://gr
 
 apply from: "$rootDir/gradle/javaModule.gradle"
 apply from: "$rootDir/gradle/versionFile.gradle"
-apply plugin: "maven"
 
 configurations.testCompile.dependencies.clear()
 
@@ -49,8 +48,8 @@ dependencies {
 apiModules.each { evaluationDependsOn(it.path) }
 
 test {
-  dependsOn install
-  dependsOn { apiModules*.install }
+  dependsOn "publishAllPublicationsToProjectLocalRepository"
+  dependsOn { apiModules*.publishAllPublicationsToProjectLocalRepository }
   onlyIf { !System.getenv('CI_GROOVY_VERSION') }
   allprojects {
     if (it == project) {

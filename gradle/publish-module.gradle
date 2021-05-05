@@ -14,61 +14,19 @@
  * limitations under the License.
  */
 
-apply plugin: "maven"
-apply from: "${rootDir}/gradle/pom.gradle"
-apply plugin: "signing"
-apply plugin: "com.jfrog.artifactory"
+apply from: "${rootDir}/gradle/publish-base.gradle"
+apply plugin: "java"
 
-afterEvaluate {
-  assert description: "Project $project.path is published, must have a description"
+java {
+  withJavadocJar()
+  withSourcesJar()
 }
 
-configurations {
-  pomSignature
+def publishing = extensions.getByType(PublishingExtension)
+def publication = publishing.publications.create("mavenJava", MavenPublication) {
+  it.from(project.components.getByName("java"))
+}
+extensions.findByType(SigningExtension).with {
+  it.sign(publication)
 }
 
-if (!isSnapshot) {
-  tasks.withType(Upload).configureEach {
-    repositories.matching { it.name == "mavenInstaller" }.all {
-      beforeDeployment { deployment ->
-        artifacts {
-          pomSignature signing.signPom(deployment), {
-            extension = "pom.asc"
-          }
-        }
-      }
-    }
-  }
-}
-
-if (!isSnapshot) {
-  signing.sign configurations.published
-  project.afterEvaluate {
-    project.tasks.named("signPublished", Sign) {
-      it.signatures.each {
-        if (it.type == "jar.asc") {
-          it.extension = "jar.asc"
-        }
-        if (it.type == "zip.asc") {
-          it.extension = "zip.asc"
-        }
-      }
-    }
-  }
-}
-
-configurations {
-  all {
-    incoming.afterResolve {
-      dependencies.withType(ModuleDependency) { dep ->
-        excludeRules.each {
-          if ([it.group, it.module].any { it == null }) {
-            throw new InvalidUserDataException(
-              "Partial exclude for dependency '$dep.group:$dep.name:$dep.version' of $project: [group: $it.group, module: $it.module]\n\nExcludes must specify both group and module and neither can be '*'."
-            )
-          }
-        }
-      }
-    }
-  }
-}

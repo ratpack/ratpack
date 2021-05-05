@@ -19,7 +19,6 @@ apply plugin: "groovy"
 apply plugin: "jacoco"
 apply from: "$rootDir/gradle/checkstyle.gradle"
 apply from: "$rootDir/gradle/codenarc.gradle"
-apply from: "$rootDir/gradle/projectLocalRepo.gradle"
 
 dependencies {
   testCompile commonDependencies.groovy
@@ -63,22 +62,6 @@ tasks.withType(Javadoc).configureEach {
 
 tasks.named("javadoc", Javadoc) {
   options.links "http://ratpack.io/manual/${version - "-SNAPSHOT"}/api"
-}
-
-tasks.register("sourceJar", Jar) {
-  description "An archive of the source code for Maven Central"
-  classifier "sources"
-  from sourceSets.main.allSource
-}
-
-tasks.register("javadocJar", Jar) {
-  description "An archive of the JavaDocs for Maven Central"
-  classifier "javadoc"
-  from javadoc
-}
-
-artifacts {
-  published tasks.named("javadocJar"), tasks.named("sourceJar"), tasks.named("jar")
 }
 
 tasks.withType(Test).configureEach {
