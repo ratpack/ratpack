@@ -186,7 +186,7 @@ public class DefaultRatpackServer implements RatpackServer {
       this.userRegistryFactory = baseRegistry -> {
         Registry userRegistry = definition.getRegistry().apply(baseRegistry);
         for (UserRegistryImposition userRegistryImposition : impositions.getAll(UserRegistryImposition.class)) {
-          userRegistry = userRegistryImposition.build(userRegistry);
+          userRegistry = userRegistry.join(userRegistryImposition.build(userRegistry));
         }
 
         return userRegistry;
