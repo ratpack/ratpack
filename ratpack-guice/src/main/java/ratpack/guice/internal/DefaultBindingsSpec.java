@@ -53,7 +53,7 @@ public class DefaultBindingsSpec implements BindingsSpec {
 
   private <T extends Module> T createModule(Class<T> clazz) {
     try {
-      return clazz.newInstance();
+      return clazz.getDeclaredConstructor().newInstance();
     } catch (ReflectiveOperationException e) {
       throw new IllegalStateException("Module " + clazz.getName() + " is not reflectively instantiable", e);
     }

@@ -27,6 +27,10 @@ configurations {
   }
 }
 
+tasks.withType(AbstractCompile).configureEach {
+  options.compilerArgs << "-Werror" << "-Xlint:all" << "-Xlint:-deprecation" << "-Xlint:-serial"
+}
+
 repositories {
   maven { url "https://oss.sonatype.org/content/repositories/snapshots" }
 }

@@ -42,7 +42,6 @@ import ratpack.stream.TransformablePublisher;
 import ratpack.util.MultiValueMap;
 import ratpack.util.internal.ImmutableDelegatingMultiValueMap;
 
-import javax.security.cert.X509Certificate;
 import java.net.InetSocketAddress;
 import java.net.URI;
 import java.time.Duration;
@@ -71,7 +70,8 @@ public class DefaultRequest implements Request {
 
   private long maxContentLength;
   private final RequestIdleTimeout idleTimeout;
-  private final X509Certificate clientCertificate;
+  @SuppressWarnings("deprecation")
+  private final javax.security.cert.X509Certificate clientCertificate;
 
   public DefaultRequest(
     Instant timestamp,
@@ -84,7 +84,7 @@ public class DefaultRequest implements Request {
     ServerConfig serverConfig,
     @Nullable RequestBodyReader bodyReader,
     RequestIdleTimeout idleTimeout,
-    @Nullable X509Certificate clientCertificate
+    @SuppressWarnings("deprecation") @Nullable javax.security.cert.X509Certificate clientCertificate
   ) {
     this.headers = headers;
     this.bodyReader = bodyReader;
@@ -141,7 +141,8 @@ public class DefaultRequest implements Request {
   }
 
   @Override
-  public Optional<X509Certificate> getClientCertificate() {
+  @SuppressWarnings("deprecation")
+  public Optional<javax.security.cert.X509Certificate> getClientCertificate() {
     return Optional.ofNullable(clientCertificate);
   }
 

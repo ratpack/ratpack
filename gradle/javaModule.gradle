@@ -38,11 +38,11 @@ tasks.withType(AbstractCompile).configureEach {
 
 if (project.path != ":ratpack-benchmark") {
   tasks.withType(JavaCompile).configureEach {
-    options.compilerArgs = ["-proc:none"]
+    options.compilerArgs.add("-proc:none")
   }
   tasks.withType(GroovyCompile).configureEach {
     groovyOptions.forkOptions.memoryMaximumSize = "256m"
-    options.compilerArgs = ["-proc:none"]
+    options.compilerArgs.add("-proc:none")
   }
 }
 

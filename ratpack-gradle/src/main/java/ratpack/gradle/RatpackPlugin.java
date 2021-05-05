@@ -104,7 +104,7 @@ public class RatpackPlugin implements Plugin<Project> {
     SourceSetOutput mainSourceSetOutput = mainSourceSet.getOutput();
     Supplier<String> jarNameSupplier;
     if (gradleVersion.compareTo(GRADLE_6) < 0) {
-      jarNameSupplier = jarTask::getArchiveName;
+      jarNameSupplier = getDeprecatedArchiveName(jarTask);
     } else {
       Property<String> archiveFileName = jarTask.getArchiveFileName();
       jarNameSupplier = new Supplier<String>() {
@@ -158,6 +158,11 @@ public class RatpackPlugin implements Plugin<Project> {
       }
     });
 
+  }
+
+  @SuppressWarnings("deprecation")
+  private Supplier<String> getDeprecatedArchiveName(Jar jarTask) {
+    return jarTask::getArchiveName;
   }
 
 }

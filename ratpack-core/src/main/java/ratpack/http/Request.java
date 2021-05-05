@@ -33,7 +33,6 @@ import ratpack.stream.TransformablePublisher;
 import ratpack.util.MultiValueMap;
 import ratpack.util.Types;
 
-import javax.security.cert.X509Certificate;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.Optional;
@@ -63,7 +62,6 @@ public interface Request extends MutableRegistry {
    * The HTTP protocol of the request.
    * <p>
    * e.g. {@code "HTTP/1.1}
-   *
    *
    * @return The HTTP protocol of the request.
    */
@@ -153,8 +151,8 @@ public interface Request extends MutableRegistry {
    * The override strictly applies to only the request/response exchange that this request is involved in.
    *
    * @param idleTimeout the idle timeout ({@link Duration#ZERO} = no timeout, must not be negative, must not be null)
-   * @since 1.5
    * @see ServerConfig#getIdleTimeout()
+   * @since 1.5
    */
   void setIdleTimeout(Duration idleTimeout);
 
@@ -363,6 +361,7 @@ public interface Request extends MutableRegistry {
 
   /**
    * A flag representing whether or not the request originated via AJAX.
+   *
    * @return A flag representing whether or not the request originated via AJAX.
    */
   boolean isAjaxRequest();
@@ -424,8 +423,8 @@ public interface Request extends MutableRegistry {
   /**
    * The max allowed content length for the request body.
    *
-   * @see #setMaxContentLength(long)
    * @return the maximum request body length in bytes
+   * @see #setMaxContentLength(long)
    * @since 1.5
    */
   long getMaxContentLength();
@@ -437,7 +436,8 @@ public interface Request extends MutableRegistry {
    * @return the client's certificate
    * @since 1.5
    */
-  Optional<X509Certificate> getClientCertificate();
+  @SuppressWarnings("deprecation")
+  Optional<javax.security.cert.X509Certificate> getClientCertificate();
 
   /**
    * {@inheritDoc}
