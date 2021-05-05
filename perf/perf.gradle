@@ -108,7 +108,7 @@ configureRun.doLast {
 }
 
 task runPerf(type: PerfTestRun) {
-  dependsOn createApps, { apiModules*.install }, ":ratpack-gradle:install"
+  dependsOn createApps, { apiModules*.publishAllPublicationsToProjectLocalRepository }, ":ratpack-gradle:publishAllPublicationsToProjectLocalRepository"
   main "ratpack.perf.Harness"
   classpath = sourceSets.main.runtimeClasspath
   systemProperty "appsBaseDir", file("$buildDir/apps").absolutePath

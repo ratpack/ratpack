@@ -176,7 +176,7 @@ task api(type: Javadoc) {
 }
 
 test {
-  dependsOn ":ratpack-gradle:install" // used in gradle snippets
+  dependsOn ":ratpack-gradle:publishAllPublicationsToProjectLocalRepository" // used in gradle snippets
   apiModules.each {
     inputs.files apiModules.sourceSets.main.allSource
     inputs.files project(":ratpack-gradle").sourceSets.main.allSource
