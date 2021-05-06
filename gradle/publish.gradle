@@ -1,55 +1,14 @@
 // Root project
 
-apply plugin: "com.jfrog.artifactory"
-
-artifactory {
-  contextUrl = 'http://oss.jfrog.org'
-  publish {
-    repository {
-      repoKey = isSnapshot ? 'oss-snapshot-local' : 'oss-release-local'
-    }
-    defaults {
-      publishConfigs('published', 'signatures', 'pomSignature')
-    }
-  }
-}
-
 gradle.taskGraph.whenReady { taskGraph ->
-  if (taskGraph.allTasks.any { it.name == "artifactoryPublish" }) {
-    artifactory {
-      publish {
-        repository {
-          username = ratpackBintrayUser
-          password = ratpackBintrayApiKey
+  taskGraph.allTasks.each {
+    if (it instanceof PublishToMavenRepository && it.repository.url.toString().startsWith("https://oss.sonatype.org")) {
+      it.repository.with {
+        it.credentials {
+          username = ratpackOssrhUsername
+          password = ratpackOssrhPassword
         }
       }
     }
-  }
-}
-
-artifactoryPublish {
-  skip true
-}
-
-task bintrayPublish() {
-  doLast {
-    if (!project.hasProperty("ratpackBintrayUser")) {
-      throw new InvalidUserDataException("You must provide ratpackBintrayUser")
-    }
-
-    if (!project.hasProperty("ratpackBintrayApiKey")) {
-      throw new InvalidUserDataException("You must provide ratpackBintrayApiKey")
-    }
-
-    if (!project.hasProperty('buildNumber')) {
-      throw new GradleException("Must provide buildNumber of a release binary from oss.jfrog.org")
-    }
-
-    def curl = ['curl',
-                '-X', 'POST',
-                "-u", "${ratpackBintrayUser}:${ratpackBintrayApiKey}",
-                "https://oss.jfrog.org/api/plugins/build/promote/releaseToBintray/ratpack/$buildNumber?params=org=ratpack;repo=maven;package=ratpack"
-    ].execute()
-    println "Received response: ${curl.text}"
   }
 }

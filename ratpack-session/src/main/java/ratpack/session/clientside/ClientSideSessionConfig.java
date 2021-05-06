@@ -28,7 +28,6 @@ import java.time.Duration;
  */
 public class ClientSideSessionConfig {
 
-  private static final String LAST_ACCESS_TIME_TOKEN = "ratpack_lat";
   private static final SecureRandom SECURE_RANDOM = new SecureRandom();
 
   private static String randomString(int byteLength) {
@@ -38,6 +37,7 @@ public class ClientSideSessionConfig {
   }
 
   private String sessionCookieName = "ratpack_session";
+  private String lastAccessTimeCookieName;
   private String secretToken = randomString(64);
   private String macAlgorithm = "HmacSHA1";
   private String secretKey = randomString(16);
@@ -46,37 +46,57 @@ public class ClientSideSessionConfig {
   private Duration maxInactivityInterval = Duration.ofHours(24);
 
   /**
-   * The name of the {@code cookie} used to store serialized and encrypted session data.
+   * The name of the cookie used to store serialized and encrypted session data.
    * <p>
    * If length of the serialized session is greater than {@link #getMaxSessionCookieSize()} it is partioned into more
    * cookies. Every session cookie has a postfix {@code _index}, where {@code index} is the partition number.
    * <p>
    * <b>Defaults to: </b> {@code ratpack_session}
    *
-   * @return the name of the {@code cookie} used to store session data.
+   * @return the name of the cookie used to store session data.
    */
   public String getSessionCookieName() {
     return sessionCookieName;
   }
 
   /**
-   * Set the {@code cookie} name used to store session data.
+   * Set the cookie name used to store session data.
    *
-   * @param sessionCookieName a {@code cookie} name used to store session data
+   * @param sessionCookieName a cookie name used to store session data
    */
   public void setSessionCookieName(String sessionCookieName) {
     this.sessionCookieName = sessionCookieName;
   }
 
   /**
-   * The name of the {@code cookie} used to store session's last access time.
+   * The name of the cookie used to store session's last access time.
    * <p>
-   * Last access time is updated on every session load or store
+   * Last access time is updated on every session load or store.
+   * <p>
+   * Prior to 1.9, this value was hardcoded to “ratpack_lat”.
+   * Since 1.9, this value defaults to {@code {@link #getSessionCookieName()} + "_lat"}.
+   * An arbitrary value can be set by {@link #setLastAccessTimeCookieName(String)}.
    *
-   * @return the name of the {@code cookie} with session's last access time
+   * @return the name of the cookie with session's last access time
    */
   public String getLastAccessTimeCookieName() {
-    return LAST_ACCESS_TIME_TOKEN;
+    if (lastAccessTimeCookieName == null) {
+      return sessionCookieName + "_lat";
+    } else {
+      return lastAccessTimeCookieName;
+    }
+  }
+
+  /**
+   * Sets the name of the cookie used to store session's last access time.
+   * <p>
+   * Setting this value to {@code null} has the effect of the default value being used.
+   * See {@link #getLastAccessTimeCookieName()}.
+   *
+   * @since 1.9
+   */
+  public void setLastAccessTimeCookieName(@Nullable String lastAccessTimeCookieName) {
+    this.lastAccessTimeCookieName = lastAccessTimeCookieName;
   }
 
   /**

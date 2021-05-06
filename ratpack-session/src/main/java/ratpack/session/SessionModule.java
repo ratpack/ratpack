@@ -200,6 +200,83 @@ public class SessionModule extends ConfigurableModule<SessionCookieConfig> {
    * <p>
    * This method is only effectual if the implementation of {@link SessionTypeFilter} provided by this module is not overridden.
    *
+   * <pre class="java">{@code
+   * import com.google.inject.AbstractModule;
+   * import ratpack.session.Session;
+   * import ratpack.session.SessionModule;
+   * import ratpack.guice.Guice;
+   * import ratpack.test.embed.EmbeddedApp;
+   *
+   * import java.io.Serializable;
+   *
+   * import static org.junit.Assert.assertEquals;
+   *
+   * public class Example {
+   *
+   *   static class AllowedType implements Serializable {
+   *   }
+   *
+   *   static class NonAllowedType implements Serializable {
+   *   }
+   *
+   *   static class NonAllowedTypeContainer implements Serializable {
+   *     NonAllowedType nonAllowedType = new NonAllowedType();
+   *   }
+   *
+   *   public static class MySessionTypesModule extends AbstractModule {
+   *     protected void configure() {
+   *       SessionModule.allowTypes(binder(),
+   *         AllowedType.class,
+   *         NonAllowedTypeContainer.class
+   *       );
+   *     }
+   *   }
+   *
+   *   public static void main(String... args) throws Exception {
+   *     EmbeddedApp.of(a -> a
+   *       .registry(Guice.registry(b -> b
+   *         .module(SessionModule.class)
+   *         .module(MySessionTypesModule.class)
+   *       ))
+   *       .handlers(c -> c
+   *         .get("set/allowed", ctx ->
+   *           ctx.get(Session.class)
+   *             .set(new AllowedType())
+   *             .then(() -> ctx.render("ok"))
+   *         )
+   *         .get("set/nonAllowed", ctx ->
+   *           ctx.get(Session.class)
+   *             .set(new NonAllowedType())
+   *             .onError(e -> ctx.render(e.toString()))
+   *             .then(() -> ctx.render("ok"))
+   *         )
+   *         .get("set/nonAllowedContainer", ctx ->
+   *           ctx.get(Session.class)
+   *             .set(new NonAllowedTypeContainer())
+   *             .onError(e -> ctx.render(e.toString()))
+   *             .then(() -> ctx.render("ok"))
+   *         )
+   *       )
+   *     ).test(http -> {
+   *       // Works, only references allowed types
+   *       String response1 = http.getText("set/allowed");
+   *       assertEquals("ok", response1);
+   *
+   *       // Doesn't work, tries to set not allowed type
+   *       String response2 = http.getText("set/nonAllowed");
+   *       assertEquals("ratpack.session.NonAllowedSessionTypeException: Type Example$NonAllowedType is not an allowed session type. Register a SessionTypeFilterPlugin allowing it. See SessionModule.allowTypes().", response2);
+   *
+   *       // Doesn't work, allowed type references not allowed type
+   *       String response3 = http.getText("set/nonAllowedContainer");
+   *       assertEquals("ratpack.session.NonAllowedSessionTypeException: Type Example$NonAllowedType is not an allowed session type. Register a SessionTypeFilterPlugin allowing it. See SessionModule.allowTypes().", response3);
+   *     });
+   *   }
+   * }
+   * }</pre>
+   * <p>
+   * While the above example only shows type checking being applied on writing to the session,
+   * the same checking is applied when reading from the session.
+   *
    * @param binder the binder
    * @param types the types to allow to be used in a session
    * @since 1.9

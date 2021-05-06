@@ -27,6 +27,7 @@ import io.netty.buffer.PooledByteBufAllocatorMetric;
 
 import java.util.HashMap;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Map;
 
 import static java.lang.String.format;
@@ -72,7 +73,7 @@ public class PooledByteBufAllocatorMetricSet implements MetricSet {
     metrics.put("numHeapArenas", (Gauge<Integer>) () -> metric.numHeapArenas());
     metrics.put("numThreadLocalCaches", (Gauge<Integer>) () -> metric.numThreadLocalCaches());
     metrics.put("smallCacheSize", (Gauge<Integer>) () -> metric.smallCacheSize());
-    metrics.put("tinyCacheSize", (Gauge<Integer>) () -> metric.tinyCacheSize());
+    metrics.put("tinyCacheSize", (Gauge<Integer>) () -> deprecatedGetTinyCacheSize(metric));
     metrics.put("normalCacheSize", (Gauge<Integer>) () -> metric.normalCacheSize());
     metrics.put("chunkSize", (Gauge<Integer>) () -> metric.chunkSize());
 
@@ -89,6 +90,11 @@ public class PooledByteBufAllocatorMetricSet implements MetricSet {
     }
   }
 
+  @SuppressWarnings("deprecation")
+  private int deprecatedGetTinyCacheSize(PooledByteBufAllocatorMetric metric) {
+    return metric.tinyCacheSize();
+  }
+
   private void initPoolArenaMetrics(final Iterator<PoolArenaMetric> poolArenasIterator) {
     int counter = 0;
     while (poolArenasIterator.hasNext()) {
@@ -100,7 +106,7 @@ public class PooledByteBufAllocatorMetricSet implements MetricSet {
       metrics.put(format("%s.numActiveHugeAllocations", prefix), (Gauge<Long>) () -> poolArenaMetric.numActiveHugeAllocations());
       metrics.put(format("%s.numActiveNormalAllocations", prefix), (Gauge<Long>) () -> poolArenaMetric.numActiveNormalAllocations());
       metrics.put(format("%s.numActiveSmallAllocations", prefix), (Gauge<Long>) () -> poolArenaMetric.numActiveSmallAllocations());
-      metrics.put(format("%s.numActiveTinyAllocations", prefix), (Gauge<Long>) () -> poolArenaMetric.numActiveTinyAllocations());
+      metrics.put(format("%s.numActiveTinyAllocations", prefix), (Gauge<Long>) () -> deprecatedGetActiveTinyAllocations(poolArenaMetric));
       metrics.put(format("%s.numAllocations", prefix), (Gauge<Long>) () -> poolArenaMetric.numAllocations());
       metrics.put(format("%s.numDeallocations", prefix), (Gauge<Long>) () -> poolArenaMetric.numDeallocations());
       metrics.put(format("%s.numHugeAllocations", prefix), (Gauge<Long>) () -> poolArenaMetric.numHugeAllocations());
@@ -109,10 +115,10 @@ public class PooledByteBufAllocatorMetricSet implements MetricSet {
       metrics.put(format("%s.numNormalDeallocations", prefix), (Gauge<Long>) () -> poolArenaMetric.numNormalDeallocations());
       metrics.put(format("%s.numSmallAllocations", prefix), (Gauge<Long>) () -> poolArenaMetric.numSmallAllocations());
       metrics.put(format("%s.numSmallDeallocations", prefix), (Gauge<Long>) () -> poolArenaMetric.numSmallDeallocations());
-      metrics.put(format("%s.numTinyAllocations", prefix), (Gauge<Long>) () -> poolArenaMetric.numTinyAllocations());
-      metrics.put(format("%s.numTinyDeallocations", prefix), (Gauge<Long>) () -> poolArenaMetric.numTinyDeallocations());
+      metrics.put(format("%s.numTinyAllocations", prefix), (Gauge<Long>) () -> deprecatedGetTinyAllocations(poolArenaMetric));
+      metrics.put(format("%s.numTinyDeallocations", prefix), (Gauge<Long>) () -> deprecatedGetTinyDeallocations(poolArenaMetric));
       metrics.put(format("%s.numSmallSubpages", prefix), (Gauge<Integer>) () -> poolArenaMetric.numSmallSubpages());
-      metrics.put(format("%s.numTinySubpages", prefix), (Gauge<Integer>) () -> poolArenaMetric.numTinySubpages());
+      metrics.put(format("%s.numTinySubpages", prefix), (Gauge<Integer>) () -> deprecatedGetNumTinySubpages(poolArenaMetric));
 
       final Iterator<PoolChunkListMetric> chunksIterator = poolArenaMetric.chunkLists().iterator();
       initPoolChunkListMetrics(prefix, chunksIterator);
@@ -120,11 +126,36 @@ public class PooledByteBufAllocatorMetricSet implements MetricSet {
       final Iterator<PoolSubpageMetric> smallSubpagesIterator = poolArenaMetric.smallSubpages().iterator();
       initSubpageMetrics(prefix, "smallSubpage", smallSubpagesIterator);
 
-      final Iterator<PoolSubpageMetric> tinySubpagesIterator = poolArenaMetric.tinySubpages().iterator();
+      final Iterator<PoolSubpageMetric> tinySubpagesIterator = deprecatedGetTinySubpages(poolArenaMetric).iterator();
       initSubpageMetrics(prefix, "tinySubpage", tinySubpagesIterator);
 
       counter++;
     }
+  }
+
+  @SuppressWarnings("deprecation")
+  private int deprecatedGetNumTinySubpages(PoolArenaMetric poolArenaMetric) {
+    return poolArenaMetric.numTinySubpages();
+  }
+
+  @SuppressWarnings("deprecation")
+  private long deprecatedGetTinyDeallocations(PoolArenaMetric poolArenaMetric) {
+    return poolArenaMetric.numTinyDeallocations();
+  }
+
+  @SuppressWarnings("deprecation")
+  private long deprecatedGetTinyAllocations(PoolArenaMetric poolArenaMetric) {
+    return poolArenaMetric.numTinyAllocations();
+  }
+
+  @SuppressWarnings("deprecation")
+  private List<PoolSubpageMetric> deprecatedGetTinySubpages(PoolArenaMetric poolArenaMetric) {
+    return poolArenaMetric.tinySubpages();
+  }
+
+  @SuppressWarnings("deprecation")
+  private long deprecatedGetActiveTinyAllocations(PoolArenaMetric poolArenaMetric) {
+    return poolArenaMetric.numActiveTinyAllocations();
   }
 
   private void initPoolChunkListMetrics(final String prefix, final Iterator<PoolChunkListMetric> chunksIterator) {

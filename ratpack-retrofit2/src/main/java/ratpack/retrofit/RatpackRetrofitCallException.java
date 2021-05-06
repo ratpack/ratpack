@@ -50,7 +50,7 @@ public class RatpackRetrofitCallException extends Exception {
       if (charset == null) {
         charset = Charset.forName("UTF-8");
       }
-      return response.errorBody().source().buffer().clone().readString(charset);
+      return response.errorBody().source().getBuffer().clone().readString(charset);
     }));
     this.response = response;
   }
@@ -66,7 +66,7 @@ public class RatpackRetrofitCallException extends Exception {
       Status.of(response.code(), response.message()),
       new OkHttpHeadersBackedHeaders(response.headers()),
       new ByteBufBackedTypedData(
-        Unpooled.wrappedBuffer(Exceptions.uncheck(() -> response.errorBody().source().buffer().clone().readByteArray())),
+        Unpooled.wrappedBuffer(Exceptions.uncheck(() -> response.errorBody().source().getBuffer().clone().readByteArray())),
         DefaultMediaType.get(response.errorBody().contentType() != null ? response.errorBody().contentType().toString() : null)
       )
     );

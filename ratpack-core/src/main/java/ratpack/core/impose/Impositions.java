@@ -85,10 +85,10 @@ public final class Impositions {
 
   private static final FastThreadLocal<Deque<Impositions>> IMPOSITIONS = new FastThreadLocal<>();
 
-  private final Registry impositions;
+  private final Registry registry;
 
-  private Impositions(Registry impositions) {
-    this.impositions = impositions;
+  private Impositions(Registry registry) {
+    this.registry = registry;
   }
 
   /**
@@ -111,12 +111,12 @@ public final class Impositions {
       queue = Queues.newArrayDeque();
       IMPOSITIONS.set(queue);
     }
-    queue.push(impositions);
+    queue.addFirst(impositions);
 
     try {
       return during.create();
     } finally {
-      queue.poll();
+      queue.removeFirst();
       if (queue.isEmpty()) {
         IMPOSITIONS.remove();
       }
@@ -136,10 +136,14 @@ public final class Impositions {
   }
 
   /**
-   * The currently imposed impositions.
+   * The cumulative currently imposed impositions, for the current thread.
    * <p>
-   * When called during a call to {@link #impose(Impositions, Factory)} from the same thread,
-   * returns an the impositions given to that method.
+   * When multiple impositions have been applied using layered calls to {@link #impose},
+   * the impositions returned here are culmination of all.
+   * <p>
+   * The {@link #getAll(Class)} used for retrieving certain types of impositions returns objects
+   * in order of outer-most-first.
+   * This allows a inner-most-wins strategy for impositions of single values (e.g. {@link ForceServerListenPortImposition}).
    * <p>
    * If no impositions have been imposed at call time, the returned impositions object is effectively empty.
    *
@@ -147,7 +151,17 @@ public final class Impositions {
    */
   public static Impositions current() {
     return Optional.ofNullable(IMPOSITIONS.get())
-      .map(Deque::peek)
+      .flatMap(impositions -> {
+          if (impositions.size() == 1) {
+            return Optional.of(impositions.getFirst());
+          } else {
+            return impositions.stream()
+              .map(imposition -> imposition.registry)
+              .reduce(Registry::join)
+              .map(Impositions::new);
+          }
+        }
+      )
       .orElseGet(Impositions::none);
   }
 
@@ -186,9 +200,23 @@ public final class Impositions {
    *
    * @param type the type of imposition
    * @param <T> the type of imposition
-   * @return the impositions of the given type
+   * @return the imposition of the given type
+   * @deprecated since 1.9, use {@link #getAll(Class)}.
    */
+  @Deprecated
   public <T extends Imposition> Optional<T> get(Class<T> type) {
-    return impositions.maybeGet(type);
+    return registry.maybeGet(type);
+  }
+
+  /**
+   * Return all impositions of the given type.
+   *
+   * @param type the type of imposition
+   * @param <T> the type of imposition
+   * @return the impositions of the given type
+   * @since 1.9
+   */
+  public <T extends Imposition> Iterable<? extends T> getAll(Class<T> type) {
+    return registry.getAll(type);
   }
 }

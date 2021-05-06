@@ -86,13 +86,19 @@ import javax.crypto.spec.SecretKeySpec;
  *       assertEquals("foo", response.getBody().getText());
  *       assertTrue("We set a value and our session name", response.getHeaders().getAll("Set-Cookie")
  *          .stream()
- *          .anyMatch(c -> c.startsWith("session_name")));
+ *          .anyMatch(c -> c.contains("session_name_0=")));
+ *       assertTrue("We updated the last-access-time", response.getHeaders().getAll("Set-Cookie")
+ *          .stream()
+ *          .anyMatch(c -> c.contains("session_name_lat_0=")));
  *
  *       response = client.get();
  *       assertEquals("foo", response.getBody().getText());
  *       assertFalse("We did not update session", response.getHeaders().getAll("Set-Cookie")
  *          .stream()
- *          .anyMatch(c -> c.startsWith("session_name")));
+ *          .anyMatch(c -> c.contains("session_name_0=")));
+ *       assertTrue("We updated the last-access-time", response.getHeaders().getAll("Set-Cookie")
+ *         .stream()
+ *         .anyMatch(c -> c.contains("session_name_lat_0=")));
  *     });
  *   }
  * }

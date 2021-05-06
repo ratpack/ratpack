@@ -71,7 +71,7 @@ public class RatpackContinuousRunAction implements Action<Task> {
         .invoke(deploymentRegistry, deploymentHandleClass, deploymentId);
 
       if (deploymentHandle == null) {
-        RatpackAdapter proxy = (RatpackAdapter) Proxy.newProxyInstance(loader, new Class[]{deploymentHandleClass, RatpackAdapter.class}, new ProxyBacking(createAdapter(task, services)));
+        RatpackAdapter proxy = (RatpackAdapter) Proxy.newProxyInstance(loader, new Class<?>[]{deploymentHandleClass, RatpackAdapter.class}, new ProxyBacking(createAdapter(task, services)));
         Invoker.of(DeploymentRegistry.class, "register", String.class, Object.class)
           .invoke(deploymentRegistry, deploymentId, proxy);
         proxy.start();
@@ -103,7 +103,7 @@ public class RatpackContinuousRunAction implements Action<Task> {
       type = new ParameterizedType() {
         @Override
         public Type[] getActualTypeArguments() {
-          return new Class[]{loadClass(getClass().getClassLoader(), "org.gradle.process.internal.WorkerProcessBuilder")};
+          return new Class<?>[]{loadClass(getClass().getClassLoader(), "org.gradle.process.internal.WorkerProcessBuilder")};
         }
 
         @Override

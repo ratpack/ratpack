@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 the original author or authors.
+ * Copyright 2021 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,19 +14,8 @@
  * limitations under the License.
  */
 
-apply from: "${rootDir}/gradle/publish-base.gradle"
-apply plugin: "java"
-
-java {
-  withJavadocJar()
-  withSourcesJar()
-}
-
-def publishing = extensions.getByType(PublishingExtension)
-def publication = publishing.publications.create("mavenJava", MavenPublication) {
-  it.from(project.components.getByName("java"))
-}
-extensions.findByType(SigningExtension).with {
-  it.sign(publication)
-}
-
+/**
+ * @see ratpack.session.serialization.kryo.KryoSessionSerializer
+ * @since 1.9
+ */
+package ratpack.session.serialization.kryo;

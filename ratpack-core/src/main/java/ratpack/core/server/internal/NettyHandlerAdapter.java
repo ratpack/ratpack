@@ -47,7 +47,6 @@ import ratpack.exec.registry.Registry;
 
 import javax.net.ssl.SSLEngine;
 import javax.net.ssl.SSLPeerUnverifiedException;
-import javax.security.cert.X509Certificate;
 import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.nio.CharBuffer;
@@ -60,7 +59,8 @@ public class NettyHandlerAdapter extends ChannelInboundHandlerAdapter {
 
   private static final AttributeKey<Action<Object>> CHANNEL_SUBSCRIBER_ATTRIBUTE_KEY = AttributeKey.valueOf(NettyHandlerAdapter.class, "subscriber");
   private static final AttributeKey<RequestBodyAccumulator> BODY_ACCUMULATOR_KEY = AttributeKey.valueOf(NettyHandlerAdapter.class, "requestBody");
-  private static final AttributeKey<X509Certificate> CLIENT_CERT_KEY = AttributeKey.valueOf(NettyHandlerAdapter.class, "principal");
+  @SuppressWarnings("deprecation")
+  private static final AttributeKey<javax.security.cert.X509Certificate> CLIENT_CERT_KEY = AttributeKey.valueOf(NettyHandlerAdapter.class, "principal");
 
   private final static Logger LOGGER = LoggerFactory.getLogger(NettyHandlerAdapter.class);
 
@@ -241,7 +241,7 @@ public class NettyHandlerAdapter extends ChannelInboundHandlerAdapter {
       SSLEngine engine = ctx.pipeline().get(SslHandler.class).engine();
       if (engine.getWantClientAuth() || engine.getNeedClientAuth()) {
         try {
-          X509Certificate clientCert = engine.getSession().getPeerCertificateChain()[0];
+          @SuppressWarnings("deprecation") javax.security.cert.X509Certificate clientCert = engine.getSession().getPeerCertificateChain()[0];
           ctx.channel().attr(CLIENT_CERT_KEY).set(clientCert);
         } catch (SSLPeerUnverifiedException ignore) {
           // ignore - there is no way to avoid this exception that I can determine
@@ -253,7 +253,7 @@ public class NettyHandlerAdapter extends ChannelInboundHandlerAdapter {
   }
 
   @Override
-  public void channelWritabilityChanged(ChannelHandlerContext ctx) throws Exception {
+  public void channelWritabilityChanged(ChannelHandlerContext ctx) {
     DefaultResponseTransmitter responseTransmitter = ctx.channel().attr(DefaultResponseTransmitter.ATTRIBUTE_KEY).get();
     if (responseTransmitter != null) {
       responseTransmitter.writabilityChanged();

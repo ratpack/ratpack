@@ -5,10 +5,7 @@ buildscript {
   }
 
   dependencies {
-    classpath "org.jfrog.buildinfo:build-info-extractor-gradle:4.18.3"
-
     classpath 'org.apache.commons:commons-lang3:3.6'
-
     classpath "org.kt3k.gradle.plugin:coveralls-gradle-plugin:2.3.1"
     classpath "com.github.ben-manes:gradle-versions-plugin:0.17.0"
   }
@@ -64,7 +61,7 @@ ext {
 
   noCodeModules = [
     "ratpack-spring-boot-starter"
-  ]
+  ].collect { project(it) }
 
   apiModules = publishedModules.findAll { !(it.name in ["ratpack-manual", "ratpack-gradle", "ratpack-spring-boot-starter"]) }
 }
@@ -103,7 +100,11 @@ gradle.beforeProject {
 
     apply from: "$rootDir/gradle/ratpackLocal.gradle"
     if (project in publishedModules) {
-      apply from: "$rootDir/gradle/publish-module.gradle"
+      if (project in noCodeModules) {
+        apply from: "$rootDir/gradle/publish-pom.gradle"
+      } else {
+        apply from: "$rootDir/gradle/publish-module.gradle"
+      }
     }
   }
 }

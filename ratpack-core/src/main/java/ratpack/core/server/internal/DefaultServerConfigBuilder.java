@@ -380,16 +380,14 @@ public class DefaultServerConfigBuilder implements ServerConfigBuilder {
   public ServerConfig build() {
     DefaultServerConfigBuilder copy = copy();
 
-    impositions.get(ServerConfigImposition.class)
-      .ifPresent(c -> c.apply(copy));
+    impositions.getAll(ServerConfigImposition.class)
+      .forEach(c -> c.apply(copy));
 
-    impositions.get(ForceServerListenPortImposition.class)
-      .map(ForceServerListenPortImposition::getPort)
-      .ifPresent(copy::port);
+    impositions.getAll(ForceServerListenPortImposition.class)
+      .forEach(imposition -> copy.port(imposition.getPort()));
 
-    impositions.get(ForceDevelopmentImposition.class)
-      .map(ForceDevelopmentImposition::isDevelopment)
-      .ifPresent(copy::development);
+    impositions.getAll(ForceDevelopmentImposition.class)
+      .forEach(imposition -> copy.development(imposition.isDevelopment()));
 
     copy.configDataBuilder.jacksonModules(new ConfigModule(copy.serverEnvironment, copy.baseDirSupplier));
     ConfigData configData = new DefaultConfigData(copy.configDataBuilder.getObjectMapper(), copy.getConfigSources(), MoreObjects.firstNonNull(copy.baseDirSupplier.baseDir, FileSystemBinding.root()));
