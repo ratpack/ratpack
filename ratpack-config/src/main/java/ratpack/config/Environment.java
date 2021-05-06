@@ -21,18 +21,12 @@ import ratpack.func.Utils;
 
 import java.util.Map;
 import java.util.Properties;
-import java.util.function.Predicate;
-import java.util.function.Supplier;
 
 public interface Environment {
 
   Map<String, String> getenv();
 
   Properties getProperties();
-
-  default <T> T get(T defaultValue, Predicate<? super T> accept, Supplier<T>... suppliers) {
-    return Utils.get(defaultValue, accept, suppliers);
-  }
 
   default boolean isDevelopment() {
     return Utils.isDevelopment();

@@ -20,6 +20,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import ratpack.config.internal.DefaultEnvironment;
 import ratpack.core.server.ServerConfig;
+import ratpack.func.Utils;
 
 import java.net.InetAddress;
 import java.net.URI;
@@ -52,7 +53,7 @@ public class ServerEnvironment extends DefaultEnvironment {
   }
 
   public InetAddress getAddress() {
-    return get(null,
+    return Utils.get(null,
       Objects::nonNull,
       () -> parseAddressValue("ratpack.address system property", getProperties().getProperty(ADDRESS_PROPERTY)),
       () -> parseAddressValue("RATPACK_ADDRESS env var", getenv().get("RATPACK_ADDRESS"))
@@ -72,7 +73,7 @@ public class ServerEnvironment extends DefaultEnvironment {
   }
 
   public Integer getPort() {
-    return get(ServerConfig.DEFAULT_PORT,
+    return Utils.get(ServerConfig.DEFAULT_PORT,
       Objects::nonNull,
       () -> parsePortValue("ratpack.port system property", getProperties().getProperty(PORT_PROPERTY)),
       () -> parsePortValue("RATPACK_PORT env var", getenv().get("RATPACK_PORT")),
@@ -81,7 +82,7 @@ public class ServerEnvironment extends DefaultEnvironment {
   }
 
   public URI getPublicAddress() {
-    return get(null, Objects::nonNull,
+    return Utils.get(null, Objects::nonNull,
       () -> parseUri("'ratpack.publicAddress' system property", getProperties().getProperty("ratpack.publicAddress")),
       () -> parseUri("'RATPACK_PUBLIC_ADDRESS' env var", getenv().get("RATPACK_PUBLIC_ADDRESS"))
     );
