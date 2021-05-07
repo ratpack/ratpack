@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package ratpack.impose
+package ratpack.core.impose
 
 import spock.lang.Specification
 
