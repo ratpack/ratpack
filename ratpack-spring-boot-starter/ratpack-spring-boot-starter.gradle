@@ -16,6 +16,8 @@
 
 description = "Spring Boot starter for Ratpack - http://projects.spring.io/spring-boot/"
 
+apply from: "$rootDir/gradle/publish-pom.gradle"
+
 dependencies {
   api project(":ratpack-spring-boot")
   api("org.springframework.boot:spring-boot-starter:$commonVersions.springBoot") {

@@ -40,6 +40,7 @@ buildscript {
 description = "The manual for Ratpack (documentation & API reference)"
 
 apply from: "$rootDir/gradle/javaModule.gradle"
+apply from: "$rootDir/gradle/publish-base.gradle"
 apply plugin: "com.eriwen.gradle.js"
 apply plugin: 'io.freefair.jsass-base'
 
@@ -372,14 +373,15 @@ task openApi(dependsOn: packageManual) {
   }
 }
 
-task manualZip(type: Zip) {
-  from packageManual
+def manualZip = tasks.create("manualZip", Zip) {
+  it.from packageManual
 }
 
-configurations {
-  published.extendsFrom zip
+def publications = extensions.getByType(PublishingExtension).publications
+def publication = publications.create("main", MavenPublication) {
+  it.artifact(manualZip)
 }
 
-artifacts {
-  zip manualZip
+extensions.findByType(SigningExtension).with {
+  it.sign(publication)
 }
