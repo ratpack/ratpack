@@ -1,5 +1,7 @@
 // Root project
 
+apply plugin: "com.github.kt3k.coveralls"
+
 repositories {
   mavenCentral()
 }

@@ -20,6 +20,7 @@ apply from: '../gradle/versionFile.gradle'
 
 repositories {
   mavenCentral()
+  gradlePluginPortal()
 }
 
 dependencies {
@@ -28,6 +29,9 @@ dependencies {
   compile('com.google.javascript:closure-compiler:v20190415') {
     exclude module: 'junit'
   }
+  implementation "com.github.ben-manes:gradle-versions-plugin:0.38.0"
+  implementation "gradle.plugin.org.kt3k.gradle.plugin:coveralls-gradle-plugin:2.12.0"
+  implementation "io.github.gradle-nexus:publish-plugin:1.1.0"
 }
 
 sourceSets {

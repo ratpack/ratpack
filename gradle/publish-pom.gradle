@@ -17,16 +17,13 @@
 apply from: "${rootDir}/gradle/publish-base.gradle"
 apply plugin: 'java-platform'
 
-
-println "applying to $project.name"
-
-javaPlatform {
-  allowDependencies()
+extensions.getByType(JavaPlatformExtension).with {
+  it.allowDependencies()
 }
 
-def publishing = extensions.getByType(PublishingExtension)
-def publication = publishing.publications.create("mavenPom", MavenPublication) {
-  it.from(components.javaPlatform)
+def publications = extensions.getByType(PublishingExtension).publications
+def publication = publications.create("main", MavenPublication) {
+  it.from(components.getByName("javaPlatform"))
 }
 
 extensions.findByType(SigningExtension).with {

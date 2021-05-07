@@ -17,13 +17,13 @@
 apply from: "${rootDir}/gradle/publish-base.gradle"
 apply plugin: "java"
 
-java {
-  withJavadocJar()
-  withSourcesJar()
+extensions.getByType(JavaPluginExtension).with {
+  it.withJavadocJar()
+  it.withSourcesJar()
 }
 
 def publishing = extensions.getByType(PublishingExtension)
-def publication = publishing.publications.create("mavenJava", MavenPublication) {
+def publication = publishing.publications.create("main", MavenPublication) {
   it.from(project.components.getByName("java"))
 }
 extensions.findByType(SigningExtension).with {
