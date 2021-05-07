@@ -32,7 +32,6 @@ ext {
     "ratpack-handlebars",
     "ratpack-hikari",
     "ratpack-jdbc-tx",
-    "ratpack-manual",
     "ratpack-newrelic",
     "ratpack-reactor",
     "ratpack-retrofit2",
@@ -48,7 +47,8 @@ ext {
   ].collect { project(it) }
 
   nonLibraryPublishedModules = [
-    "ratpack-spring-boot-starter"
+    "ratpack-spring-boot-starter", "ratpack-manual"
+
   ].collect { project(it) }
 
   apiModules = publishedModules.findAll { !(it.name in ["ratpack-manual", "ratpack-gradle", "ratpack-spring-boot-starter"]) }
@@ -86,12 +86,8 @@ gradle.beforeProject {
     tasks.register("sanityCheck")
 
     apply from: "$rootDir/gradle/ratpackLocal.gradle"
-    if (project in publishedModules) {
-      if (project in nonLibraryPublishedModules) {
-        apply from: "$rootDir/gradle/publish-pom.gradle"
-      } else {
-        apply from: "$rootDir/gradle/publish-library.gradle"
-      }
+    if (project in publishedModules && !(project in nonLibraryPublishedModules)) {
+      apply from: "$rootDir/gradle/publish-library.gradle"
     }
   }
 }
