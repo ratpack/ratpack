@@ -1,3 +1,6 @@
+import io.github.gradlenexus.publishplugin.NexusPublishExtension
+import io.github.gradlenexus.publishplugin.NexusRepository
+
 /*
  * Copyright 2021 the original author or authors.
  *
@@ -28,12 +31,6 @@ ext {
 
 def publishing = extensions.getByType(PublishingExtension)
 publishing.repositories {
-  maven {
-    name = "ossrh"
-    def releaseRepo = "https://oss.sonatype.org/service/local/staging/deploy/maven2/"
-    def snapshotRepo = "https://oss.sonatype.org/content/repositories/snapshots/"
-    url = project.isSnapshot ? snapshotRepo : releaseRepo
-  }
   mavenLocal {
     it.name("projectLocal")
     it.url("${rootProject.buildDir.toURI()}/localrepo")
@@ -86,4 +83,3 @@ configurations {
     }
   }
 }
-

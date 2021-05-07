@@ -55,23 +55,7 @@ body {
           }
           p {
             a(href: 'http://www.yourkit.com/java/profiler/index.jsp', 'YourKit')
-            yield ' supports Ratpack open source project with its full-featured Java Profiler.'
-          }
-        }
-        def credits = [
-          [href: 'https://bintray.com/', img: [src: 'bintray.png', alt: 'Bintray', width: 55, height: 40]],
-          [href: 'https://github.com/', img: [src: 'github.png', alt: 'Octocat', width: 122, height: 40]],
-          [href: 'http://www.gradle.org/', img: [src: 'gradle-white-primary.png', alt: 'Gradle logo', width: 128, height: 43]],
-          [href: 'http://groovy-lang.org/', img: [src: 'groovy.png', alt: 'Groovy logo', width: 80, height: 40]],
-          [href: 'https://www.heroku.com/', img: [src: 'heroku.png', alt: 'Heroku logo', width: 120, height: 40]],
-          [href: 'http://netty.io/', img: [src: 'netty.png', alt: 'Netty logo', width: 80, height: 40]],
-          [href: 'http://www.yourkit.com/java/profiler/index.jsp', img: [src: 'yourkit.png', alt: 'YourKit logo', width: 132, height: 43]]
-        ]
-        section(class: 'credits') {
-          credits.each { credit ->
-            a(href: credit.href, rel: 'external') {
-              img(src: assets["${credit.img.src}"], alt: credit.img.alt, width: credit.img.width, height: credit.img.height)
-            }
+            yield ' supports Ratpack with its full-featured Java Profiler.'
           }
         }
       }

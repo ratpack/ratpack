@@ -83,6 +83,14 @@ pluginBundle {
   }
 }
 
+tasks.named("publishPlugins") {
+  it.doFirst {
+    if (isSnapshot) {
+      throw new GradleException("Cannot publish snapshot Gradle plugin (version is ${project.version})")
+    }
+  }
+}
+
 test.doFirst {
   maxParallelForks 1
 }

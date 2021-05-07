@@ -1,17 +1,5 @@
-buildscript {
-  repositories {
-    mavenCentral()
-    gradlePluginPortal()
-  }
-
-  dependencies {
-    classpath 'org.apache.commons:commons-lang3:3.6'
-    classpath "org.kt3k.gradle.plugin:coveralls-gradle-plugin:2.3.1"
-    classpath "com.github.ben-manes:gradle-versions-plugin:0.17.0"
-  }
-}
-
 allprojects {
+  group = "io.ratpack"
   version = "2.0.0-SNAPSHOT"
 }
 
@@ -59,7 +47,7 @@ ext {
     "ratpack-thymeleaf3",
   ].collect { project(it) }
 
-  noCodeModules = [
+  nonLibraryPublishedModules = [
     "ratpack-spring-boot-starter"
   ].collect { project(it) }
 
@@ -77,7 +65,6 @@ if (!JavaVersion.current().java11Compatible) {
 
 gradle.beforeProject {
   it.with {
-    group = "io.ratpack"
 
     apply plugin: "base"
     apply from: "$rootDir/gradle/dependencyRules.gradle"
@@ -100,16 +87,16 @@ gradle.beforeProject {
 
     apply from: "$rootDir/gradle/ratpackLocal.gradle"
     if (project in publishedModules) {
-      if (project in noCodeModules) {
+      if (project in nonLibraryPublishedModules) {
         apply from: "$rootDir/gradle/publish-pom.gradle"
       } else {
-        apply from: "$rootDir/gradle/publish-module.gradle"
+        apply from: "$rootDir/gradle/publish-library.gradle"
       }
     }
   }
 }
 
 apply from: "gradle/idea.gradle"
-apply from: "gradle/publish.gradle"
+apply from: "gradle/publish-root.gradle"
 apply from: "gradle/dependencies.gradle"
 apply from: "gradle/coveralls.gradle"

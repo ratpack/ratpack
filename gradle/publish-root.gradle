@@ -1,0 +1,31 @@
+import io.github.gradlenexus.publishplugin.NexusPublishExtension
+
+import java.time.Duration
+
+apply plugin: "io.github.gradle-nexus.publish-plugin"
+
+def usernameProperty = "ratpackSonatypeOssUsername"
+def usernameProvider = providers.gradleProperty(usernameProperty).forUseAtConfigurationTime()
+def passwordProperty = "ratpackSonatypeOssPassword"
+def passwordProvider = providers.gradleProperty(passwordProperty).forUseAtConfigurationTime()
+
+def nexusPublishing = extensions.getByType(NexusPublishExtension)
+nexusPublishing.transitionCheckOptions.get().with {
+  // Check every 10s, 120 times (~20m)
+  it.maxRetries.set(120)
+  it.delayBetween.set(Duration.ofSeconds(10))
+}
+def repo = nexusPublishing.repositories.create("sonatypeOss").tap {
+  it.nexusUrl.set(URI.create("https://oss.sonatype.org/service/local/"))
+  it.snapshotRepositoryUrl.set(URI.create("https://oss.sonatype.org/content/repositories/snapshots/"))
+  it.username.set(usernameProvider)
+  it.password.set(passwordProvider)
+}
+
+gradle.taskGraph.whenReady { taskGraph ->
+  if (taskGraph.allTasks.any { it instanceof PublishToMavenRepository && it.repository.name == repo.name }) {
+    if (!usernameProvider.present || !passwordProvider.present) {
+      throw new GradleException("Cannot publish without '$usernameProperty' and '$passwordProperty'")
+    }
+  }
+}
