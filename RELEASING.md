@@ -24,19 +24,9 @@ When you've got the release announcement set, copy it to the description of the 
 1. Ensure the the build is still passing (i.e. run `./gradlew clean build`) - really isn't needed, but doesn't hurt
 1. Commit with message “Version «number»”
 1. Tag commit with name “v«number»” (don't push yet)
-1. Build and upload the binaries: `./gradlew artifactoryPublish` - See below for credential requirements
-1. Promote the binaries from oss.jfrog.org to Bintray and Maven Central
-    1. Go to https://oss.jfrog.org/artifactory/webapp/#/builds/ratpack/
-    1. To log in use your Bintray username and Bintray API key
-    1. Find the build you just uploaded (you should be able to tell by the version number).  If you sort by "Time Built" desc it will be at the top of the list
-    1. Take the buildNumber and run `./gradlew bintrayPublish -PbuildNumber=«buildNumber» -i`
-    1. Confirm the publish in Bintray - The link to the bintray page is given on the success page of the previous step. Just in case it's:  https://bintray.com/ratpack/maven/ratpack/«version»/view/files/io/ratpack
-    1. Publish to Maven central - click the 'Maven Central' tab on the Bintray package page
-        1. Enter your user/pass - this is your oss.sonatype.org credentials
-        1. Click “Close repository when done”
-        1. Click “Sync”
+1. Build and upload the binaries: `./gradlew publishAllPublicationsToOssrhRepository` - See below for credential requirements
+   1. If a non snapshot release, the staging repository must be closed to push to central, see https://central.sonatype.org/publish/release/
 1. Publish to Gradle Plugin Portal: `./gradlew publishPlugins -i` - See below for credential requirements.
-<p>If you run this task more than once you may need to delete the published templates in Bintray first. 
 
 ## Post
 
@@ -44,7 +34,7 @@ When you've got the release announcement set, copy it to the description of the 
 1. Update the `manualVersions` list in `ratpack-site.gradle` so the new manual is included in the site
 1. (a) Update `release-notes.md` to remove the content specific to the freshly-completed release (i.e. set it back to a fresh template)
 1. Commit with message 'Begin version «version»', and push (make sure you push the tag)
-1. Run `./gradlew clean artifactoryPublish` (to push the new snapshot snapshot, so it can be resolved)
+1. Run `./gradlew clean publishAllPublicationsToOssrhRepository` (to push the new snapshot snapshot, so it can be resolved)
 1. Add the `Due Date` to the Milestone in GitHub and close it
 1. Copy the release announcement to the GitHub tag description on the [GitHub releases page](https://github.com/ratpack/ratpack/releases) and publish the release
 1. Get a tweet out about the release
@@ -55,17 +45,12 @@ When you've got the release announcement set, copy it to the description of the 
 ## Credentials needed
 
 1. Ability to edit milestones for the `ratpack/ratpack` GitHub project (it might be that only admins can do this, not sure)
-1. Credentials for oss.jfrog.org
-    1. This is your Bintray account - use the Bintray UI to ask for write permissions to the io.ratpack group in oss.jfrog.org
 1. GPG credentials/config
-    1. We use the Gradle Signing Plugin to sign the artifacts (we don't let Bintray do this) - See [the Gradle docs](https://docs.gradle.org/current/userguide/signing_plugin.html#N15692) for how to set this up
+    1. We use the Gradle Signing Plugin to sign the artifacts - See [the Gradle docs](https://docs.gradle.org/current/userguide/signing_plugin.html#N15692) for how to set this up
     1. One gotcha is forgetting to distribute your public key.  See [here](http://blog.sonatype.com/2010/01/how-to-generate-pgp-signatures-with-maven/#.U9rkY2MSS6N) for more info.  If you don't do this you will get problems when syncing to Maven central.
 1. oss.sonatype.org credentials
-    1. The sync from Bintray to Central requires an account with oss.sonatype.org
     1. Create an account [for oss.sonatype.org](https://issues.sonatype.org/secure/Signup!default.jspa)
     1. Add a comment to [this JIRA ticket](https://issues.sonatype.org/browse/OSSRH-8283) with your new account, asking for permission to publish to `io.ratpack`.
-1. Bintray credentials/config
-    1. You also need Bintray credentials to publish to the Gradle Plugin Portal repo.  You need to be a member of the Ratpack organization with permission to publish to the gradle-plugins-meta repo.
-    1. Create a gradle.properties file in the root of the Ratpack project and add properties for `ratpackBintrayUser` and `ratpackBintrayApiKey` with your Bintray details.  This file does not get committed.
+    1. Add to ~/.gradle/gradle.properties as `ratpackOssrhUsername` and `ratpackOssrhPassword`
 1. Gradle Plugin Portal config
     1. Access to the `ratpack_team` publish key and secret. (Ask John or Jeff)

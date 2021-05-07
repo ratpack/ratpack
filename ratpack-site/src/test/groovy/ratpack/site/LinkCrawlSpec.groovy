@@ -49,10 +49,6 @@ class LinkCrawlSpec extends BaseRatpackSpec {
     ]
 
     def crawler = new Crawler(aut.address.toString()) {
-      boolean shouldUseHeadRequest(Link url) {
-        return url.uri.host != "bintray.com" && super.shouldUseHeadRequest(url)
-      }
-
       @Override
       boolean isCrawlable(Link link) {
         if (link.uri.path.startsWith("/manual") && !link.uri.path.startsWith("/manual/${RatpackVersion.version - "-SNAPSHOT"}")) {

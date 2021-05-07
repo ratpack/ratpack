@@ -214,15 +214,6 @@ blockquote {
 
 #page-footer {
   clear: both;
-  .credits {
-    text-align: center;
-    @include margin-leader(1, $footer-font-size);
-    a {
-      border-bottom: none;
-      @include rem(margin-right, 1rem);
-      @include grayscale-until-hovered;
-    }
-  }
 
   background-color: $black;
 
@@ -237,7 +228,6 @@ blockquote {
         margin-left: $footer-image-width;
       }
 
-      min-height: $footer-image-height + $credits-height;
       background: {
         image: simple-image-url($footer-image);
         position: top left;
