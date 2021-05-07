@@ -371,3 +371,9 @@ def publication = publications.create("main", MavenPublication) {
 extensions.findByType(SigningExtension).with {
   it.sign(publication)
 }
+
+configurations.create("zip")
+
+artifacts {
+  zip manualZip
+}
