@@ -20,6 +20,7 @@ import com.google.common.net.HttpHeaders;
 import com.newrelic.api.agent.HeaderType;
 import ratpack.core.http.Response;
 
+@SuppressWarnings("deprecation")
 public class RatpackResponse implements com.newrelic.api.agent.Response {
 
   private final Response response;
