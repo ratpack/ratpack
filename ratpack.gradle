@@ -1,6 +1,6 @@
 allprojects {
   group = "io.ratpack"
-  version = "1.9.0-rc-2"
+  version = "1.9.0-SNAPSHOT"
 }
 
 ext {
