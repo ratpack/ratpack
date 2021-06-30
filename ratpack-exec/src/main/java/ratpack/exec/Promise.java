@@ -22,15 +22,7 @@ import ratpack.exec.internal.DefaultExecution;
 import ratpack.exec.internal.DefaultPromise;
 import ratpack.exec.util.Promised;
 import ratpack.exec.util.retry.RetryPolicy;
-
-import ratpack.func.Action;
-import ratpack.func.BiAction;
-import ratpack.func.BiFunction;
-import ratpack.func.Block;
-import ratpack.func.Factory;
-import ratpack.func.Function;
-import ratpack.func.Pair;
-import ratpack.func.Predicate;
+import ratpack.func.*;
 import ratpack.util.Exceptions;
 
 import java.time.Duration;
@@ -384,36 +376,26 @@ public interface Promise<T> {
     return transform(up -> down ->
       Promise.async(up).connect(down.onError(throwable -> {
         if (predicate.apply(throwable)) {
-          try {
-            Promise.<Void>sync(() -> {
-              errorHandler.execute(throwable);
-              return null;
-            })
-              .connect(new Downstream<Void>() {
-                @Override
-                public void success(Void value) {
-                  down.complete();
-                }
+          Promise.<Void>sync(() -> {
+            errorHandler.execute(throwable);
+            return null;
+          })
+            .connect(new Downstream<Void>() {
+              @Override
+              public void success(Void value) {
+                down.complete();
+              }
 
-                @Override
-                public void error(Throwable e) {
-                  if (e != throwable) {
-                    e.addSuppressed(throwable);
-                  }
-                  down.error(e);
-                }
+              @Override
+              public void error(Throwable e) {
+                down.error(e);
+              }
 
-                @Override
-                public void complete() {
-                  down.complete();
-                }
-              });
-          } catch (Throwable e) {
-            if (e != throwable) {
-              e.addSuppressed(throwable);
-            }
-            down.error(e);
-          }
+              @Override
+              public void complete() {
+                down.complete();
+              }
+            });
         } else {
           down.error(throwable);
         }
@@ -1931,7 +1913,8 @@ public interface Promise<T> {
           try {
             listener.execute(Result.error(throwable));
           } catch (Exception e) {
-            throwable.addSuppressed(e);
+            down.error(e);
+            return;
           }
           down.error(throwable);
         }
@@ -2091,8 +2074,8 @@ public interface Promise<T> {
         public void error(Throwable throwable) {
           try {
             closeable.close();
-          } catch (Exception e) {
-            throwable.addSuppressed(e);
+          } catch (Exception closerThrowable) {
+            throwable.addSuppressed(closerThrowable);
           }
           down.error(throwable);
         }
@@ -2150,9 +2133,9 @@ public interface Promise<T> {
             }
 
             @Override
-            public void error(Throwable innerThrowable) {
-              innerThrowable.addSuppressed(throwable);
-              down.error(innerThrowable);
+            public void error(Throwable closerThrowable) {
+              throwable.addSuppressed(closerThrowable);
+              down.error(throwable);
             }
 
             @Override
@@ -2264,9 +2247,6 @@ public interface Promise<T> {
           try {
             newResult = after.apply(start, originalResult);
           } catch (Throwable t) {
-            if (originalResult.isError() && originalResult.getThrowable() != t) {
-              t.addSuppressed(originalResult.getThrowable());
-            }
             down.error(t);
             return;
           }

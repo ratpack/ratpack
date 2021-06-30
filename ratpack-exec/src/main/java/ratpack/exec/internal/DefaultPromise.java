@@ -106,9 +106,6 @@ public class DefaultPromise<T> implements Promise<T> {
         try {
           delay = onError.apply(attemptNum, e);
         } catch (Throwable errorHandlerError) {
-          if (errorHandlerError != e) {
-            errorHandlerError.addSuppressed(e);
-          }
           down.error(errorHandlerError);
           return;
         }
@@ -146,9 +143,6 @@ public class DefaultPromise<T> implements Promise<T> {
             onError.execute(retryPolicy.attempts(), e);
             delay = retryPolicy.delay();
           } catch (Throwable errorHandlerError) {
-            if (errorHandlerError != e) {
-              errorHandlerError.addSuppressed(e);
-            }
             down.error(errorHandlerError);
             return;
           }

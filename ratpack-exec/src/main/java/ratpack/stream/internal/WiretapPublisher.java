@@ -99,10 +99,9 @@ public class WiretapPublisher<T> implements TransformablePublisher<T> {
       public void onError(Throwable t) {
         if (done.compareAndSet(false, true)) {
           try {
-            listener.execute(new ErrorEvent<T>(subscriptionId, t));
+            listener.execute(new ErrorEvent<>(subscriptionId, t));
           } catch (Throwable throwable) {
-            t.addSuppressed(throwable);
-            onError(t);
+            onError(throwable);
             return;
           }
           outSubscriber.onError(t);
