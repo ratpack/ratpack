@@ -22,6 +22,7 @@ import io.netty.channel.ChannelPipeline;
 import io.netty.channel.SimpleChannelInboundHandler;
 import io.netty.handler.codec.http.*;
 import io.netty.util.ReferenceCounted;
+import io.netty.util.concurrent.Future;
 import org.reactivestreams.Subscription;
 import ratpack.exec.Downstream;
 import ratpack.exec.Execution;
@@ -53,9 +54,9 @@ public class ContentStreamingRequestAction extends RequestActionSupport<Streamed
   }
 
   @Override
-  protected void doDispose(ChannelPipeline channelPipeline, boolean forceClose) {
+  protected Future<Void> doDispose(ChannelPipeline channelPipeline, boolean forceClose) {
     channelPipeline.remove(HANDLER_NAME);
-    super.doDispose(channelPipeline, forceClose);
+    return super.doDispose(channelPipeline, forceClose);
   }
 
   @Override
@@ -103,7 +104,7 @@ public class ContentStreamingRequestAction extends RequestActionSupport<Streamed
             received.forEach(ReferenceCounted::release);
           }
         });
-        success(downstream, new DefaultStreamedResponse(channelPipeline));
+        downstream.success(new DefaultStreamedResponse(channelPipeline));
       } else if (httpObject instanceof HttpContent) {
         HttpContent httpContent = ((HttpContent) httpObject).touch();
         boolean hasContent = httpContent.content().readableBytes() > 0;
@@ -127,8 +128,8 @@ public class ContentStreamingRequestAction extends RequestActionSupport<Streamed
             httpContent.release();
           }
           if (isLast) {
-            dispose(ctx.pipeline(), response);
-            write.complete();
+            dispose(ctx.pipeline(), response).
+              addListener(future -> write.complete());
           } else {
             if (write.getRequested() > 0) {
               ctx.read();
@@ -140,15 +141,19 @@ public class ContentStreamingRequestAction extends RequestActionSupport<Streamed
 
     @Override
     public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) throws Exception {
-      cause = decorateException(cause);
+      Throwable decorated = decorateException(cause);
 
-      if (write == null) {
-        error(downstream, cause);
-      } else {
-        write.error(cause);
-      }
-
-      forceDispose(ctx.pipeline());
+      forceDispose(ctx.pipeline())
+        .addListener(future -> {
+          if (!future.isSuccess()) {
+            decorated.addSuppressed(future.cause());
+          }
+          if (write == null) {
+            downstream.error(decorated);
+          } else {
+            write.error(decorated);
+          }
+        });
     }
 
     class DefaultStreamedResponse implements StreamedResponse {
@@ -190,8 +195,7 @@ public class ContentStreamingRequestAction extends RequestActionSupport<Streamed
                 httpContent.release();
               }
               if (httpContent instanceof LastHttpContent) {
-                dispose(channelPipeline, response);
-                write.complete();
+                dispose(channelPipeline, response).addListener(future -> write.complete());
               }
             }
             received.clear();

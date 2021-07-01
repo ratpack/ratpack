@@ -21,6 +21,7 @@ import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelPipeline;
 import io.netty.channel.SimpleChannelInboundHandler;
 import io.netty.handler.codec.http.FullHttpResponse;
+import io.netty.util.concurrent.Future;
 import ratpack.bytebuf.ByteBufRef;
 import ratpack.exec.Downstream;
 import ratpack.exec.Execution;
@@ -48,10 +49,10 @@ class ContentAggregatingRequestAction extends RequestActionSupport<ReceivedRespo
   }
 
   @Override
-  protected void doDispose(ChannelPipeline channelPipeline, boolean forceClose) {
+  protected Future<Void> doDispose(ChannelPipeline channelPipeline, boolean forceClose) {
     channelPipeline.remove(AGGREGATOR_HANDLER_NAME);
     channelPipeline.remove(RESPONSE_HANDLER_NAME);
-    super.doDispose(channelPipeline, forceClose);
+    return super.doDispose(channelPipeline, forceClose);
   }
 
   @Override
@@ -62,22 +63,31 @@ class ContentAggregatingRequestAction extends RequestActionSupport<ReceivedRespo
       @Override
       protected void channelRead0(ChannelHandlerContext ctx, FullHttpResponse response) throws Exception {
         response.touch();
-        dispose(ctx.pipeline(), response);
-
-        ByteBuf content = new ByteBufRef(response.content());
-        execution.onComplete(() -> {
-          if (content.refCnt() > 0) {
-            content.release();
+        dispose(ctx.pipeline(), response).addListener(future -> {
+          if (future.isSuccess()) {
+            ByteBuf content = new ByteBufRef(response.content());
+            execution.onComplete(() -> {
+              if (content.refCnt() > 0) {
+                content.release();
+              }
+            });
+            downstream.success(toReceivedResponse(response, content));
+          } else {
+            downstream.error(future.cause());
           }
         });
-        success(downstream, toReceivedResponse(response, content));
+
       }
 
       @Override
       public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) throws Exception {
-        cause = decorateException(cause);
-        error(downstream, cause);
-        forceDispose(ctx.pipeline());
+        Throwable decorated = decorateException(cause);
+        forceDispose(ctx.pipeline()).addListener(future -> {
+          if (!future.isSuccess()) {
+            decorated.addSuppressed(future.cause());
+          }
+          downstream.error(decorated);
+        });
       }
     });
   }

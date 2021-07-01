@@ -124,7 +124,7 @@ public class NettyHandlerAdapter extends ChannelInboundHandlerAdapter {
     Headers requestHeaders = new NettyHeadersBackedHeaders(nettyRequest.headers());
 
     //Find the content length we will use this as an indicator of a body
-    Long contentLength = HttpUtil.getContentLength(nettyRequest, -1L);
+    long contentLength = HttpUtil.getContentLength(nettyRequest, -1L);
     String transferEncoding = requestHeaders.get(HttpHeaderNames.TRANSFER_ENCODING);
 
     //If there is a content length or transfer encoding that indicates there is a body
