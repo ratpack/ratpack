@@ -17,7 +17,6 @@
 package ratpack.core.http
 
 import io.netty.buffer.Unpooled
-import io.netty.handler.codec.PrematureChannelClosureException
 import io.netty.handler.codec.http.HttpResponseStatus
 import ratpack.exec.Blocking
 import ratpack.exec.Execution
@@ -62,9 +61,9 @@ class ResponseBodyReleaseSpec extends RatpackGroovyDslSpec {
     executionCompletionReportingHandler {
       Blocking.op(Block.noop()) //jump off thread for the chanel close event to be processed
         .then {
-        connectionTerminated.await()
-        response.send(buffer)
-      }
+          connectionTerminated.await()
+          response.send(buffer)
+        }
     }
 
     when:
@@ -99,19 +98,16 @@ class ResponseBodyReleaseSpec extends RatpackGroovyDslSpec {
   }
 
   def "body is released if there is an error while sending headers"() {
-    given:
+    when:
     executionCompletionReportingHandler {
       response.status(new TransmissionErrorCausingStatus())
       response.send(buffer)
     }
 
-    when:
-    get()
-
     then:
-    thrown(PrematureChannelClosureException)
+    get().status == Status.INTERNAL_SERVER_ERROR
 
-    and:
+    when:
     requestExecutionCompleted.await()
 
     then:

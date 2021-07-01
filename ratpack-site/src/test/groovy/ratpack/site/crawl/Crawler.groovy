@@ -38,7 +38,7 @@ import static org.codehaus.groovy.runtime.StackTraceUtils.deepSanitize
 @InheritedTimeout(value = 30, unit = TimeUnit.MINUTES) // not actually used, test does its own timeout
 abstract class Crawler {
 
-  final int numThreads = Runtime.getRuntime().availableProcessors() * 4
+  final int numThreads = Boolean.getBoolean("cloudCi") ? Runtime.getRuntime().availableProcessors() : Runtime.getRuntime().availableProcessors() * 4
   final int retryLimit = 3
   final int retryWaitMillis = 200
   final int timeoutMins = 10

@@ -274,12 +274,13 @@ class RequestBodyReadingSpec extends RatpackGroovyDslSpec {
 
   def "can take custom action on request body too large"() {
     when:
+    def called = false
     serverConfig {
       maxContentLength 16
     }
     handlers {
       post { ctx ->
-        request.getBody({ ctx.render("foo") }).then { body ->
+        request.getBody({ called = true; render "ok" }).then { body ->
           response.send new String(body.bytes, "utf8")
         }
       }
@@ -288,10 +289,9 @@ class RequestBodyReadingSpec extends RatpackGroovyDslSpec {
     then:
     requestSpec { RequestSpec requestSpec -> requestSpec.body.text("bar".multiply(16)) }
     with(post()) {
-      statusCode == 200
-      body.text == "foo"
-      headers.connection == "close"
+      status == Status.PAYLOAD_TOO_LARGE
     }
+    called
   }
 
   def "can read large request body over same connection"() {

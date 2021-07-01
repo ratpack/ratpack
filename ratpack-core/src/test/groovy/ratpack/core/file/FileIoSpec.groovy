@@ -18,6 +18,7 @@ package ratpack.core.file
 
 import io.netty.buffer.ByteBufAllocator
 import io.netty.buffer.Unpooled
+import ratpack.core.http.Status
 import ratpack.exec.stream.Streams
 import ratpack.test.internal.RatpackGroovyDslSpec
 
@@ -76,7 +77,7 @@ class FileIoSpec extends RatpackGroovyDslSpec {
     when:
     handlers {
       post {
-        request.maxContentLength = n / 2
+        request.maxContentLength = (long) (n / 2)
         FileIo.write(request.bodyStream, FileIo.open(file, CREATE_NEW, WRITE))
           .onError { render it.toString() }
           .then { render "bad" }
@@ -84,8 +85,8 @@ class FileIoSpec extends RatpackGroovyDslSpec {
     }
 
     then:
-    def text = request { it.post().body.text(content) }.body.text
-    text == "ratpack.core.http.RequestBodyTooLargeException: the request content length of 10000 exceeded the allowed maximum of 5000"
+    def response = request { it.post().body.text(content) }
+    response.status == Status.PAYLOAD_TOO_LARGE
 
     and:
     // We opened the file, but didn't write anything.

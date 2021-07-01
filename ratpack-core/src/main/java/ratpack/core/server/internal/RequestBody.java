@@ -43,7 +43,7 @@ public class RequestBody implements RequestBodyReader, RequestBodyAccumulator {
   private static final HttpResponse CONTINUE_RESPONSE = new DefaultFullHttpResponse(HttpVersion.HTTP_1_1, HttpResponseStatus.CONTINUE, Unpooled.EMPTY_BUFFER);
 
   enum State {
-    UNREAD, READING, READ
+    UNREAD, READING, READ, TOO_LARGE
   }
 
   private final List<ByteBuf> received = new ArrayList<>();
@@ -140,6 +140,7 @@ public class RequestBody implements RequestBodyReader, RequestBodyAccumulator {
 
   private void tooLarge(Block onTooLarge, long length, Downstream<? super ByteBuf> downstream) {
     discard();
+    state = State.TOO_LARGE;
     if (onTooLarge == DEFAULT_TOO_LARGE_SENTINEL) {
       downstream.error(tooLargeException(length));
     } else {
@@ -182,6 +183,7 @@ public class RequestBody implements RequestBodyReader, RequestBodyAccumulator {
 
       if (isExceedsMaxContentLength(advertisedLength) || isExceedsMaxContentLength(receivedLength)) {
         discard();
+        state = State.TOO_LARGE;
         throw tooLargeException(Math.max(advertisedLength, receivedLength));
       }
 
@@ -207,13 +209,14 @@ public class RequestBody implements RequestBodyReader, RequestBodyAccumulator {
                   if (readableBytes > 0) {
                     receivedLength += readableBytes;
                     if (isExceedsMaxContentLength(receivedLength)) {
+                      state = State.TOO_LARGE;
                       byteBuf.release();
                       discard();
                       listener = null;
                       write.error(tooLargeException(RequestBody.this.receivedLength));
                       return;
                     } else {
-                      write.item(byteBuf);
+                      write.item(byteBuf.touch());
                     }
                   } else {
                     byteBuf.release();
@@ -268,7 +271,7 @@ public class RequestBody implements RequestBodyReader, RequestBodyAccumulator {
 
   @Override
   public void add(HttpContent httpContent) {
-    if (state == State.READ) {
+    if (state == State.READ || state == State.TOO_LARGE) {
       httpContent.release();
     } else {
       if (httpContent instanceof LastHttpContent) {
@@ -293,10 +296,6 @@ public class RequestBody implements RequestBodyReader, RequestBodyAccumulator {
     } else {
       byteBuf.release();
     }
-  }
-
-  public boolean isUnread() {
-    return state == State.UNREAD;
   }
 
   private void release() {
@@ -331,53 +330,68 @@ public class RequestBody implements RequestBodyReader, RequestBodyAccumulator {
     }
   }
 
-  public void drain(Consumer<? super Throwable> resume) {
-    release();
+  enum DrainOutcome {
+    DRAINED,
+    TOO_LARGE,
+    EARLY_CLOSE;
 
-    if (!isUnread()) {
-      throw new RequestBodyAlreadyReadException();
-    }
-
-    state = State.READING;
-    if (earlyClose) {
-      discard();
-      resume.accept(null);
-    } else if (advertisedLength > maxContentLength || receivedLength > maxContentLength) {
-      discard();
-      resume.accept(tooLargeException(advertisedLength));
-    } else if (receivedLast || isContinueExpected()) {
-      release(); // don't close connection, we can reuse
-      state = State.READ;
-      resume.accept(null);
-    } else {
-      listener = new Listener() {
-        @Override
-        public void onContent(HttpContent httpContent) {
-          httpContent.release();
-          if ((receivedLength += httpContent.content().readableBytes()) > maxContentLength) {
-            state = State.READ;
-            listener = null;
-            resume.accept(tooLargeException(RequestBody.this.receivedLength));
-          } else if (httpContent instanceof LastHttpContent) {
-            state = State.READ;
-            listener = null;
-            resume.accept(null);
-          } else {
-            ctx.read();
-          }
-        }
-
-        @Override
-        public void onEarlyClose() {
-          resume.accept(null);
-        }
-      };
-
-      // Don't use startBodyRead as we don't want to issue continue
-      ctx.read();
-    }
-
+    final Promise<DrainOutcome> promise = Promise.value(this);
   }
+
+  public Promise<DrainOutcome> drain() {
+    return Promise.flatten(() -> {
+      release();
+      if (state == State.READ) {
+        return DrainOutcome.DRAINED.promise;
+      }
+      if (state == State.TOO_LARGE) {
+        return DrainOutcome.TOO_LARGE.promise;
+      }
+
+      state = State.READING;
+      if (earlyClose) {
+        discard();
+        return DrainOutcome.EARLY_CLOSE.promise;
+      } else if (receivedLast || isContinueExpected()) {
+        release(); // don't close connection, we can reuse
+        state = State.READ;
+        return DrainOutcome.DRAINED.promise;
+      } else if (advertisedLength > maxContentLength || receivedLength > maxContentLength) {
+        discard();
+        state = State.TOO_LARGE;
+        return DrainOutcome.TOO_LARGE.promise;
+      } else {
+        return Promise.async(down -> {
+          listener = new Listener() {
+            @Override
+            public void onContent(HttpContent httpContent) {
+              httpContent.release();
+              if ((receivedLength += httpContent.content().readableBytes()) > maxContentLength) {
+                state = State.TOO_LARGE;
+                listener = null;
+                down.success(DrainOutcome.TOO_LARGE);
+              } else if (httpContent instanceof LastHttpContent) {
+                state = State.READ;
+                listener = null;
+                down.success(DrainOutcome.DRAINED);
+              } else {
+                ctx.read();
+              }
+            }
+
+            @Override
+            public void onEarlyClose() {
+              down.success(DrainOutcome.EARLY_CLOSE);
+            }
+          };
+
+          // Don't use startBodyRead as we don't want to issue continue
+          ctx.read();
+        });
+      }
+    });
+  }
+
 
   @Override
   public long getContentLength() {

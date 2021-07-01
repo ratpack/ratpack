@@ -22,7 +22,7 @@ import io.netty.buffer.ByteBufAllocator;
 import io.netty.handler.codec.http.HttpResponseStatus;
 import io.netty.handler.codec.http.cookie.Cookie;
 import io.netty.util.CharsetUtil;
-import org.reactivestreams.Subscriber;
+import org.reactivestreams.Publisher;
 import org.slf4j.LoggerFactory;
 import ratpack.core.http.internal.*;
 import ratpack.func.Nullable;
@@ -116,7 +116,7 @@ public class DefaultHandlingResult implements HandlingResult {
       }
 
       @Override
-      public Subscriber<ByteBuf> transmitter(HttpResponseStatus status) {
+      public void transmit(HttpResponseStatus status, Publisher<? extends ByteBuf> publisher) {
         throw new UnsupportedOperationException("streaming not supported while unit testing");
       }
 

@@ -284,7 +284,7 @@ public class DefaultResponse implements Response {
   public void sendStream(Publisher<? extends ByteBuf> stream) {
     finalizeResponse(() -> {
       setCookieHeader();
-      stream.subscribe(responseTransmitter.transmitter(status.getNettyStatus()));
+      responseTransmitter.transmit(status.getNettyStatus(), stream);
     }, t -> {
       throw t;
     });

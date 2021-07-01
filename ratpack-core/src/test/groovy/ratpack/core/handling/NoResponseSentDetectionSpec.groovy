@@ -16,6 +16,7 @@
 
 package ratpack.core.handling
 
+import ratpack.core.http.Status
 import ratpack.exec.Promise
 import ratpack.test.internal.RatpackGroovyDslSpec
 
@@ -36,7 +37,7 @@ class NoResponseSentDetectionSpec extends RatpackGroovyDslSpec {
     }
 
     then:
-    getText() == "No response sent for GET request to / (last handler: closure at line 33 of NoResponseSentDetectionSpec.groovy)"
+    getText() == "No response sent for GET request to / (last handler: closure at line 34 of NoResponseSentDetectionSpec.groovy)"
     response.statusCode == 500
   }
 
@@ -50,7 +51,7 @@ class NoResponseSentDetectionSpec extends RatpackGroovyDslSpec {
     }
 
     then:
-    getText() == "No response sent for GET request to / (last handler: closure at line 48 of NoResponseSentDetectionSpec.groovy)"
+    getText() == "No response sent for GET request to / (last handler: closure at line 49 of NoResponseSentDetectionSpec.groovy)"
     response.statusCode == 500
   }
 
@@ -84,7 +85,7 @@ class NoResponseSentDetectionSpec extends RatpackGroovyDslSpec {
     }
 
     then:
-    getText() == "No response sent for GET request to / (last handler: anonymous class ratpack.core.handling.NoResponseSentDetectionSpec\$1 at approximately line 81 of NoResponseSentDetectionSpec.groovy)"
+    getText() == "No response sent for GET request to / (last handler: anonymous class ratpack.core.handling.NoResponseSentDetectionSpec\$1 at approximately line 82 of NoResponseSentDetectionSpec.groovy)"
     response.statusCode == 500
   }
 
@@ -101,7 +102,7 @@ class NoResponseSentDetectionSpec extends RatpackGroovyDslSpec {
       it.post().body.text("1" * 10000)
     }
 
-    r.body.text == "No response sent for POST request to / (last handler: closure at line 94 of NoResponseSentDetectionSpec.groovy)"
+    r.body.text == "No response sent for POST request to / (last handler: closure at line 95 of NoResponseSentDetectionSpec.groovy)"
     response.statusCode == 500
   }
 
@@ -114,12 +115,10 @@ class NoResponseSentDetectionSpec extends RatpackGroovyDslSpec {
       }
     }
 
-    then:
-    def r = request {
-      it.post().body.text("1" * 10000)
-    }
+    and:
+    request { it.post().body.text("1" * 10000) }
 
-    r.body.text == "No response sent for POST request to / (last handler: closure at line 112 of NoResponseSentDetectionSpec.groovy)"
-    response.statusCode == 500
+    then:
+    response.status == Status.PAYLOAD_TOO_LARGE
   }
 }

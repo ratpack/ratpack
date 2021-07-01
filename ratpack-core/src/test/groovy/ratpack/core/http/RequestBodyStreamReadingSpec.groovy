@@ -22,6 +22,7 @@ import org.apache.commons.lang3.RandomStringUtils
 import org.reactivestreams.Publisher
 import org.reactivestreams.Subscriber
 import org.reactivestreams.Subscription
+import ratpack.core.file.FileIo
 import ratpack.core.http.client.RequestSpec
 import ratpack.exec.Blocking
 import ratpack.exec.Promise
@@ -33,6 +34,7 @@ import spock.util.concurrent.BlockingVariable
 
 import java.nio.charset.Charset
 import java.nio.charset.StandardCharsets
+import java.nio.file.StandardOpenOption
 
 class RequestBodyStreamReadingSpec extends RatpackGroovyDslSpec {
 
@@ -126,19 +128,23 @@ class RequestBodyStreamReadingSpec extends RatpackGroovyDslSpec {
   def "can get large request body as bytes"() {
     given:
     def string = "a" * 1024 * 300
+    def outFile = baseDir.path("out")
 
     when:
     handlers {
       post {
-        render ResponseChunks.bufferChunks("text/plain", request.bodyStream)
+        FileIo.write(request.bodyStream, FileIo.open(outFile, StandardOpenOption.WRITE, StandardOpenOption.CREATE)).then {
+          render "done"
+        }
       }
     }
 
     then:
     requestSpec { requestSpec ->
-      requestSpec.body.stream({ it << string.getBytes("utf8") })
+      requestSpec.body.text(string)
     }
-    postText() == string
+    postText() == "done"
+    outFile.text == string
   }
 
   def "get bytes on get request"() {

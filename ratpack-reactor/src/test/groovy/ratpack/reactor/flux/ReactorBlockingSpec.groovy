@@ -66,7 +66,7 @@ class ReactorBlockingSpec extends RatpackGroovyDslSpec {
         }) map({
           it * 2
         } as Function) map({
-          throw new Exception("!!!!")
+          throw new RuntimeException("!!!!")
         } as Function) subscribe{
           render "shouldn't happen"
         }
@@ -74,7 +74,7 @@ class ReactorBlockingSpec extends RatpackGroovyDslSpec {
     }
 
     then:
-    getText("a").startsWith new Exception("!!!!").toString()
+    getText("a").startsWith new RuntimeException("!!!!").toString()
     response.statusCode == 500
   }
 

@@ -51,8 +51,7 @@ class ResponseStreamingSpec extends RatpackGroovyDslSpec {
 
     then:
     def r = request { it.post().body.text("a" * 100_000) }
-    r.status.code == 200
-    r.body.text == "abc" * 3
+    r.status == Status.PAYLOAD_TOO_LARGE
   }
 
   def "unread request body is silently discarded when streaming a response"() {
@@ -190,7 +189,7 @@ class ResponseStreamingSpec extends RatpackGroovyDslSpec {
             it.headers.add("bar", "1")
           }
         }
-        request.maxContentLength = 12
+        request.maxContentLength = 100_000
         render stringChunks(
           publish(["abc"] * 3)
         )

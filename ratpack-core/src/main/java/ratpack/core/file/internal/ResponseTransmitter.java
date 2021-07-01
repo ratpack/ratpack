@@ -18,7 +18,7 @@ package ratpack.core.file.internal;
 
 import io.netty.buffer.ByteBuf;
 import io.netty.handler.codec.http.HttpResponseStatus;
-import org.reactivestreams.Subscriber;
+import org.reactivestreams.Publisher;
 import ratpack.core.handling.RequestOutcome;
 import ratpack.func.Action;
 
@@ -30,7 +30,7 @@ public interface ResponseTransmitter {
 
   void transmit(HttpResponseStatus status, Path file);
 
-  Subscriber<ByteBuf> transmitter(HttpResponseStatus status);
+  void transmit(HttpResponseStatus status, Publisher<? extends ByteBuf> publisher);
 
   void addOutcomeListener(Action<? super RequestOutcome> action);
 

@@ -84,9 +84,6 @@ tasks.withType(Test).configureEach {
 
   if (isCloudCi) {
     systemProperty "cloudCi", "true"
-    testLogging {
-      events "started", "failed"
-    }
   }
 
   doFirst {
