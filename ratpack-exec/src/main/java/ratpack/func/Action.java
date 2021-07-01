@@ -169,6 +169,7 @@ public interface Action<T> {
    *   }
    * }
    * }</pre>
+   *
    * @param t the argument to execute the given action with
    * @param action the action to execute with the given argument
    * @param <T> the type of the argument
@@ -198,6 +199,7 @@ public interface Action<T> {
    *   }
    * }
    * }</pre>
+   *
    * @param o the argument to execute the given action with
    * @param <O> the type of the argument
    * @return the given argument (i.e. {@code o})
@@ -283,14 +285,7 @@ public interface Action<T> {
    */
   static Action<Throwable> beforeThrow(Action<? super Throwable> action) {
     return t -> {
-      try {
-        action.execute(t);
-      } catch (Exception e) {
-        if (t != e) {
-          e.addSuppressed(t);
-        }
-        throw e;
-      }
+      action.execute(t);
       throw Exceptions.toException(t);
     };
   }
@@ -350,8 +345,8 @@ public interface Action<T> {
    * @param conditions the conditions
    * @param <I> the input type
    * @return a conditional action
-   * @see #conditional(Action, Action)
    * @throws Exception any thrown by {@code conditions}
+   * @see #conditional(Action, Action)
    * @since 1.5
    */
   static <I> Action<I> conditional(Action<? super ConditionalSpec<I>> conditions) throws Exception {
@@ -369,8 +364,8 @@ public interface Action<T> {
    * @param conditions the conditions
    * @param <I> the input type
    * @return a conditional action
-   * @see #conditional(Action)
    * @throws Exception any thrown by {@code conditions}
+   * @see #conditional(Action)
    * @since 1.5
    */
   static <I> Action<I> conditional(Action<? super I> onElse, Action<? super ConditionalSpec<I>> conditions) throws Exception {

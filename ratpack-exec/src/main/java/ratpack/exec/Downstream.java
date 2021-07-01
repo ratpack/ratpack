@@ -109,7 +109,6 @@ public interface Downstream<T> {
         try {
           action.execute(throwable);
         } catch (Exception e) {
-          e.addSuppressed(throwable);
           Downstream.this.error(e);
         }
       }
