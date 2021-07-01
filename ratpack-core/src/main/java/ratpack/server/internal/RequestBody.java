@@ -349,10 +349,10 @@ public class RequestBody implements RequestBodyReader, RequestBodyAccumulator {
       }
 
       state = State.READING;
-      if (earlyClose) {
-        discard();
-        return DrainOutcome.EARLY_CLOSE.promise;
-      } else if (receivedLast || isContinueExpected()) {
+      if (receivedLast || isContinueExpected()) {
+        if (isContinueExpected()) {
+          ctx.pipeline().fireUserEventTriggered(HttpExpectationFailedEvent.INSTANCE);
+        }
         release(); // don't close connection, we can reuse
         state = State.READ;
         return DrainOutcome.DRAINED.promise;
@@ -381,7 +381,7 @@ public class RequestBody implements RequestBodyReader, RequestBodyAccumulator {
 
             @Override
             public void onEarlyClose() {
-              down.success(DrainOutcome.EARLY_CLOSE);
+              down.success(DrainOutcome.DRAINED);
             }
           };
 

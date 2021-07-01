@@ -142,10 +142,7 @@ public class DefaultResponseTransmitter implements ResponseTransmitter {
             forceCloseWithResponse(HttpResponseStatus.INTERNAL_SERVER_ERROR);
           })
           .then(outcome -> {
-            if (outcome == RequestBody.DrainOutcome.EARLY_CLOSE) {
-              bodyWriter.dispose();
-              forceCloseWithResponse(HttpResponseStatus.INTERNAL_SERVER_ERROR);
-            } else if (outcome == RequestBody.DrainOutcome.TOO_LARGE) {
+            if (outcome == RequestBody.DrainOutcome.TOO_LARGE) {
               bodyWriter.dispose();
               forceCloseWithResponse(HttpResponseStatus.REQUEST_ENTITY_TOO_LARGE);
             } else {

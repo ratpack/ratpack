@@ -20,6 +20,7 @@ import io.netty.buffer.ByteBuf;
 import io.netty.handler.codec.http.HttpHeaderNames;
 import io.netty.handler.ssl.SslContext;
 import io.netty.handler.ssl.SslContextBuilder;
+import org.reactivestreams.Publisher;
 import ratpack.func.Action;
 import ratpack.func.Factory;
 import ratpack.func.Function;
@@ -312,9 +313,9 @@ public interface RequestSpec {
    * <p>
    * This value defaults to 30 seconds.
    *
-   * @since 1.1
    * @param duration the socket connection timeout
    * @return {@code this}
+   * @since 1.1
    */
   RequestSpec connectTimeout(Duration duration);
 
@@ -423,6 +424,31 @@ public interface RequestSpec {
      * @throws Exception any thrown by action
      */
     Body stream(Action<? super OutputStream> action) throws Exception;
+
+    /**
+     * Specifies that the request body will be supplied by the given publisher, with the given content length.
+     * <p>
+     * A maximum length of {@code contentLength} will be sent.
+     * Any surplus bytes emitted by the publisher will be discarded.
+     * If the publisher emits fewer bytes than {@code contentLength}, the connection will be closed
+     * and an exception propagated.
+     * <p>
+     * The publisher may be subscribed to multiple times, if the request is redirected.
+     *
+     * @since 1.10
+     */
+    Body stream(Publisher<? extends ByteBuf> publisher, long contentLength);
+
+    /**
+     * Specifies that the request body will be supplied by the given publisher, with an unknown length.
+     * <p>
+     * The publisher may be subscribed to multiple times, if the request is redirected.
+     * <p>
+     * If the length of the content is known, prefer {@link #stream(Publisher, long)} as it is more efficient.
+     *
+     * @since 1.10
+     */
+    Body streamUnknownLength(Publisher<? extends ByteBuf> publisher);
 
     /**
      * Specifies the request body as a byte buffer.
