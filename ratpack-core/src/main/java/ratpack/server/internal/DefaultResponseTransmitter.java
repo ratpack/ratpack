@@ -17,21 +17,23 @@
 package ratpack.server.internal;
 
 import io.netty.buffer.ByteBuf;
-import io.netty.channel.*;
+import io.netty.buffer.Unpooled;
+import io.netty.channel.Channel;
+import io.netty.channel.ChannelFutureListener;
+import io.netty.channel.DefaultFileRegion;
 import io.netty.handler.codec.http.*;
 import io.netty.handler.ssl.SslHandler;
 import io.netty.handler.stream.ChunkedNioStream;
 import io.netty.util.AttributeKey;
-import io.netty.util.ReferenceCountUtil;
 import io.netty.util.concurrent.Future;
 import io.netty.util.concurrent.GenericFutureListener;
+import org.reactivestreams.Publisher;
 import org.reactivestreams.Subscriber;
 import org.reactivestreams.Subscription;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import ratpack.api.Nullable;
 import ratpack.exec.Blocking;
-import ratpack.exec.Execution;
 import ratpack.exec.Promise;
 import ratpack.file.internal.ResponseTransmitter;
 import ratpack.func.Action;
@@ -39,12 +41,9 @@ import ratpack.handling.RequestOutcome;
 import ratpack.handling.internal.DefaultRequestOutcome;
 import ratpack.handling.internal.DoubleTransmissionException;
 import ratpack.http.Request;
-import ratpack.http.RequestBodyTooLargeException;
 import ratpack.http.SentResponse;
 import ratpack.http.internal.*;
 
-import java.io.IOException;
-import java.io.UncheckedIOException;
 import java.nio.channels.FileChannel;
 import java.nio.file.*;
 import java.time.Clock;
@@ -54,7 +53,6 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicBoolean;
-import java.util.function.Consumer;
 
 public class DefaultResponseTransmitter implements ResponseTransmitter {
 
@@ -62,8 +60,17 @@ public class DefaultResponseTransmitter implements ResponseTransmitter {
 
   private final static Logger LOGGER = LoggerFactory.getLogger(ResponseTransmitter.class);
 
+
   private static final Runnable NOOP_RUNNABLE = () -> {
   };
+  private static final LastHttpContentResponseWriter EMPTY_BODY = new LastHttpContentResponseWriter(LastHttpContent.EMPTY_LAST_CONTENT);
+  private static final DefaultHttpHeaders ERROR_RESPONSE_HEADERS = new DefaultHttpHeaders();
+
+  static {
+    ERROR_RESPONSE_HEADERS.set(HttpHeaderNames.CONTENT_LENGTH, 0);
+    ERROR_RESPONSE_HEADERS.set(HttpHeaderNames.CONNECTION, HttpHeaderValues.CLOSE);
+  }
+
   private final AtomicBoolean transmitted;
   private final Channel channel;
   private final Clock clock;
@@ -71,10 +78,10 @@ public class DefaultResponseTransmitter implements ResponseTransmitter {
   private final HttpHeaders responseHeaders;
   private final RequestBody requestBody;
   private final boolean isSsl;
+  private final HttpRequest nettyRequest;
 
   private List<Action<? super RequestOutcome>> outcomeListeners;
 
-  private boolean isKeepAlive;
   private Instant stopTime;
 
   private Runnable onWritabilityChanged = NOOP_RUNNABLE;
@@ -94,66 +101,128 @@ public class DefaultResponseTransmitter implements ResponseTransmitter {
     this.ratpackRequest = ratpackRequest;
     this.responseHeaders = responseHeaders;
     this.requestBody = requestBody;
-    this.isKeepAlive = HttpUtil.isKeepAlive(nettyRequest);
+    this.nettyRequest = nettyRequest;
     this.isSsl = channel.pipeline().get(SslHandler.class) != null;
   }
 
-  private void drainRequestBody(Consumer<Throwable> next) {
-    if (requestBody == null || !requestBody.isUnread()) {
-      next.accept(null);
-    } else {
-      if (Execution.isActive()) {
-        Promise.async(down ->
-          requestBody.drain(e -> {
-            if (e == null) {
-              down.success(null);
-            } else {
-              down.error(e);
-            }
-          })
+  interface ResponseWriter {
+    Promise<Boolean> write(Channel channel);
 
-        )
-          .onError(next::accept)
-          .then(n -> next.accept(null));
-      } else {
-        requestBody.drain(next);
-      }
+    default void dispose() {
     }
   }
 
-  private ChannelFuture pre(HttpResponseStatus responseStatus, boolean flushHeaders) {
+  static class LastHttpContentResponseWriter implements ResponseWriter {
+    private final LastHttpContent content;
+
+    public LastHttpContentResponseWriter(LastHttpContent content) {
+      this.content = content;
+    }
+
+    public Promise<Boolean> write(Channel channel) {
+      return Promise.async(down ->
+        channel.writeAndFlush(content).addListener(future -> down.success(future.isSuccess()))
+      );
+    }
+
+    public void dispose() {
+      content.release();
+    }
+  }
+
+  private void sendResponse(HttpResponseStatus responseStatus, ResponseWriter bodyWriter) {
     if (transmitted.compareAndSet(false, true)) {
       stopTime = clock.instant();
-      try {
-        if (responseHeaders.contains(HttpHeaderNames.CONNECTION, HttpHeaderValues.CLOSE, true)) {
-          isKeepAlive = false;
-        } else if (!isKeepAlive) {
-          forceCloseConnection();
-        }
-
-        HttpResponse headersResponse = new CustomHttpResponse(responseStatus, responseHeaders);
-        if (mustHaveBody(responseStatus) && isKeepAlive && HttpUtil.getContentLength(headersResponse, -1) == -1 && !HttpUtil.isTransferEncodingChunked(headersResponse)) {
-          HttpUtil.setTransferEncodingChunked(headersResponse, true);
-        }
-
-        if (channel.isOpen()) {
-          if (flushHeaders) {
-            return channel.writeAndFlush(headersResponse);
-          } else {
-            return channel.write(headersResponse);
-          }
-        } else {
-          return null;
-        }
-      } catch (Exception e) {
-        LOGGER.warn("Error finalizing response", e);
-        return null;
+      if (requestBody == null) {
+        sendResponseAfterRequestBodyDrain(responseStatus, bodyWriter);
+      } else {
+        requestBody.drain()
+          .onError(e -> {
+            LOGGER.warn("An error occurred draining the unread request body. The connection will be closed", e);
+            forceCloseWithResponse(HttpResponseStatus.INTERNAL_SERVER_ERROR);
+          })
+          .then(outcome -> {
+            if (outcome == RequestBody.DrainOutcome.EARLY_CLOSE) {
+              bodyWriter.dispose();
+              forceCloseWithResponse(HttpResponseStatus.INTERNAL_SERVER_ERROR);
+            } else if (outcome == RequestBody.DrainOutcome.TOO_LARGE) {
+              bodyWriter.dispose();
+              forceCloseWithResponse(HttpResponseStatus.REQUEST_ENTITY_TOO_LARGE);
+            } else {
+              if (outcome != RequestBody.DrainOutcome.DRAINED) {
+                throw new IllegalStateException("unhandled drain outcome");
+              }
+              sendResponseAfterRequestBodyDrain(responseStatus, bodyWriter);
+            }
+          });
       }
     } else {
       String msg = "attempt at double transmission for: " + ratpackRequest.getRawUri();
       LOGGER.warn(msg, new DoubleTransmissionException(msg));
-      return null;
+      bodyWriter.dispose();
     }
+  }
+
+  private void sendResponseAfterRequestBodyDrain(HttpResponseStatus responseStatus, ResponseWriter bodyWriter) {
+    try {
+      boolean responseRequestedConnectionClose = responseHeaders.contains(HttpHeaderNames.CONNECTION, HttpHeaderValues.CLOSE, true);
+      boolean requestRequestedConnectionClose = !HttpUtil.isKeepAlive(this.nettyRequest);
+
+      boolean keepAlive = !requestRequestedConnectionClose && !responseRequestedConnectionClose;
+      if (!keepAlive && !responseRequestedConnectionClose) {
+        forceCloseConnection();
+      }
+
+      HttpResponse headersResponse = new CustomHttpResponse(responseStatus, responseHeaders);
+      if (mustHaveBody(responseStatus) && keepAlive && HttpUtil.getContentLength(headersResponse, -1) == -1 && !HttpUtil.isTransferEncodingChunked(headersResponse)) {
+        HttpUtil.setTransferEncodingChunked(headersResponse, true);
+      }
+
+      Promise.<Boolean>async(down ->
+        channel.writeAndFlush(headersResponse)
+          .addListener(future -> down.success(future.isSuccess()))
+      )
+        .then(success -> {
+          if (success) {
+            bodyWriter.write(channel)
+              .onError(e -> {
+                LOGGER.warn("Error from response body writer", e);
+                channel.close();
+              })
+              .then(completed -> {
+                if (channel.isOpen() && completed && keepAlive) {
+                  channel.read();
+                  ConnectionIdleTimeout.of(channel).reset();
+                } else {
+                  channel.close();
+                }
+                notifyListeners(responseStatus);
+              });
+          } else {
+            bodyWriter.dispose();
+            notifyListeners(responseStatus);
+          }
+        });
+    } catch (Exception e) {
+      bodyWriter.dispose();
+      LOGGER.warn("Error finalizing response", e);
+      forceCloseWithResponse(HttpResponseStatus.INTERNAL_SERVER_ERROR);
+    }
+
+  }
+
+  private void forceCloseWithResponse(HttpResponseStatus status) {
+    Promise.async(down ->
+      channel.writeAndFlush(new DefaultFullHttpResponse(
+        HttpVersion.HTTP_1_1,
+        status,
+        Unpooled.EMPTY_BUFFER,
+        ERROR_RESPONSE_HEADERS,
+        EmptyHttpHeaders.INSTANCE
+      ))
+        .addListener(future -> down.success(future.isSuccess()))
+    )
+      .then(__ -> notifyListeners(status));
   }
 
   private boolean mustHaveBody(HttpResponseStatus responseStatus) {
@@ -165,9 +234,9 @@ public class DefaultResponseTransmitter implements ResponseTransmitter {
   public void transmit(HttpResponseStatus responseStatus, ByteBuf body) {
     if (body.readableBytes() == 0) {
       body.release();
-      transmit(responseStatus, LastHttpContent.EMPTY_LAST_CONTENT, false);
+      sendResponse(responseStatus, EMPTY_BODY);
     } else {
-      transmit(responseStatus, new DefaultLastHttpContent(body), false);
+      sendResponse(responseStatus, new LastHttpContentResponseWriter(new DefaultLastHttpContent(body.touch())));
     }
   }
 
@@ -175,175 +244,131 @@ public class DefaultResponseTransmitter implements ResponseTransmitter {
     return ratpackRequest.getMethod().isHead();
   }
 
-  private void transmit(final HttpResponseStatus responseStatus, Object body, boolean sendLastHttpContent) {
-    ChannelFuture channelFuture = pre(responseStatus, false);
-    if (channelFuture == null) {
-      ReferenceCountUtil.release(body);
-      isKeepAlive = false;
-      post(responseStatus);
-      return;
-    }
-
-    if (sendLastHttpContent) {
-      channel.write(body);
-      post(responseStatus);
-    } else {
-      post(responseStatus, channel.writeAndFlush(body));
-    }
-  }
-
   private static final Set<OpenOption> OPEN_OPTIONS = Collections.singleton(StandardOpenOption.READ);
 
   @Override
   public void transmit(HttpResponseStatus status, Path file) {
     if (isHead()) {
-      transmit(status, LastHttpContent.EMPTY_LAST_CONTENT, false);
+      sendResponse(status, EMPTY_BODY);
     } else {
       String sizeString = responseHeaders.getAsString(HttpHeaderConstants.CONTENT_LENGTH);
       long size = sizeString == null ? 0 : Long.parseLong(sizeString);
       boolean compress = !responseHeaders.contains(HttpHeaderConstants.CONTENT_ENCODING, HttpHeaderConstants.IDENTITY, true);
 
       if (!isSsl && !compress && file.getFileSystem().equals(FileSystems.getDefault())) {
-        FileChannel fileChannel;
-        try {
-          fileChannel = FileChannel.open(file, OPEN_OPTIONS);
-        } catch (IOException e) {
-          throw new UncheckedIOException(e);
-        }
-        FileRegion defaultFileRegion = new DefaultFileRegion(fileChannel, 0, size);
-        transmit(status, defaultFileRegion, true);
+        sendResponse(status, channel ->
+          Blocking.get(() -> FileChannel.open(file, OPEN_OPTIONS))
+            .flatMap(fileChannel ->
+              Promise.<Boolean>async(down ->
+                channel.writeAndFlush(new DefaultFileRegion(fileChannel, 0, size))
+                  .addListener(future -> down.success(future.isSuccess()))
+              )
+            )
+            .mapError(any -> false)
+        );
       } else {
-        Blocking.get(() ->
-          Files.newByteChannel(file)
-        ).then(fileChannel ->
-          transmit(status, new HttpChunkedInput(new ChunkedNioStream(fileChannel)), false)
+        sendResponse(status, channel ->
+          Blocking.get(() -> Files.newByteChannel(file))
+            .flatMap(fileChannel ->
+              Promise.<Boolean>async(down -> {
+                channel.write(new HttpChunkedInput(new ChunkedNioStream(fileChannel)));
+                channel.writeAndFlush(LastHttpContent.EMPTY_LAST_CONTENT)
+                  .addListener(future -> down.success(future.isSuccess()));
+              })
+            )
+            .mapError(any -> false)
         );
       }
     }
   }
 
   @Override
-  public Subscriber<ByteBuf> transmitter(HttpResponseStatus responseStatus) {
-    return new Subscriber<ByteBuf>() {
-      private Subscription subscription;
+  public void transmit(HttpResponseStatus status, Publisher<? extends ByteBuf> publisher) {
+    sendResponse(status, channel ->
+      Promise.async(downstream -> {
+        publisher.subscribe(new Subscriber<ByteBuf>() {
+          private Subscription subscription;
 
-      private final AtomicBoolean done = new AtomicBoolean();
+          private final AtomicBoolean done = new AtomicBoolean();
 
-      private final ChannelFutureListener cancelOnFailure = future -> {
-        if (!future.isSuccess()) {
-          cancel();
-        }
-      };
-
-      private final GenericFutureListener<Future<? super Void>> cancelOnCloseListener =
-        c -> cancel();
-
-      private void cancel() {
-        channel.closeFuture().removeListener(cancelOnCloseListener);
-        if (done.compareAndSet(false, true)) {
-          subscription.cancel();
-          post(responseStatus);
-        }
-      }
-
-      @Override
-      public void onSubscribe(Subscription subscription) {
-        if (subscription == null) {
-          throw new NullPointerException("'subscription' is null");
-        }
-        if (this.subscription != null) {
-          subscription.cancel();
-          return;
-        }
-
-        this.subscription = subscription;
-
-        ChannelFuture channelFuture = pre(responseStatus, true);
-        if (channelFuture == null) {
-          subscription.cancel();
-          isKeepAlive = false;
-          notifyListeners(responseStatus);
-        } else {
-          channelFuture.addListener(f -> {
-            if (f.isSuccess() && channel.isOpen()) {
-              channel.closeFuture().addListener(cancelOnCloseListener);
-              if (channel.isWritable()) {
-                this.subscription.request(1);
-              }
-              onWritabilityChanged = () -> {
-                if (channel.isWritable() && !done.get()) {
-                  this.subscription.request(1);
-                }
-              };
-            } else {
+          private final ChannelFutureListener cancelOnFailure = future -> {
+            if (!future.isSuccess()) {
               cancel();
             }
-          });
-        }
-      }
+          };
 
-      @Override
-      public void onNext(ByteBuf o) {
-        o.touch();
-        if (channel.isOpen()) {
-          channel.writeAndFlush(new DefaultHttpContent(o)).addListener(cancelOnFailure);
-          if (channel.isWritable()) {
-            subscription.request(1);
+          private final GenericFutureListener<Future<? super Void>> cancelOnCloseListener =
+            c -> cancel();
+
+          private void cancel() {
+            channel.closeFuture().removeListener(cancelOnCloseListener);
+            if (done.compareAndSet(false, true)) {
+              subscription.cancel();
+              downstream.success(false);
+            }
           }
-        } else {
-          o.release();
-          cancel();
-        }
-      }
 
-      @Override
-      public void onError(Throwable t) {
-        if (t == null) {
-          throw new NullPointerException("error is null");
-        }
-        LOGGER.warn("Exception thrown transmitting stream", t);
-        if (done.compareAndSet(false, true)) {
-          channel.closeFuture().removeListener(cancelOnCloseListener);
-          post(responseStatus);
-        }
-      }
+          @Override
+          public void onSubscribe(Subscription subscription) {
+            if (subscription == null) {
+              throw new NullPointerException("'subscription' is null");
+            }
+            if (this.subscription != null) {
+              subscription.cancel();
+              return;
+            }
 
-      @Override
-      public void onComplete() {
-        if (done.compareAndSet(false, true)) {
-          channel.closeFuture().removeListener(cancelOnCloseListener);
-          post(responseStatus);
-        }
-      }
-    };
-  }
+            this.subscription = subscription;
 
-  private void post(HttpResponseStatus responseStatus) {
-    post(responseStatus, channel.writeAndFlush(LastHttpContent.EMPTY_LAST_CONTENT));
-  }
+            channel.closeFuture().addListener(cancelOnCloseListener);
+            onWritabilityChanged = () -> {
+              if (channel.isWritable() && !done.get()) {
+                subscription.request(1);
+              }
+            };
+            if (channel.isWritable()) {
+              subscription.request(1);
+            }
 
-  private void post(HttpResponseStatus responseStatus, ChannelFuture lastContentFuture) {
-    lastContentFuture.addListener(v ->
-      drainRequestBody(e -> {
-        if (LOGGER.isWarnEnabled()) {
-          if (e instanceof RequestBodyTooLargeException) {
-            LOGGER.warn("Unread request body was too large to drain, will close connection (maxContentLength: {})", ((RequestBodyTooLargeException) e).getMaxContentLength());
-          } else if (e != null) {
-            LOGGER.warn("An error occurred draining the unread request body. The connection will be closed", e);
           }
-        }
-        if (channel.isOpen()) {
-          if (isKeepAlive && e == null) {
-            lastContentFuture.channel().read();
-            ConnectionIdleTimeout.of(channel).reset();
-          } else {
-            lastContentFuture.channel().close();
-          }
-        }
 
-        notifyListeners(responseStatus);
-      })
-    );
+          @Override
+          public void onNext(ByteBuf o) {
+            o.touch();
+            if (channel.isOpen()) {
+              channel.writeAndFlush(new DefaultHttpContent(o)).addListener(cancelOnFailure);
+              if (channel.isWritable()) {
+                subscription.request(1);
+              }
+            } else {
+              o.release();
+              cancel();
+            }
+          }
+
+          @Override
+          public void onError(Throwable t) {
+            if (t == null) {
+              throw new NullPointerException("error is null");
+            }
+            LOGGER.warn("Exception thrown transmitting stream", t);
+            if (done.compareAndSet(false, true)) {
+              channel.closeFuture().removeListener(cancelOnCloseListener);
+              downstream.success(false);
+            }
+          }
+
+          @Override
+          public void onComplete() {
+            if (done.compareAndSet(false, true)) {
+              channel.closeFuture().removeListener(cancelOnCloseListener);
+              onWritabilityChanged = NOOP_RUNNABLE;
+              channel.writeAndFlush(LastHttpContent.EMPTY_LAST_CONTENT);
+              downstream.success(true);
+            }
+          }
+        });
+      }));
   }
 
   private void notifyListeners(final HttpResponseStatus responseStatus) {
