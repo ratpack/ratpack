@@ -28,8 +28,11 @@ import io.netty.handler.ssl.SslContextBuilder;
 import io.netty.handler.ssl.SslHandler;
 import io.netty.handler.timeout.ReadTimeoutException;
 import io.netty.handler.timeout.ReadTimeoutHandler;
-import io.netty.util.ReferenceCountUtil;
 import io.netty.util.concurrent.Future;
+import io.netty.util.concurrent.GenericFutureListener;
+import org.reactivestreams.Publisher;
+import org.reactivestreams.Subscriber;
+import org.reactivestreams.Subscription;
 import ratpack.core.http.Headers;
 import ratpack.core.http.Status;
 import ratpack.core.http.client.HttpClientReadTimeoutException;
@@ -49,6 +52,7 @@ import javax.net.ssl.SSLParameters;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 abstract class RequestActionSupport<T> implements Upstream<T> {
 
@@ -57,6 +61,7 @@ abstract class RequestActionSupport<T> implements Upstream<T> {
   private static final String READ_TIMEOUT_HANDLER_NAME = "readTimeout";
   private static final String REDIRECT_HANDLER_NAME = "redirect";
   private static final String DECOMPRESS_HANDLER_NAME = "decompressor";
+  private static final String WRITABILITY_HANDLER_NAME = "writability";
 
   protected final HttpClientInternal client;
   protected final RequestConfig requestConfig;
@@ -71,6 +76,11 @@ abstract class RequestActionSupport<T> implements Upstream<T> {
   private boolean disposed;
   private boolean expectContinue;
   private boolean receivedContinue;
+  private boolean streamingBody;
+
+  private static final Runnable NOOP_RUNNABLE = () -> {
+  };
+  private Runnable onWritabilityChanged = NOOP_RUNNABLE;
 
   RequestActionSupport(URI uri, HttpClientInternal client, int redirectCount, boolean expectContinue, Execution execution, Action<? super RequestSpec> requestConfigurer) throws Exception {
     this.requestConfigurer = requestConfigurer;
@@ -115,26 +125,41 @@ abstract class RequestActionSupport<T> implements Upstream<T> {
 
   private void send(Downstream<? super T> downstream, Channel channel) throws Exception {
     channel.config().setAutoRead(true);
+    expectContinue = requestConfig.headers.getNettyHeaders().contains(HttpHeaderNames.EXPECT, HttpHeaderValues.CONTINUE, true);
+    boolean streamedBody = !requestConfig.content.isBuffer();
 
+    String requestUri = getFullPath(requestConfig.uri);
     HttpMessage request;
-    if (requestConfig.headers.getNettyHeaders().contains(HttpHeaderNames.EXPECT, HttpHeaderValues.CONTINUE, true)) {
-      request = new DefaultHttpRequest(
-        HttpVersion.HTTP_1_1,
-        requestConfig.method.getNettyMethod(),
-        getFullPath(requestConfig.uri),
-        requestConfig.headers.getNettyHeaders()
-      );
-      expectContinue = true;
-    } else {
+    if (requestConfig.content.getContentLength() == 0) {
       request = new DefaultFullHttpRequest(
         HttpVersion.HTTP_1_1,
         requestConfig.method.getNettyMethod(),
-        getFullPath(requestConfig.uri),
-        requestConfig.body.touch(),
+        requestUri,
+        Unpooled.EMPTY_BUFFER,
         requestConfig.headers.getNettyHeaders(),
         EmptyHttpHeaders.INSTANCE
       );
+    } else {
+      if (!expectContinue && !streamedBody) {
+        request = new DefaultFullHttpRequest(
+          HttpVersion.HTTP_1_1,
+          requestConfig.method.getNettyMethod(),
+          requestUri,
+          requestConfig.content.buffer(),
+          requestConfig.headers.getNettyHeaders(),
+          EmptyHttpHeaders.INSTANCE
+        );
+      } else {
+        request = new DefaultHttpRequest(
+          HttpVersion.HTTP_1_1,
+          requestConfig.method.getNettyMethod(),
+          requestUri,
+          requestConfig.headers.getNettyHeaders()
+        );
+      }
     }
+
+    HttpUtil.setTransferEncodingChunked(request, streamedBody && requestConfig.content.getContentLength() < 0);
 
     addCommonResponseHandlers(channel.pipeline(), downstream);
 
@@ -145,29 +170,188 @@ abstract class RequestActionSupport<T> implements Upstream<T> {
       channelFuture = channel.newSucceededFuture();
     }
 
-    final HttpMessage msg = request;
     channelFuture.addListener(firstFuture -> {
       if (firstFuture.isSuccess()) {
-        channel.writeAndFlush(msg).addListener(writeFuture -> {
-          if (!writeFuture.isSuccess()) {
-            error(downstream, writeFuture.cause());
-          }
-        });
+        channel.writeAndFlush(request)
+          .addListener(writeFuture -> {
+            if (writeFuture.isSuccess()) {
+              if (!expectContinue && streamedBody) {
+                sendRequestBodyStream(downstream, channel, requestConfig.content.publisher());
+              }
+            } else {
+              forceDispose(channel.pipeline())
+                .addListener(disposeFuture -> {
+                  if (!disposeFuture.isSuccess()) {
+                    writeFuture.cause().addSuppressed(disposeFuture.cause());
+                  }
+                  downstream.error(writeFuture.cause());
+                });
+            }
+          });
       } else {
-        error(downstream, firstFuture.cause());
+        forceDispose(channel.pipeline())
+          .addListener(disposeFuture -> {
+            if (!disposeFuture.isSuccess()) {
+              firstFuture.cause().addSuppressed(disposeFuture.cause());
+            }
+            downstream.error(firstFuture.cause());
+          });
       }
     });
   }
 
+  private void sendRequestBody(Downstream<? super T> downstream, Channel channel) {
+    RequestConfig.Content content = requestConfig.content;
+    if (content.isBuffer()) {
+      channel.writeAndFlush(new DefaultLastHttpContent(content.buffer()))
+        .addListener(future -> {
+          if (!future.isSuccess() && channel.isOpen()) {
+            forceDispose(channel.pipeline());
+            downstream.error(future.cause());
+          }
+        });
+    } else {
+      sendRequestBodyStream(downstream, channel, content.publisher());
+    }
+  }
+
+  private void sendRequestBodyStream(Downstream<? super T> downstream, Channel channel, Publisher<? extends ByteBuf> publisher) {
+    streamingBody = true;
+    ((DefaultExecution) execution).delimit(downstream::error, continuation -> {
+        continuation.resume(() -> {
+            publisher.subscribe(new Subscriber<ByteBuf>() {
+              private Subscription subscription;
+
+              private final AtomicBoolean done = new AtomicBoolean();
+              private long pending = requestConfig.content.getContentLength();
+
+              private final GenericFutureListener<Future<? super Void>> cancelOnCloseListener =
+                c -> cancel();
+
+              private void cancel() {
+                subscription.cancel();
+                reset();
+                forceDispose(channel.pipeline());
+              }
+
+              @Override
+              public void onSubscribe(Subscription subscription) {
+                if (subscription == null) {
+                  throw new NullPointerException("'subscription' is null");
+                }
+                if (this.subscription != null) {
+                  subscription.cancel();
+                  return;
+                }
+
+                this.subscription = subscription;
+
+                if (channel.isOpen()) {
+                  channel.closeFuture().addListener(cancelOnCloseListener);
+                  if (channel.isWritable()) {
+                    this.subscription.request(1);
+                  }
+                  onWritabilityChanged = () -> {
+                    if (channel.isWritable() && !done.get()) {
+                      this.subscription.request(1);
+                    }
+                  };
+                } else {
+                  cancel();
+                }
+              }
+
+              @Override
+              public void onNext(ByteBuf o) {
+                o.touch();
+                if (!channel.isOpen()) {
+                  o.release();
+                  cancel();
+                  return;
+                }
+
+                if (pending == 0) {
+                  o.release();
+                  subscription.request(1);
+                  return;
+                }
+
+                int chunkSize = o.readableBytes();
+                if (pending > 0) {
+                  if (chunkSize > pending) {
+                    chunkSize = (int) pending;
+                    o = o.slice(0, chunkSize);
+                  }
+                  pending = pending - chunkSize;
+                }
+
+                channel.write(new DefaultHttpContent(o));
+                if (channel.isWritable()) {
+                  subscription.request(1);
+                } else {
+                  channel.flush();
+                }
+              }
+
+              @Override
+              public void onError(Throwable t) {
+                if (t == null) {
+                  throw new NullPointerException("error is null");
+                }
+                reset();
+                forceDispose(channel.pipeline())
+                  .addListener(future -> {
+                    if (!future.isSuccess()) {
+                      t.addSuppressed(future.cause());
+                    }
+                    downstream.error(t);
+                  });
+              }
+
+              @Override
+              public void onComplete() {
+                if (done.compareAndSet(false, true)) {
+                  if (pending > 0) {
+                    reset();
+                    forceDispose(channel.pipeline())
+                      .addListener(future -> {
+                        Throwable t = new IllegalStateException("Publisher completed before sending advertised number of bytes");
+                        if (!future.isSuccess()) {
+                          t.addSuppressed(future.cause());
+                        }
+                        downstream.error(t);
+                      });
+                  } else {
+                    reset();
+                    channel.writeAndFlush(LastHttpContent.EMPTY_LAST_CONTENT);
+                  }
+                }
+              }
+
+              private void reset() {
+                if (done.compareAndSet(false, true)) {
+                  onWritabilityChanged = NOOP_RUNNABLE;
+                  channel.closeFuture().removeListener(cancelOnCloseListener);
+                  streamingBody = false;
+                }
+              }
+            });
+          }
+        );
+      }
+    );
+  }
+
   private void connectFailure(Downstream<? super T> downstream, Throwable e) {
-    ReferenceCountUtil.release(requestConfig.body);
+    requestConfig.content.discard();
 
     if (e instanceof ConnectTimeoutException) {
       StackTraceElement[] stackTrace = e.getStackTrace();
       e = new ConnectTimeoutException("Connect timeout (" + requestConfig.connectTimeout + ") connecting to " + requestConfig.uri);
       e.setStackTrace(stackTrace);
     }
-    error(downstream, e);
+
+    downstream.error(e);
   }
 
   private void finalizeHeaders() {
@@ -178,31 +362,34 @@ abstract class RequestActionSupport<T> implements Upstream<T> {
     if (client.getPoolSize() == 0) {
       requestConfig.headers.set(HttpHeaderConstants.CONNECTION, HttpHeaderValues.CLOSE);
     }
-    int contentLength = requestConfig.body.readableBytes();
+    long contentLength = requestConfig.content.getContentLength();
     if (contentLength > 0) {
-      requestConfig.headers.set(HttpHeaderConstants.CONTENT_LENGTH, Integer.toString(contentLength));
+      requestConfig.headers.set(HttpHeaderConstants.CONTENT_LENGTH, Long.toString(contentLength));
     }
   }
 
-  protected void forceDispose(ChannelPipeline channelPipeline) {
-    dispose(channelPipeline, true);
+  protected Future<Void> forceDispose(ChannelPipeline channelPipeline) {
+    return dispose(channelPipeline, true);
   }
 
-  protected void dispose(ChannelPipeline channelPipeline, HttpResponse response) {
-    dispose(channelPipeline, !HttpUtil.isKeepAlive(response));
+  protected Future<Void> dispose(ChannelPipeline channelPipeline, HttpResponse response) {
+    return dispose(channelPipeline, !HttpUtil.isKeepAlive(response) || streamingBody);
   }
 
-  private void dispose(ChannelPipeline channelPipeline, boolean forceClose) {
-    if (!disposed) {
+  private Future<Void> dispose(ChannelPipeline channelPipeline, boolean forceClose) {
+    if (disposed) {
+      return execution.getEventLoop().newSucceededFuture(null);
+    } else {
       disposed = true;
-      doDispose(channelPipeline, forceClose);
+      return doDispose(channelPipeline, forceClose);
     }
   }
 
-  protected void doDispose(ChannelPipeline channelPipeline, boolean forceClose) {
+  protected Future<Void> doDispose(ChannelPipeline channelPipeline, boolean forceClose) {
     channelPipeline.remove(CLIENT_CODEC_HANDLER_NAME);
     channelPipeline.remove(READ_TIMEOUT_HANDLER_NAME);
     channelPipeline.remove(REDIRECT_HANDLER_NAME);
+    channelPipeline.remove(WRITABILITY_HANDLER_NAME);
 
     if (channelPipeline.get(DECOMPRESS_HANDLER_NAME) != null) {
       channelPipeline.remove(DECOMPRESS_HANDLER_NAME);
@@ -213,7 +400,7 @@ abstract class RequestActionSupport<T> implements Upstream<T> {
       channel.close();
     }
 
-    channelPool.release(channel);
+    return channelPool.release(channel);
   }
 
   private void addCommonResponseHandlers(ChannelPipeline p, Downstream<? super T> downstream) throws Exception {
@@ -241,20 +428,17 @@ abstract class RequestActionSupport<T> implements Upstream<T> {
       protected void channelRead0(ChannelHandlerContext ctx, HttpObject msg) throws Exception {
         // received the end frame of the 100 Continue, send the body, then process the resulting response
         if (msg instanceof LastHttpContent && expectContinue && receivedContinue) {
-          LastHttpContent bodyMsg = new DefaultLastHttpContent(requestConfig.body.touch());
           expectContinue = false;
           receivedContinue = false;
-          ctx.writeAndFlush(bodyMsg).addListener(writeFuture -> {
-            if (!writeFuture.isSuccess()) {
-              error(downstream, writeFuture.cause());
-            }
-          });
+          sendRequestBody(downstream, ctx.channel());
           return;
         }
         if (msg instanceof HttpResponse) {
+          this.response = (HttpResponse) msg;
+          int status = response.status().code();
+
           if (expectContinue) {
             // need to wait for a 100 Continue to come in
-            int status = ((HttpResponse) msg).status().code();
             if (status == HttpResponseStatus.CONTINUE.code()) {
               // received the continue, now wait for the end frame before sending the body
               receivedContinue = true;
@@ -265,9 +449,8 @@ abstract class RequestActionSupport<T> implements Upstream<T> {
               expectContinue = false;
             }
           }
-          this.response = (HttpResponse) msg;
+
           int maxRedirects = requestConfig.maxRedirects;
-          int status = response.status().code();
           String locationValue = response.headers().getAsString(HttpHeaderConstants.LOCATION);
           Action<? super RequestSpec> redirectConfigurer = RequestActionSupport.this.requestConfigurer;
           if (isRedirect(status) && redirectCount < maxRedirects && locationValue != null) {
@@ -296,10 +479,17 @@ abstract class RequestActionSupport<T> implements Upstream<T> {
                 });
               };
               URI locationUri = absolutizeRedirect(requestConfig.uri, locationValue);
-              onRedirect(locationUri, redirectCount + 1, expectContinue, executionBoundRedirectRequestConfig).connect(downstream);
 
               redirected = true;
-              dispose(ctx.pipeline(), response);
+              Future<Void> dispose = dispose(ctx.pipeline(), response);
+              dispose
+                .addListener(future -> {
+                  if (future.isSuccess()) {
+                    onRedirect(locationUri, redirectCount + 1, expectContinue, executionBoundRedirectRequestConfig).connect(downstream);
+                  } else {
+                    downstream.error(future.cause());
+                  }
+                });
             }
           }
         }
@@ -313,6 +503,14 @@ abstract class RequestActionSupport<T> implements Upstream<T> {
     if (requestConfig.decompressResponse) {
       p.addLast(DECOMPRESS_HANDLER_NAME, new HttpContentDecompressor());
     }
+
+    p.addLast(WRITABILITY_HANDLER_NAME, new ChannelInboundHandlerAdapter() {
+      @Override
+      public void channelWritabilityChanged(ChannelHandlerContext ctx) throws Exception {
+        onWritabilityChanged.run();
+        super.channelWritabilityChanged(ctx);
+      }
+    });
 
     addResponseHandlers(p, downstream);
   }
@@ -340,13 +538,6 @@ abstract class RequestActionSupport<T> implements Upstream<T> {
   }
 
   protected abstract Upstream<T> onRedirect(URI locationUrl, int redirectCount, boolean expectContinue, Action<? super RequestSpec> redirectRequestConfig) throws Exception;
-
-  protected void success(Downstream<? super T> downstream, T value) {
-    if (!fired) {
-      fired = true;
-      downstream.success(value);
-    }
-  }
 
   protected void error(Downstream<?> downstream, Throwable error) {
     if (!fired && !disposed) {

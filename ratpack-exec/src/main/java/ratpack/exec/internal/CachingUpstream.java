@@ -121,12 +121,7 @@ public class CachingUpstream<T> implements Upstream<T> {
     try {
       ttl = ttlFunc.apply(result);
     } catch (Throwable e) {
-      if (result.isError()) {
-        //noinspection ThrowableResultOfMethodCallIgnored
-        result.getThrowable().addSuppressed(e);
-      } else {
-        result = ExecResult.of(Result.error(e));
-      }
+      result = ExecResult.of(Result.error(e));
     }
 
     if (ttl.isNegative()) {

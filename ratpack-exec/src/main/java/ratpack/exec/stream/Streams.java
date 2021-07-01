@@ -153,8 +153,8 @@ public class Streams {
    *
    * @param producer the data source
    * @param <T> the type of item emitted
-   * @see #flatYield
    * @return a publisher backed by the given producer
+   * @see #flatYield
    */
   public static <T> TransformablePublisher<T> yield(Function<? super YieldRequest, ? extends T> producer) {
     return new YieldingPublisher<>(producer);
@@ -198,8 +198,8 @@ public class Streams {
    *
    * @param producer the data source
    * @param <T> the type of item emitted
-   * @see #yield
    * @return a publisher backed by the given producer
+   * @see #yield
    */
   public static <T> TransformablePublisher<T> flatYield(Function<? super YieldRequest, ? extends Promise<T>> producer) {
     return new FlatYieldingPublisher<>(producer);
@@ -440,8 +440,6 @@ public class Streams {
    * All events (incl. data, error and completion) emitted by the given publisher will be forwarded to the given listener before being forward to the subscriber of the return publisher.
    * <p>
    * If the listener errors, the upstream subscription will be cancelled (if appropriate) and the error sent downstream.
-   * If the listener errors while listening to an error event, the listener error will be {@link Throwable#addSuppressed(Throwable) added as a surpressed exception}
-   * to the original exception which will then be sent downstream.
    *
    * @param publisher the data source
    * @param listener the listener for emitted items

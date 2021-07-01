@@ -61,7 +61,6 @@ class PromiseErrorSpec extends BaseRatpackSpec {
     then:
     events.size() == 2
     events[0] instanceof NullPointerException
-    (events[0] as Exception).suppressed[0] instanceof IllegalArgumentException
   }
 
   def "on error can be async"() {
@@ -81,7 +80,6 @@ class PromiseErrorSpec extends BaseRatpackSpec {
     then:
     events.size() == 2
     events[0] instanceof NullPointerException
-    (events[0] as Exception).suppressed[0] instanceof IllegalArgumentException
   }
 
   def "on error can throw same error"() {

@@ -226,7 +226,7 @@ class PromiseCachingSpec extends BaseRatpackSpec {
   @Issue("https://github.com/ratpack/ratpack/issues/1369")
   def "cached promise can be yielded concurrently"() {
     when:
-    100_000.times { i ->
+    1_000.times { i ->
       def p = [Promise.value(1).cache()] * 10
       execHarness.yield { c -> ParallelBatch.of(p).yield() }.valueOrThrow
     }

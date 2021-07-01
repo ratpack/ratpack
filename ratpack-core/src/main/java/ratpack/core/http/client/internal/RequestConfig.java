@@ -24,6 +24,7 @@ import io.netty.buffer.Unpooled;
 import io.netty.handler.codec.http.DefaultHttpHeaders;
 import io.netty.handler.ssl.SslContext;
 import io.netty.util.CharsetUtil;
+import org.reactivestreams.Publisher;
 import ratpack.core.http.HttpMethod;
 import ratpack.core.http.MutableHeaders;
 import ratpack.core.http.client.HttpClient;
@@ -44,7 +45,7 @@ class RequestConfig {
   final URI uri;
   final HttpMethod method;
   final MutableHeaders headers;
-  final ByteBuf body;
+  final Content content;
   final int maxContentLength;
   final Duration connectTimeout;
   final Duration readTimeout;
@@ -65,8 +66,8 @@ class RequestConfig {
     try {
       action.execute(spec);
     } catch (Exception any) {
-      if (spec.bodyByteBuf != null) {
-        spec.bodyByteBuf.release();
+      if (spec.content != null) {
+        spec.content.discard();
       }
       throw any;
     }
@@ -75,7 +76,7 @@ class RequestConfig {
       spec.uri,
       spec.method,
       spec.headers,
-      spec.bodyByteBuf,
+      spec.content,
       spec.maxContentLength,
       spec.responseMaxChunkSize,
       spec.connectTimeout,
@@ -87,11 +88,11 @@ class RequestConfig {
     );
   }
 
-  private RequestConfig(URI uri, HttpMethod method, MutableHeaders headers, ByteBuf body, int maxContentLength, int responseMaxChunkSize, Duration connectTimeout, Duration readTimeout, boolean decompressResponse, int maxRedirects, SslContext sslContext, Function<? super ReceivedResponse, Action<? super RequestSpec>> onRedirect) {
+  private RequestConfig(URI uri, HttpMethod method, MutableHeaders headers, Content content, int maxContentLength, int responseMaxChunkSize, Duration connectTimeout, Duration readTimeout, boolean decompressResponse, int maxRedirects, SslContext sslContext, Function<? super ReceivedResponse, Action<? super RequestSpec>> onRedirect) {
     this.uri = uri;
     this.method = method;
     this.headers = headers;
-    this.body = body;
+    this.content = content;
     this.maxContentLength = maxContentLength;
     this.responseMaxChunkSize = responseMaxChunkSize;
     this.connectTimeout = connectTimeout;
@@ -104,20 +105,22 @@ class RequestConfig {
 
   private static class Spec implements RequestSpec {
 
+    private static final SingleBufferContent EMPTY_CONTENT = new SingleBufferContent(Unpooled.EMPTY_BUFFER);
+
     private final ByteBufAllocator byteBufAllocator;
     private final URI uri;
 
-    private MutableHeaders headers = new NettyHeadersBackedMutableHeaders(new DefaultHttpHeaders());
+    private final MutableHeaders headers = new NettyHeadersBackedMutableHeaders(new DefaultHttpHeaders());
     private boolean decompressResponse = true;
     private Duration connectTimeout = Duration.ofSeconds(30);
     private Duration readTimeout = Duration.ofSeconds(30);
     private int maxContentLength = -1;
-    private ByteBuf bodyByteBuf = Unpooled.EMPTY_BUFFER;
+    private Content content = EMPTY_CONTENT;
     private HttpMethod method = HttpMethod.GET;
     private int maxRedirects = RequestSpec.DEFAULT_MAX_REDIRECTS;
     private SslContext sslContext;
     private Function<? super ReceivedResponse, Action<? super RequestSpec>> onRedirect;
-    private BodyImpl body = new BodyImpl();
+    private final BodyImpl body = new BodyImpl();
     private int responseMaxChunkSize = 8192;
 
     Spec(URI uri, ByteBufAllocator byteBufAllocator) {
@@ -234,11 +237,11 @@ class RequestConfig {
       return this.readTimeout;
     }
 
-    private void setBodyByteBuf(ByteBuf byteBuf) {
-      if (bodyByteBuf != null) {
-        bodyByteBuf.release();
+    private void setContent(Content content) {
+      if (this.content != null) {
+        this.content.discard();
       }
-      bodyByteBuf = byteBuf.touch();
+      this.content = content;
     }
 
 
@@ -259,20 +262,33 @@ class RequestConfig {
           throw t;
         }
 
-        setBodyByteBuf(byteBuf);
+        return buffer(byteBuf);
+      }
+
+      @Override
+      public Body streamUnknownLength(Publisher<? extends ByteBuf> publisher) {
+        setContent(new StreamingContent(publisher, -1));
+        return this;
+      }
+
+      @Override
+      public Body stream(Publisher<? extends ByteBuf> publisher, long contentLength) {
+        if (contentLength < 1) {
+          throw new IllegalArgumentException("contentLength must be > 0");
+        }
+        setContent(new StreamingContent(publisher, contentLength));
         return this;
       }
 
       @Override
       public Body buffer(ByteBuf byteBuf) {
-        setBodyByteBuf(byteBuf);
+        setContent(new SingleBufferContent(byteBuf));
         return this;
       }
 
       @Override
       public Body bytes(byte[] bytes) {
-        setBodyByteBuf(Unpooled.wrappedBuffer(bytes));
-        return this;
+        return buffer(Unpooled.wrappedBuffer(bytes));
       }
 
       @Override
@@ -287,8 +303,7 @@ class RequestConfig {
         } else {
           maybeSetContentType("text/plain;charset=" + charset.name());
         }
-        setBodyByteBuf(Unpooled.copiedBuffer(text, charset));
-        return this;
+        return buffer(Unpooled.copiedBuffer(text, charset));
       }
 
       private void maybeSetContentType(CharSequence s) {
@@ -296,6 +311,7 @@ class RequestConfig {
           headers.set(HttpHeaderConstants.CONTENT_TYPE, s);
         }
       }
+
     }
 
     @Override
@@ -309,4 +325,86 @@ class RequestConfig {
       return this;
     }
   }
+
+  interface Content {
+    long getContentLength();
+
+    boolean isBuffer();
+
+    ByteBuf buffer();
+
+    Publisher<? extends ByteBuf> publisher();
+
+    void discard();
+  }
+
+  static class SingleBufferContent implements Content {
+    private final ByteBuf byteBuf;
+
+    public SingleBufferContent(ByteBuf byteBuf) {
+      this.byteBuf = byteBuf;
+    }
+
+    @Override
+    public long getContentLength() {
+      return byteBuf.readableBytes();
+    }
+
+    @Override
+    public boolean isBuffer() {
+      return true;
+    }
+
+    @Override
+    public ByteBuf buffer() {
+      return byteBuf;
+    }
+
+    @Override
+    public Publisher<? extends ByteBuf> publisher() {
+      throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public void discard() {
+      byteBuf.release();
+    }
+  }
+
+  static class StreamingContent implements Content {
+
+    private final Publisher<? extends ByteBuf> publisher;
+    private final long contentLength;
+
+    public StreamingContent(Publisher<? extends ByteBuf> publisher, long contentLength) {
+      this.publisher = publisher;
+      this.contentLength = contentLength;
+    }
+
+    @Override
+    public boolean isBuffer() {
+      return false;
+    }
+
+    @Override
+    public ByteBuf buffer() {
+      throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public long getContentLength() {
+      return contentLength;
+    }
+
+    @Override
+    public Publisher<? extends ByteBuf> publisher() {
+      return publisher;
+    }
+
+    @Override
+    public void discard() {
+
+    }
+  }
+
 }
