@@ -552,11 +552,10 @@ connection: close
 
     then:
     response == """HTTP/1.1 413 Request Entity Too Large
-content-type: text/plain;charset=UTF-8
-content-length: 16
+content-length: 0
 connection: close
 
-Client error 413"""
+"""
     !replied
 
     cleanup:

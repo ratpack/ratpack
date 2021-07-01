@@ -62,7 +62,7 @@ class FormHandlingSpec extends RatpackGroovyDslSpec {
     resetRequest()
     requestSpec { RequestSpec requestSpec ->
       requestSpec.headers.add("Content-Type", APPLICATION_FORM)
-      requestSpec.body.stream({ it << [a: "b"].collect({ it }).join('&') })
+      requestSpec.body.text([a: "b"].collect({ it }).join('&'))
     }
     then:
     postText() == "[a:[b]]"
@@ -345,8 +345,8 @@ class FormHandlingSpec extends RatpackGroovyDslSpec {
     handlers {
       post {
         parse(form())
-          .onError {render it.toString() }
-          .then {render "ok" }
+          .onError { render it.toString() }
+          .then { render "ok" }
       }
     }
 

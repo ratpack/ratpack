@@ -161,9 +161,13 @@ public interface Request extends MutableRegistry {
    * <p>
    * If this request does not have a body, a non null object is still returned but it effectively has no data.
    * <p>
-   * If the transmitted content is larger than provided {@code maxContentLength}, the given block will be invoked.
+   * If the body content is larger than provided {@code maxContentLength}, the given block will be invoked.
    * If the block completes successfully, the promise will be terminated.
    * If the block errors, the promise will carry the failure.
+   * <p>
+   * If the body content is larger than the provided {@code maxContentLength},
+   * a {@code 413} status will be issued and the connection will be closed,
+   * regardless of any other attempts to render a response.
    *
    * @param onTooLarge the action to take if the request body exceeds the given maxContentLength
    * @return the body of the request
@@ -176,7 +180,9 @@ public interface Request extends MutableRegistry {
    * <p>
    * If this request does not have a body, a non null object is still returned but it effectively has no data.
    * <p>
-   * If the transmitted content is larger than the provided {@code maxContentLength}, an {@code 413} client error will be issued.
+   * If the body content is larger than the provided {@code maxContentLength},
+   * a {@code 413} status will be issued and the connection will be closed,
+   * regardless of any other attempts to render a response.
    *
    * @param maxContentLength the maximum number of bytes allowed for the request.
    * @return the body of the request.
@@ -189,9 +195,13 @@ public interface Request extends MutableRegistry {
    * <p>
    * If this request does not have a body, a non null object is still returned but it effectively has no data.
    * <p>
-   * If the transmitted content is larger than the provided {@code maxContentLength}, the given block will be invoked.
+   * If the body content is larger than the provided {@code maxContentLength}, the given block will be invoked.
    * If the block completes successfully, the promise will be terminated.
    * If the block errors, the promise will carry the failure.
+   * <p>
+   * If the body content is larger than the provided {@code maxContentLength},
+   * a {@code 413} status will be issued and the connection will be closed,
+   * regardless of any other attempts to render a response.
    *
    * @param maxContentLength the maximum number of bytes allowed for the request.
    * @param onTooLarge the action to take if the request body exceeds the given maxContentLength
@@ -220,6 +230,10 @@ public interface Request extends MutableRegistry {
    * <p>
    * If the request body is larger than the given {@code maxContentLength}, a {@link RequestBodyTooLargeException} will be emitted.
    * If the request body has already been read, a {@link RequestBodyAlreadyReadException} will be emitted.
+   * <p>
+   * If the body content is larger than the provided {@code maxContentLength},
+   * a {@code 413} status will be issued and the connection will be closed,
+   * regardless of any other attempts to render a response.
    * <p>
    * The returned publisher is bound to the calling execution via {@link Streams#bindExec(Publisher)}.
    * If your subscriber's onNext(), onComplete() or onError() methods are asynchronous they <b>MUST</b> use {@link Promise},
