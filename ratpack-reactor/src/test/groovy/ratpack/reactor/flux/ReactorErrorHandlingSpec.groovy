@@ -167,7 +167,7 @@ class ReactorErrorHandlingSpec extends RatpackGroovyDslSpec {
 
     then:
     get()
-    thrownException.cause == e
+    thrownException == e
   }
 
   def "observer can be complex"() {
@@ -268,7 +268,7 @@ class ReactorErrorHandlingSpec extends RatpackGroovyDslSpec {
     }
 
     then:
-    result.exception(RuntimeException).cause == e
+    result.exception(RuntimeException) == e
   }
 
   def "error handler is invoked even when error occurs on different thread"() {
