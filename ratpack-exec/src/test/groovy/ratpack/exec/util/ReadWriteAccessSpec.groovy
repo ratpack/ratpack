@@ -93,7 +93,7 @@ class ReadWriteAccessSpec extends BaseExecutionSpec {
 
   def "all executions complete with heavy read contention"() {
     when:
-    def n = 1_000_000
+    def n = 1_000
     def l = new CountDownLatch(n)
     def i = new AtomicInteger()
 
