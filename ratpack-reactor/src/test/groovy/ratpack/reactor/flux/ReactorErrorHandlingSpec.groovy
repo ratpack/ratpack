@@ -72,7 +72,7 @@ class ReactorErrorHandlingSpec extends RatpackGroovyDslSpec {
     }
 
     then:
-    thrownException.cause == error
+    thrownException == error
   }
 
   def "observable sequence without error handler fulfills with Error subclass"() {
@@ -87,7 +87,7 @@ class ReactorErrorHandlingSpec extends RatpackGroovyDslSpec {
     }
 
     then:
-    thrownException.cause == e
+    thrownException == e
   }
 
   def "no error handler for successful promise that throws"() {
@@ -117,7 +117,7 @@ class ReactorErrorHandlingSpec extends RatpackGroovyDslSpec {
     }
 
     then:
-    thrownException.cause == error
+    thrownException == error
   }
 
   def "no error handler for successful promise that has nested successful promise that throws"() {
@@ -156,12 +156,12 @@ class ReactorErrorHandlingSpec extends RatpackGroovyDslSpec {
 
   def "subscription without error handler results in error forwarded to context error handler"() {
     given:
-    def e = new Exception("!")
+    def e = new RuntimeException("!")
 
     when:
     handlers {
       get {
-        Flux.error(e).subscribe {} {}
+        Flux.error(e).subscribe {}
       }
     }
 
@@ -183,7 +183,7 @@ class ReactorErrorHandlingSpec extends RatpackGroovyDslSpec {
 
     then:
     get()
-    thrownException.cause == e
+    thrownException == e
   }
 
   def "subscriber can throw"() {
@@ -261,14 +261,14 @@ class ReactorErrorHandlingSpec extends RatpackGroovyDslSpec {
 
   def "can use rx in a unit test"() {
     given:
-    def e = new Exception("!")
+    def e = new RuntimeException("!")
 
     when:
-    def result = GroovyRequestFixture.handle({ Flux.error(e).subscribe({}, {}) } as Handler) {
+    def result = GroovyRequestFixture.handle({ Flux.error(e).subscribe({}) } as Handler) {
     }
 
     then:
-    result.exception(Exception) == e
+    result.exception(RuntimeException) == e
   }
 
   def "error handler is invoked even when error occurs on different thread"() {
@@ -327,7 +327,7 @@ class ReactorErrorHandlingSpec extends RatpackGroovyDslSpec {
     }
 
     then:
-    thrownException.cause == e
+    thrownException == e
   }
 
   def "exception thrown by oncomplete is propagated"() {
