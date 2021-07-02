@@ -16,6 +16,7 @@
 
 package ratpack.http.client
 
+
 import io.netty.buffer.PooledByteBufAllocator
 import io.netty.buffer.Unpooled
 import io.netty.handler.codec.http.HttpHeaderNames
@@ -105,7 +106,7 @@ class HttpClientBodyStreamingSpec extends BaseHttpClientSpec {
 
         } then { StreamedResponse response ->
           render(Promise.flatten {
-            def responseStream = response.body.bindExec()
+            def responseStream = response.body.bindExec { it.release() }
             httpClient.request(otherAppUrl()) { it.post().maxContentLength(size).body.stream(responseStream, size) }
               .map { it.body.text }
           }.fork())
