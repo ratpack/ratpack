@@ -19,6 +19,7 @@ package ratpack.server.internal;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
 import io.netty.channel.Channel;
+import io.netty.channel.ChannelFuture;
 import io.netty.channel.ChannelFutureListener;
 import io.netty.channel.DefaultFileRegion;
 import io.netty.handler.codec.http.*;
@@ -53,13 +54,13 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.function.Consumer;
 
 public class DefaultResponseTransmitter implements ResponseTransmitter {
 
   static final AttributeKey<DefaultResponseTransmitter> ATTRIBUTE_KEY = AttributeKey.valueOf(DefaultResponseTransmitter.class.getName());
 
   private final static Logger LOGGER = LoggerFactory.getLogger(ResponseTransmitter.class);
-
 
   private static final Runnable NOOP_RUNNABLE = () -> {
   };
@@ -106,7 +107,7 @@ public class DefaultResponseTransmitter implements ResponseTransmitter {
   }
 
   interface ResponseWriter {
-    Promise<Boolean> write(Channel channel);
+    void write(Channel channel, Consumer<? super ChannelFuture> future);
 
     default void dispose() {
     }
@@ -119,10 +120,9 @@ public class DefaultResponseTransmitter implements ResponseTransmitter {
       this.content = content;
     }
 
-    public Promise<Boolean> write(Channel channel) {
-      return Promise.async(down ->
-        channel.writeAndFlush(content).addListener(future -> down.success(future.isSuccess()))
-      );
+    @Override
+    public void write(Channel channel, Consumer<? super ChannelFuture> then) {
+      then.accept(channel.writeAndFlush(content));
     }
 
     public void dispose() {
@@ -181,20 +181,22 @@ public class DefaultResponseTransmitter implements ResponseTransmitter {
       )
         .then(success -> {
           if (success) {
-            bodyWriter.write(channel)
-              .onError(e -> {
-                LOGGER.warn("Error from response body writer", e);
-                channel.close();
-              })
-              .then(completed -> {
-                if (channel.isOpen() && completed && keepAlive) {
-                  channel.read();
-                  ConnectionIdleTimeout.of(channel).reset();
+            bodyWriter.write(channel, future ->
+              future.addListener(result -> {
+                if (result.isSuccess()) {
+                  if (channel.isOpen() && keepAlive) {
+                    channel.read();
+                    ConnectionIdleTimeout.of(channel).reset();
+                  } else {
+                    channel.close();
+                  }
+                  notifyListeners(responseStatus);
                 } else {
+                  LOGGER.warn("Error from response body writer", result.cause());
                   channel.close();
                 }
-                notifyListeners(responseStatus);
-              });
+              })
+            );
           } else {
             bodyWriter.dispose();
             notifyListeners(responseStatus);
@@ -253,27 +255,19 @@ public class DefaultResponseTransmitter implements ResponseTransmitter {
       boolean compress = !responseHeaders.contains(HttpHeaderConstants.CONTENT_ENCODING, HttpHeaderConstants.IDENTITY, true);
 
       if (isSsl || compress || !file.getFileSystem().equals(FileSystems.getDefault())) {
-        sendResponse(status, channel ->
+        sendResponse(status, (channel, then) ->
           Blocking.get(() -> Files.newByteChannel(file))
-            .flatMap(fileChannel ->
-              Promise.<Boolean>async(down ->
-                channel.writeAndFlush(new HttpChunkedInput(new ChunkedNioStream(fileChannel)))
-                  .addListener(future -> down.success(future.isSuccess()))
-              )
+            .then(fileChannel ->
+              then.accept(channel.writeAndFlush(new HttpChunkedInput(new ChunkedNioStream(fileChannel))))
             )
-            .mapError(any -> false)
         );
       } else {
-        sendResponse(status, channel ->
+        sendResponse(status, (channel, then) ->
           Blocking.get(() -> FileChannel.open(file, OPEN_OPTIONS))
-            .flatMap(fileChannel ->
-              Promise.<Boolean>async(down -> {
-                channel.write(new DefaultFileRegion(fileChannel, 0, size));
-                channel.writeAndFlush(LastHttpContent.EMPTY_LAST_CONTENT)
-                  .addListener(future -> down.success(future.isSuccess()));
-              })
-            )
-            .mapError(any -> false)
+            .then(fileChannel -> {
+              channel.write(new DefaultFileRegion(fileChannel, 0, size));
+              then.accept(channel.writeAndFlush(LastHttpContent.EMPTY_LAST_CONTENT));
+            })
         );
       }
     }
@@ -281,90 +275,85 @@ public class DefaultResponseTransmitter implements ResponseTransmitter {
 
   @Override
   public void transmit(HttpResponseStatus status, Publisher<? extends ByteBuf> publisher) {
-    sendResponse(status, channel ->
-      Promise.async(downstream -> {
-        publisher.subscribe(new Subscriber<ByteBuf>() {
-          private Subscription subscription;
+    sendResponse(status, (channel, then) ->
+      publisher.subscribe(new Subscriber<ByteBuf>() {
+        private Subscription subscription;
 
-          private final AtomicBoolean done = new AtomicBoolean();
+        private final AtomicBoolean done = new AtomicBoolean();
 
-          private final ChannelFutureListener cancelOnFailure = future -> {
-            if (!future.isSuccess()) {
-              cancel();
-            }
-          };
+        private final ChannelFutureListener cancelOnFailure = future -> {
+          if (!future.isSuccess()) {
+            cancel();
+          }
+        };
 
-          private final GenericFutureListener<Future<? super Void>> cancelOnCloseListener =
-            c -> cancel();
+        private final GenericFutureListener<Future<? super Void>> cancelOnCloseListener =
+          c -> cancel();
 
-          private void cancel() {
-            channel.closeFuture().removeListener(cancelOnCloseListener);
-            if (done.compareAndSet(false, true)) {
-              subscription.cancel();
-              downstream.success(false);
-            }
+        private void cancel() {
+          channel.closeFuture().removeListener(cancelOnCloseListener);
+          if (done.compareAndSet(false, true)) {
+            subscription.cancel();
+          }
+        }
+
+        @Override
+        public void onSubscribe(Subscription subscription) {
+          if (subscription == null) {
+            throw new NullPointerException("'subscription' is null");
+          }
+          if (this.subscription != null) {
+            subscription.cancel();
+            return;
           }
 
-          @Override
-          public void onSubscribe(Subscription subscription) {
-            if (subscription == null) {
-              throw new NullPointerException("'subscription' is null");
-            }
-            if (this.subscription != null) {
-              subscription.cancel();
-              return;
-            }
+          this.subscription = subscription;
 
-            this.subscription = subscription;
+          channel.closeFuture().addListener(cancelOnCloseListener);
+          onWritabilityChanged = () -> {
+            if (channel.isWritable() && !done.get()) {
+              subscription.request(1);
+            }
+          };
+          if (channel.isWritable()) {
+            subscription.request(1);
+          }
 
-            channel.closeFuture().addListener(cancelOnCloseListener);
-            onWritabilityChanged = () -> {
-              if (channel.isWritable() && !done.get()) {
-                subscription.request(1);
-              }
-            };
+        }
+
+        @Override
+        public void onNext(ByteBuf o) {
+          o.touch();
+          if (channel.isOpen()) {
+            channel.writeAndFlush(new DefaultHttpContent(o)).addListener(cancelOnFailure);
             if (channel.isWritable()) {
               subscription.request(1);
             }
-
+          } else {
+            o.release();
+            cancel();
           }
+        }
 
-          @Override
-          public void onNext(ByteBuf o) {
-            o.touch();
-            if (channel.isOpen()) {
-              channel.writeAndFlush(new DefaultHttpContent(o)).addListener(cancelOnFailure);
-              if (channel.isWritable()) {
-                subscription.request(1);
-              }
-            } else {
-              o.release();
-              cancel();
-            }
+        @Override
+        public void onError(Throwable t) {
+          if (t == null) {
+            throw new NullPointerException("error is null");
           }
+          if (done.compareAndSet(false, true)) {
+            channel.closeFuture().removeListener(cancelOnCloseListener);
+            then.accept(channel.newFailedFuture(t));
+          }
+        }
 
-          @Override
-          public void onError(Throwable t) {
-            if (t == null) {
-              throw new NullPointerException("error is null");
-            }
-            LOGGER.warn("Exception thrown transmitting stream", t);
-            if (done.compareAndSet(false, true)) {
-              channel.closeFuture().removeListener(cancelOnCloseListener);
-              downstream.success(false);
-            }
+        @Override
+        public void onComplete() {
+          if (done.compareAndSet(false, true)) {
+            channel.closeFuture().removeListener(cancelOnCloseListener);
+            onWritabilityChanged = NOOP_RUNNABLE;
+            then.accept(channel.writeAndFlush(LastHttpContent.EMPTY_LAST_CONTENT));
           }
-
-          @Override
-          public void onComplete() {
-            if (done.compareAndSet(false, true)) {
-              channel.closeFuture().removeListener(cancelOnCloseListener);
-              onWritabilityChanged = NOOP_RUNNABLE;
-              channel.writeAndFlush(LastHttpContent.EMPTY_LAST_CONTENT);
-              downstream.success(true);
-            }
-          }
-        });
+        }
       }));
   }
 

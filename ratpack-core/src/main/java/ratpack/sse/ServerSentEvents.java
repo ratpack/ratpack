@@ -18,6 +18,8 @@ package ratpack.sse;
 
 import io.netty.buffer.ByteBufAllocator;
 import org.reactivestreams.Publisher;
+import org.reactivestreams.Subscriber;
+import org.reactivestreams.Subscription;
 import ratpack.func.Action;
 import ratpack.handling.Context;
 import ratpack.http.Response;
@@ -26,6 +28,13 @@ import ratpack.render.Renderable;
 import ratpack.sse.internal.DefaultEvent;
 import ratpack.sse.internal.ServerSentEventEncoder;
 import ratpack.stream.Streams;
+import ratpack.stream.TransformablePublisher;
+
+import java.util.Arrays;
+import java.util.Collections;
+
+import static io.netty.handler.codec.http.HttpResponseStatus.NO_CONTENT;
+import static java.util.Objects.requireNonNull;
 
 /**
  * A {@link ratpack.handling.Context#render(Object) renderable} object for streaming server side events.
@@ -83,6 +92,7 @@ import ratpack.stream.Streams;
  */
 public class ServerSentEvents implements Renderable {
 
+  private final boolean noContentOnEmpty;
   private final Publisher<? extends Event<?>> publisher;
 
   /**
@@ -100,16 +110,37 @@ public class ServerSentEvents implements Renderable {
    * @return a {@link ratpack.handling.Context#render(Object) renderable} object
    */
   public static <T> ServerSentEvents serverSentEvents(Publisher<T> publisher, Action<? super Event<T>> action) {
-    return new ServerSentEvents(Streams.map(publisher, item -> {
+    return new ServerSentEvents(false, toEventPublisher(publisher, action));
+  }
+
+  /**
+   * Creates a new renderable object wrapping the event stream.
+   * <p>
+   * This method is identical to {@link #serverSentEvents(Publisher, Action)} except that it causes a
+   * {@code 204 No Content} response to be rendered if the stream is empty.
+   *
+   * @param publisher the event stream
+   * @param action the conversion of stream items to event objects
+   * @param <T> the type of object in the event stream
+   * @return a {@link ratpack.handling.Context#render(Object) renderable} object
+   * @since 1.10
+   */
+  public static <T> ServerSentEvents serverSentEventsWithNoContentOnEmpty(Publisher<T> publisher, Action<? super Event<T>> action) {
+    return new ServerSentEvents(true, toEventPublisher(publisher, action));
+  }
+
+  private static <T> TransformablePublisher<Event<T>> toEventPublisher(Publisher<T> publisher, Action<? super Event<T>> action) {
+    return Streams.map(publisher, item -> {
       Event<T> event = action.with(new DefaultEvent<>(item));
       if (event.getData() == null && event.getId() == null && event.getEvent() == null && event.getComment() == null) {
         throw new IllegalArgumentException("You must supply at least one of data, event, id or comment");
       }
       return event;
-    }));
+    });
   }
 
-  private ServerSentEvents(Publisher<? extends Event<?>> publisher) {
+  private ServerSentEvents(boolean noContentOnEmpty, Publisher<? extends Event<?>> publisher) {
+    this.noContentOnEmpty = noContentOnEmpty;
     this.publisher = publisher;
   }
 
@@ -127,13 +158,84 @@ public class ServerSentEvents implements Renderable {
    */
   @Override
   public void render(Context context) throws Exception {
+    Response response = context.getResponse();
+    response.getHeaders().add(HttpHeaderConstants.CACHE_CONTROL, HttpHeaderConstants.NO_CACHE_FULL);
+    response.getHeaders().add(HttpHeaderConstants.PRAGMA, HttpHeaderConstants.NO_CACHE);
+
+    if (noContentOnEmpty) {
+      renderWithNoContentOnEmpty(context);
+    } else {
+      renderStream(context, publisher);
+    }
+  }
+
+  private void renderWithNoContentOnEmpty(Context context) {
+    // Subscribe so we can listen for the first event
+    publisher.subscribe(new Subscriber<Event<?>>() {
+
+      private Subscription subscription;
+      private Subscriber<? super Event<?>> subscriber;
+
+      @Override
+      public void onSubscribe(Subscription s) {
+        subscription = s;
+        subscription.request(1);
+      }
+
+      @Override
+      public void onNext(Event<?> event) {
+        if (subscriber == null) {
+          // This is the first event, we need to set up the forward to the response.
+
+          // A publisher for the item we have consumed.
+          Publisher<Event<?>> consumedPublisher = Streams.publish(Collections.singleton(event));
+
+          // A publisher that will forward what we haven't consumed.
+          Publisher<Event<?>> restPublisher = s -> {
+            // Upstream signals will flow through us, and we need to forward to this subscriber
+            subscriber = s;
+
+            // Pass through our subscription so that the new subscriber controls demand.
+            s.onSubscribe(requireNonNull(subscription));
+          };
+
+          // Join them together so that we send the whole thing.
+          renderStream(context, Streams.concat(Arrays.asList(consumedPublisher, restPublisher)));
+        } else {
+          subscriber.onNext(event);
+        }
+      }
+
+      @Override
+      public void onError(Throwable t) {
+        if (subscriber == null) {
+          context.error(t);
+        } else {
+          subscriber.onError(t);
+        }
+      }
+
+      @Override
+      public void onComplete() {
+        if (subscriber == null) {
+          emptyStream(context);
+        } else {
+          subscriber.onComplete();
+        }
+      }
+    });
+  }
+
+  private void renderStream(Context context, Publisher<? extends Event<?>> publisher) {
     ByteBufAllocator bufferAllocator = context.get(ByteBufAllocator.class);
     Response response = context.getResponse();
     response.getHeaders().add(HttpHeaderConstants.CONTENT_TYPE, HttpHeaderConstants.TEXT_EVENT_STREAM_CHARSET_UTF_8);
     response.getHeaders().add(HttpHeaderConstants.TRANSFER_ENCODING, HttpHeaderConstants.CHUNKED);
-    response.getHeaders().add(HttpHeaderConstants.CACHE_CONTROL, HttpHeaderConstants.NO_CACHE_FULL);
-    response.getHeaders().add(HttpHeaderConstants.PRAGMA, HttpHeaderConstants.NO_CACHE);
     response.sendStream(Streams.map(publisher, i -> ServerSentEventEncoder.INSTANCE.encode(i, bufferAllocator)));
+  }
+
+  private static void emptyStream(Context ctx) {
+    ctx.getResponse().status(NO_CONTENT.code()).send();
   }
 
 }
