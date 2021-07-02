@@ -16,30 +16,10 @@
 
 package ratpack.http.client
 
-import ratpack.error.ServerErrorHandler
-import ratpack.error.internal.DefaultDevelopmentErrorHandler
 import ratpack.func.Action
-import ratpack.groovy.handling.GroovyChain
-import ratpack.groovy.test.embed.GroovyEmbeddedApp
-import ratpack.test.embed.EmbeddedApp
 import ratpack.test.internal.RatpackGroovyDslSpec
-import spock.lang.AutoCleanup
 
 abstract class BaseHttpClientSpec extends RatpackGroovyDslSpec {
-
-  @AutoCleanup
-  EmbeddedApp otherApp
-
-  EmbeddedApp otherApp(@DelegatesTo(value = GroovyChain, strategy = Closure.DELEGATE_FIRST) Closure<?> closure) {
-    otherApp = GroovyEmbeddedApp.of {
-      registryOf { add ServerErrorHandler, new DefaultDevelopmentErrorHandler() }
-      handlers(closure)
-    }
-  }
-
-  URI otherAppUrl(String path = "") {
-    new URI("$otherApp.address$path")
-  }
 
   HttpClient clientOf(Action<? super HttpClientSpec> conf) {
     new HttpClientRef(conf, application)

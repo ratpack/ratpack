@@ -16,7 +16,9 @@
 
 package ratpack.file.internal
 
+import ratpack.exec.util.SerialBatch
 import ratpack.func.Action
+import ratpack.http.client.HttpClient
 import ratpack.http.client.ReceivedResponse
 import ratpack.http.client.RequestSpec
 import ratpack.http.internal.HttpHeaderDateFormat
@@ -120,6 +122,36 @@ class FileRenderingSpec extends RatpackGroovyDslSpec {
 
     then:
     postText() == myFile.text
+  }
+
+  def "can reuse connection after sending file - compressed #compressed"(boolean compressed) {
+    when:
+    otherApp {
+      get("file") {
+        if (!compressed) {
+          response.noCompress()
+        }
+        render myFile
+      }
+      get("text") { render "text" }
+    }
+
+    and:
+    handlers {
+      get {
+        def client = HttpClient.of { it.poolSize(1) }
+        def batch = [client.get(otherAppUrl("file")), client.get(otherAppUrl("text"))] * 2
+        render SerialBatch.of(batch)
+          .publisher()
+          .reduce("") { acc, res -> acc + " " + res.body.text }
+      }
+    }
+
+    then:
+    text == " hello! text hello! text"
+
+    where:
+    compressed << [false, true]
   }
 
   private static Date parseDateHeader(ReceivedResponse response, String name) {

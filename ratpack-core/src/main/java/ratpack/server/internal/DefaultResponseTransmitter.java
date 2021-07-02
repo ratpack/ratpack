@@ -252,12 +252,12 @@ public class DefaultResponseTransmitter implements ResponseTransmitter {
       long size = sizeString == null ? 0 : Long.parseLong(sizeString);
       boolean compress = !responseHeaders.contains(HttpHeaderConstants.CONTENT_ENCODING, HttpHeaderConstants.IDENTITY, true);
 
-      if (!isSsl && !compress && file.getFileSystem().equals(FileSystems.getDefault())) {
+      if (isSsl || compress || !file.getFileSystem().equals(FileSystems.getDefault())) {
         sendResponse(status, channel ->
-          Blocking.get(() -> FileChannel.open(file, OPEN_OPTIONS))
+          Blocking.get(() -> Files.newByteChannel(file))
             .flatMap(fileChannel ->
               Promise.<Boolean>async(down ->
-                channel.writeAndFlush(new DefaultFileRegion(fileChannel, 0, size))
+                channel.writeAndFlush(new HttpChunkedInput(new ChunkedNioStream(fileChannel)))
                   .addListener(future -> down.success(future.isSuccess()))
               )
             )
@@ -265,10 +265,10 @@ public class DefaultResponseTransmitter implements ResponseTransmitter {
         );
       } else {
         sendResponse(status, channel ->
-          Blocking.get(() -> Files.newByteChannel(file))
+          Blocking.get(() -> FileChannel.open(file, OPEN_OPTIONS))
             .flatMap(fileChannel ->
               Promise.<Boolean>async(down -> {
-                channel.write(new HttpChunkedInput(new ChunkedNioStream(fileChannel)));
+                channel.write(new DefaultFileRegion(fileChannel, 0, size));
                 channel.writeAndFlush(LastHttpContent.EMPTY_LAST_CONTENT)
                   .addListener(future -> down.success(future.isSuccess()));
               })
