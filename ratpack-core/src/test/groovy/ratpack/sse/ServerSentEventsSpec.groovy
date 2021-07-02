@@ -18,16 +18,20 @@ package ratpack.sse
 
 import io.netty.util.concurrent.Future
 import io.netty.util.concurrent.GenericFutureListener
+import ratpack.exec.Promise
+import ratpack.http.Status
 import ratpack.http.client.BaseHttpClientSpec
 import ratpack.stream.TransformablePublisher
 
 import java.time.Duration
 import java.util.concurrent.CountDownLatch
+import java.util.concurrent.TimeUnit
 import java.util.zip.GZIPInputStream
 
 import static io.netty.handler.codec.http.HttpResponseStatus.OK
 import static ratpack.http.ResponseChunks.stringChunks
 import static ratpack.sse.ServerSentEvents.serverSentEvents
+import static ratpack.sse.ServerSentEvents.serverSentEventsWithNoContentOnEmpty
 import static ratpack.stream.Streams.*
 
 class ServerSentEventsSpec extends BaseHttpClientSpec {
@@ -204,6 +208,110 @@ data: Event 3
 
     expect:
     getText() == "Event 0Event 1Event 2Event 3Event 4Event 5Event 6Event 7Event 8Event 9"
+  }
+
+  def "can send empty stream"() {
+    given:
+    handlers {
+      all {
+        render serverSentEvents(publish([])) { Event event ->
+          event.id(event.item.toString()).event("add").data("Event ${event.item}".toString())
+        }
+      }
+    }
+
+    expect:
+    def response = get()
+    response.body.text == ""
+    response.statusCode == OK.code()
+    response.headers["Content-Type"] == "text/event-stream;charset=UTF-8"
+    response.headers["Cache-Control"] == "no-cache, no-store, max-age=0, must-revalidate"
+    response.headers["Pragma"] == "no-cache"
+    response.headers["Content-Encoding"] == null
+  }
+
+  def "can send no content stream"() {
+    given:
+    handlers {
+      all {
+        render serverSentEventsWithNoContentOnEmpty(publish([])) { Event event ->
+          event.id(event.item.toString()).event("add").data("Event ${event.item}".toString())
+        }
+      }
+    }
+
+    expect:
+    def response = get()
+    response.body.text == ""
+    response.status == Status.NO_CONTENT
+    response.headers["Cache-Control"] == "no-cache, no-store, max-age=0, must-revalidate"
+    response.headers["Pragma"] == "no-cache"
+  }
+
+  def "can send stream when stream is async and using no content on empty"() {
+    given:
+    handlers {
+      all {
+        def stream = flatYield { req ->
+          Promise.async { down ->
+            execution.eventLoop.schedule({ down.success(req.requestNum < 5 ? req.requestNum : null) }, 20, TimeUnit.MILLISECONDS)
+          }
+        }.bindExec().gate {
+          execution.eventLoop.schedule(it, 20, TimeUnit.MILLISECONDS)
+        }
+        render serverSentEventsWithNoContentOnEmpty(stream) { Event event ->
+          event.id(event.item.toString()).event("add").data("Event ${event.item}".toString())
+        }
+      }
+    }
+
+    expect:
+    def response = get()
+    response.body.text == """
+id: 0
+event: add
+data: Event 0
+
+id: 1
+event: add
+data: Event 1
+
+id: 2
+event: add
+data: Event 2
+
+id: 3
+event: add
+data: Event 3
+
+id: 4
+event: add
+data: Event 4
+
+""".stripLeading()
+  }
+
+  def "can send no content stream when stream is async and using no content on empty"() {
+    given:
+    handlers {
+      all {
+        def stream = flatYield { req ->
+          Promise.async { down ->
+            execution.eventLoop.schedule({ down.success(null) }, 20, TimeUnit.MILLISECONDS)
+          }
+        }.bindExec().gate {
+          execution.eventLoop.schedule(it, 20, TimeUnit.MILLISECONDS)
+        }
+        render serverSentEventsWithNoContentOnEmpty(stream) { Event event ->
+          event.id(event.item.toString()).event("add").data("Event ${event.item}".toString())
+        }
+      }
+    }
+
+    expect:
+    def response = get()
+    response.body.text == ""
+    response.status == Status.NO_CONTENT
   }
 
 }
