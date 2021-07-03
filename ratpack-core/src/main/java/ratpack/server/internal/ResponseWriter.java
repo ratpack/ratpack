@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 the original author or authors.
+ * Copyright 2021 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,12 +16,20 @@
 
 package ratpack.server.internal;
 
-import io.netty.handler.codec.http.HttpContent;
+import io.netty.channel.Channel;
+import io.netty.channel.ChannelFuture;
 
-public interface RequestBodyAccumulator {
+import java.util.function.Consumer;
 
-  void add(HttpContent httpContent);
+interface ResponseWriter {
 
-  void onClose();
+  void write(
+    Channel channel,
+    Consumer<? super ResponseWritingListener> listenerReceiver,
+    Consumer<? super ChannelFuture> then
+  );
+
+  default void dispose() {
+  }
 
 }

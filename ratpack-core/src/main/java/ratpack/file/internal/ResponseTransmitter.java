@@ -32,8 +32,9 @@ public interface ResponseTransmitter {
 
   void transmit(HttpResponseStatus status, Publisher<? extends ByteBuf> publisher);
 
+  void onWritabilityChanged();
+
   void addOutcomeListener(Action<? super RequestOutcome> action);
 
-  void forceCloseConnection();
-
+  void onConnectionClosed();
 }

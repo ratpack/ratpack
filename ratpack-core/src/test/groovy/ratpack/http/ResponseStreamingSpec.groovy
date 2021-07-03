@@ -75,6 +75,7 @@ class ResponseStreamingSpec extends RatpackGroovyDslSpec {
     given:
     Queue<StreamEvent<ByteBuf>> events = new ConcurrentLinkedQueue<>()
     def buffer = Unpooled.unreleasableBuffer(Unpooled.copiedBuffer("a" * 30720, Charsets.UTF_8))
+    def onCloseCalled = new BlockingVariable()
 
     when:
     handlers {
@@ -82,6 +83,7 @@ class ResponseStreamingSpec extends RatpackGroovyDslSpec {
         def stream = Streams.constant(buffer).wiretap {
           events << it
         }
+        context.onClose { onCloseCalled.set(true) }
         response.sendStream(stream)
       }
       get("read") { ctx ->
@@ -121,6 +123,7 @@ class ResponseStreamingSpec extends RatpackGroovyDslSpec {
     new PollingConditions().eventually {
       events.find { it.cancel }
     }
+    onCloseCalled.get()
 
     cleanup:
     buffer.release()

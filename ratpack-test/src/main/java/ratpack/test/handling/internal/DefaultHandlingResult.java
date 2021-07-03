@@ -96,7 +96,7 @@ public class DefaultHandlingResult implements HandlingResult {
 
     ResponseTransmitter responseTransmitter = new ResponseTransmitter() {
 
-      private List<Action<? super RequestOutcome>> outcomeListeners = Lists.newArrayList();
+      private final List<Action<? super RequestOutcome>> outcomeListeners = Lists.newArrayList();
 
       @Override
       public void transmit(HttpResponseStatus status, ByteBuf byteBuf) {
@@ -136,7 +136,12 @@ public class DefaultHandlingResult implements HandlingResult {
       }
 
       @Override
-      public void forceCloseConnection() {
+      public void onWritabilityChanged() {
+
+      }
+
+      @Override
+      public void onConnectionClosed() {
 
       }
     };
