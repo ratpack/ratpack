@@ -29,6 +29,7 @@ import ratpack.stream.Streams
 import spock.util.concurrent.BlockingVariable
 
 import java.nio.file.StandardOpenOption
+import java.util.concurrent.atomic.AtomicBoolean
 
 class HttpClientBodyStreamingSpec extends BaseHttpClientSpec {
 
@@ -585,16 +586,16 @@ class HttpClientBodyStreamingSpec extends BaseHttpClientSpec {
     def declaredSize = size + 20
     def inFile = baseDir.write("in", "a" * size)
     def outFile = baseDir.path("out")
-    def closed = false
+    def closed = new AtomicBoolean(false)
     bindings {
       bindInstance(HttpClient, HttpClient.of { it.poolSize(pooled ? 1 : 0) })
     }
     otherApp {
       post {
-        closed = false
+        closed.set(false)
         FileIo.write(request.getBodyStream(declaredSize), FileIo.open(outFile, StandardOpenOption.WRITE, StandardOpenOption.CREATE))
           .onError(ConnectionClosedException) {
-            closed = true
+            closed.set(true)
             render "closed"
           }
           .then { render "out" }
@@ -615,14 +616,14 @@ class HttpClientBodyStreamingSpec extends BaseHttpClientSpec {
 
     then:
     text == "java.lang.IllegalStateException: Publisher completed before sending advertised number of bytes"
-    closed
+    closed.get()
 
     and:
     outFile.text == inFile.text
 
     then:
     text == "java.lang.IllegalStateException: Publisher completed before sending advertised number of bytes"
-    closed
+    closed.get()
 
     and:
     outFile.text == inFile.text
