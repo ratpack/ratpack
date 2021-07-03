@@ -68,6 +68,7 @@ public class DefaultResponseTransmitter implements ResponseTransmitter {
 
   private Instant stopTime;
   private ResponseWritingListener writingListener;
+  private boolean done;
 
   public DefaultResponseTransmitter(
     AtomicBoolean transmitted,
@@ -118,9 +119,17 @@ public class DefaultResponseTransmitter implements ResponseTransmitter {
           });
       }
     } else {
-      String msg = "attempt at double transmission for: " + ratpackRequest.getRawUri();
-      LOGGER.warn(msg, new DoubleTransmissionException(msg));
       bodyWriter.dispose();
+      if (done) {
+        if (LOGGER.isWarnEnabled()) {
+          LOGGER.warn("", new DoubleTransmissionException("Attempt at double transmission after response sent for: " + ratpackRequest.getRawUri()));
+        }
+      } else {
+        if (LOGGER.isErrorEnabled()) {
+          LOGGER.error("", new DoubleTransmissionException("Attempt at double transmission while sending response (connection will be closed) for: " + ratpackRequest.getRawUri()));
+        }
+        channel.close();
+      }
     }
   }
 
@@ -172,7 +181,6 @@ public class DefaultResponseTransmitter implements ResponseTransmitter {
       LOGGER.warn("Error finalizing response", e);
       forceCloseWithResponse(HttpResponseStatus.INTERNAL_SERVER_ERROR);
     }
-
   }
 
   private void forceCloseWithResponse(HttpResponseStatus status) {
@@ -234,6 +242,7 @@ public class DefaultResponseTransmitter implements ResponseTransmitter {
   }
 
   private void notifyListeners(final HttpResponseStatus responseStatus) {
+    done = true;
     if (outcomeListeners != null) {
       SentResponse sentResponse = new DefaultSentResponse(new NettyHeadersBackedHeaders(responseHeaders), new DefaultStatus(responseStatus));
       RequestOutcome requestOutcome = new DefaultRequestOutcome(ratpackRequest, sentResponse, stopTime);

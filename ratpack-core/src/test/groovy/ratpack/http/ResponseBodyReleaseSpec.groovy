@@ -17,6 +17,7 @@
 package ratpack.http
 
 import io.netty.buffer.Unpooled
+import io.netty.handler.codec.PrematureChannelClosureException
 import io.netty.handler.codec.http.HttpResponseStatus
 import ratpack.exec.Blocking
 import ratpack.exec.Execution
@@ -94,6 +95,7 @@ class ResponseBodyReleaseSpec extends RatpackGroovyDslSpec {
     requestExecutionCompleted.await()
 
     then:
+    thrown PrematureChannelClosureException
     secondResponseBuffer.refCnt() == 0
   }
 
