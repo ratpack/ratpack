@@ -32,7 +32,7 @@ import io.netty.util.CharsetUtil;
 import org.reactivestreams.Publisher;
 import ratpack.api.Nullable;
 import ratpack.exec.Operation;
-import ratpack.file.internal.ResponseTransmitter;
+import ratpack.server.internal.ResponseTransmitter;
 import ratpack.func.Action;
 import ratpack.http.Headers;
 import ratpack.http.MutableHeaders;

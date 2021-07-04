@@ -30,7 +30,6 @@ import io.netty.util.ReferenceCountUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import ratpack.exec.ExecController;
-import ratpack.file.internal.ResponseTransmitter;
 import ratpack.func.Action;
 import ratpack.handling.Handler;
 import ratpack.handling.Handlers;

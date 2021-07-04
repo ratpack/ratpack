@@ -28,7 +28,7 @@ import ratpack.exec.ExecController;
 import ratpack.exec.Execution;
 import ratpack.exec.Promise;
 import ratpack.file.FileSystemBinding;
-import ratpack.file.internal.ResponseTransmitter;
+import ratpack.server.internal.ResponseTransmitter;
 import ratpack.func.Action;
 import ratpack.func.Function;
 import ratpack.handling.*;

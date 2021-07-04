@@ -26,7 +26,7 @@ import org.reactivestreams.Publisher;
 import org.slf4j.LoggerFactory;
 import ratpack.api.Nullable;
 import ratpack.exec.ExecController;
-import ratpack.file.internal.ResponseTransmitter;
+import ratpack.server.internal.ResponseTransmitter;
 import ratpack.func.Action;
 import ratpack.handling.Context;
 import ratpack.handling.Handler;
