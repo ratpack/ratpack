@@ -68,10 +68,8 @@ public class BlockingHttpClient {
 
               @Override
               public void error(Throwable throwable) {
-                System.out.println("received " + throwable);
                 result.set(ExecResult.of(Result.error(throwable)));
                 latch.countDown();
-                System.out.println("marked latch");
               }
 
               @Override
