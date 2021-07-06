@@ -586,13 +586,13 @@ class HttpClientBodyStreamingSpec extends BaseHttpClientSpec {
     def declaredSize = size + 20
     def inFile = baseDir.write("in", "a" * size)
     def outFile = baseDir.path("out")
-    def closed = new AtomicBoolean(false)
+    def closed = new BlockingVariable<Boolean>()
     bindings {
       bindInstance(HttpClient, HttpClient.of { it.poolSize(pooled ? 1 : 0) })
     }
     otherApp {
       post {
-        closed.set(false)
+        closed = new BlockingVariable<Boolean>()
         FileIo.write(request.getBodyStream(declaredSize), FileIo.open(outFile, StandardOpenOption.WRITE, StandardOpenOption.CREATE))
           .onError(ConnectionClosedException) {
             closed.set(true)
