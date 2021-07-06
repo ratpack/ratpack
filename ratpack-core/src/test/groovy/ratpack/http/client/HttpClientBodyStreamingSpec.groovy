@@ -16,7 +16,6 @@
 
 package ratpack.http.client
 
-
 import io.netty.buffer.PooledByteBufAllocator
 import io.netty.buffer.Unpooled
 import io.netty.handler.codec.http.HttpHeaderNames
@@ -29,7 +28,6 @@ import ratpack.stream.Streams
 import spock.util.concurrent.BlockingVariable
 
 import java.nio.file.StandardOpenOption
-import java.util.concurrent.atomic.AtomicBoolean
 
 class HttpClientBodyStreamingSpec extends BaseHttpClientSpec {
 
