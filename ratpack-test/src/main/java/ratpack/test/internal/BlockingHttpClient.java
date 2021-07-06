@@ -17,6 +17,8 @@
 package ratpack.test.internal;
 
 import io.netty.buffer.ByteBuf;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import ratpack.exec.Downstream;
 import ratpack.exec.ExecController;
 import ratpack.exec.ExecResult;
@@ -40,6 +42,7 @@ import java.util.concurrent.atomic.AtomicReference;
 import static io.netty.buffer.Unpooled.unreleasableBuffer;
 
 public class BlockingHttpClient {
+  private static final Logger logger = LoggerFactory.getLogger(BlockingHttpClient.class);
 
   public ReceivedResponse request(HttpClient httpClient, URI uri, ExecController execController, Duration timeout, Action<? super RequestSpec> action) throws Throwable {
     CountDownLatch latch = new CountDownLatch(1);
@@ -69,8 +72,10 @@ public class BlockingHttpClient {
 
               @Override
               public void error(Throwable throwable) {
+                System.out.println("received " + throwable);
                 result.set(ExecResult.of(Result.error(throwable)));
                 latch.countDown();
+                System.out.println("marked latch");
               }
 
               @Override
@@ -87,6 +92,7 @@ public class BlockingHttpClient {
         throw new IllegalStateException("Request to " + uri + " took more than " + timeout.get(unit) + " " + unit.toString() + " to complete");
       }
     } catch (InterruptedException e) {
+      Thread.currentThread().interrupt();
       throw Exceptions.uncheck(e);
     }
 
