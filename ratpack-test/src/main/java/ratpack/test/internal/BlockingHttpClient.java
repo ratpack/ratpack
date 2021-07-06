@@ -17,8 +17,6 @@
 package ratpack.test.internal;
 
 import io.netty.buffer.ByteBuf;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import ratpack.exec.Downstream;
 import ratpack.exec.ExecController;
 import ratpack.exec.ExecResult;
@@ -42,8 +40,6 @@ import java.util.concurrent.atomic.AtomicReference;
 import static io.netty.buffer.Unpooled.unreleasableBuffer;
 
 public class BlockingHttpClient {
-  private static final Logger logger = LoggerFactory.getLogger(BlockingHttpClient.class);
-
   public ReceivedResponse request(HttpClient httpClient, URI uri, ExecController execController, Duration timeout, Action<? super RequestSpec> action) throws Throwable {
     CountDownLatch latch = new CountDownLatch(1);
     AtomicReference<ExecResult<ReceivedResponse>> result = new AtomicReference<>();
