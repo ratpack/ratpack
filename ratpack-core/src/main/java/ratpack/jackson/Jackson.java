@@ -79,70 +79,9 @@ import java.io.OutputStream;
  * }
  * }</pre>
  *
- * <h4>Streaming JSON and events</h4>
- * <p>
- * There are several options for streaming JSON data and events.
+ * <h4>Streaming JSON</h4>
  * <p>
  * The {@link #chunkedJsonList(Registry, Publisher)} method can be used for rendering a very large JSON stream/list without buffering the entire list in memory.
- * <p>
- * It is also easy to render {@link ratpack.sse.ServerSentEvents server sent events}, which can be useful for real time applications and infinite data streams.
- * <pre class="java">{@code
- * import ratpack.test.embed.EmbeddedApp;
- * import ratpack.jackson.Jackson;
- * import ratpack.stream.Streams;
- * import ratpack.http.client.ReceivedResponse;
- * import com.fasterxml.jackson.databind.ObjectMapper;
- * import org.reactivestreams.Publisher;
- *
- * import java.util.Arrays;
- *
- * import static ratpack.jackson.Jackson.toJson;
- * import static ratpack.sse.ServerSentEvents.serverSentEvents;
- * import static java.util.stream.Collectors.joining;
- * import static org.junit.Assert.*;
- *
- * public class Example {
- *
- *   public static class Person {
- *     private final String name;
- *     public Person(String name) {
- *       this.name = name;
- *     }
- *     public String getName() {
- *       return name;
- *     }
- *   }
- *
- *   public static void main(String... args) throws Exception {
- *     EmbeddedApp.of(s -> s
- *       .handlers(chain -> chain
- *         .get("stream", ctx -> {
- *           Publisher<Person> people = Streams.publish(Arrays.asList(
- *             new Person("a"),
- *             new Person("b"),
- *             new Person("c")
- *           ));
- *
- *           ctx.render(serverSentEvents(people, e -> e.data(toJson(ctx))));
- *         })
- *       )
- *     ).test(httpClient -> {
- *       ReceivedResponse response = httpClient.get("stream");
- *       assertEquals("text/event-stream;charset=UTF-8", response.getHeaders().get("Content-Type"));
- *
- *       String expectedOutput = Arrays.asList("a", "b", "c")
- *         .stream()
- *         .map(i -> "data: {\"name\":\"" + i + "\"}\n")
- *         .collect(joining("\n"))
- *         + "\n";
- *
- *       assertEquals(expectedOutput, response.getBody().getText());
- *     });
- *   }
- * }
- * }</pre>
- * <p>
- * A similar approach could be used directly with the {@link ratpack.http.Response#sendStream(Publisher)} method for a custom “protocol”.
  *
  * <h3><a name="parsing">Parsing JSON requests</a></h3>
  * <p>
@@ -600,48 +539,11 @@ public abstract class Jackson {
   }
 
   /**
-   * Creates a mapping function that returns the JSON representation as a string of the input object.
-   * <p>
-   * An {@link ObjectWriter} instance is obtained from the given registry eagerly.
-   * The returned function uses the {@link ObjectWriter#writeValueAsString(Object)} method to convert the input object to JSON.
-   * <pre class="java">{@code
-   * import ratpack.exec.Promise;
-   * import ratpack.test.embed.EmbeddedApp;
-   * import ratpack.jackson.Jackson;
-   * import ratpack.http.client.ReceivedResponse;
-   * import com.fasterxml.jackson.databind.ObjectMapper;
+   * Deprecated.
    *
-   * import java.util.Arrays;
-   *
-   * import static ratpack.jackson.Jackson.toJson;
-   * import static java.util.Collections.singletonMap;
-   * import static org.junit.Assert.*;
-   *
-   * public class Example {
-   *   public static void main(String... args) throws Exception {
-   *     EmbeddedApp.of(s -> s
-   *       .handlers(chain -> chain
-   *         .get(ctx ->
-   *           Promise.value(singletonMap("foo", "bar"))
-   *             .map(toJson(ctx))
-   *             .then(ctx::render)
-   *         )
-   *       )
-   *     ).test(httpClient -> {
-   *       assertEquals("{\"foo\":\"bar\"}", httpClient.getText());
-   *     });
-   *   }
-   * }
-   * }</pre>
-   * <p>
-   * Note that in the above example, it would have been better to just <a href="#rendering">render</a> the result of the blocking call.
-   * Doing so would be more convenient and also set the correct {@code "Content-Type"} header.
-   * This method can be useful when sending the JSON somewhere else than directly to the response, or when {@link Streams#map(Publisher, Function) mapping streams}.
-   *
-   * @param registry the registry to obtain the {@link ObjectWriter} from
-   * @param <T> the type of object to convert to JSON
-   * @return a function that converts objects to their JSON string representation
+   * @deprecated since 1.10 with no replacement
    */
+  @Deprecated
   public static <T> Function<T, String> toJson(Registry registry) {
     return getObjectWriter(registry)::writeValueAsString;
   }

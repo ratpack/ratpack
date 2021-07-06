@@ -19,12 +19,12 @@ package ratpack.sse.internal
 import io.netty.buffer.ByteBufAllocator
 import io.netty.buffer.Unpooled
 import io.netty.util.ByteProcessor
-import ratpack.sse.Event
+import ratpack.sse.ServerSentEvent
 import ratpack.test.internal.RatpackGroovyDslSpec
 
 class ServerSentEventStreamDecoderSpec extends RatpackGroovyDslSpec {
 
-  List<Event<?>> events = []
+  List<ServerSentEvent> events = []
   def decoder = new ServerSentEventDecoder(ByteBufAllocator.DEFAULT, events.&add)
 
   def "can decode valid server sent event"() {

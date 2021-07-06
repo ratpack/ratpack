@@ -19,7 +19,7 @@ package ratpack.sse.internal;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.ByteBufAllocator;
 import io.netty.buffer.Unpooled;
-import ratpack.sse.Event;
+import ratpack.sse.ServerSentEvent;
 
 import java.nio.charset.StandardCharsets;
 
@@ -36,7 +36,7 @@ public class ServerSentEventEncoder {
 
   private static final byte NEWLINE = '\n';
 
-  public ByteBuf encode(Event<?> event, ByteBufAllocator bufferAllocator) throws Exception {
+  public ByteBuf encode(ServerSentEvent event, ByteBufAllocator bufferAllocator) throws Exception {
     String eventId = event.getId();
     String eventType = event.getEvent();
     String eventData = event.getData();

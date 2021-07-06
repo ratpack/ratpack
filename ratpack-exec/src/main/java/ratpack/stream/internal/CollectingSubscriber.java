@@ -58,6 +58,10 @@ public class CollectingSubscriber<T> implements Subscriber<T> {
     subscriptionConsumer.accept(s);
   }
 
+  public void request(long n) {
+    subscription.request(n);
+  }
+
   @Override
   public void onNext(T t) {
     received.add(t);

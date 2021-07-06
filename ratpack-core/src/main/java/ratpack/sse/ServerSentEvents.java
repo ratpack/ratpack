@@ -16,20 +16,22 @@
 
 package ratpack.sse;
 
+import io.netty.buffer.ByteBuf;
 import io.netty.buffer.ByteBufAllocator;
+import io.netty.channel.EventLoop;
 import org.reactivestreams.Publisher;
 import org.reactivestreams.Subscriber;
 import org.reactivestreams.Subscription;
+import ratpack.api.Nullable;
 import ratpack.func.Action;
 import ratpack.handling.Context;
 import ratpack.http.Response;
 import ratpack.http.internal.HttpHeaderConstants;
 import ratpack.render.Renderable;
-import ratpack.sse.internal.DefaultEvent;
-import ratpack.sse.internal.ServerSentEventEncoder;
+import ratpack.sse.internal.*;
 import ratpack.stream.Streams;
-import ratpack.stream.TransformablePublisher;
 
+import java.time.Duration;
 import java.util.Arrays;
 import java.util.Collections;
 
@@ -45,6 +47,7 @@ import static java.util.Objects.requireNonNull;
  * <pre class="java">{@code
  * import org.reactivestreams.Publisher;
  * import ratpack.http.client.ReceivedResponse;
+ * import ratpack.sse.ServerSentEvent;
  * import ratpack.sse.ServerSentEvents;
  * import ratpack.test.embed.EmbeddedApp;
  *
@@ -52,7 +55,6 @@ import static java.util.Objects.requireNonNull;
  * import java.util.Arrays;
  * import java.util.Objects;
  *
- * import static ratpack.sse.ServerSentEvents.serverSentEvents;
  * import static ratpack.stream.Streams.periodically;
  *
  * import static java.util.stream.Collectors.joining;
@@ -62,15 +64,11 @@ import static java.util.Objects.requireNonNull;
  * public class Example {
  *   public static void main(String[] args) throws Exception {
  *     EmbeddedApp.fromHandler(context -> {
- *       Publisher<String> stream = periodically(context, Duration.ofMillis(5), i ->
- *         i < 5 ? i.toString() : null
+ *       Publisher<ServerSentEvent> stream = periodically(context, Duration.ofMillis(5), i ->
+ *         i < 5 ? ServerSentEvent.builder().id(i.toString()).event("counter").data("event " + i).build() : null
  *       );
  *
- *       ServerSentEvents events = serverSentEvents(stream, e ->
- *         e.id(Objects::toString).event("counter").data(i -> "event " + i)
- *       );
- *
- *       context.render(events);
+ *       context.render(ServerSentEvents.builder().build(stream));
  *     }).test(httpClient -> {
  *       ReceivedResponse response = httpClient.get();
  *       assertEquals("text/event-stream;charset=UTF-8", response.getHeaders().get("Content-Type"));
@@ -89,68 +87,65 @@ import static java.util.Objects.requireNonNull;
  *
  * @see <a href="http://en.wikipedia.org/wiki/Server-sent_events" target="_blank">Wikipedia - Using server-sent events</a>
  * @see <a href="https://developer.mozilla.org/en-US/docs/Server-sent_events/Using_server-sent_events" target="_blank">MDN - Using server-sent events</a>
+ * @see #builder()
  */
 public class ServerSentEvents implements Renderable {
 
+  private final Publisher<? extends ServerSentEvent> publisher;
+
   private final boolean noContentOnEmpty;
-  private final Publisher<? extends Event<?>> publisher;
+  @Nullable
+  private final Duration heartbeatFrequency;
+  @Nullable
+  private final ServerSentEventStreamBufferSettings bufferSettings;
 
   /**
-   * Creates a new renderable object wrapping the event stream.
-   * <p>
-   * Takes a publisher of any type, and an action that mutates a created {@link Event} object for each stream item.
-   * The action is executed for each item in the stream as it is emitted before being sent as a server sent event.
-   * The state of the event object when the action completes will be used as the event.
-   * <p>
-   * The action <b>MUST</b> set one of {@code id}, {@code event}, {@code data} or {@code comment}.
+   * Creates a builder for an event stream.
    *
-   * @param publisher the event stream
-   * @param action the conversion of stream items to event objects
-   * @param <T> the type of object in the event stream
-   * @return a {@link ratpack.handling.Context#render(Object) renderable} object
+   * @return a builder for an event stream
    */
+  public static ServerSentEventsBuilder builder() {
+    return new BuilderImpl();
+  }
+
+  /**
+   * Deprecated.
+   *
+   * @deprecated since 1.10 - use {@link #builder()}
+   */
+  @Deprecated
   public static <T> ServerSentEvents serverSentEvents(Publisher<T> publisher, Action<? super Event<T>> action) {
-    return new ServerSentEvents(false, toEventPublisher(publisher, action));
+    Publisher<Event<T>> eventPublisher = DefaultEvent.toEvents(publisher, action);
+    return new ServerSentEvents(eventPublisher, false, null, null);
   }
 
-  /**
-   * Creates a new renderable object wrapping the event stream.
-   * <p>
-   * This method is identical to {@link #serverSentEvents(Publisher, Action)} except that it causes a
-   * {@code 204 No Content} response to be rendered if the stream is empty.
-   *
-   * @param publisher the event stream
-   * @param action the conversion of stream items to event objects
-   * @param <T> the type of object in the event stream
-   * @return a {@link ratpack.handling.Context#render(Object) renderable} object
-   * @since 1.10
-   */
-  public static <T> ServerSentEvents serverSentEventsWithNoContentOnEmpty(Publisher<T> publisher, Action<? super Event<T>> action) {
-    return new ServerSentEvents(true, toEventPublisher(publisher, action));
-  }
-
-  private static <T> TransformablePublisher<Event<T>> toEventPublisher(Publisher<T> publisher, Action<? super Event<T>> action) {
-    return Streams.map(publisher, item -> {
-      Event<T> event = action.with(new DefaultEvent<>(item));
-      if (event.getData() == null && event.getId() == null && event.getEvent() == null && event.getComment() == null) {
-        throw new IllegalArgumentException("You must supply at least one of data, event, id or comment");
-      }
-      return event;
-    });
-  }
-
-  private ServerSentEvents(boolean noContentOnEmpty, Publisher<? extends Event<?>> publisher) {
-    this.noContentOnEmpty = noContentOnEmpty;
+  private ServerSentEvents(
+    Publisher<? extends ServerSentEvent> publisher,
+    boolean noContentOnEmpty,
+    @Nullable Duration heartbeatFrequency,
+    @Nullable ServerSentEventStreamBufferSettings bufferSettings
+  ) {
     this.publisher = publisher;
+    this.noContentOnEmpty = noContentOnEmpty;
+    this.heartbeatFrequency = heartbeatFrequency;
+    this.bufferSettings = bufferSettings;
   }
 
   /**
-   * The stream of events.
+   * Deprecated.
    *
-   * @return the stream of events
+   * @deprecated since 1.10 with no replacement
    */
+  @Deprecated
+  @Nullable
   public Publisher<? extends Event<?>> getPublisher() {
-    return publisher;
+    return Streams.map(publisher, e ->
+      new DefaultEvent<>(null)
+        .id(e.getId())
+        .event(e.getEvent())
+        .data(e.getData())
+        .comment(e.getComment())
+    );
   }
 
   /**
@@ -171,10 +166,10 @@ public class ServerSentEvents implements Renderable {
 
   private void renderWithNoContentOnEmpty(Context context) {
     // Subscribe so we can listen for the first event
-    publisher.subscribe(new Subscriber<Event<?>>() {
+    publisher.subscribe(new Subscriber<ServerSentEvent>() {
 
       private Subscription subscription;
-      private Subscriber<? super Event<?>> subscriber;
+      private Subscriber<? super ServerSentEvent> subscriber;
 
       @Override
       public void onSubscribe(Subscription s) {
@@ -183,15 +178,15 @@ public class ServerSentEvents implements Renderable {
       }
 
       @Override
-      public void onNext(Event<?> event) {
+      public void onNext(ServerSentEvent event) {
         if (subscriber == null) {
           // This is the first event, we need to set up the forward to the response.
 
           // A publisher for the item we have consumed.
-          Publisher<Event<?>> consumedPublisher = Streams.publish(Collections.singleton(event));
+          Publisher<ServerSentEvent> consumedPublisher = Streams.publish(Collections.singleton(event));
 
           // A publisher that will forward what we haven't consumed.
-          Publisher<Event<?>> restPublisher = s -> {
+          Publisher<ServerSentEvent> restPublisher = s -> {
             // Upstream signals will flow through us, and we need to forward to this subscriber
             subscriber = s;
 
@@ -226,16 +221,74 @@ public class ServerSentEvents implements Renderable {
     });
   }
 
-  private void renderStream(Context context, Publisher<? extends Event<?>> publisher) {
-    ByteBufAllocator bufferAllocator = context.get(ByteBufAllocator.class);
+  private void renderStream(Context context, Publisher<? extends ServerSentEvent> events) {
     Response response = context.getResponse();
     response.getHeaders().add(HttpHeaderConstants.CONTENT_TYPE, HttpHeaderConstants.TEXT_EVENT_STREAM_CHARSET_UTF_8);
     response.getHeaders().add(HttpHeaderConstants.TRANSFER_ENCODING, HttpHeaderConstants.CHUNKED);
-    response.sendStream(Streams.map(publisher, i -> ServerSentEventEncoder.INSTANCE.encode(i, bufferAllocator)));
+
+    ByteBufAllocator byteBufAllocator = context.getDirectChannelAccess().getChannel().alloc();
+    Publisher<ByteBuf> buffers = Streams.map(events, i -> ServerSentEventEncoder.INSTANCE.encode(i, byteBufAllocator));
+
+    EventLoop executor = context.getDirectChannelAccess().getChannel().eventLoop();
+    Clock clock = System::nanoTime;
+
+    if (bufferSettings != null) {
+      buffers = new ServerSentEventStreamBuffer(buffers, executor, byteBufAllocator, bufferSettings, clock);
+    }
+
+    if (heartbeatFrequency != null) {
+      buffers = new ServerSentEventStreamKeepAlive(buffers, executor, heartbeatFrequency, clock);
+    }
+
+    response.sendStream(buffers);
   }
 
   private static void emptyStream(Context ctx) {
     ctx.getResponse().status(NO_CONTENT.code()).send();
   }
 
+  private static class BuilderImpl implements ServerSentEventsBuilder {
+
+    private boolean noContentOnEmpty;
+    private ServerSentEventStreamBufferSettings bufferSettings;
+    private Duration keepAliveHeartbeat;
+
+    @Override
+    public ServerSentEventsBuilder buffered(int numEvents, int numBytes, Duration duration) {
+      if (numEvents < 1) {
+        System.out.println("numEvents must be > 0");
+      }
+      if (numBytes < 1) {
+        System.out.println("numBytes must be > 0");
+      }
+      if (duration.isNegative()) {
+        throw new IllegalArgumentException("duration must be zero or positive");
+      }
+
+      bufferSettings = new ServerSentEventStreamBufferSettings(numEvents, numBytes, duration);
+      return this;
+    }
+
+    @Override
+    public ServerSentEventsBuilder noContentOnEmpty() {
+      this.noContentOnEmpty = true;
+      return this;
+    }
+
+    @Override
+    public ServerSentEventsBuilder keepAlive(Duration heartbeatAfterIdleFor) {
+      if (heartbeatAfterIdleFor.isNegative() || heartbeatAfterIdleFor.isZero()) {
+        throw new IllegalArgumentException("duration must be positive");
+      }
+
+      this.keepAliveHeartbeat = heartbeatAfterIdleFor;
+      return this;
+    }
+
+    @Override
+    public ServerSentEvents build(Publisher<? extends ServerSentEvent> events) {
+      return new ServerSentEvents(events, noContentOnEmpty, keepAliveHeartbeat, bufferSettings);
+    }
+
+  }
 }

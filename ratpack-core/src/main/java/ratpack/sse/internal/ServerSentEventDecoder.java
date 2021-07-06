@@ -21,7 +21,8 @@ import io.netty.buffer.CompositeByteBuf;
 import io.netty.buffer.Unpooled;
 import io.netty.util.ByteProcessor;
 import ratpack.func.Action;
-import ratpack.sse.Event;
+import ratpack.sse.ServerSentEvent;
+import ratpack.sse.ServerSentEventBuilder;
 
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
@@ -73,9 +74,9 @@ public class ServerSentEventDecoder implements AutoCloseable {
   private State state = State.ReadFieldName;
 
   private final ByteBufAllocator allocator;
-  private final Action<? super Event<?>> emitter;
+  private final Action<? super ServerSentEvent> emitter;
 
-  public ServerSentEventDecoder(ByteBufAllocator allocator, Action<? super Event<?>> emitter) {
+  public ServerSentEventDecoder(ByteBufAllocator allocator, Action<? super ServerSentEvent> emitter) {
     this.allocator = allocator;
     this.emitter = emitter;
   }
@@ -203,7 +204,7 @@ public class ServerSentEventDecoder implements AutoCloseable {
 
   private void emit() throws Exception {
     boolean any = false;
-    Event<Void> event = new DefaultEvent<>(null);
+    ServerSentEventBuilder event = ServerSentEvent.builder();
     String id = str(eventId);
     if (id != null) {
       any = true;
@@ -221,7 +222,7 @@ public class ServerSentEventDecoder implements AutoCloseable {
     }
 
     if (any) {
-      emitter.execute(event);
+      emitter.execute(event.build());
     }
 
     state = State.ReadFieldName;
