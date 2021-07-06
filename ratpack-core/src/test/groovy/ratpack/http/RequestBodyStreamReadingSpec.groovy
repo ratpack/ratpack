@@ -209,7 +209,7 @@ class RequestBodyStreamReadingSpec extends RatpackGroovyDslSpec {
     }
 
     then:
-    def socket = withSocket() {
+    def socket = withSocket {
       write("POST / HTTP/1.1\r\n")
       write("Content-length: 16\r\n")
       write("\r\n")
