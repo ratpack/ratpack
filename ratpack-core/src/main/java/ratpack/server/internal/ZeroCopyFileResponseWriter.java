@@ -46,7 +46,7 @@ class ZeroCopyFileResponseWriter implements ResponseWriter {
   public void write(Channel channel, Consumer<? super ResponseWritingListener> listenerReceiver, Consumer<? super ChannelFuture> then) {
     Blocking.get(() -> FileChannel.open(file, OPEN_OPTIONS))
       .then(fileChannel -> {
-        channel.write(new DefaultFileRegion(fileChannel, 0, size));
+        channel.write(new DefaultFileRegion(fileChannel, 0, size), channel.voidPromise());
         then.accept(channel.writeAndFlush(LastHttpContent.EMPTY_LAST_CONTENT));
       });
   }

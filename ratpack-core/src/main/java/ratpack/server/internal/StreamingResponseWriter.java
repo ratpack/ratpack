@@ -85,13 +85,21 @@ class StreamingResponseWriter implements ResponseWriter {
       @Override
       public void onNext(ByteBuf o) {
         o.touch();
-        if (!done) {
-          channel.writeAndFlush(new DefaultHttpContent(o.touch()));
-          if (channel.isWritable()) {
-            subscription.request(1);
-          }
-        } else {
+
+        if (o.readableBytes() == 0) {
           o.release();
+          subscription.request(1);
+          return;
+        }
+
+        if (done) {
+          o.release();
+          return;
+        }
+
+        channel.writeAndFlush(new DefaultHttpContent(o.touch()), channel.voidPromise());
+        if (channel.isWritable()) {
+          subscription.request(1);
         }
       }
 
