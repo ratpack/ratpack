@@ -358,7 +358,7 @@ class FormHandlingSpec extends RatpackGroovyDslSpec {
     }
 
     then:
-    postText() == "io.netty.handler.codec.http.multipart.HttpPostRequestDecoder\$ErrorDataDecoderException: java.lang.IllegalArgumentException: empty name"
+    postText() == "io.netty.handler.codec.http.multipart.HttpPostRequestDecoder\$ErrorDataDecoderException: java.lang.IllegalArgumentException: Param 'name' must not be empty"
   }
 
 }
