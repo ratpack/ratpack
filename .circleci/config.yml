@@ -12,7 +12,7 @@ defaults: &defaults
 
 version: 2
 jobs:
-  build:
+  sanity-check:
     <<: *defaults
     steps:
       - checkout
@@ -23,20 +23,32 @@ jobs:
             - v3-gradle-{{ .Branch }}
             - v3-gradle-master
             - v3-gradle
-
+            -
       - run:
-          name: Run Sanity Check
+          name: Run
           command: ./gradlew sanityCheck --continue --max-workers=2 --build-cache
-
-      - run:
-          name: Test & Build
-          command: ./gradlew build jacocoReport -PjacocoReport --continue --max-workers=2 --build-cache -PpublishToSlack
 
       - save_cache:
           paths:
             - ~/.gradle
           key: v3-gradle-{{ .Branch }}-{{ .Revision }}
           when: always
+
+      - persist_to_workspace:
+          root: ~/ratpack
+          paths:
+            - "*/build/**"
+  build:
+    <<: *defaults
+    steps:
+      - checkout
+
+      - attach_workspace:
+          at: ~/ratpack
+
+      - run:
+          name: Run
+          command: ./gradlew build jacocoReport -PjacocoReport --continue --max-workers=2 --build-cache -PpublishToSlack
 
       - run:
           name: Save test results
@@ -56,7 +68,7 @@ jobs:
       - persist_to_workspace:
           root: ~/ratpack
           paths:
-            - build/*
+            - "*/build/**"
 
   uploadArtifacts:
     <<: *defaults
@@ -76,7 +88,7 @@ jobs:
       - checkout
 
       - attach_workspace:
-          at: ~/build
+          at: ~/ratpack
 
       - run:
           name: Deploy Site
