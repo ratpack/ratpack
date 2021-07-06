@@ -200,6 +200,29 @@ class RequestBodyStreamReadingSpec extends RatpackGroovyDslSpec {
     postText("allow") == "foo".multiply(16)
   }
 
+  def "closes connection on too large"() {
+    when:
+    handlers {
+      post {
+        render composeString(request.getBodyStream(2))
+      }
+    }
+
+    then:
+    def socket = withSocket() {
+      write("POST / HTTP/1.1\r\n")
+      write("Content-length: 16\r\n")
+      write("\r\n")
+      flush()
+    }
+
+    socket.inputStream.text.normalize() == """HTTP/1.1 413 Request Entity Too Large
+content-length: 0
+connection: close
+
+"""
+  }
+
   def "can read body only once"() {
     when:
     handlers {

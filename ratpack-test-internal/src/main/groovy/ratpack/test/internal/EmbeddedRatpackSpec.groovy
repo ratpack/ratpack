@@ -96,7 +96,7 @@ abstract class EmbeddedRatpackSpec extends BaseRatpackSpec {
     socket
   }
 
-  Socket withSocket(Socket socket = this.socket(), @DelegatesTo(OutputStream) Closure<?> closure) {
+  Socket withSocket(Socket socket = this.socket(), @DelegatesTo(OutputStreamWriter) Closure<?> closure) {
     def os = socket.outputStream
     new OutputStreamWriter(os, "UTF-8").with(closure)
     socket

@@ -193,7 +193,14 @@ public class DefaultResponseTransmitter implements ResponseTransmitter {
       ))
         .addListener(future -> down.success(future.isSuccess()))
     )
-      .then(__ -> notifyListeners(status));
+      .onError(__ -> {
+        channel.close();
+        notifyListeners(status);
+      })
+      .then(__ -> {
+        channel.close();
+        notifyListeners(status);
+      });
   }
 
   private boolean mustHaveBody(HttpResponseStatus responseStatus) {
