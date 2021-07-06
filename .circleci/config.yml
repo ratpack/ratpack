@@ -103,6 +103,8 @@ workflows:
             branches:
               ignore: gh-pages
       - build:
+          requires:
+            - sanity-check
           filters:
             branches:
               ignore: gh-pages
