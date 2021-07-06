@@ -51,7 +51,7 @@ public interface ServerSentEventsBuilder {
    * Applies sensible buffering defaults, for low latency.
    * <ul>
    * <li>Events: 512</li>
-   * <li>Bytes: 57344<li>
+   * <li>Bytes: 57344</li>
    * <li>Duration: 1 second</li>
    * </ul>
    *
