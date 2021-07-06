@@ -22,8 +22,9 @@ import ratpack.func.Predicate;
 import ratpack.handling.Context;
 import ratpack.handling.Handler;
 import ratpack.hystrix.internal.*;
+import ratpack.sse.ServerSentEvent;
+import ratpack.sse.ServerSentEvents;
 
-import static ratpack.sse.ServerSentEvents.serverSentEvents;
 import static ratpack.stream.Streams.fanOut;
 import static ratpack.stream.Streams.merge;
 
@@ -58,15 +59,16 @@ public class HystrixMetricsEventStreamHandler implements Handler {
     HystrixCollapserMetricsBroadcaster collapserMetricsBroadcaster = context.get(HystrixCollapserMetricsBroadcaster.class);
     HystrixCollapserMetricsJsonMapper collapserMetricsMapper = context.get(HystrixCollapserMetricsJsonMapper.class);
 
-    Publisher<String> metricsStream = merge(
+    Publisher<ServerSentEvent> metricsStream = merge(
       fanOut(commandMetricsBroadcasterbroadcaster).map(commandMetricsMapper),
       fanOut(threadPoolMetricsBroadcaster)
         .filter(hasExecutedCommandsOnThread())
         .map(threadPoolMetricsMapper),
       fanOut(collapserMetricsBroadcaster).map(collapserMetricsMapper)
-    );
+    )
+      .map(it -> ServerSentEvent.builder().data(it).build());
 
-    context.render(serverSentEvents(metricsStream, spec -> spec.data(spec.getItem())));
+    context.render(ServerSentEvents.builder().build(metricsStream));
   }
 
   private Predicate<HystrixThreadPoolMetrics> hasExecutedCommandsOnThread() {

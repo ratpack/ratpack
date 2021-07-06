@@ -67,7 +67,7 @@ public abstract class ManagedSubscription<T> implements Subscription {
     }
   }
 
-  protected long getDemand() {
+  public long getDemand() {
     return isDone() ? 0 : demand.get();
   }
 
@@ -79,7 +79,7 @@ public abstract class ManagedSubscription<T> implements Subscription {
     return done.get();
   }
 
-  protected boolean hasDemand() {
+  public boolean hasDemand() {
     return getDemand() > 0;
   }
 
@@ -87,7 +87,7 @@ public abstract class ManagedSubscription<T> implements Subscription {
 
   protected abstract void onCancel();
 
-  protected void emitNext(T item) {
+  public void emitNext(T item) {
     if (isDone()) {
       dispose(item);
     } else {
@@ -98,13 +98,13 @@ public abstract class ManagedSubscription<T> implements Subscription {
     }
   }
 
-  protected void emitError(Throwable error) {
+  public void emitError(Throwable error) {
     if (fireDone()) {
       subscriber.onError(error);
     }
   }
 
-  protected void emitComplete() {
+  public void emitComplete() {
     if (fireDone()) {
       subscriber.onComplete();
     }

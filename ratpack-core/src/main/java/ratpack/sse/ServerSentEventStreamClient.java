@@ -21,6 +21,7 @@ import ratpack.exec.Promise;
 import ratpack.func.Action;
 import ratpack.http.client.HttpClient;
 import ratpack.http.client.RequestSpec;
+import ratpack.sse.internal.DefaultEvent;
 import ratpack.sse.internal.DefaultServerSentEventStreamClient;
 import ratpack.stream.TransformablePublisher;
 import ratpack.util.Exceptions;
@@ -41,6 +42,8 @@ public interface ServerSentEventStreamClient {
   }
 
   /**
+   * Deprecated.
+   *
    * @deprecated since 1.4, use {@link #of(HttpClient)}.
    */
   @Deprecated
@@ -51,10 +54,38 @@ public interface ServerSentEventStreamClient {
     ));
   }
 
-  Promise<TransformablePublisher<Event<?>>> request(URI uri, Action<? super RequestSpec> action);
+  /**
+   * Deprecated.
+   *
+   * @deprecated since 1.10 - use {@link #open(URI, Action)}
+   */
+  @Deprecated
+  default Promise<TransformablePublisher<Event<?>>> request(URI uri, Action<? super RequestSpec> action) {
+    return open(uri, action).map(stream ->
+      stream.map(e ->
+        new DefaultEvent<>(null)
+          .id(e.getId())
+          .event(e.getEvent())
+          .data(e.getData())
+          .comment(e.getComment())
+      )
+    );
+  }
 
+  /**
+   * Deprecated.
+   *
+   * @deprecated since 1.10 - use {@link #open(URI)}
+   */
+  @Deprecated
   default Promise<TransformablePublisher<Event<?>>> request(URI uri) {
     return request(uri, Action.noop());
+  }
+
+  Promise<TransformablePublisher<? extends ServerSentEvent>> open(URI uri, Action<? super RequestSpec> action);
+
+  default Promise<TransformablePublisher<? extends ServerSentEvent>> open(URI uri) {
+    return open(uri, Action.noop());
   }
 
 }

@@ -16,10 +16,14 @@
 
 package ratpack.sse.internal;
 
+import org.reactivestreams.Publisher;
+import ratpack.func.Action;
 import ratpack.func.Function;
-import ratpack.sse.Event;
+import ratpack.stream.Streams;
+import ratpack.stream.TransformablePublisher;
 
-public class DefaultEvent<T> implements Event<T> {
+@SuppressWarnings("deprecation")
+public class DefaultEvent<T> implements ratpack.sse.Event<T> {
 
   private final T item;
 
@@ -32,8 +36,14 @@ public class DefaultEvent<T> implements Event<T> {
     this.item = item;
   }
 
-  public DefaultEvent() {
-    this(null);
+  public static <T> TransformablePublisher<ratpack.sse.Event<T>> toEvents(Publisher<? extends T> publisher, Action<? super ratpack.sse.Event<T>> action) {
+    return Streams.map(publisher, item -> {
+      ratpack.sse.Event<T> event = action.with(new DefaultEvent<>(item));
+      if (event.getData() == null && event.getId() == null && event.getEvent() == null && event.getComment() == null) {
+        throw new IllegalArgumentException("You must supply at least one of data, event, id or comment");
+      }
+      return event;
+    });
   }
 
   @Override
@@ -42,13 +52,13 @@ public class DefaultEvent<T> implements Event<T> {
   }
 
   @Override
-  public Event<T> id(Function<? super T, String> id) throws Exception {
+  public ratpack.sse.Event<T> id(Function<? super T, String> id) throws Exception {
     id(id.apply(item));
     return this;
   }
 
   @Override
-  public Event<T> id(String id) {
+  public ratpack.sse.Event<T> id(String id) {
     if (id.contains("\n")) {
       throw new IllegalArgumentException("id must not contain \\n - '" + id + "'");
     }
@@ -57,13 +67,13 @@ public class DefaultEvent<T> implements Event<T> {
   }
 
   @Override
-  public Event<T> event(Function<? super T, String> id) throws Exception {
+  public ratpack.sse.Event<T> event(Function<? super T, String> id) throws Exception {
     event(id.apply(item));
     return this;
   }
 
   @Override
-  public Event<T> event(String event) {
+  public ratpack.sse.Event<T> event(String event) {
     if (event.contains("\n")) {
       throw new IllegalArgumentException("event must not contain \\n - '" + event + "'");
     }
@@ -72,19 +82,19 @@ public class DefaultEvent<T> implements Event<T> {
   }
 
   @Override
-  public Event<T> data(Function<? super T, String> id) throws Exception {
+  public ratpack.sse.Event<T> data(Function<? super T, String> id) throws Exception {
     data(id.apply(item));
     return this;
   }
 
   @Override
-  public Event<T> data(String data) {
+  public ratpack.sse.Event<T> data(String data) {
     this.data = data;
     return this;
   }
 
   @Override
-  public Event<T> comment(String comment) {
+  public ratpack.sse.Event<T> comment(String comment) {
     this.comment = comment;
     return this;
   }

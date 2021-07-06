@@ -23,6 +23,8 @@ import io.netty.handler.codec.http.HttpHeaders
 import io.netty.util.CharsetUtil
 import ratpack.exec.Blocking
 import ratpack.exec.ExecController
+import ratpack.sse.ServerSentEvent
+import ratpack.sse.ServerSentEvents
 import ratpack.stream.Streams
 import spock.lang.IgnoreIf
 import spock.util.concurrent.BlockingVariable
@@ -33,7 +35,6 @@ import java.util.zip.GZIPInputStream
 
 import static ratpack.http.ResponseChunks.stringChunks
 import static ratpack.http.internal.HttpHeaderConstants.CONTENT_ENCODING
-import static ratpack.sse.ServerSentEvents.serverSentEvents
 import static ratpack.stream.Streams.publish
 
 class HttpClientSmokeSpec extends BaseHttpClientSpec {
@@ -354,7 +355,7 @@ class HttpClientSmokeSpec extends BaseHttpClientSpec {
   def "can set default connect timeout"() {
     setup:
     bindings {
-      bindInstance(HttpClient, HttpClient.of { it.poolSize(pooled ? 8 : 0) ; it.connectTimeout(Duration.ofMillis(20)) })
+      bindInstance(HttpClient, HttpClient.of { it.poolSize(pooled ? 8 : 0); it.connectTimeout(Duration.ofMillis(20)) })
     }
 
     when:
@@ -411,13 +412,11 @@ class HttpClientSmokeSpec extends BaseHttpClientSpec {
     when:
     otherApp {
       get { ctx ->
-        def stream = Streams.periodically(ctx, Duration.ofSeconds(5)) {
-          it < 5 ? "a" : null
+        def stream = Streams.<ServerSentEvent> periodically(ctx, Duration.ofSeconds(5)) {
+          it < 5 ? ServerSentEvent.builder().id("a").build() : null
         }
 
-        render serverSentEvents(stream) {
-          it.id("a")
-        }
+        render ServerSentEvents.builder().build(stream)
       }
     }
 
@@ -449,13 +448,11 @@ class HttpClientSmokeSpec extends BaseHttpClientSpec {
     when:
     otherApp {
       get { ctx ->
-        def stream = Streams.periodically(ctx, Duration.ofSeconds(5)) {
-          it < 5 ? "a" : null
+        def stream = Streams.<ServerSentEvent> periodically(ctx, Duration.ofSeconds(5)) {
+          it < 5 ? ServerSentEvent.builder().data("a") : null
         }
 
-        render serverSentEvents(stream) {
-          it.id("a")
-        }
+        render ServerSentEvents.builder().build(stream)
       }
     }
 
@@ -889,8 +886,8 @@ BAR
         execController.fork().start({
           httpClient.get(otherAppUrl())
             .then({ val ->
-            assert val.body.text == ok
-          })
+              assert val.body.text == ok
+            })
         })
         render ok
       }

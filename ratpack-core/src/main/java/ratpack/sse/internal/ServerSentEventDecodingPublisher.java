@@ -22,10 +22,10 @@ import org.reactivestreams.Publisher;
 import org.reactivestreams.Subscriber;
 import org.reactivestreams.Subscription;
 import ratpack.func.Action;
-import ratpack.sse.Event;
+import ratpack.sse.ServerSentEvent;
 import ratpack.stream.internal.BufferingPublisher;
 
-public class ServerSentEventDecodingPublisher extends BufferingPublisher<Event<?>> {
+public class ServerSentEventDecodingPublisher extends BufferingPublisher<ServerSentEvent> {
 
   public ServerSentEventDecodingPublisher(Publisher<? extends ByteBuf> publisher, ByteBufAllocator allocator) {
     super(Action.noop(), write -> {

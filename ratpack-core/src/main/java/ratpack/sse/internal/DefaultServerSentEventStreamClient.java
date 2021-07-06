@@ -20,7 +20,7 @@ import ratpack.exec.Promise;
 import ratpack.func.Action;
 import ratpack.http.client.HttpClient;
 import ratpack.http.client.RequestSpec;
-import ratpack.sse.Event;
+import ratpack.sse.ServerSentEvent;
 import ratpack.sse.ServerSentEventStreamClient;
 import ratpack.stream.TransformablePublisher;
 
@@ -35,10 +35,9 @@ public class DefaultServerSentEventStreamClient implements ServerSentEventStream
   }
 
   @Override
-  public Promise<TransformablePublisher<Event<?>>> request(URI uri, Action<? super RequestSpec> action) {
-    return httpClient.requestStream(uri, action).map(r ->
-      new ServerSentEventDecodingPublisher(r.getBody(), httpClient.getByteBufAllocator())
-    );
+  public Promise<TransformablePublisher<? extends ServerSentEvent>> open(URI uri, Action<? super RequestSpec> action) {
+    return httpClient.requestStream(uri, action)
+      .map(r -> new ServerSentEventDecodingPublisher(r.getBody(), httpClient.getByteBufAllocator()));
   }
 
 }
