@@ -98,6 +98,10 @@ workflows:
   version: 2
   build_and_publish:
     jobs:
+      - sanity-check:
+          filters:
+            branches:
+              ignore: gh-pages
       - build:
           filters:
             branches:
