@@ -33,7 +33,13 @@ public class CleanClosingFixedChannelPool extends FixedChannelPool {
       channel.close().awaitUninterruptibly();
       channel = pollChannel();
     }
-    super.close();
+    try {
+      super.close();
+    } catch (RuntimeException exception) {
+      if (!(exception.getCause() instanceof InterruptedException)) {
+        throw exception;
+      }
+    }
   }
 
 }
