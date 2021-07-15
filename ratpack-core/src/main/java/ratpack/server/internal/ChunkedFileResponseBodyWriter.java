@@ -18,26 +18,30 @@ package ratpack.server.internal;
 
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelFuture;
+import io.netty.channel.ChannelPromise;
 import io.netty.handler.codec.http.HttpChunkedInput;
 import io.netty.handler.stream.ChunkedNioStream;
 import ratpack.exec.Blocking;
 
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.function.Consumer;
 
-class ChunkedFileResponseWriter implements ResponseWriter {
+class ChunkedFileResponseBodyWriter implements ResponseBodyWriter {
   private final Path file;
 
-  ChunkedFileResponseWriter(Path file) {
+  ChunkedFileResponseBodyWriter(Path file) {
     this.file = file;
   }
 
   @Override
-  public void write(Channel channel, Consumer<? super ResponseWritingListener> listenerReceiver, Consumer<? super ChannelFuture> then) {
+  public ChannelFuture write(Channel channel) {
+    ChannelPromise channelPromise = channel.newPromise();
     Blocking.get(() -> Files.newByteChannel(file))
-      .then(fileChannel ->
-        then.accept(channel.writeAndFlush(new HttpChunkedInput(new ChunkedNioStream(fileChannel))))
-      );
+      .then(fileChannel -> {
+        channel.write(new HttpChunkedInput(new ChunkedNioStream(fileChannel)), channelPromise);
+        channel.flush();
+      });
+    return channelPromise;
   }
+
 }

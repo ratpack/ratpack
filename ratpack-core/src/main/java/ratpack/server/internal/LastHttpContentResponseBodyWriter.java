@@ -20,23 +20,19 @@ import io.netty.channel.Channel;
 import io.netty.channel.ChannelFuture;
 import io.netty.handler.codec.http.LastHttpContent;
 
-import java.util.function.Consumer;
-
-class LastHttpContentResponseWriter implements ResponseWriter {
+class LastHttpContentResponseBodyWriter implements ResponseBodyWriter {
 
   private final LastHttpContent content;
 
-  public LastHttpContentResponseWriter(LastHttpContent content) {
+  public LastHttpContentResponseBodyWriter(LastHttpContent content) {
     this.content = content;
   }
 
   @Override
-  public void write(
-    Channel channel,
-    Consumer<? super ResponseWritingListener> listenerReceiver,
-    Consumer<? super ChannelFuture> then
-  ) {
-    then.accept(channel.writeAndFlush(content));
+  public ChannelFuture write(Channel channel) {
+    ChannelFuture channelFuture = channel.write(content);
+    channel.flush();
+    return channelFuture;
   }
 
   public void dispose() {

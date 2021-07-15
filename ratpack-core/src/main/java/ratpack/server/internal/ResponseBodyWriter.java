@@ -19,15 +19,15 @@ package ratpack.server.internal;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelFuture;
 
-import java.util.function.Consumer;
+interface ResponseBodyWriter {
 
-interface ResponseWriter {
+  ChannelFuture write(Channel channel);
 
-  void write(
-    Channel channel,
-    Consumer<? super ResponseWritingListener> listenerReceiver,
-    Consumer<? super ChannelFuture> then
-  );
+  default void onClosed() {
+  }
+
+  default void onWritable() {
+  }
 
   default void dispose() {
   }

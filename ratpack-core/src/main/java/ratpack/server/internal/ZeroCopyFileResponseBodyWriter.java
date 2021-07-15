@@ -18,6 +18,7 @@ package ratpack.server.internal;
 
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelFuture;
+import io.netty.channel.ChannelPromise;
 import io.netty.channel.DefaultFileRegion;
 import io.netty.handler.codec.http.LastHttpContent;
 import ratpack.exec.Blocking;
@@ -28,26 +29,28 @@ import java.nio.file.Path;
 import java.nio.file.StandardOpenOption;
 import java.util.Collections;
 import java.util.Set;
-import java.util.function.Consumer;
 
-class ZeroCopyFileResponseWriter implements ResponseWriter {
+class ZeroCopyFileResponseBodyWriter implements ResponseBodyWriter {
 
   private static final Set<OpenOption> OPEN_OPTIONS = Collections.singleton(StandardOpenOption.READ);
 
   private final Path file;
   private final long size;
 
-  ZeroCopyFileResponseWriter(Path file, long size) {
+  ZeroCopyFileResponseBodyWriter(Path file, long size) {
     this.file = file;
     this.size = size;
   }
 
   @Override
-  public void write(Channel channel, Consumer<? super ResponseWritingListener> listenerReceiver, Consumer<? super ChannelFuture> then) {
+  public ChannelFuture write(Channel channel) {
+    ChannelPromise channelPromise = channel.newPromise();
     Blocking.get(() -> FileChannel.open(file, OPEN_OPTIONS))
       .then(fileChannel -> {
         channel.write(new DefaultFileRegion(fileChannel, 0, size), channel.voidPromise());
-        then.accept(channel.writeAndFlush(LastHttpContent.EMPTY_LAST_CONTENT));
+        channel.write(LastHttpContent.EMPTY_LAST_CONTENT, channelPromise);
+        channel.flush();
       });
+    return channelPromise;
   }
 }
