@@ -28,7 +28,6 @@ import java.util.concurrent.TimeUnit
 import java.util.zip.GZIPInputStream
 
 import static io.netty.handler.codec.http.HttpResponseStatus.OK
-import static ratpack.http.ResponseChunks.stringChunks
 import static ratpack.stream.Streams.*
 
 class ServerSentEventsSpec extends BaseHttpClientSpec {
@@ -177,33 +176,6 @@ data: Event 3
 
     new GZIPInputStream(response.body.inputStream).text ==
       "id: 1\nevent: add\ndata: Event 1\n\nid: 2\nevent: add\ndata: Event 2\n\n: last\n\n"
-  }
-
-  def "can consume server sent event stream"() {
-    given:
-    otherApp {
-      get("foo") {
-        def stream = periodically(context.execution.controller.executor, Duration.ofMillis(100)) { it < 10 ? it : null }
-
-        render ServerSentEvents.builder().build(stream.map {
-          ServerSentEvent.builder().id(it.toString()).data("Event ${it}".toString()).build()
-        })
-      }
-    }
-
-    and:
-    handlers {
-      get { ServerSentEventStreamClient sseStreamClient ->
-        sseStreamClient.open(otherAppUrl("foo")).then { eventStream ->
-          render stringChunks(
-            eventStream.map { it.data }
-          )
-        }
-      }
-    }
-
-    expect:
-    getText() == "Event 0Event 1Event 2Event 3Event 4Event 5Event 6Event 7Event 8Event 9"
   }
 
   def "can send empty stream"() {
@@ -364,7 +336,7 @@ data: Event 1
     }
 
     expect:
-    def response = request { it.headers.add("Accept-Encoding", "gzip")}
+    def response = request { it.headers.add("Accept-Encoding", "gzip") }
     def text = response.body.text
 
     text.contains("""
@@ -386,7 +358,7 @@ data: Event 1
 """)
   }
 
-  def "can buffer with hearbeats"() {
+  def "can buffer with heart beats"() {
     given:
     handlers {
       all {
