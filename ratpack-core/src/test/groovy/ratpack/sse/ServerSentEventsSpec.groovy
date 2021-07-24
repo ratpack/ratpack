@@ -346,6 +346,46 @@ data: Event 1
 """)
   }
 
+  def "can send heartbeats to keep stream alive when compressed"() {
+    given:
+    handlers {
+      all {
+        def stream = flatYield { req ->
+          Promise.async { down ->
+            execution.eventLoop.schedule({ down.success(req.requestNum > 1 ? null : req.requestNum) }, 100, TimeUnit.MILLISECONDS)
+          }
+        }
+        render ServerSentEvents.builder()
+          .keepAlive(Duration.ofMillis(10))
+          .build(stream.map {
+            ServerSentEvent.builder().id(it.toString()).data("Event ${it}".toString()).build()
+          })
+      }
+    }
+
+    expect:
+    def response = request { it.headers.add("Accept-Encoding", "gzip")}
+    def text = response.body.text
+
+    text.contains("""
+: keepalive heartbeat
+
+id: 0
+data: Event 0
+
+: keepalive heartbeat
+""")
+
+    text.contains("""
+: keepalive heartbeat
+
+id: 1
+data: Event 1
+
+: keepalive heartbeat
+""")
+  }
+
   def "can buffer with hearbeats"() {
     given:
     handlers {
