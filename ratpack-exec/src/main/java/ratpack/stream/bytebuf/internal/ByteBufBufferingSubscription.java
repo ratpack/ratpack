@@ -82,6 +82,7 @@ public class ByteBufBufferingSubscription extends ManagedSubscription<ByteBuf> {
         public void onError(Throwable t) {
           if (buffer != null) {
             buffer.release();
+            buffer = null;
           }
           emitError(t);
         }
@@ -116,8 +117,9 @@ public class ByteBufBufferingSubscription extends ManagedSubscription<ByteBuf> {
     if (buffer == null) {
       throw new IllegalStateException();
     }
-    emitNext(buffer);
-    buffer = null;
+    CompositeByteBuf emittedBuffer = this.buffer;
+    this.buffer = null; // unset before emitting in case emit causes cancel, which would cause double release
+    emitNext(emittedBuffer);
   }
 
   private void addToBuffer(ByteBuf t) {
