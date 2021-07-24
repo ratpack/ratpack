@@ -102,7 +102,7 @@ public class ServerSentEventStreamKeepAlive implements Publisher<ByteBuf> {
             needsHeartbeat = false;
             ++demandSurplusSent;
             lastWriteAt = clock.nanoTime();
-            downstream.onNext(HEARTBEAT.retainedSlice());
+            downstream.onNext(HEARTBEAT.slice());
             scheduleCheck(heartbeatFrequencyNanos);
           }
 
