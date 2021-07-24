@@ -48,13 +48,14 @@ import ratpack.registry.Registry;
 import ratpack.registry.RegistryBuilder;
 import ratpack.render.internal.*;
 import ratpack.server.*;
-import ratpack.sse.ServerSentEventStreamClient;
+import ratpack.sse.client.ServerSentEventClient;
 
 import java.time.Clock;
 import java.util.Optional;
 
 import static ratpack.util.Exceptions.uncheck;
 
+@SuppressWarnings("deprecation")
 public abstract class ServerRegistry {
 
   public static Registry serverRegistry(RatpackServer ratpackServer, Impositions impositions, ExecControllerInternal execController, ServerConfig serverConfig, Function<? super Registry, ? extends Registry> userRegistryFactory) {
@@ -122,7 +123,8 @@ public abstract class ServerRegistry {
           return null;
         }))
         .add(HttpClient.class, httpClient)
-        .add(ServerSentEventStreamClient.class, ServerSentEventStreamClient.of(httpClient))
+        .add(ServerSentEventClient.class, ServerSentEventClient.of(httpClient))
+        .add(ratpack.sse.ServerSentEventStreamClient.class, ratpack.sse.ServerSentEventStreamClient.of(httpClient))
         .add(HealthCheckResultsRenderer.TYPE, new HealthCheckResultsRenderer(ByteBufAllocator.DEFAULT))
         .add(RequestId.Generator.class, UuidBasedRequestIdGenerator.INSTANCE);
 

@@ -48,7 +48,7 @@ import ratpack.render.internal.RenderableRenderer;
 import ratpack.server.PublicAddress;
 import ratpack.server.RatpackServer;
 import ratpack.server.ServerConfig;
-import ratpack.sse.ServerSentEventStreamClient;
+import ratpack.sse.client.ServerSentEventClient;
 
 import java.lang.reflect.Method;
 import java.util.List;
@@ -58,15 +58,15 @@ import java.util.Optional;
  * Expose bindings for objects in the base registry.
  * This should be kept in sync with the base registry assembled in {@link ratpack.server.internal.ServerRegistry}.
  */
+@SuppressWarnings("deprecation")
 public class RatpackBaseRegistryModule extends AbstractModule {
 
   private static final List<Class<?>> SIMPLE_TYPES = ImmutableList.of(
     ServerConfig.class, ByteBufAllocator.class, ExecController.class, MimeTypes.class, PublicAddress.class,
     Redirector.class, ClientErrorHandler.class, ServerErrorHandler.class, RatpackServer.class,
-    HttpClient.class, ServerSentEventStreamClient.class
+    HttpClient.class, ratpack.sse.ServerSentEventStreamClient.class, ServerSentEventClient.class
   );
 
-  @SuppressWarnings({"rawtypes"})
   private static final ImmutableList<TypeToken<?>> PARAMETERISED_TYPES = ImmutableList.of(
     FileRenderer.TYPE,
     PromiseRenderer.TYPE,
@@ -107,7 +107,6 @@ public class RatpackBaseRegistryModule extends AbstractModule {
     bind(type).toProvider(() -> baseRegistry.get(type));
   }
 
-  @SuppressWarnings("unchecked")
   private <T> void parameterisedBind(TypeToken<T> typeToken) {
     bind(GuiceUtil.toTypeLiteral(typeToken)).toProvider(() -> baseRegistry.get(typeToken));
   }

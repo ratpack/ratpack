@@ -21,22 +21,28 @@ import ratpack.exec.Promise;
 import ratpack.func.Action;
 import ratpack.http.client.HttpClient;
 import ratpack.http.client.RequestSpec;
-import ratpack.sse.internal.DefaultEvent;
+import ratpack.sse.client.ServerSentEventClient;
 import ratpack.sse.internal.DefaultServerSentEventStreamClient;
 import ratpack.stream.TransformablePublisher;
 import ratpack.util.Exceptions;
 
 import java.net.URI;
 
+/**
+ * Deprecated.
+ *
+ * @deprecated since 1.10, use {@link ServerSentEventClient}.
+ */
+@Deprecated
+@SuppressWarnings("DeprecatedIsStillUsed")
 public interface ServerSentEventStreamClient {
 
   /**
-   * Creates an SSE client.
+   * Deprecated.
    *
-   * @param httpClient the underlying HTTP client to use
-   * @return an SSE client
-   * @since 1.4
+   * @deprecated since 1.10, use {@link ServerSentEventClient}.
    */
+  @Deprecated
   static ServerSentEventStreamClient of(HttpClient httpClient) {
     return new DefaultServerSentEventStreamClient(httpClient);
   }
@@ -57,35 +63,19 @@ public interface ServerSentEventStreamClient {
   /**
    * Deprecated.
    *
-   * @deprecated since 1.10 - use {@link #open(URI, Action)}
+   * @deprecated since 1.10, use {@link ServerSentEventClient}.
    */
   @Deprecated
-  default Promise<TransformablePublisher<Event<?>>> request(URI uri, Action<? super RequestSpec> action) {
-    return open(uri, action).map(stream ->
-      stream.map(e ->
-        new DefaultEvent<>(null)
-          .id(e.getId())
-          .event(e.getEvent())
-          .data(e.getData())
-          .comment(e.getComment())
-      )
-    );
-  }
+  Promise<TransformablePublisher<Event<?>>> request(URI uri, Action<? super RequestSpec> action);
 
   /**
    * Deprecated.
    *
-   * @deprecated since 1.10 - use {@link #open(URI)}
+   * @deprecated since 1.10, use {@link ServerSentEventClient}.
    */
   @Deprecated
   default Promise<TransformablePublisher<Event<?>>> request(URI uri) {
     return request(uri, Action.noop());
-  }
-
-  Promise<TransformablePublisher<? extends ServerSentEvent>> open(URI uri, Action<? super RequestSpec> action);
-
-  default Promise<TransformablePublisher<? extends ServerSentEvent>> open(URI uri) {
-    return open(uri, Action.noop());
   }
 
 }
