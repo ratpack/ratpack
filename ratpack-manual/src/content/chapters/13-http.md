@@ -591,10 +591,10 @@ repositories {
 }
 
 dependencies {
-  runtime 'org.slf4j:slf4j-simple:@slf4j-version@'
+  runtimeOnly 'org.slf4j:slf4j-simple:@slf4j-version@' // Configuration name was runtime prior to Gradle 5
   compile group: 'io.ratpack', name: 'ratpack-session', version: '@ratpack-version@'
 
-  testCompile "org.spockframework:spock-core:@spock-version@"
+  testImplementation "org.spockframework:spock-core:@spock-version@" // Configuration name was testCompile prior to Gradle 5
 }
 ```
 
