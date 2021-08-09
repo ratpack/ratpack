@@ -81,7 +81,7 @@ repositories {
 }
 
 dependencies {
-  runtime "org.slf4j:slf4j-simple:@slf4j-version@"
+  runtimeOnly "org.slf4j:slf4j-simple:@slf4j-version@"
 }
 
 mainClassName = "my.app.Main"
