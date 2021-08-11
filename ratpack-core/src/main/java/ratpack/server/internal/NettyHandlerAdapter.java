@@ -52,6 +52,7 @@ import java.net.InetSocketAddress;
 import java.nio.CharBuffer;
 import java.nio.channels.ClosedChannelException;
 import java.time.Clock;
+import java.util.Locale;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 @ChannelHandler.Sharable
@@ -289,7 +290,13 @@ public class NettyHandlerAdapter extends ChannelInboundHandlerAdapter {
     } else if (throwable instanceof IOException) {
       // There really does not seem to be a better way of detecting this kind of exception
       String message = throwable.getMessage();
-      return message != null && message.endsWith("Connection reset by peer");
+      if (message == null) {
+        return false;
+      } else {
+        message = message.toLowerCase(Locale.ROOT);
+        return message.endsWith("connection reset by peer")
+          || message.contains("broken pipe");
+      }
     } else {
       return false;
     }
