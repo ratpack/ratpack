@@ -60,6 +60,7 @@ import ratpack.test.http.MultipartFormSpec;
 import ratpack.util.Exceptions;
 
 import java.net.InetSocketAddress;
+import java.time.Duration;
 import java.time.Instant;
 import java.util.Collections;
 import java.util.Map;
@@ -391,6 +392,11 @@ public class DefaultRequestFixture implements RequestFixture {
 
     @Override
     public void stop() throws Exception {
+      throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public boolean await(Duration timeout) throws InterruptedException {
       throw new UnsupportedOperationException();
     }
 

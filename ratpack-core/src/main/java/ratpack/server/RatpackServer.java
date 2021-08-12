@@ -22,6 +22,7 @@ import ratpack.impose.Impositions;
 import ratpack.registry.Registry;
 import ratpack.server.internal.DefaultRatpackServer;
 
+import java.time.Duration;
 import java.util.Optional;
 
 /**
@@ -144,6 +145,19 @@ public interface RatpackServer {
    * @throws Exception if the server could not be stopped cleanly
    */
   void stop() throws Exception;
+
+  /**
+   * Blocks until the server stops, returning immediately if not running.
+   *
+   * This method does not initiate stopping.
+   * It can be used when some other event is expected to stop the server.
+   *
+   * @param timeout how long to wait for the server to stop
+   * @return whether the server stopped before the timeout was reached or not
+   * @throws InterruptedException if the thread is interrupted before the timeout expires
+   * @since 1.10
+   */
+  boolean await(Duration timeout) throws InterruptedException;
 
   /**
    * Reloads the server from its definition function.
