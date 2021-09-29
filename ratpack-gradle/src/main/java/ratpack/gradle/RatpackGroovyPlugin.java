@@ -39,7 +39,7 @@ public class RatpackGroovyPlugin implements Plugin<Project> {
     if (gradleVersion.compareTo(V6_0) < 0) {
       project.setProperty("mainClassName", MAIN_CLASS_NAME);
     } else {
-      project.getExtensions().getByType(JavaApplication.class).setMainClassName(MAIN_CLASS_NAME);
+      project.getExtensions().getByType(JavaApplication.class).getMainClass().set(MAIN_CLASS_NAME);
     }
 
     RatpackExtension ratpackExtension = project.getExtensions().getByType(RatpackExtension.class);
