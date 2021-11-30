@@ -58,6 +58,41 @@ class HttpClientRedirectionSpec extends BaseHttpClientSpec {
     pooled << [true, false]
   }
 
+  def "can follow simple redirect post request"() {
+    given:
+    bindings {
+      bindInstance(HttpClient, HttpClient.of { it.poolSize(pooled ? 8 : 0) })
+    }
+    otherApp {
+      post("foo2") {
+        redirect(302, otherAppUrl("foo").toString())
+      }
+
+      get("foo") {
+        render context.request.body.map {it.text }
+      }
+    }
+
+    when:
+    handlers {
+      get { HttpClient httpClient ->
+        httpClient.post(otherAppUrl("foo2")) {
+          it.body {
+            it.text("bar")
+          }
+        } then {
+          render it.body.text
+        }
+      }
+    }
+
+    then:
+    text == null
+
+    where:
+    pooled << [true, false]
+  }
+
   def "can follow redirect get request with query parameters"() {
     given:
     bindings {
