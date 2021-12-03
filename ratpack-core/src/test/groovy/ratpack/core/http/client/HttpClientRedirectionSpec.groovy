@@ -87,7 +87,7 @@ class HttpClientRedirectionSpec extends BaseHttpClientSpec {
     }
 
     then:
-    text == null
+    text == ""
 
     where:
     pooled << [true, false]
