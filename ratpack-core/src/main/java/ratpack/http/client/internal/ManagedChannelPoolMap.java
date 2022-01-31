@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 the original author or authors.
+ * Copyright 2022 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,17 +18,11 @@ package ratpack.http.client.internal;
 
 import io.netty.channel.pool.ChannelPool;
 import io.netty.channel.pool.ChannelPoolMap;
-import ratpack.func.Action;
-import ratpack.http.client.HttpClient;
-import ratpack.http.client.HttpResponse;
-import ratpack.http.client.RequestSpec;
 
-interface HttpClientInternal extends HttpClient {
+import java.io.Closeable;
 
-  ChannelPoolMap<HttpChannelKey, ChannelPool> getChannelPoolMap();
+public interface ManagedChannelPoolMap extends ChannelPoolMap<HttpChannelKey, ChannelPool>, Closeable {
 
-  Action<? super RequestSpec> getRequestInterceptor();
-
-  Action<? super HttpResponse> getResponseInterceptor();
+  void close();
 
 }

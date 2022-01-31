@@ -856,7 +856,7 @@ BAR
     pathResponse.status.code == 404
   }
 
-  def "can track http client metrics when pooling is disabled"() {
+  def "does not track http client metrics when pooling is disabled"() {
     given:
     String ok = 'ok'
     def result = new BlockingVariable<String>()
@@ -903,9 +903,9 @@ BAR
 
     then:
     polling.within(2) {
-      assert httpClient.getHttpClientStats().totalActiveConnectionCount == 1
+      assert httpClient.getHttpClientStats().totalActiveConnectionCount == 0
       assert httpClient.getHttpClientStats().totalIdleConnectionCount == 0
-      assert httpClient.getHttpClientStats().totalConnectionCount == 1
+      assert httpClient.getHttpClientStats().totalConnectionCount == 0
     }
 
     when:
