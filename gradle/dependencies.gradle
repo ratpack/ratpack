@@ -17,8 +17,8 @@
 ext {
   commonVersions = [
     slf4j            : "1.7.32",
-    netty            : "4.1.65.Final",
-    nettyTCNative    : "2.0.40.Final",
+    netty            : "4.1.73.Final",
+    nettyTCNative    : "2.0.48.Final",
     guava            : "29.0-jre",
     groovy           : "2.5.4",
     rxjava2          : "2.2.19",
@@ -27,7 +27,7 @@ ext {
     dropwizardMetrics: "4.1.9",
     pegdown          : "1.6.0",
     spock            : "2.0-groovy-2.5",
-    log4j            : "2.17.0",
+    log4j            : "2.17.1",
     newrelic         : "5.13.0",
     reactiveStreams  : "1.0.3",
     guice            : "4.2.3",

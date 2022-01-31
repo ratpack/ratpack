@@ -59,6 +59,8 @@ dependencies {
   implementation "com.fasterxml.jackson.datatype:jackson-datatype-jsr310:${commonVersions.jackson}"
 
   runtimeOnly "io.netty:netty-resolver-dns-native-macos:$commonVersions.netty:osx-x86_64"
+  runtimeOnly "io.netty:netty-resolver-dns-native-macos:$commonVersions.netty:osx-aarch_64"
+
   testImplementation commonDependencies.commonsLang3
 
   testImplementation('com.opencsv:opencsv:3.3') {
