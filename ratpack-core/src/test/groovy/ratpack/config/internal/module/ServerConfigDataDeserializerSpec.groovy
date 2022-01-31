@@ -31,7 +31,10 @@ class ServerConfigDataDeserializerSpec extends BaseRatpackSpec {
   @AutoCleanup
   def b1 = EphemeralBaseDir.tmpDir()
   def originalClassLoader
+
+  @AutoCleanup
   def classLoader = new GroovyClassLoader()
+
   def serverEnvironment = new ServerEnvironment([:], new Properties())
   def deserializer = new ServerConfigDataDeserializer(serverEnvironment.address, serverEnvironment.port, serverEnvironment.development, serverEnvironment.publicAddress, { -> FileSystemBinding.of(b1.root) } as Supplier)
   def objectMapper = DefaultConfigDataBuilder.newDefaultObjectMapper()

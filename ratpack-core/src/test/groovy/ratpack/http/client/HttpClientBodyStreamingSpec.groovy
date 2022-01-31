@@ -617,6 +617,7 @@ class HttpClientBodyStreamingSpec extends BaseHttpClientSpec {
     closed.get()
 
     and:
+    outFile.bytes.length == inFile.bytes.length
     outFile.text == inFile.text
 
     then:
@@ -624,6 +625,7 @@ class HttpClientBodyStreamingSpec extends BaseHttpClientSpec {
     closed.get()
 
     and:
+    outFile.bytes.length == inFile.bytes.length
     outFile.text == inFile.text
 
     where:

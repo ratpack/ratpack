@@ -108,7 +108,7 @@ public class DefaultHttpClient implements HttpClientInternal {
           InstrumentedChannelPoolHandler channelPoolHandler = getPoolingHandler(key);
           hostStats.put(key.host, channelPoolHandler);
           CleanClosingFixedChannelPool channelPool = new CleanClosingFixedChannelPool(bootstrap, channelPoolHandler, getPoolSize(), getPoolQueueSize());
-          ((ExecControllerInternal) key.execution.getController()).onClose(() -> {
+          ((ExecControllerInternal) key.execController).onClose(() -> {
             remove(key);
             channelPool.closeCleanly();
           });
@@ -143,7 +143,7 @@ public class DefaultHttpClient implements HttpClientInternal {
   private Bootstrap createBootstrap(HttpChannelKey key, boolean pooling) {
     Bootstrap bootstrap = new Bootstrap()
       .remoteAddress(key.host, key.port)
-      .group(key.execution.getEventLoop())
+      .group(key.eventLoop)
       .resolver(resolver)
       .channel(TransportDetector.getSocketChannelImpl())
       .option(ChannelOption.CONNECT_TIMEOUT_MILLIS, (int) key.connectTimeout.toMillis())

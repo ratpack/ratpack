@@ -21,12 +21,16 @@ import com.fizzed.rocker.compiler.JavaGeneratorMain
 import ratpack.error.ServerErrorHandler
 import ratpack.render.RendererException
 import ratpack.test.internal.RatpackGroovyDslSpec
+import spock.lang.AutoCleanup
 
 import javax.tools.*
 
 class RatpackRockerSpec extends RatpackGroovyDslSpec {
 
   public static final String OPTIMIZE_FLAG = "rocker.option.optimize"
+
+  @AutoCleanup
+  def classLoader = new GroovyClassLoader()
 
   def setup() {
     bindings {
@@ -36,7 +40,7 @@ class RatpackRockerSpec extends RatpackGroovyDslSpec {
 
   def "can render rocker template of single buffer"() {
     given:
-    Class<?> templateClass = createRockerModel """
+    Class<?> templateClass = createRockerModel classLoader, """
 <p>Hello world!</p>
 """
 
@@ -53,7 +57,7 @@ class RatpackRockerSpec extends RatpackGroovyDslSpec {
 
   def "can render rocker template of multi buffer"() {
     given:
-    Class<?> templateClass = createRockerModel """
+    Class<?> templateClass = createRockerModel classLoader, """
 @args (String title)
 <p>Hello @title!</p>
 """
@@ -71,7 +75,7 @@ class RatpackRockerSpec extends RatpackGroovyDslSpec {
 
   def "errors are specially treated"() {
     given:
-    Class<?> templateClass = createRockerModel """
+    Class<?> templateClass = createRockerModel classLoader, """
 @args (String title)
 <p>Hello @title!</p>
 """
@@ -94,7 +98,7 @@ class RatpackRockerSpec extends RatpackGroovyDslSpec {
     e.cause.cause instanceof NullPointerException
   }
 
-  Class<?> createRockerModel(String content) {
+  Class<?> createRockerModel(GroovyClassLoader classLoader, String content) {
     def packagePath = RatpackRockerSpec.package.name.replace('.', '/')
     baseDir.write("in/$packagePath/Temp.rocker.html", content)
 
@@ -134,7 +138,6 @@ class RatpackRockerSpec extends RatpackGroovyDslSpec {
     }])
     task.call()
 
-    def classLoader = new GroovyClassLoader()
     classLoader.addURL(classesDir.toUri().toURL())
     def templateClass = classLoader.loadClass(templateClassName)
     templateClass
