@@ -16,13 +16,24 @@
 
 package ratpack.file
 
+import io.netty.buffer.ByteBuf
 import io.netty.buffer.ByteBufAllocator
 import io.netty.buffer.Unpooled
+import org.reactivestreams.Subscriber
+import org.reactivestreams.Subscription
 import ratpack.http.Status
+import ratpack.exec.Blocking
+import ratpack.exec.Promise
+import ratpack.exec.Result
 import ratpack.stream.Streams
+import ratpack.test.exec.ExecHarness
 import ratpack.test.internal.RatpackGroovyDslSpec
 
 import java.nio.file.StandardOpenOption
+import java.util.concurrent.Semaphore
+import java.util.concurrent.atomic.AtomicBoolean
+import java.util.concurrent.atomic.AtomicInteger
+import java.util.concurrent.atomic.AtomicLong
 
 import static java.nio.file.StandardOpenOption.CREATE_NEW
 import static java.nio.file.StandardOpenOption.WRITE
@@ -151,6 +162,92 @@ class FileIoSpec extends RatpackGroovyDslSpec {
 
     then:
     text == "a" * 200
+  }
+
+  def "stream respects backpressure"() {
+    given:
+    def numChunks = 8
+    def readByteBufSize = 8
+    def content = "a" * numChunks * readByteBufSize
+    def file = baseDir.write("foo", content)
+
+    def consumerBufferSize = 4
+    def requests = new AtomicLong()
+    def receives = new AtomicLong()
+
+    when:
+    def result = ExecHarness.yieldSingle { exec ->
+      Promise.async { down ->
+        FileIo.readStream(FileIo.open(file), ByteBufAllocator.DEFAULT, readByteBufSize)
+          .wiretap {
+            if (it.request) {
+              requests.addAndGet(it.requestAmount)
+            } else if (it.data) {
+              receives.incrementAndGet()
+            }
+          }
+          .subscribe(new Subscriber<ByteBuf>() {
+            Subscription subscription
+            def done = new AtomicBoolean()
+            def buffered = new AtomicInteger()
+            def semaphore = new Semaphore(1 - consumerBufferSize)
+
+            private void consume() {
+              exec.getController()
+                .fork()
+                .start {
+                  Blocking
+                    .op { semaphore.acquire() }
+                    .then {
+                      if (buffered.decrementAndGet() == consumerBufferSize - 1) {
+                        requestIfNotDone()
+                      }
+                      if (done.get() && buffered.get() == 0) {
+                        down.success(null)
+                      } else {
+                        consume()
+                      }
+                    }
+                }
+            }
+
+            private void requestIfNotDone() {
+              if (!done.get()) {
+                subscription.request(1)
+              }
+            }
+
+            void onSubscribe(Subscription s) {
+              this.subscription = s
+              subscription.request(1)
+              consume()
+            }
+
+            void onNext(ByteBuf b) {
+              b.release()
+              def bufferNotFull = buffered.incrementAndGet() < consumerBufferSize
+              semaphore.release()
+              if (bufferNotFull) {
+                requestIfNotDone()
+              }
+            }
+
+            void onError(Throwable t) {
+              down.accept(Result.error(t))
+            }
+
+            void onComplete() {
+              if (done.compareAndSet(false, true)) {
+                semaphore.release(100)
+              }
+            }
+          })
+      }
+    }
+
+    then:
+    result.isSuccess()
+    receives.get() == numChunks & receives.get() <= requests.get()
   }
 
   def "can write single buffer to file"() {
