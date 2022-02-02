@@ -16,6 +16,8 @@
 
 package ratpack.http.client.internal;
 
+import com.github.benmanes.caffeine.cache.Cache;
+import com.github.benmanes.caffeine.cache.Caffeine;
 import io.netty.bootstrap.Bootstrap;
 import io.netty.buffer.ByteBufAllocator;
 import io.netty.channel.ChannelOption;
@@ -36,7 +38,6 @@ import ratpack.util.internal.TransportDetector;
 import java.net.URI;
 import java.time.Duration;
 import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
 
 public class DefaultHttpClient implements HttpClientInternal {
@@ -61,9 +62,11 @@ public class DefaultHttpClient implements HttpClientInternal {
   @Nullable
   final ProxyInternal proxy;
 
-  private final Map<String, ChannelPoolStats> hostStats = new ConcurrentHashMap<>();
+  private static final Cache<String, ChannelPoolStats> hostStats = Caffeine.newBuilder()
+    .maximumSize(1024)
+    .build();
 
-  private ManagedChannelPoolMap channelPoolMap;
+  private final ManagedChannelPoolMap channelPoolMap;
 
   public DefaultHttpClient(
     ByteBufAllocator byteBufAllocator,
@@ -106,7 +109,9 @@ public class DefaultHttpClient implements HttpClientInternal {
         Bootstrap bootstrap = createBootstrap(key, true);
 
           InstrumentedChannelPoolHandler channelPoolHandler = getPoolingHandler(key);
-          hostStats.put(key.host, channelPoolHandler);
+          if (enableMetricsCollection) {
+            hostStats.put(key.host, channelPoolHandler);
+          }
           CleanClosingFixedChannelPool channelPool = new CleanClosingFixedChannelPool(bootstrap, channelPoolHandler, getPoolSize(), getPoolQueueSize());
           ((ExecControllerInternal) key.execController).onClose(() -> {
             remove(key);
@@ -292,7 +297,7 @@ public class DefaultHttpClient implements HttpClientInternal {
 
   public HttpClientStats getHttpClientStats() {
     return new HttpClientStats(
-      hostStats.entrySet().stream().collect(Collectors.toMap(
+      hostStats.asMap().entrySet().stream().collect(Collectors.toMap(
         Map.Entry::getKey,
         e -> e.getValue().getHostStats()
       ))
