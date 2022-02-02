@@ -66,7 +66,7 @@ public class FileReadingPublisher implements TransformablePublisher<ByteBuf> {
 
           @Override
           protected void onRequest(long n) {
-            doRead();
+            read();
           }
 
           @Override
