@@ -118,7 +118,7 @@ public interface ConfigData {
   /**
    * Binds a segment of the configuration data to the specified type.
    *
-   * @param pointer a <a href="https://tools.ietf.org/html/rfc6901">JSON Pointer</a> specifying the point in the configuration data to bind from
+   * @param pointer a <a href="https://datatracker.ietf.org/html/rfc6901">JSON Pointer</a> specifying the point in the configuration data to bind from
    * @param type the class of the type to bind to
    * @param <O> the type to bind to
    * @return an instance of the specified type with bound configuration data
@@ -132,7 +132,7 @@ public interface ConfigData {
   /**
    * Binds a segment of the configuration data to the specified type.
    *
-   * @param pointer a <a href="https://tools.ietf.org/html/rfc6901">JSON Pointer</a> specifying the point in the configuration data to bind from
+   * @param pointer a <a href="https://datatracker.ietf.org/html/rfc6901">JSON Pointer</a> specifying the point in the configuration data to bind from
    * @param type the class of the type to bind to
    * @param <O> the type to bind to
    * @return a config object of the specified type with bound configuration data
@@ -144,7 +144,7 @@ public interface ConfigData {
   /**
    * Binds a segment of the configuration data to the specified type.
    *
-   * @param pointer a <a href="https://tools.ietf.org/html/rfc6901">JSON Pointer</a> specifying the point in the configuration data to bind from
+   * @param pointer a <a href="https://datatracker.ietf.org/html/rfc6901">JSON Pointer</a> specifying the point in the configuration data to bind from
    * @param type the class of the type to bind to
    * @param <O> the type to bind to
    * @return a config object of the specified type with bound configuration data
