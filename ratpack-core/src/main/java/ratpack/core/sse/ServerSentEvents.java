@@ -23,7 +23,6 @@ import org.reactivestreams.Publisher;
 import org.reactivestreams.Subscriber;
 import org.reactivestreams.Subscription;
 import ratpack.func.Nullable;
-import ratpack.func.Action;
 import ratpack.core.handling.Context;
 import ratpack.core.http.Response;
 import ratpack.core.http.internal.HttpHeaderConstants;

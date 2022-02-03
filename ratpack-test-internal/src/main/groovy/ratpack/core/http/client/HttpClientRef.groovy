@@ -16,8 +16,6 @@
 
 package ratpack.core.http.client
 
-import ratpack.core.http.client.HttpClient
-import ratpack.core.http.client.HttpClientSpec
 import ratpack.core.http.client.internal.DefaultHttpClient
 import ratpack.exec.ExecController
 import ratpack.func.Action
