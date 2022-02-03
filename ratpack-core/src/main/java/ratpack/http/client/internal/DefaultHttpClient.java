@@ -62,7 +62,7 @@ public class DefaultHttpClient implements HttpClientInternal {
   @Nullable
   final ProxyInternal proxy;
 
-  private static final Cache<String, ChannelPoolStats> hostStats = Caffeine.newBuilder()
+  private static final Cache<String, ChannelPoolStats> HOST_STATS = Caffeine.newBuilder()
     .maximumSize(1024)
     .build();
 
@@ -110,7 +110,7 @@ public class DefaultHttpClient implements HttpClientInternal {
 
           InstrumentedChannelPoolHandler channelPoolHandler = getPoolingHandler(key);
           if (enableMetricsCollection) {
-            hostStats.put(key.host, channelPoolHandler);
+            HOST_STATS.put(key.host, channelPoolHandler);
           }
           CleanClosingFixedChannelPool channelPool = new CleanClosingFixedChannelPool(bootstrap, channelPoolHandler, getPoolSize(), getPoolQueueSize());
           ((ExecControllerInternal) key.execController).onClose(() -> {
@@ -297,7 +297,7 @@ public class DefaultHttpClient implements HttpClientInternal {
 
   public HttpClientStats getHttpClientStats() {
     return new HttpClientStats(
-      hostStats.asMap().entrySet().stream().collect(Collectors.toMap(
+      HOST_STATS.asMap().entrySet().stream().collect(Collectors.toMap(
         Map.Entry::getKey,
         e -> e.getValue().getHostStats()
       ))
