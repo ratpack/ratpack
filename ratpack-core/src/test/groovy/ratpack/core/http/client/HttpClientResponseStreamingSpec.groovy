@@ -27,7 +27,6 @@ import ratpack.exec.Promise
 import ratpack.exec.stream.Streams
 import ratpack.exec.stream.bytebuf.ByteBufStreams
 import ratpack.exec.util.ParallelBatch
-import ratpack.http.client.BaseHttpClientSpec
 import ratpack.test.exec.ExecHarness
 
 import java.time.Duration

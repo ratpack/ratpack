@@ -18,17 +18,16 @@ package ratpack.core.sse
 
 import io.netty.util.concurrent.Future
 import io.netty.util.concurrent.GenericFutureListener
-import ratpack.exec.stream.TransformablePublisher
-import ratpack.http.client.BaseHttpClientSpec
+import ratpack.exec.Promise
+import ratpack.core.http.Status
+import ratpack.core.http.client.BaseHttpClientSpec
 
 import java.time.Duration
 import java.util.concurrent.CountDownLatch
+import java.util.concurrent.TimeUnit
 import java.util.zip.GZIPInputStream
 
 import static io.netty.handler.codec.http.HttpResponseStatus.OK
-import static ratpack.core.http.ResponseChunks.stringChunks
-import static ratpack.core.sse.ServerSentEvents.serverSentEvents
-import static ratpack.exec.stream.Streams.*
 
 class ServerSentEventsSpec extends BaseHttpClientSpec {
 
@@ -36,9 +35,9 @@ class ServerSentEventsSpec extends BaseHttpClientSpec {
     given:
     handlers {
       all {
-        render serverSentEvents(publish(1..3)) { Event event ->
-          event.id(event.item.toString()).event("add").data("Event ${event.item}".toString())
-        }
+        render ServerSentEvents.builder().build(publish(1..3).map {
+          ServerSentEvent.builder().id(it.toString()).event("add").data("Event ${it}".toString()).build()
+        })
       }
     }
 
@@ -80,9 +79,9 @@ data: Event 3
           }
         }
 
-        render serverSentEvents(stream) {
-          it.id({ it.toString() }).event("add").data({ "Event ${it}".toString() })
-        }
+        render ServerSentEvents.builder().build(stream.map {
+          ServerSentEvent.builder().id(it.toString()).data("Event ${it}".toString()).build()
+        })
       }
     }
 
@@ -120,13 +119,13 @@ data: Event 3
           }
         }
 
-        render serverSentEvents(stream) {
-          if (it.item == 200) {
+        render ServerSentEvents.builder().build(stream.map {
+          if (it == 200) {
             sentLatch.countDown()
             clientClosedLatch.await()
           }
-          it.id({ it.toString() }).event("add").data({ "Event ${it}".toString() })
-        }
+          ServerSentEvent.builder().id(it.toString()).data("Event ${it}".toString()).build()
+        })
       }
     }
 
@@ -154,16 +153,15 @@ data: Event 3
     and:
     handlers {
       all {
-        render serverSentEvents(publish(1..3)) {
-          switch (it.item) {
+        render ServerSentEvents.builder().build(publish(1..3).map {
+          switch (it) {
             case 1:
             case 2:
-              it.id(it.item.toString()).event("add").data("Event ${it.item}".toString())
-              break
+              return ServerSentEvent.builder().id(it.toString()).event("add").data("Event ${it}".toString()).build()
             case 3:
-              it.comment("last")
+              return ServerSentEvent.builder().comment("last").build()
           }
-        }
+        })
       }
     }
 
@@ -179,31 +177,224 @@ data: Event 3
       "id: 1\nevent: add\ndata: Event 1\n\nid: 2\nevent: add\ndata: Event 2\n\n: last\n\n"
   }
 
-  def "can consume server sent event stream"() {
+  def "can send empty stream"() {
     given:
-    otherApp {
-      get("foo") {
-        def stream = periodically(context.execution.controller.executor, Duration.ofMillis(100)) { it < 10 ? it : null }
-
-        render serverSentEvents(stream) { Event<Integer> event ->
-          event.id(event.item.toString()).data("Event ${event.item}".toString())
-        }
-      }
-    }
-
-    and:
     handlers {
-      get { ServerSentEventStreamClient sseStreamClient ->
-        sseStreamClient.request(otherAppUrl("foo")).then { TransformablePublisher<Event<?>> eventStream ->
-          render stringChunks(
-            eventStream.map { it.data }
-          )
-        }
+      all {
+        render ServerSentEvents.builder().build(publish([] as List<ServerSentEvent>))
       }
     }
 
     expect:
-    getText() == "Event 0Event 1Event 2Event 3Event 4Event 5Event 6Event 7Event 8Event 9"
+    def response = get()
+    response.body.text == ""
+    response.statusCode == OK.code()
+    response.headers["Content-Type"] == "text/event-stream;charset=UTF-8"
+    response.headers["Cache-Control"] == "no-cache, no-store, max-age=0, must-revalidate"
+    response.headers["Pragma"] == "no-cache"
+    response.headers["Content-Encoding"] == null
+  }
+
+  def "can send no content stream"() {
+    given:
+    handlers {
+      all {
+        render ServerSentEvents.builder().noContentOnEmpty().build(publish([] as List<ServerSentEvent>))
+      }
+    }
+
+    expect:
+    def response = get()
+    response.body.text == ""
+    response.status == Status.NO_CONTENT
+    response.headers["Cache-Control"] == "no-cache, no-store, max-age=0, must-revalidate"
+    response.headers["Pragma"] == "no-cache"
+  }
+
+  def "can send stream when stream is async and using no content on empty"() {
+    given:
+    handlers {
+      all {
+        def stream = flatYield { req ->
+          Promise.async { down ->
+            execution.eventLoop.schedule({ down.success(req.requestNum < 5 ? req.requestNum : null) }, 20, TimeUnit.MILLISECONDS)
+          }
+        }.bindExec().gate {
+          execution.eventLoop.schedule(it, 20, TimeUnit.MILLISECONDS)
+        }
+        render ServerSentEvents.builder().noContentOnEmpty().build(stream.map {
+          ServerSentEvent.builder().id(it.toString()).event("add").data("Event ${it}".toString()).build()
+        })
+      }
+    }
+
+    expect:
+    def response = get()
+    response.body.text == """
+id: 0
+event: add
+data: Event 0
+
+id: 1
+event: add
+data: Event 1
+
+id: 2
+event: add
+data: Event 2
+
+id: 3
+event: add
+data: Event 3
+
+id: 4
+event: add
+data: Event 4
+
+""".stripLeading()
+  }
+
+  def "can send no content stream when stream is async and using no content on empty"() {
+    given:
+    handlers {
+      all {
+        def stream = flatYield { req ->
+          Promise.async { down ->
+            execution.eventLoop.schedule({ down.success(null) }, 100, TimeUnit.MILLISECONDS)
+          }
+        }.bindExec().gate {
+          execution.eventLoop.schedule(it, 20, TimeUnit.MILLISECONDS)
+        }
+        render ServerSentEvents.builder().noContentOnEmpty().build(stream.map {
+          ServerSentEvent.builder().id(it.toString()).data("Event ${it}".toString()).build()
+        })
+      }
+    }
+
+    expect:
+    def response = get()
+    response.body.text == ""
+    response.status == Status.NO_CONTENT
+  }
+
+  def "can send heartbeats to keep stream alive"() {
+    given:
+    handlers {
+      all {
+        def stream = flatYield { req ->
+          Promise.async { down ->
+            execution.eventLoop.schedule({ down.success(req.requestNum > 1 ? null : req.requestNum) }, 100, TimeUnit.MILLISECONDS)
+          }
+        }
+        render ServerSentEvents.builder()
+          .keepAlive(Duration.ofMillis(10))
+          .build(stream.map {
+            ServerSentEvent.builder().id(it.toString()).data("Event ${it}".toString()).build()
+          })
+      }
+    }
+
+    expect:
+    def response = get()
+    def text = response.body.text
+
+    text.contains("""
+: keepalive heartbeat
+
+id: 0
+data: Event 0
+
+: keepalive heartbeat
+""")
+
+    text.contains("""
+: keepalive heartbeat
+
+id: 1
+data: Event 1
+
+: keepalive heartbeat
+""")
+  }
+
+  def "can send heartbeats to keep stream alive when compressed"() {
+    given:
+    handlers {
+      all {
+        def stream = flatYield { req ->
+          Promise.async { down ->
+            execution.eventLoop.schedule({ down.success(req.requestNum > 1 ? null : req.requestNum) }, 100, TimeUnit.MILLISECONDS)
+          }
+        }
+        render ServerSentEvents.builder()
+          .keepAlive(Duration.ofMillis(10))
+          .build(stream.map {
+            ServerSentEvent.builder().id(it.toString()).data("Event ${it}".toString()).build()
+          })
+      }
+    }
+
+    expect:
+    def response = request { it.headers.add("Accept-Encoding", "gzip") }
+    def text = response.body.text
+
+    text.contains("""
+: keepalive heartbeat
+
+id: 0
+data: Event 0
+
+: keepalive heartbeat
+""")
+
+    text.contains("""
+: keepalive heartbeat
+
+id: 1
+data: Event 1
+
+: keepalive heartbeat
+""")
+  }
+
+  def "can buffer with heart beats"() {
+    given:
+    handlers {
+      all {
+        def stream = flatYield { req ->
+          Promise.async { down ->
+            execution.eventLoop.schedule({ down.success(req.requestNum > 1 ? null : req.requestNum) }, 1000, TimeUnit.MILLISECONDS)
+          }
+        }
+        render ServerSentEvents.builder()
+          .keepAlive(Duration.ofMillis(600))
+          .buffered(2, 1024 * 1024 * 10, Duration.ofMillis(4000))
+          .build(stream.map {
+            ServerSentEvent.builder().id(it.toString()).data("Event ${it}".toString()).build()
+          })
+      }
+    }
+
+    expect:
+    def response = get()
+    def text = response.body.text
+
+    text == """: keepalive heartbeat
+
+: keepalive heartbeat
+
+: keepalive heartbeat
+
+id: 0
+data: Event 0
+
+id: 1
+data: Event 1
+
+: keepalive heartbeat
+
+"""
+
   }
 
 }

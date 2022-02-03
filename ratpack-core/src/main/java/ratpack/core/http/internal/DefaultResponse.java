@@ -30,22 +30,24 @@ import io.netty.handler.codec.http.cookie.DefaultCookie;
 import io.netty.handler.codec.http.cookie.ServerCookieEncoder;
 import io.netty.util.CharsetUtil;
 import org.reactivestreams.Publisher;
-import ratpack.core.file.internal.ResponseTransmitter;
+import ratpack.func.Nullable;
+import ratpack.exec.Operation;
+import ratpack.core.server.internal.ResponseTransmitter;
+import ratpack.func.Action;
 import ratpack.core.http.Headers;
 import ratpack.core.http.MutableHeaders;
 import ratpack.core.http.Response;
 import ratpack.core.http.Status;
-import ratpack.exec.Operation;
-import ratpack.func.Action;
 import ratpack.func.Exceptions;
 import ratpack.func.MultiValueMap;
-import ratpack.func.Nullable;
 
 import java.nio.CharBuffer;
 import java.nio.file.Path;
 import java.util.*;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
+
+import static ratpack.core.http.internal.HttpHeaderConstants.CONTENT_TYPE;
 
 public class DefaultResponse implements Response {
 
@@ -75,7 +77,7 @@ public class DefaultResponse implements Response {
 
     @Override
     public MutableHeaders add(CharSequence name, Object value) {
-      if (!contentTypeSet && (name == HttpHeaderConstants.CONTENT_TYPE || name.toString().equalsIgnoreCase(HttpHeaderConstants.CONTENT_TYPE.toString()))) {
+      if (!contentTypeSet && (name == CONTENT_TYPE || name.toString().equalsIgnoreCase(CONTENT_TYPE.toString()))) {
         contentTypeSet = true;
       }
 
@@ -85,7 +87,7 @@ public class DefaultResponse implements Response {
 
     @Override
     public MutableHeaders set(CharSequence name, Object value) {
-      if (!contentTypeSet && (name == HttpHeaderConstants.CONTENT_TYPE || name.toString().equalsIgnoreCase(HttpHeaderConstants.CONTENT_TYPE.toString()))) {
+      if (!contentTypeSet && (name == CONTENT_TYPE || name.toString().equalsIgnoreCase(CONTENT_TYPE.toString()))) {
         contentTypeSet = true;
       }
 
@@ -101,7 +103,7 @@ public class DefaultResponse implements Response {
 
     @Override
     public MutableHeaders set(CharSequence name, Iterable<?> values) {
-      if (!contentTypeSet && (name == HttpHeaderConstants.CONTENT_TYPE || name.toString().equalsIgnoreCase(HttpHeaderConstants.CONTENT_TYPE.toString()))) {
+      if (!contentTypeSet && (name == CONTENT_TYPE || name.toString().equalsIgnoreCase(CONTENT_TYPE.toString()))) {
         contentTypeSet = true;
       }
 
@@ -111,7 +113,7 @@ public class DefaultResponse implements Response {
 
     @Override
     public MutableHeaders remove(CharSequence name) {
-      if (name == HttpHeaderConstants.CONTENT_TYPE || name.toString().equalsIgnoreCase(HttpHeaderConstants.CONTENT_TYPE.toString())) {
+      if (name == CONTENT_TYPE || name.toString().equalsIgnoreCase(CONTENT_TYPE.toString())) {
         contentTypeSet = false;
       }
 
@@ -230,7 +232,7 @@ public class DefaultResponse implements Response {
 
   @Override
   public Response contentType(CharSequence contentType) {
-    headers.set(HttpHeaderConstants.CONTENT_TYPE, contentType);
+    headers.set(CONTENT_TYPE, contentType);
     return this;
   }
 

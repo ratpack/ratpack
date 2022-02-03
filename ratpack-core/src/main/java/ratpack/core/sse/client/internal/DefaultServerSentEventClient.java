@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 the original author or authors.
+ * Copyright 2021 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,31 +14,29 @@
  * limitations under the License.
  */
 
-package ratpack.core.sse.internal;
+package ratpack.core.sse.client.internal;
 
-import ratpack.core.http.client.HttpClient;
-import ratpack.core.http.client.RequestSpec;
-import ratpack.core.sse.Event;
-import ratpack.core.sse.ServerSentEventStreamClient;
 import ratpack.exec.Promise;
 import ratpack.func.Action;
-import ratpack.exec.stream.TransformablePublisher;
+import ratpack.core.http.client.HttpClient;
+import ratpack.core.http.client.RequestSpec;
+import ratpack.core.sse.client.ServerSentEventClient;
+import ratpack.core.sse.client.ServerSentEventResponse;
 
 import java.net.URI;
 
-public class DefaultServerSentEventStreamClient implements ServerSentEventStreamClient {
+public class DefaultServerSentEventClient implements ServerSentEventClient {
 
   private final HttpClient httpClient;
 
-  public DefaultServerSentEventStreamClient(HttpClient httpClient) {
+  public DefaultServerSentEventClient(HttpClient httpClient) {
     this.httpClient = httpClient;
   }
 
   @Override
-  public Promise<TransformablePublisher<Event<?>>> request(URI uri, Action<? super RequestSpec> action) {
-    return httpClient.requestStream(uri, action).map(r ->
-      new ServerSentEventDecodingPublisher(r.getBody(), httpClient.getByteBufAllocator())
-    );
+  public Promise<ServerSentEventResponse> request(URI uri, Action<? super RequestSpec> action) {
+    return httpClient.requestStream(uri, action)
+      .map(streamedResponse -> new DefaultServerSentEventResponse(streamedResponse, httpClient.getByteBufAllocator()));
   }
 
 }

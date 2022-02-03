@@ -84,6 +84,8 @@ tasks.withType(Test).configureEach {
 
   if (isCloudCi) {
     systemProperty "cloudCi", "true"
+  } else {
+    maxParallelForks = 8 // will only use up to max-workers
   }
 
   doFirst {

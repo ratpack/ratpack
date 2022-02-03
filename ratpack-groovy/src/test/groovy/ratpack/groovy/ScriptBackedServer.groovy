@@ -23,6 +23,8 @@ import ratpack.core.server.RatpackServer
 import ratpack.core.server.StartupFailureException
 import ratpack.core.server.internal.ServerCapturer
 
+import java.time.Duration
+
 class ScriptBackedServer implements RatpackServer {
 
   private final Runnable starter
@@ -53,6 +55,11 @@ class ScriptBackedServer implements RatpackServer {
   @Override
   void stop() throws Exception {
     nestedServer?.stop()
+  }
+
+  @Override
+  boolean await(Duration timeout) throws InterruptedException {
+    return nestedServer.await(timeout)
   }
 
   @Override

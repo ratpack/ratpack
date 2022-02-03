@@ -20,7 +20,6 @@ import ratpack.exec.Execution
 import ratpack.core.http.internal.HttpHeaderConstants
 import io.netty.handler.codec.http.HttpResponseStatus
 import ratpack.func.Action
-import ratpack.http.client.BaseHttpClientSpec
 
 import java.time.Duration
 

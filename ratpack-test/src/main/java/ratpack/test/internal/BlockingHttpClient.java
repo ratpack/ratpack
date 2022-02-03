@@ -40,7 +40,6 @@ import java.util.concurrent.atomic.AtomicReference;
 import static io.netty.buffer.Unpooled.unreleasableBuffer;
 
 public class BlockingHttpClient {
-
   public ReceivedResponse request(HttpClient httpClient, URI uri, ExecController execController, Duration timeout, Action<? super RequestSpec> action) throws Throwable {
     CountDownLatch latch = new CountDownLatch(1);
     AtomicReference<ExecResult<ReceivedResponse>> result = new AtomicReference<>();
@@ -87,6 +86,7 @@ public class BlockingHttpClient {
         throw new IllegalStateException("Request to " + uri + " took more than " + timeout.get(unit) + " " + unit.toString() + " to complete");
       }
     } catch (InterruptedException e) {
+      Thread.currentThread().interrupt();
       throw Exceptions.uncheck(e);
     }
 

@@ -102,6 +102,7 @@ abstract class RequestActionSupport<T> implements Upstream<T> {
     channelPool.acquire().addListener(acquireFuture -> {
       if (acquireFuture.isSuccess()) {
         Channel channel = (Channel) acquireFuture.getNow();
+        channel.config().setAutoClose(false);
         if (channel.eventLoop().equals(execution.getEventLoop())) {
           send(downstream, channel);
         } else {
@@ -231,7 +232,6 @@ abstract class RequestActionSupport<T> implements Upstream<T> {
               private void cancel() {
                 subscription.cancel();
                 reset();
-                forceDispose(channel.pipeline());
               }
 
               @Override
@@ -399,6 +399,8 @@ abstract class RequestActionSupport<T> implements Upstream<T> {
     if (forceClose && channel.isOpen()) {
       channel.close();
     }
+
+    channel.config().setAutoClose(true);
 
     return channelPool.release(channel);
   }

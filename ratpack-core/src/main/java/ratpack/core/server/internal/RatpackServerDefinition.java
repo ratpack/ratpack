@@ -28,9 +28,9 @@ import java.util.Optional;
 
 public final class RatpackServerDefinition {
 
-  private final ServerConfig serverConfig;
-  private final Function<? super Registry, ? extends Registry> registry;
-  private final Function<? super Registry, ? extends Handler> handler;
+  public final ServerConfig serverConfig;
+  public final Function<? super Registry, ? extends Registry> registry;
+  public final Function<? super Registry, ? extends Handler> handler;
 
   private RatpackServerDefinition(ServerConfig serverConfig, Function<? super Registry, ? extends Registry> registry, Function<? super Registry, ? extends Handler> handler) {
     this.serverConfig = serverConfig;
@@ -43,18 +43,6 @@ public final class RatpackServerDefinition {
     config.execute(spec);
     ServerConfig serverConfig = Optional.ofNullable(spec.serverConfig).orElseGet(() -> ServerConfig.builder().build());
     return new RatpackServerDefinition(serverConfig, spec.registry, spec.handler);
-  }
-
-  public ServerConfig getServerConfig() {
-    return serverConfig;
-  }
-
-  public Function<? super Registry, ? extends Registry> getRegistry() {
-    return registry;
-  }
-
-  public Function<? super Registry, ? extends Handler> getHandler() {
-    return handler;
   }
 
   private static class SpecImpl implements RatpackServerSpec {

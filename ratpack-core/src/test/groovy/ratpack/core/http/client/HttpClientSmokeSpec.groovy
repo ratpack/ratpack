@@ -23,8 +23,9 @@ import io.netty.handler.codec.http.HttpHeaders
 import io.netty.util.CharsetUtil
 import ratpack.exec.Blocking
 import ratpack.exec.ExecController
+import ratpack.core.sse.ServerSentEvent
+import ratpack.core.sse.ServerSentEvents
 import ratpack.exec.stream.Streams
-import ratpack.http.client.BaseHttpClientSpec
 import spock.lang.IgnoreIf
 import spock.util.concurrent.BlockingVariable
 import spock.util.concurrent.PollingConditions
@@ -34,7 +35,6 @@ import java.util.zip.GZIPInputStream
 
 import static ratpack.core.http.ResponseChunks.stringChunks
 import static ratpack.core.http.internal.HttpHeaderConstants.CONTENT_ENCODING
-import static ratpack.core.sse.ServerSentEvents.serverSentEvents
 import static ratpack.exec.stream.Streams.publish
 
 class HttpClientSmokeSpec extends BaseHttpClientSpec {
@@ -355,7 +355,7 @@ class HttpClientSmokeSpec extends BaseHttpClientSpec {
   def "can set default connect timeout"() {
     setup:
     bindings {
-      bindInstance(HttpClient, HttpClient.of { it.poolSize(pooled ? 8 : 0) ; it.connectTimeout(Duration.ofMillis(20)) })
+      bindInstance(HttpClient, HttpClient.of { it.poolSize(pooled ? 8 : 0); it.connectTimeout(Duration.ofMillis(20)) })
     }
 
     when:
@@ -412,13 +412,11 @@ class HttpClientSmokeSpec extends BaseHttpClientSpec {
     when:
     otherApp {
       get { ctx ->
-        def stream = Streams.periodically(ctx, Duration.ofSeconds(5)) {
-          it < 5 ? "a" : null
+        def stream = Streams.<ServerSentEvent> periodically(ctx, Duration.ofSeconds(5)) {
+          it < 5 ? ServerSentEvent.builder().id("a").build() : null
         }
 
-        render serverSentEvents(stream) {
-          it.id("a")
-        }
+        render ServerSentEvents.builder().build(stream)
       }
     }
 
@@ -435,7 +433,7 @@ class HttpClientSmokeSpec extends BaseHttpClientSpec {
     }
 
     then:
-    text == "ratpack.core.http.client.HttpClientReadTimeoutException: Read timeout (PT1S) waiting on HTTP server at $otherApp.address".toString()
+    text == "ratpack.http.client.HttpClientReadTimeoutException: Read timeout (PT1S) waiting on HTTP server at $otherApp.address".toString()
 
     where:
     pooled << [true, false]
@@ -450,13 +448,11 @@ class HttpClientSmokeSpec extends BaseHttpClientSpec {
     when:
     otherApp {
       get { ctx ->
-        def stream = Streams.periodically(ctx, Duration.ofSeconds(5)) {
-          it < 5 ? "a" : null
+        def stream = Streams.<ServerSentEvent> periodically(ctx, Duration.ofSeconds(5)) {
+          it < 5 ? ServerSentEvent.builder().data("a") : null
         }
 
-        render serverSentEvents(stream) {
-          it.id("a")
-        }
+        render ServerSentEvents.builder().build(stream)
       }
     }
 
@@ -471,7 +467,7 @@ class HttpClientSmokeSpec extends BaseHttpClientSpec {
     }
 
     then:
-    text == "ratpack.core.http.client.HttpClientReadTimeoutException: Read timeout (PT1S) waiting on HTTP server at $otherApp.address".toString()
+    text == "ratpack.http.client.HttpClientReadTimeoutException: Read timeout (PT1S) waiting on HTTP server at $otherApp.address".toString()
 
     where:
     pooled << [true, false]
@@ -890,8 +886,8 @@ BAR
         execController.fork().start({
           httpClient.get(otherAppUrl())
             .then({ val ->
-            assert val.body.text == ok
-          })
+              assert val.body.text == ok
+            })
         })
         render ok
       }

@@ -19,6 +19,8 @@ package ratpack.core.http
 import com.google.common.base.Charsets
 import io.netty.buffer.ByteBuf
 import io.netty.buffer.Unpooled
+import io.netty.handler.codec.PrematureChannelClosureException
+import org.reactivestreams.Publisher
 import org.reactivestreams.Subscriber
 import org.reactivestreams.Subscription
 import ratpack.core.http.client.HttpClient
@@ -75,6 +77,7 @@ class ResponseStreamingSpec extends RatpackGroovyDslSpec {
     given:
     Queue<StreamEvent<ByteBuf>> events = new ConcurrentLinkedQueue<>()
     def buffer = Unpooled.unreleasableBuffer(Unpooled.copiedBuffer("a" * 30720, Charsets.UTF_8))
+    def onCloseCalled = new BlockingVariable()
 
     when:
     handlers {
@@ -82,6 +85,7 @@ class ResponseStreamingSpec extends RatpackGroovyDslSpec {
         def stream = Streams.constant(buffer).wiretap {
           events << it
         }
+        context.onClose { onCloseCalled.set(true) }
         response.sendStream(stream)
       }
       get("read") { ctx ->
@@ -121,6 +125,7 @@ class ResponseStreamingSpec extends RatpackGroovyDslSpec {
     new PollingConditions().eventually {
       events.find { it.cancel }
     }
+    onCloseCalled.get()
 
     cleanup:
     buffer.release()
@@ -202,5 +207,68 @@ class ResponseStreamingSpec extends RatpackGroovyDslSpec {
     r.body.text == "abc" * 3
     r.headers.foo == "1"
     r.headers.bar == "1"
+  }
+
+  def "double transmission while streaming closes response and cancels stream"() {
+    when:
+    def cancelled = new BlockingVariable()
+    handlers {
+      all {
+        response.sendStream(new Publisher<ByteBuf>() {
+          @Override
+          void subscribe(Subscriber<? super ByteBuf> s) {
+            s.onSubscribe(new Subscription() {
+              @Override
+              void request(long n) {
+                throw new RuntimeException("!!")
+              }
+
+              @Override
+              void cancel() {
+                cancelled.set(true)
+              }
+            })
+          }
+        })
+      }
+    }
+
+    then:
+    def r = get()
+    r.status.code == 200
+    r.body.text == ""
+    cancelled
+  }
+
+  def "double transmission before streaming closes response and cancels stream"() {
+    when:
+    def cancelled = new BlockingVariable()
+    handlers {
+      all {
+        response.sendStream(new Publisher<ByteBuf>() {
+          @Override
+          void subscribe(Subscriber<? super ByteBuf> s) {
+            s.onSubscribe(new Subscription() {
+              @Override
+              void request(long n) {
+                s.onComplete()
+              }
+
+              @Override
+              void cancel() {
+                cancelled.set(true)
+              }
+            })
+          }
+        })
+        throw new RuntimeException("!!")
+      }
+    }
+
+    and:
+    get()
+
+    then:
+    thrown PrematureChannelClosureException
   }
 }

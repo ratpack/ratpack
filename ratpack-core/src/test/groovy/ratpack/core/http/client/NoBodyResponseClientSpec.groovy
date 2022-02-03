@@ -18,7 +18,6 @@ package ratpack.core.http.client
 
 import io.netty.handler.codec.http.HttpResponseStatus
 import ratpack.exec.stream.bytebuf.ByteBufStreams
-import ratpack.http.client.BaseHttpClientSpec
 
 class NoBodyResponseClientSpec extends BaseHttpClientSpec {
 

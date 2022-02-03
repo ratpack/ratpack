@@ -559,7 +559,7 @@ public interface ServerConfigBuilder extends ConfigDataBuilder {
    * }
    * }</pre>
    *
-   * @param pointer a <a href="https://tools.ietf.org/html/rfc6901">JSON Pointer</a> specifying the point in the configuration data to bind from
+   * @param pointer a <a href="https://datatracker.ietf.org/html/rfc6901">JSON Pointer</a> specifying the point in the configuration data to bind from
    * @param type the class of the type to bind to
    * @return {@code this}
    */
@@ -570,7 +570,7 @@ public interface ServerConfigBuilder extends ConfigDataBuilder {
   /**
    * Declares that it is required that the server config provide an object of the given type at the given path.
    *
-   * @param pointer a <a href="https://tools.ietf.org/html/rfc6901">JSON Pointer</a> specifying the point in the configuration data to bind from
+   * @param pointer a <a href="https://datatracker.ietf.org/html/rfc6901">JSON Pointer</a> specifying the point in the configuration data to bind from
    * @param type the type to bind to
    * @return {@code this}
    * @since 1.4
@@ -582,7 +582,7 @@ public interface ServerConfigBuilder extends ConfigDataBuilder {
   /**
    * Declares that it is required that the server config provide an object of the given type at the given path.
    *
-   * @param pointer a <a href="https://tools.ietf.org/html/rfc6901">JSON Pointer</a> specifying the point in the configuration data to bind from
+   * @param pointer a <a href="https://datatracker.ietf.org/html/rfc6901">JSON Pointer</a> specifying the point in the configuration data to bind from
    * @param type the type to bind to
    * @return {@code this}
    * @since 1.4

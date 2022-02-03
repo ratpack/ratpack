@@ -19,51 +19,35 @@ package ratpack.core.server.internal;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
 import io.netty.channel.Channel;
-import io.netty.channel.ChannelFutureListener;
-import io.netty.channel.DefaultFileRegion;
 import io.netty.handler.codec.http.*;
 import io.netty.handler.ssl.SslHandler;
-import io.netty.handler.stream.ChunkedNioStream;
-import io.netty.util.AttributeKey;
 import io.netty.util.concurrent.Future;
-import io.netty.util.concurrent.GenericFutureListener;
 import org.reactivestreams.Publisher;
-import org.reactivestreams.Subscriber;
-import org.reactivestreams.Subscription;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import ratpack.core.file.internal.ResponseTransmitter;
+import ratpack.func.Nullable;
+import ratpack.exec.Promise;
+import ratpack.func.Action;
 import ratpack.core.handling.RequestOutcome;
 import ratpack.core.handling.internal.DefaultRequestOutcome;
 import ratpack.core.handling.internal.DoubleTransmissionException;
 import ratpack.core.http.Request;
 import ratpack.core.http.SentResponse;
 import ratpack.core.http.internal.*;
-import ratpack.exec.Blocking;
-import ratpack.exec.Promise;
-import ratpack.func.Action;
-import ratpack.func.Nullable;
 
-import java.nio.channels.FileChannel;
-import java.nio.file.*;
+import java.nio.file.FileSystems;
+import java.nio.file.Path;
 import java.time.Clock;
 import java.time.Instant;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
-import java.util.Set;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 public class DefaultResponseTransmitter implements ResponseTransmitter {
 
-  static final AttributeKey<DefaultResponseTransmitter> ATTRIBUTE_KEY = AttributeKey.valueOf(DefaultResponseTransmitter.class.getName());
-
   private final static Logger LOGGER = LoggerFactory.getLogger(ResponseTransmitter.class);
 
-
-  private static final Runnable NOOP_RUNNABLE = () -> {
-  };
-  private static final LastHttpContentResponseWriter EMPTY_BODY = new LastHttpContentResponseWriter(LastHttpContent.EMPTY_LAST_CONTENT);
+  private static final LastHttpContentResponseBodyWriter EMPTY_BODY = new LastHttpContentResponseBodyWriter(LastHttpContent.EMPTY_LAST_CONTENT);
   private static final DefaultHttpHeaders ERROR_RESPONSE_HEADERS = new DefaultHttpHeaders();
 
   static {
@@ -83,8 +67,8 @@ public class DefaultResponseTransmitter implements ResponseTransmitter {
   private List<Action<? super RequestOutcome>> outcomeListeners;
 
   private Instant stopTime;
-
-  private Runnable onWritabilityChanged = NOOP_RUNNABLE;
+  private ResponseBodyWriter responseBodyWriter;
+  private boolean done;
 
   public DefaultResponseTransmitter(
     AtomicBoolean transmitted,
@@ -105,36 +89,12 @@ public class DefaultResponseTransmitter implements ResponseTransmitter {
     this.isSsl = channel.pipeline().get(SslHandler.class) != null;
   }
 
-  interface ResponseWriter {
-    Promise<Boolean> write(Channel channel);
-
-    default void dispose() {
-    }
-  }
-
-  static class LastHttpContentResponseWriter implements ResponseWriter {
-    private final LastHttpContent content;
-
-    public LastHttpContentResponseWriter(LastHttpContent content) {
-      this.content = content;
-    }
-
-    public Promise<Boolean> write(Channel channel) {
-      return Promise.async(down ->
-        channel.writeAndFlush(content).addListener(future -> down.success(future.isSuccess()))
-      );
-    }
-
-    public void dispose() {
-      content.release();
-    }
-  }
-
-  private void sendResponse(HttpResponseStatus responseStatus, ResponseWriter bodyWriter) {
+  private void sendResponse(HttpResponseStatus responseStatus, ResponseBodyWriter responseBodyWriter) {
     if (transmitted.compareAndSet(false, true)) {
+      this.responseBodyWriter = responseBodyWriter;
       stopTime = clock.instant();
       if (requestBody == null) {
-        sendResponseAfterRequestBodyDrain(responseStatus, bodyWriter);
+        sendResponseAfterRequestBodyDrain(responseStatus, responseBodyWriter);
       } else {
         requestBody.drain()
           .onError(e -> {
@@ -142,70 +102,103 @@ public class DefaultResponseTransmitter implements ResponseTransmitter {
             forceCloseWithResponse(HttpResponseStatus.INTERNAL_SERVER_ERROR);
           })
           .then(outcome -> {
-            if (outcome == RequestBody.DrainOutcome.TOO_LARGE) {
-              bodyWriter.dispose();
-              forceCloseWithResponse(HttpResponseStatus.REQUEST_ENTITY_TOO_LARGE);
-            } else {
-              if (outcome != RequestBody.DrainOutcome.DRAINED) {
-                throw new IllegalStateException("unhandled drain outcome");
-              }
-              sendResponseAfterRequestBodyDrain(responseStatus, bodyWriter);
+            switch (outcome) {
+              case TOO_LARGE:
+                responseBodyWriter.dispose();
+                forceCloseWithResponse(HttpResponseStatus.REQUEST_ENTITY_TOO_LARGE);
+                break;
+              case DISCARDED:
+                addConnectionCloseResponseHeader();
+                sendResponseAfterRequestBodyDrain(responseStatus, responseBodyWriter);
+                break;
+              case DRAINED:
+                sendResponseAfterRequestBodyDrain(responseStatus, responseBodyWriter);
+                break;
+              default:
+                throw new IllegalStateException("unhandled drain outcome: " + outcome);
             }
           });
       }
     } else {
-      String msg = "attempt at double transmission for: " + ratpackRequest.getRawUri();
-      LOGGER.warn(msg, new DoubleTransmissionException(msg));
-      bodyWriter.dispose();
+      responseBodyWriter.dispose();
+      if (done) {
+        if (LOGGER.isWarnEnabled()) {
+          LOGGER.warn("", new DoubleTransmissionException("Attempt at double transmission after response sent for: " + ratpackRequest.getRawUri()));
+        }
+      } else {
+        if (LOGGER.isErrorEnabled()) {
+          LOGGER.error("", new DoubleTransmissionException("Attempt at double transmission while sending response (connection will be closed) for: " + ratpackRequest.getRawUri()));
+        }
+        channel.close();
+      }
     }
   }
 
-  private void sendResponseAfterRequestBodyDrain(HttpResponseStatus responseStatus, ResponseWriter bodyWriter) {
+  private void sendResponseAfterRequestBodyDrain(HttpResponseStatus responseStatus, ResponseBodyWriter bodyWriter) {
     try {
       boolean responseRequestedConnectionClose = responseHeaders.contains(HttpHeaderNames.CONNECTION, HttpHeaderValues.CLOSE, true);
       boolean requestRequestedConnectionClose = !HttpUtil.isKeepAlive(this.nettyRequest);
 
       boolean keepAlive = !requestRequestedConnectionClose && !responseRequestedConnectionClose;
       if (!keepAlive && !responseRequestedConnectionClose) {
-        forceCloseConnection();
+        addConnectionCloseResponseHeader();
       }
 
-      HttpResponse headersResponse = new CustomHttpResponse(responseStatus, responseHeaders);
-      if (mustHaveBody(responseStatus) && keepAlive && HttpUtil.getContentLength(headersResponse, -1) == -1 && !HttpUtil.isTransferEncodingChunked(headersResponse)) {
+      HttpResponse headersResponse = new DefaultHttpResponse(HttpVersion.HTTP_1_1, responseStatus, responseHeaders);
+
+      boolean isImplicitlyChunked = mustHaveBody(responseStatus)
+        && keepAlive
+        && HttpUtil.getContentLength(headersResponse, -1) == -1
+        && !HttpUtil.isTransferEncodingChunked(headersResponse);
+
+      if (isImplicitlyChunked) {
         HttpUtil.setTransferEncodingChunked(headersResponse, true);
       }
 
-      Promise.<Boolean>async(down ->
-        channel.writeAndFlush(headersResponse)
-          .addListener(future -> down.success(future.isSuccess()))
-      )
-        .then(success -> {
-          if (success) {
-            bodyWriter.write(channel)
-              .onError(e -> {
-                LOGGER.warn("Error from response body writer", e);
-                channel.close();
-              })
-              .then(completed -> {
-                if (channel.isOpen() && completed && keepAlive) {
-                  channel.read();
-                  ConnectionIdleTimeout.of(channel).reset();
-                } else {
-                  channel.close();
-                }
-                notifyListeners(responseStatus);
-              });
-          } else {
-            bodyWriter.dispose();
-            notifyListeners(responseStatus);
-          }
-        });
+      sendResponseHeadersAndBody(responseStatus, bodyWriter, keepAlive, headersResponse);
     } catch (Exception e) {
       bodyWriter.dispose();
       LOGGER.warn("Error finalizing response", e);
       forceCloseWithResponse(HttpResponseStatus.INTERNAL_SERVER_ERROR);
     }
+  }
 
+  private void sendResponseHeadersAndBody(HttpResponseStatus responseStatus, ResponseBodyWriter bodyWriter, boolean keepAlive, HttpResponse headersResponse) {
+    Promise.<Future<? super Void>>async(down ->
+      channel.writeAndFlush(headersResponse).addListener(down::success)
+    )
+      .then(result -> {
+        if (result.isSuccess()) {
+          sendResponseBody(responseStatus, bodyWriter, keepAlive);
+        } else {
+          if (channel.isOpen()) {
+            LOGGER.warn("Error writing response headers", result.cause());
+            channel.close();
+          }
+
+          bodyWriter.dispose();
+          notifyListeners(responseStatus);
+        }
+      });
+  }
+
+  private void sendResponseBody(HttpResponseStatus responseStatus, ResponseBodyWriter bodyWriter, boolean keepAlive) {
+    bodyWriter.write(channel).addListener(result -> {
+      if (channel.isOpen()) {
+        if (!result.isSuccess()) {
+          LOGGER.warn("Error from response body writer", result.cause());
+        }
+
+        if (result.isSuccess() && keepAlive) {
+          channel.read();
+          ConnectionIdleTimeout.of(channel).reset();
+        } else {
+          channel.close();
+        }
+      }
+
+      notifyListeners(responseStatus);
+    });
   }
 
   private void forceCloseWithResponse(HttpResponseStatus status) {
@@ -219,7 +212,14 @@ public class DefaultResponseTransmitter implements ResponseTransmitter {
       ))
         .addListener(future -> down.success(future.isSuccess()))
     )
-      .then(__ -> notifyListeners(status));
+      .onError(__ -> {
+        channel.close();
+        notifyListeners(status);
+      })
+      .then(__ -> {
+        channel.close();
+        notifyListeners(status);
+      });
   }
 
   private boolean mustHaveBody(HttpResponseStatus responseStatus) {
@@ -233,7 +233,7 @@ public class DefaultResponseTransmitter implements ResponseTransmitter {
       body.release();
       sendResponse(responseStatus, EMPTY_BODY);
     } else {
-      sendResponse(responseStatus, new LastHttpContentResponseWriter(new DefaultLastHttpContent(body.touch())));
+      sendResponse(responseStatus, new LastHttpContentResponseBodyWriter(new DefaultLastHttpContent(body.touch())));
     }
   }
 
@@ -241,7 +241,6 @@ public class DefaultResponseTransmitter implements ResponseTransmitter {
     return ratpackRequest.getMethod().isHead();
   }
 
-  private static final Set<OpenOption> OPEN_OPTIONS = Collections.singleton(StandardOpenOption.READ);
 
   @Override
   public void transmit(HttpResponseStatus status, Path file) {
@@ -250,127 +249,26 @@ public class DefaultResponseTransmitter implements ResponseTransmitter {
     } else {
       String sizeString = responseHeaders.getAsString(HttpHeaderConstants.CONTENT_LENGTH);
       long size = sizeString == null ? 0 : Long.parseLong(sizeString);
-      boolean compress = !responseHeaders.contains(HttpHeaderConstants.CONTENT_ENCODING, HttpHeaderConstants.IDENTITY, true);
 
-      if (!isSsl && !compress && file.getFileSystem().equals(FileSystems.getDefault())) {
-        sendResponse(status, channel ->
-          Blocking.get(() -> FileChannel.open(file, OPEN_OPTIONS))
-            .flatMap(fileChannel ->
-              Promise.<Boolean>async(down ->
-                channel.writeAndFlush(new DefaultFileRegion(fileChannel, 0, size))
-                  .addListener(future -> down.success(future.isSuccess()))
-              )
-            )
-            .mapError(any -> false)
-        );
-      } else {
-        sendResponse(status, channel ->
-          Blocking.get(() -> Files.newByteChannel(file))
-            .flatMap(fileChannel ->
-              Promise.<Boolean>async(down -> {
-                channel.write(new HttpChunkedInput(new ChunkedNioStream(fileChannel)));
-                channel.writeAndFlush(LastHttpContent.EMPTY_LAST_CONTENT)
-                  .addListener(future -> down.success(future.isSuccess()));
-              })
-            )
-            .mapError(any -> false)
-        );
-      }
+      boolean compress = !responseHeaders.contains(HttpHeaderConstants.CONTENT_ENCODING, HttpHeaderConstants.IDENTITY, true);
+      boolean zeroCopy = !isSsl && !compress && file.getFileSystem().equals(FileSystems.getDefault());
+
+      ResponseBodyWriter responseBodyWriter = zeroCopy
+        ? new ZeroCopyFileResponseBodyWriter(file, size)
+        : new ChunkedFileResponseBodyWriter(file);
+
+      sendResponse(status, responseBodyWriter);
     }
   }
 
   @Override
   public void transmit(HttpResponseStatus status, Publisher<? extends ByteBuf> publisher) {
-    sendResponse(status, channel ->
-      Promise.async(downstream -> {
-        publisher.subscribe(new Subscriber<ByteBuf>() {
-          private Subscription subscription;
-
-          private final AtomicBoolean done = new AtomicBoolean();
-
-          private final ChannelFutureListener cancelOnFailure = future -> {
-            if (!future.isSuccess()) {
-              cancel();
-            }
-          };
-
-          private final GenericFutureListener<Future<? super Void>> cancelOnCloseListener =
-            c -> cancel();
-
-          private void cancel() {
-            channel.closeFuture().removeListener(cancelOnCloseListener);
-            if (done.compareAndSet(false, true)) {
-              subscription.cancel();
-              downstream.success(false);
-            }
-          }
-
-          @Override
-          public void onSubscribe(Subscription subscription) {
-            if (subscription == null) {
-              throw new NullPointerException("'subscription' is null");
-            }
-            if (this.subscription != null) {
-              subscription.cancel();
-              return;
-            }
-
-            this.subscription = subscription;
-
-            channel.closeFuture().addListener(cancelOnCloseListener);
-            onWritabilityChanged = () -> {
-              if (channel.isWritable() && !done.get()) {
-                subscription.request(1);
-              }
-            };
-            if (channel.isWritable()) {
-              subscription.request(1);
-            }
-
-          }
-
-          @Override
-          public void onNext(ByteBuf o) {
-            o.touch();
-            if (channel.isOpen()) {
-              channel.writeAndFlush(new DefaultHttpContent(o)).addListener(cancelOnFailure);
-              if (channel.isWritable()) {
-                subscription.request(1);
-              }
-            } else {
-              o.release();
-              cancel();
-            }
-          }
-
-          @Override
-          public void onError(Throwable t) {
-            if (t == null) {
-              throw new NullPointerException("error is null");
-            }
-            LOGGER.warn("Exception thrown transmitting stream", t);
-            if (done.compareAndSet(false, true)) {
-              channel.closeFuture().removeListener(cancelOnCloseListener);
-              downstream.success(false);
-            }
-          }
-
-          @Override
-          public void onComplete() {
-            if (done.compareAndSet(false, true)) {
-              channel.closeFuture().removeListener(cancelOnCloseListener);
-              onWritabilityChanged = NOOP_RUNNABLE;
-              channel.writeAndFlush(LastHttpContent.EMPTY_LAST_CONTENT);
-              downstream.success(true);
-            }
-          }
-        });
-      }));
+    sendResponse(status, new StreamingResponseBodyWriter(publisher));
   }
 
   private void notifyListeners(final HttpResponseStatus responseStatus) {
+    done = true;
     if (outcomeListeners != null) {
-      channel.attr(ATTRIBUTE_KEY).set(null);
       SentResponse sentResponse = new DefaultSentResponse(new NettyHeadersBackedHeaders(responseHeaders), new DefaultStatus(responseStatus));
       RequestOutcome requestOutcome = new DefaultRequestOutcome(ratpackRequest, sentResponse, stopTime);
       for (Action<? super RequestOutcome> outcomeListener : outcomeListeners) {
@@ -383,8 +281,18 @@ public class DefaultResponseTransmitter implements ResponseTransmitter {
     }
   }
 
-  public void writabilityChanged() {
-    onWritabilityChanged.run();
+  @Override
+  public void onWritabilityChanged() {
+    if (responseBodyWriter != null && channel.isWritable()) {
+      responseBodyWriter.onWritable();
+    }
+  }
+
+  @Override
+  public void onConnectionClosed() {
+    if (responseBodyWriter != null) {
+      responseBodyWriter.onClosed();
+    }
   }
 
   @Override
@@ -395,8 +303,8 @@ public class DefaultResponseTransmitter implements ResponseTransmitter {
     outcomeListeners.add(action);
   }
 
-  @Override
-  public void forceCloseConnection() {
+  void addConnectionCloseResponseHeader() {
     responseHeaders.set(HttpHeaderNames.CONNECTION, HttpHeaderValues.CLOSE);
   }
+
 }

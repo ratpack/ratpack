@@ -19,7 +19,6 @@ package ratpack.core.http.client
 import io.netty.channel.Channel
 import ratpack.core.error.ServerErrorHandler
 import ratpack.core.handling.Context
-import ratpack.http.client.BaseHttpClientSpec
 import spock.lang.Unroll
 
 import java.time.Duration

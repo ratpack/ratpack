@@ -22,7 +22,6 @@ import ratpack.exec.Blocking
 import ratpack.exec.ExecController
 import ratpack.exec.Execution
 import ratpack.exec.stream.Streams
-import ratpack.http.client.BaseHttpClientSpec
 import spock.util.concurrent.BlockingVariable
 import spock.util.concurrent.PollingConditions
 

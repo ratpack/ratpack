@@ -50,7 +50,7 @@ public class ByteBufStreams {
    * @param maxNum the maximum number of composite components
    * @return a byte buf composing publisher
    */
-  public static TransformablePublisher<CompositeByteBuf> buffer(Publisher<? extends ByteBuf> publisher, long sizeWatermark, int maxNum) {
+  public static TransformablePublisher<? extends ByteBuf> buffer(Publisher<? extends ByteBuf> publisher, long sizeWatermark, int maxNum) {
     return buffer(publisher, sizeWatermark, maxNum, ByteBufAllocator.DEFAULT);
   }
 
@@ -71,7 +71,7 @@ public class ByteBufStreams {
    * @param alloc the allocator of composites
    * @return a byte buf composing publisher
    */
-  public static TransformablePublisher<CompositeByteBuf> buffer(Publisher<? extends ByteBuf> publisher, long sizeWatermark, int maxNum, ByteBufAllocator alloc) {
+  public static TransformablePublisher<? extends ByteBuf> buffer(Publisher<? extends ByteBuf> publisher, long sizeWatermark, int maxNum, ByteBufAllocator alloc) {
     return new ByteBufComposingPublisher(maxNum, sizeWatermark, alloc, publisher);
   }
 

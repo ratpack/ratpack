@@ -61,7 +61,7 @@ abstract class Crawler {
     isUnderStartUrl(link) && !link.uri.fragment
   }
 
-  def boolean isUnderStartUrl(Link link) {
+  boolean isUnderStartUrl(Link link) {
     link.uri.toString().startsWith(startingUrl)
   }
 
@@ -292,7 +292,7 @@ abstract class Crawler {
     final URI uri
 
     final Set<String> referrers = new HashSet().asSynchronized()
-    final List<PageError> errors = [].asSynchronized()
+    final List<PageError> errors = ((List<PageError>) []).asSynchronized()
 
     int attemptCount = 0
 

@@ -17,7 +17,6 @@
 package ratpack.core.http.client
 
 import io.netty.buffer.ByteBufAllocator
-import ratpack.http.client.BaseHttpClientSpec
 import ratpack.test.exec.ExecHarness
 import spock.lang.AutoCleanup
 

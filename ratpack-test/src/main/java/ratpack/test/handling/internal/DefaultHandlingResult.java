@@ -24,10 +24,9 @@ import io.netty.handler.codec.http.cookie.Cookie;
 import io.netty.util.CharsetUtil;
 import org.reactivestreams.Publisher;
 import org.slf4j.LoggerFactory;
-import ratpack.core.http.internal.*;
 import ratpack.func.Nullable;
 import ratpack.exec.ExecController;
-import ratpack.core.file.internal.ResponseTransmitter;
+import ratpack.core.server.internal.ResponseTransmitter;
 import ratpack.func.Action;
 import ratpack.core.handling.Context;
 import ratpack.core.handling.Handler;
@@ -39,6 +38,7 @@ import ratpack.core.http.Headers;
 import ratpack.core.http.MutableHeaders;
 import ratpack.core.http.Response;
 import ratpack.core.http.Status;
+import ratpack.core.http.internal.*;
 import ratpack.exec.registry.Registry;
 import ratpack.core.render.internal.RenderController;
 import ratpack.core.server.Stopper;
@@ -96,7 +96,7 @@ public class DefaultHandlingResult implements HandlingResult {
 
     ResponseTransmitter responseTransmitter = new ResponseTransmitter() {
 
-      private List<Action<? super RequestOutcome>> outcomeListeners = Lists.newArrayList();
+      private final List<Action<? super RequestOutcome>> outcomeListeners = Lists.newArrayList();
 
       @Override
       public void transmit(HttpResponseStatus status, ByteBuf byteBuf) {
@@ -136,7 +136,12 @@ public class DefaultHandlingResult implements HandlingResult {
       }
 
       @Override
-      public void forceCloseConnection() {
+      public void onWritabilityChanged() {
+
+      }
+
+      @Override
+      public void onConnectionClosed() {
 
       }
     };

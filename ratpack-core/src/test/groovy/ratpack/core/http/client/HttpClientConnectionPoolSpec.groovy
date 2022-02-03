@@ -17,7 +17,6 @@
 package ratpack.core.http.client
 
 import ratpack.exec.util.ParallelBatch
-import ratpack.http.client.BaseHttpClientSpec
 import ratpack.test.exec.ExecHarness
 import spock.lang.AutoCleanup
 

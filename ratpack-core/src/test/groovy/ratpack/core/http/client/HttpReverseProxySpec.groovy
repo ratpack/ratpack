@@ -20,7 +20,6 @@ import io.netty.buffer.Unpooled
 import io.netty.handler.codec.http.HttpResponseStatus
 import io.netty.util.CharsetUtil
 import ratpack.exec.stream.Streams
-import ratpack.http.client.BaseHttpClientSpec
 
 import java.time.Duration
 import java.time.Instant

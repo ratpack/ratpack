@@ -25,7 +25,7 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 /*
-    As defined in RFC 1867 and 2388 (see https://tools.ietf.org/html/rfc1867)
+    As defined in RFC 1867 and 2388 (see https://datatracker.ietf.org/html/rfc1867)
  */
 public class DefaultMultipartForm {
 

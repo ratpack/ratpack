@@ -17,7 +17,6 @@
 package ratpack.core.http.client
 
 import ratpack.exec.Operation
-import ratpack.http.client.BaseHttpClientSpec
 import spock.lang.Timeout
 
 import java.util.concurrent.CountDownLatch

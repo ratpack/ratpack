@@ -16,8 +16,6 @@
 
 package ratpack.core.http.client
 
-import ratpack.http.client.BaseHttpClientSpec
-
 class HttpClientRequestHeaderValidationSpec extends BaseHttpClientSpec {
 
   def "invalid header values yield exception"() {

@@ -50,7 +50,7 @@ class LinkCrawlSpec extends BaseRatpackSpec {
 
     def crawler = new Crawler(aut.address.toString()) {
       @Override
-      boolean isCrawlable(Link link) {
+      boolean isCrawlable(Crawler.Link link) {
         if (link.uri.path.startsWith("/manual") && !link.uri.path.startsWith("/manual/${RatpackVersion.version - "-SNAPSHOT"}")) {
           false
         } else {
@@ -58,7 +58,7 @@ class LinkCrawlSpec extends BaseRatpackSpec {
         }
       }
 
-      List<String> findPageLinks(Response response) {
+      List<String> findPageLinks(Crawler.Response response) {
         def document = response.document
         document == null ? [] : document.select("body a").collect {
           it.attr("href")
@@ -68,7 +68,7 @@ class LinkCrawlSpec extends BaseRatpackSpec {
       }
 
       @Override
-      void addPageErrors(Link link, Response response) {
+      void addPageErrors(Crawler.Link link, Crawler.Response response) {
         response.document?.text()?.findAll(~$/\[.+]\(.+\)/$)?.each {
           link.errors << new BadMarkdownLinkSyntax(it)
         }

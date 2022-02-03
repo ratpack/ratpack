@@ -20,8 +20,6 @@ import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.handler.codec.http.*;
-import io.netty.util.concurrent.Future;
-import io.netty.util.concurrent.GenericFutureListener;
 import org.reactivestreams.Subscription;
 import ratpack.core.bytebuf.ByteBufRef;
 import ratpack.core.http.ConnectionClosedException;
@@ -43,7 +41,7 @@ public class RequestBody implements RequestBodyReader, RequestBodyAccumulator {
   private static final HttpResponse CONTINUE_RESPONSE = new DefaultFullHttpResponse(HttpVersion.HTTP_1_1, HttpResponseStatus.CONTINUE, Unpooled.EMPTY_BUFFER);
 
   enum State {
-    UNREAD, READING, READ, TOO_LARGE
+    UNREAD, READING, READ, DISCARDED, TOO_LARGE
   }
 
   private final List<ByteBuf> received = new ArrayList<>();
@@ -60,14 +58,6 @@ public class RequestBody implements RequestBodyReader, RequestBodyAccumulator {
 
   private Listener listener;
 
-  private final GenericFutureListener<Future<Void>> closeListener = v -> {
-    if (listener == null) {
-      earlyClose = true;
-    } else {
-      listener.onEarlyClose();
-    }
-  };
-
   interface Listener {
     void onContent(HttpContent httpContent);
 
@@ -78,8 +68,17 @@ public class RequestBody implements RequestBodyReader, RequestBodyAccumulator {
     this.advertisedLength = advertisedLength;
     this.request = request;
     this.ctx = ctx;
+  }
 
-    ctx.channel().closeFuture().addListener(closeListener);
+  @Override
+  public void onClose() {
+    if (!receivedLast) {
+      if (listener == null) {
+        earlyClose = true;
+      } else {
+        listener.onEarlyClose();
+      }
+    }
   }
 
   @Override
@@ -275,7 +274,6 @@ public class RequestBody implements RequestBodyReader, RequestBodyAccumulator {
       httpContent.release();
     } else {
       if (httpContent instanceof LastHttpContent) {
-        ctx.channel().closeFuture().removeListener(closeListener);
         receivedLast = true;
       }
 
@@ -304,9 +302,8 @@ public class RequestBody implements RequestBodyReader, RequestBodyAccumulator {
   }
 
   private void discard() {
-    state = State.READ;
+    state = State.DISCARDED;
     release();
-    ctx.channel().attr(DefaultResponseTransmitter.ATTRIBUTE_KEY).get().forceCloseConnection();
   }
 
   private void complete(Downstream<? super ByteBuf> downstream) {
@@ -333,7 +330,7 @@ public class RequestBody implements RequestBodyReader, RequestBodyAccumulator {
   enum DrainOutcome {
     DRAINED,
     TOO_LARGE,
-    EARLY_CLOSE;
+    DISCARDED;
 
     final Promise<DrainOutcome> promise = Promise.value(this);
   }
@@ -346,6 +343,9 @@ public class RequestBody implements RequestBodyReader, RequestBodyAccumulator {
       }
       if (state == State.TOO_LARGE) {
         return DrainOutcome.TOO_LARGE.promise;
+      }
+      if (state == State.DISCARDED) {
+        return DrainOutcome.DISCARDED.promise;
       }
 
       state = State.READING;

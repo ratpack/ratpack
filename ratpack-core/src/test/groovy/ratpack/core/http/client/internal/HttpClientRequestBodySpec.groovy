@@ -18,7 +18,7 @@ package ratpack.core.http.client.internal
 
 import io.netty.buffer.ByteBufAllocator
 import ratpack.core.http.client.HttpClient
-import ratpack.http.client.BaseHttpClientSpec
+import ratpack.core.http.client.BaseHttpClientSpec
 
 class HttpClientRequestBodySpec extends BaseHttpClientSpec {
 

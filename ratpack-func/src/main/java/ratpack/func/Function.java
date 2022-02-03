@@ -63,9 +63,8 @@ public interface Function<I, O> {
    * @param after the function to apply to the result of {@code this} function
    * @param <T> the type of the final output
    * @return the result of applying the given function to {@code this} function
-   * @throws Exception any thrown by {@code this} or {@code after}
    */
-  default <T> Function<I, T> andThen(Function<? super O, ? extends T> after) throws Exception {
+  default <T> Function<I, T> andThen(Function<? super O, ? extends T> after) {
     Objects.requireNonNull(after);
     return (I i) -> {
       O apply = apply(i);

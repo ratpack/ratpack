@@ -18,9 +18,7 @@ package ratpack.rx2
 
 import io.reactivex.functions.Function
 import ratpack.core.http.client.HttpClient
-import ratpack.http.client.BaseHttpClientSpec
-
-import static ratpack.rx2.RxRatpack.single
+import ratpack.core.http.client.BaseHttpClientSpec
 
 class RxHttpClientSpec extends BaseHttpClientSpec {
 

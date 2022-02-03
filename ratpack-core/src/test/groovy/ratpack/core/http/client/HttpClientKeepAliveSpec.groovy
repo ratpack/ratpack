@@ -20,7 +20,6 @@ import io.netty.buffer.Unpooled
 import io.netty.channel.Channel
 import ratpack.exec.Execution
 import ratpack.exec.stream.Streams
-import ratpack.http.client.BaseHttpClientSpec
 
 import java.time.Duration
 import java.util.concurrent.CountDownLatch

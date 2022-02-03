@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 the original author or authors.
+ * Copyright 2022 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package ratpack.core.file.internal;
+package ratpack.core.server.internal;
 
 import io.netty.buffer.ByteBuf;
 import io.netty.handler.codec.http.HttpResponseStatus;
@@ -32,8 +32,9 @@ public interface ResponseTransmitter {
 
   void transmit(HttpResponseStatus status, Publisher<? extends ByteBuf> publisher);
 
+  void onWritabilityChanged();
+
   void addOutcomeListener(Action<? super RequestOutcome> action);
 
-  void forceCloseConnection();
-
+  void onConnectionClosed();
 }

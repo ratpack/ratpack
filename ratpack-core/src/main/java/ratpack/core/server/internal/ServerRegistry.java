@@ -26,11 +26,16 @@ import ratpack.core.error.ServerErrorHandler;
 import ratpack.core.error.internal.DefaultDevelopmentErrorHandler;
 import ratpack.core.error.internal.DefaultProductionErrorHandler;
 import ratpack.core.error.internal.ErrorHandler;
+import ratpack.exec.ExecController;
+import ratpack.exec.ExecInitializer;
+import ratpack.exec.ExecInterceptor;
+import ratpack.exec.internal.ExecControllerInternal;
 import ratpack.config.FileSystemBinding;
 import ratpack.core.file.MimeTypes;
 import ratpack.core.file.internal.ActivationBackedMimeTypes;
 import ratpack.core.file.internal.FileRenderer;
 import ratpack.core.form.internal.FormParser;
+import ratpack.func.Function;
 import ratpack.core.handling.Redirector;
 import ratpack.core.handling.RequestId;
 import ratpack.core.handling.internal.UuidBasedRequestIdGenerator;
@@ -39,22 +44,18 @@ import ratpack.core.http.client.HttpClient;
 import ratpack.core.impose.Impositions;
 import ratpack.core.jackson.internal.JsonParser;
 import ratpack.core.jackson.internal.JsonRenderer;
-import ratpack.core.render.internal.*;
-import ratpack.core.server.*;
-import ratpack.core.sse.ServerSentEventStreamClient;
-import ratpack.exec.ExecController;
-import ratpack.exec.ExecInitializer;
-import ratpack.exec.ExecInterceptor;
-import ratpack.func.Function;
-import ratpack.exec.internal.ExecControllerInternal;
 import ratpack.exec.registry.Registry;
 import ratpack.exec.registry.RegistryBuilder;
+import ratpack.core.render.internal.*;
+import ratpack.core.server.*;
+import ratpack.core.sse.client.ServerSentEventClient;
 
 import java.time.Clock;
 import java.util.Optional;
 
 import static ratpack.func.Exceptions.uncheck;
 
+@SuppressWarnings("deprecation")
 public abstract class ServerRegistry {
 
   public static Registry serverRegistry(RatpackServer ratpackServer, Impositions impositions, ExecControllerInternal execController, ServerConfig serverConfig, Function<? super Registry, ? extends Registry> userRegistryFactory) {
@@ -122,7 +123,7 @@ public abstract class ServerRegistry {
           return null;
         }))
         .add(HttpClient.class, httpClient)
-        .add(ServerSentEventStreamClient.class, ServerSentEventStreamClient.of(httpClient))
+        .add(ServerSentEventClient.class, ServerSentEventClient.of(httpClient))
         .add(HealthCheckResultsRenderer.TYPE, new HealthCheckResultsRenderer(ByteBufAllocator.DEFAULT))
         .add(RequestId.Generator.class, UuidBasedRequestIdGenerator.INSTANCE);
 

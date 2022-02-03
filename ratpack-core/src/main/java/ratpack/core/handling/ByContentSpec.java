@@ -16,7 +16,6 @@
 
 package ratpack.core.handling;
 
-import ratpack.func.Action;
 import ratpack.func.Block;
 
 /**
@@ -29,7 +28,7 @@ import ratpack.func.Block;
  *
  * <pre class="java">{@code
  * import ratpack.test.embed.EmbeddedApp;
- * import ratpack.core.http.client.ReceivedResponse;
+ * import ratpack.http.client.ReceivedResponse;
  *
  * import static org.junit.Assert.*;
  *
@@ -65,9 +64,9 @@ import ratpack.func.Block;
  * Only the last specified handler for a type will be used.
  * That is, adding a subsequent handler for the same type will replace the previous.
  *
- * @see Context#byContent(Action)
- * @see <a href="http://tools.ietf.org/html/rfc7231#section-5.3.2">RFC 7231: Accept</a>
- * @see <a href="http://tools.ietf.org/html/rfc7231#section-6.5.6">RFC 7231: 406 Not Acceptable</a>
+ * @see Context#byContent(ratpack.func.Action)
+ * @see <a href="http://datatracker.ietf.org/html/rfc7231#section-5.3.2">RFC 7231: Accept</a>
+ * @see <a href="http://datatracker.ietf.org/html/rfc7231#section-6.5.6">RFC 7231: 406 Not Acceptable</a>
  */
 public interface ByContentSpec {
 

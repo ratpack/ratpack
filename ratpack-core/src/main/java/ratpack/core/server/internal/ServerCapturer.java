@@ -19,24 +19,51 @@ package ratpack.core.server.internal;
 import ratpack.core.server.RatpackServer;
 import ratpack.func.Block;
 
+import java.util.ArrayDeque;
+import java.util.Deque;
+import java.util.function.Consumer;
+
 public abstract class ServerCapturer {
 
-  private static final ThreadLocal<RatpackServer> SERVER_HOLDER = new ThreadLocal<>();
+  private static final ThreadLocal<Deque<Consumer<? super RatpackServer>>> CAPTURER_HOLDER = ThreadLocal.withInitial(ArrayDeque::new);
 
   private ServerCapturer() {
   }
 
+  public interface Releaser extends AutoCloseable {
+    @Override
+    void close();
+  }
+
+  public static Releaser captureWith(Consumer<? super RatpackServer> capturer) {
+    Deque<Consumer<? super RatpackServer>> capturers = CAPTURER_HOLDER.get();
+    capturers.addLast(capturer);
+    return () -> capturers.remove(capturer);
+  }
+
+  @SuppressWarnings("try")
   public static RatpackServer capture(Block bootstrap) throws Exception {
-    try {
-      bootstrap.execute();
-      return SERVER_HOLDER.get();
-    } finally {
-      SERVER_HOLDER.remove();
+    class Capturer implements Consumer<RatpackServer> {
+      RatpackServer server;
+
+      @Override
+      public void accept(RatpackServer ratpackServer) {
+        server = ratpackServer;
+      }
     }
+    Capturer capturer = new Capturer();
+    try (Releaser ignored = captureWith(capturer)) {
+      bootstrap.execute();
+    }
+
+    return capturer.server;
   }
 
   public static void capture(RatpackServer server) throws Exception {
-    SERVER_HOLDER.set(server);
+    Consumer<? super RatpackServer> capturer = CAPTURER_HOLDER.get().pollLast();
+    if (capturer != null) {
+      capturer.accept(server);
+    }
   }
 
 }

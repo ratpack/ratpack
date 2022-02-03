@@ -20,7 +20,6 @@ import ratpack.core.error.ServerErrorHandler
 import ratpack.core.error.internal.DefaultDevelopmentErrorHandler
 import ratpack.groovy.handling.GroovyChain
 import ratpack.groovy.test.embed.GroovyEmbeddedApp
-import ratpack.http.client.BaseHttpClientSpec
 import ratpack.test.embed.EmbeddedApp
 import spock.lang.AutoCleanup
 

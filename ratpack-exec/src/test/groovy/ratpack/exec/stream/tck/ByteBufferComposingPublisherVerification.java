@@ -18,7 +18,6 @@ package ratpack.exec.stream.tck;
 
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.ByteBufAllocator;
-import io.netty.buffer.CompositeByteBuf;
 import io.netty.buffer.Unpooled;
 import org.reactivestreams.Publisher;
 import org.reactivestreams.tck.PublisherVerification;
@@ -31,7 +30,7 @@ import ratpack.test.exec.ExecHarness;
 
 import java.time.Duration;
 
-public class ByteBufferComposingPublisherVerification extends PublisherVerification<CompositeByteBuf> {
+public class ByteBufferComposingPublisherVerification extends PublisherVerification<ByteBuf> {
 
   public ByteBufferComposingPublisherVerification() {
     super(new TestEnvironment());
@@ -40,21 +39,21 @@ public class ByteBufferComposingPublisherVerification extends PublisherVerificat
   private final ExecHarness harness = ExecHarness.harness();
 
   @AfterTest
-  public void stopHarness() throws Exception {
+  public void stopHarness() {
     harness.close();
   }
 
   @Override
-  public Publisher<CompositeByteBuf> createPublisher(long elements) {
+  public Publisher<ByteBuf> createPublisher(long elements) {
     TransformablePublisher<ByteBuf> periodically = Streams.periodically(harness.getController().getExecutor(), Duration.ofNanos(100), i ->
       i < elements * 3 ? i : null
     ).map(Unpooled::copyInt);
 
-    return ByteBufStreams.buffer(periodically, Long.MAX_VALUE, 3, ByteBufAllocator.DEFAULT);
+    return ByteBufStreams.buffer(periodically, Long.MAX_VALUE, 3, ByteBufAllocator.DEFAULT).map(i -> i);
   }
 
   @Override
-  public Publisher<CompositeByteBuf> createFailedPublisher() {
+  public Publisher<ByteBuf> createFailedPublisher() {
     return null; // because subscription always succeeds. Nothing is attempted until a request is received.
   }
 

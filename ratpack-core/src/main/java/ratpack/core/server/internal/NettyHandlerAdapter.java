@@ -52,13 +52,16 @@ import java.net.InetSocketAddress;
 import java.nio.CharBuffer;
 import java.nio.channels.ClosedChannelException;
 import java.time.Clock;
+import java.util.Locale;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 @ChannelHandler.Sharable
 public class NettyHandlerAdapter extends ChannelInboundHandlerAdapter {
 
   private static final AttributeKey<Action<Object>> CHANNEL_SUBSCRIBER_ATTRIBUTE_KEY = AttributeKey.valueOf(NettyHandlerAdapter.class, "subscriber");
+  private static final AttributeKey<ResponseTransmitter> RESPONSE_TRANSMITTER_KEY = AttributeKey.valueOf(NettyHandlerAdapter.class, "responseTransmitter");
   private static final AttributeKey<RequestBodyAccumulator> BODY_ACCUMULATOR_KEY = AttributeKey.valueOf(NettyHandlerAdapter.class, "requestBody");
+
   @SuppressWarnings("deprecation")
   private static final AttributeKey<javax.security.cert.X509Certificate> CLIENT_CERT_KEY = AttributeKey.valueOf(NettyHandlerAdapter.class, "principal");
 
@@ -78,6 +81,11 @@ public class NettyHandlerAdapter extends ChannelInboundHandlerAdapter {
     this.applicationConstants = new DefaultContext.ApplicationConstants(this.serverRegistry, new DefaultRenderController(), serverRegistry.get(ExecController.class), Handlers.notFound());
     this.development = serverRegistry.get(ServerConfig.class).isDevelopment();
     this.clock = serverRegistry.get(Clock.class);
+  }
+
+  @Override
+  public void handlerAdded(ChannelHandlerContext ctx) {
+    ctx.channel().closeFuture().addListener(future -> channelClosed(ctx.channel()));
   }
 
   @Override
@@ -162,7 +170,7 @@ public class NettyHandlerAdapter extends ChannelInboundHandlerAdapter {
 
     DefaultResponseTransmitter responseTransmitter = new DefaultResponseTransmitter(transmitted, channel, clock, nettyRequest, request, nettyHeaders, requestBody);
 
-    ctx.channel().attr(DefaultResponseTransmitter.ATTRIBUTE_KEY).set(responseTransmitter);
+    ctx.channel().attr(RESPONSE_TRANSMITTER_KEY).set(responseTransmitter);
 
     Action<Action<Object>> subscribeHandler = thing -> {
       transmitted.set(true);
@@ -224,7 +232,7 @@ public class NettyHandlerAdapter extends ChannelInboundHandlerAdapter {
   }
 
   @Override
-  public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) throws Exception {
+  public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) {
     if (!isIgnorableException(cause)) {
       LOGGER.error("", cause);
       if (ctx.channel().isActive()) {
@@ -255,10 +263,24 @@ public class NettyHandlerAdapter extends ChannelInboundHandlerAdapter {
   }
 
   @Override
-  public void channelWritabilityChanged(ChannelHandlerContext ctx) {
-    DefaultResponseTransmitter responseTransmitter = ctx.channel().attr(DefaultResponseTransmitter.ATTRIBUTE_KEY).get();
+  public void channelWritabilityChanged(ChannelHandlerContext ctx) throws Exception {
+    ResponseTransmitter responseTransmitter = ctx.channel().attr(RESPONSE_TRANSMITTER_KEY).get();
     if (responseTransmitter != null) {
-      responseTransmitter.writabilityChanged();
+      responseTransmitter.onWritabilityChanged();
+    }
+
+    super.channelWritabilityChanged(ctx);
+  }
+
+  private void channelClosed(Channel channel) {
+    ResponseTransmitter responseTransmitter = channel.attr(RESPONSE_TRANSMITTER_KEY).get();
+    if (responseTransmitter != null) {
+      responseTransmitter.onConnectionClosed();
+    }
+
+    RequestBodyAccumulator bodyAccumulator = channel.attr(BODY_ACCUMULATOR_KEY).get();
+    if (bodyAccumulator != null) {
+      bodyAccumulator.onClose();
     }
   }
 
@@ -268,7 +290,13 @@ public class NettyHandlerAdapter extends ChannelInboundHandlerAdapter {
     } else if (throwable instanceof IOException) {
       // There really does not seem to be a better way of detecting this kind of exception
       String message = throwable.getMessage();
-      return message != null && message.endsWith("Connection reset by peer");
+      if (message == null) {
+        return false;
+      } else {
+        message = message.toLowerCase(Locale.ROOT);
+        return message.endsWith("connection reset by peer")
+          || message.contains("broken pipe");
+      }
     } else {
       return false;
     }

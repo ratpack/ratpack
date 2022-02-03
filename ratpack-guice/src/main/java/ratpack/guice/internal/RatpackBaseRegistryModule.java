@@ -24,7 +24,6 @@ import com.google.inject.matcher.AbstractMatcher;
 import com.google.inject.matcher.Matchers;
 import io.netty.buffer.ByteBufAllocator;
 import org.aopalliance.intercept.MethodInterceptor;
-import ratpack.core.server.internal.ServerRegistry;
 import ratpack.exec.api.Blocks;
 import ratpack.core.error.ClientErrorHandler;
 import ratpack.core.error.ServerErrorHandler;
@@ -49,7 +48,7 @@ import ratpack.core.render.internal.RenderableRenderer;
 import ratpack.core.server.PublicAddress;
 import ratpack.core.server.RatpackServer;
 import ratpack.core.server.ServerConfig;
-import ratpack.core.sse.ServerSentEventStreamClient;
+import ratpack.core.sse.client.ServerSentEventClient;
 
 import java.lang.reflect.Method;
 import java.util.List;
@@ -57,17 +56,17 @@ import java.util.Optional;
 
 /**
  * Expose bindings for objects in the base registry.
- * This should be kept in sync with the base registry assembled in {@link ServerRegistry}.
+ * This should be kept in sync with the base registry assembled in {@link ratpack.core.server.internal.ServerRegistry}.
  */
+@SuppressWarnings("deprecation")
 public class RatpackBaseRegistryModule extends AbstractModule {
 
   private static final List<Class<?>> SIMPLE_TYPES = ImmutableList.of(
     ServerConfig.class, ByteBufAllocator.class, ExecController.class, MimeTypes.class, PublicAddress.class,
     Redirector.class, ClientErrorHandler.class, ServerErrorHandler.class, RatpackServer.class,
-    HttpClient.class, ServerSentEventStreamClient.class
+    HttpClient.class, ServerSentEventClient.class
   );
 
-  @SuppressWarnings({"rawtypes"})
   private static final ImmutableList<TypeToken<?>> PARAMETERISED_TYPES = ImmutableList.of(
     FileRenderer.TYPE,
     PromiseRenderer.TYPE,
@@ -108,7 +107,6 @@ public class RatpackBaseRegistryModule extends AbstractModule {
     bind(type).toProvider(() -> baseRegistry.get(type));
   }
 
-  @SuppressWarnings("unchecked")
   private <T> void parameterisedBind(TypeToken<T> typeToken) {
     bind(GuiceUtil.toTypeLiteral(typeToken)).toProvider(() -> baseRegistry.get(typeToken));
   }

@@ -16,20 +16,11 @@
 
 package ratpack.core.sse.internal
 
-
 import io.netty.buffer.ByteBufAllocator
 import io.netty.util.CharsetUtil
-import org.reactivestreams.Publisher
-import ratpack.core.sse.Event
-import ratpack.core.sse.ServerSentEvents
-import ratpack.exec.Result
-import ratpack.func.Action
-import ratpack.exec.stream.Streams
-import ratpack.exec.stream.internal.CollectingSubscriber
+import ratpack.core.sse.ServerSentEvent
+import ratpack.core.sse.ServerSentEventBuilder
 import ratpack.test.internal.RatpackGroovyDslSpec
-
-import java.util.concurrent.CountDownLatch
-import java.util.concurrent.atomic.AtomicReference
 
 class ServerSentEventStreamEncoderSpec extends RatpackGroovyDslSpec {
 
@@ -43,25 +34,25 @@ class ServerSentEventStreamEncoderSpec extends RatpackGroovyDslSpec {
     string == expectedEncoding
 
     where:
-    sse                                                                                             | expectedEncoding
-    serverSentEvent("foo") { it.id("${it.item}Id").event("${it.item}Type").data("${it.item}Data") } | "id: fooId\nevent: fooType\ndata: fooData\n\n"
-    serverSentEvent("foo") { it.event("${it.item}Type").data("${it.item}Data") }                    | "event: fooType\ndata: fooData\n\n"
-    serverSentEvent("foo") { it.data("${it.item}Data") }                                            | "data: fooData\n\n"
-    serverSentEvent("foo") { it.id("${it.item}Id").data("${it.item}Data") }                         | "id: fooId\ndata: fooData\n\n"
-    serverSentEvent("foo") { it.id("${it.item}Id") }                                                | "id: fooId\n\n"
-    serverSentEvent("foo") { it.id("${it.item}Id").event("${it.item}Type") }                        | "id: fooId\nevent: fooType\n\n"
-    serverSentEvent("foo") { it.event("${it.item}Type") }                                           | "event: fooType\n\n"
-    serverSentEvent { it.id("fooId").event("fooType").data("fooData") }                             | "id: fooId\nevent: fooType\ndata: fooData\n\n"
-    serverSentEvent { it.event("fooType").data("fooData") }                                         | "event: fooType\ndata: fooData\n\n"
-    serverSentEvent { it.data("fooData") }                                                          | "data: fooData\n\n"
-    serverSentEvent { it.id("fooId").data("fooData") }                                              | "id: fooId\ndata: fooData\n\n"
-    serverSentEvent { it.id("fooId") }                                                              | "id: fooId\n\n"
-    serverSentEvent { it.id("fooId").event("fooType") }                                             | "id: fooId\nevent: fooType\n\n"
-    serverSentEvent { it.event("fooType") }                                                         | "event: fooType\n\n"
-    serverSentEvent { it.data("foo\nbar") }                                                         | "data: foo\ndata: bar\n\n"
-    serverSentEvent { it.data("foo\n") }                                                            | "data: foo\ndata: \n\n"
-    serverSentEvent { it.comment("this is a \n comment").data("foo\n") }                            | ": this is a \n:  comment\ndata: foo\ndata: \n\n"
-    serverSentEvent { it.comment("comment") }                                                       | ": comment\n\n"
+    sse                                                                  | expectedEncoding
+    serverSentEvent { it.id("fooId").event("fooType").data("fooData") }  | "id: fooId\nevent: fooType\ndata: fooData\n\n"
+    serverSentEvent { it.event("fooType").data("fooData") }              | "event: fooType\ndata: fooData\n\n"
+    serverSentEvent { it.data("fooData") }                               | "data: fooData\n\n"
+    serverSentEvent { it.id("fooId").data("fooData") }                   | "id: fooId\ndata: fooData\n\n"
+    serverSentEvent { it.id("fooId") }                                   | "id: fooId\n\n"
+    serverSentEvent { it.id("fooId").event("fooType") }                  | "id: fooId\nevent: fooType\n\n"
+    serverSentEvent { it.event("fooType") }                              | "event: fooType\n\n"
+    serverSentEvent { it.id("fooId").event("fooType").data("fooData") }  | "id: fooId\nevent: fooType\ndata: fooData\n\n"
+    serverSentEvent { it.event("fooType").data("fooData") }              | "event: fooType\ndata: fooData\n\n"
+    serverSentEvent { it.data("fooData") }                               | "data: fooData\n\n"
+    serverSentEvent { it.id("fooId").data("fooData") }                   | "id: fooId\ndata: fooData\n\n"
+    serverSentEvent { it.id("fooId") }                                   | "id: fooId\n\n"
+    serverSentEvent { it.id("fooId").event("fooType") }                  | "id: fooId\nevent: fooType\n\n"
+    serverSentEvent { it.event("fooType") }                              | "event: fooType\n\n"
+    serverSentEvent { it.data("foo\nbar") }                              | "data: foo\ndata: bar\n\n"
+    serverSentEvent { it.data("foo\n") }                                 | "data: foo\ndata: \n\n"
+    serverSentEvent { it.comment("this is a \n comment").data("foo\n") } | ": this is a \n:  comment\ndata: foo\ndata: \n\n"
+    serverSentEvent { it.comment("comment") }                            | ": comment\n\n"
   }
 
   def "errors if id contains newline"() {
@@ -80,27 +71,8 @@ class ServerSentEventStreamEncoderSpec extends RatpackGroovyDslSpec {
     thrown IllegalArgumentException
   }
 
-  public <T> Event serverSentEvent(T t, Action<? super Event> action) {
-    toList(ServerSentEvents.serverSentEvents(Streams.publish([t]), action).publisher).get(0)
-  }
-
-  public <T> Event serverSentEvent(Action<? super Event> action) {
-    serverSentEvent("foo", action)
-  }
-
-  public static <T> List<T> toList(Publisher<T> publisher) throws Exception {
-    CountDownLatch latch = new CountDownLatch(1)
-    AtomicReference<Result<List<T>>> ref = new AtomicReference<>()
-
-    Thread.start {
-      publisher.subscribe(new CollectingSubscriber<T>({
-        ref.set(it)
-        latch.countDown()
-      }, { it.request(Long.MAX_VALUE) }))
-    }
-
-    latch.await()
-    ref.get().valueOrThrow
+  ServerSentEvent serverSentEvent(@DelegatesTo(ServerSentEventBuilder) Closure<?> cl) {
+    ServerSentEvent.builder().tap(cl as Closure<Object>).build()
   }
 
 }

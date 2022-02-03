@@ -19,9 +19,14 @@ package ratpack.test.internal
 import io.netty.util.CharsetUtil
 import org.junit.Rule
 import org.junit.rules.TemporaryFolder
+import ratpack.core.error.ServerErrorHandler
+import ratpack.core.error.internal.DefaultDevelopmentErrorHandler
+import ratpack.groovy.handling.GroovyChain
+import ratpack.groovy.test.embed.GroovyEmbeddedApp
 import ratpack.core.http.client.RequestSpec
 import ratpack.test.embed.EmbeddedApp
 import ratpack.test.http.TestHttpClient
+import spock.lang.AutoCleanup
 
 import java.nio.charset.Charset
 
@@ -32,6 +37,9 @@ abstract class EmbeddedRatpackSpec extends BaseRatpackSpec {
 
   @Delegate
   TestHttpClient client
+
+  @AutoCleanup
+  EmbeddedApp otherApp
 
   boolean failOnLeak = true
 
@@ -53,6 +61,17 @@ abstract class EmbeddedRatpackSpec extends BaseRatpackSpec {
     } catch (Throwable ignore) {
 
     }
+  }
+
+  EmbeddedApp otherApp(@DelegatesTo(value = GroovyChain, strategy = Closure.DELEGATE_FIRST) Closure<?> closure) {
+    otherApp = GroovyEmbeddedApp.of {
+      registryOf { add ServerErrorHandler, new DefaultDevelopmentErrorHandler() }
+      handlers(closure)
+    }
+  }
+
+  URI otherAppUrl(String path = "") {
+    new URI("$otherApp.address$path")
   }
 
   String rawResponse(Charset charset = CharsetUtil.UTF_8) {
@@ -77,7 +96,7 @@ abstract class EmbeddedRatpackSpec extends BaseRatpackSpec {
     socket
   }
 
-  Socket withSocket(Socket socket = this.socket(), @DelegatesTo(OutputStream) Closure<?> closure) {
+  Socket withSocket(Socket socket = this.socket(), @DelegatesTo(OutputStreamWriter) Closure<?> closure) {
     def os = socket.outputStream
     new OutputStreamWriter(os, "UTF-8").with(closure)
     socket

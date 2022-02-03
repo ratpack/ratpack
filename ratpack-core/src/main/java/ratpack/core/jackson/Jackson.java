@@ -23,17 +23,13 @@ import com.fasterxml.jackson.databind.ObjectWriter;
 import com.google.common.reflect.TypeToken;
 import io.netty.buffer.Unpooled;
 import org.reactivestreams.Publisher;
-import ratpack.core.handling.Context;
-import ratpack.core.http.Response;
+import ratpack.func.Nullable;
+import ratpack.func.Function;
 import ratpack.core.http.ResponseChunks;
 import ratpack.core.http.internal.HttpHeaderConstants;
 import ratpack.core.jackson.internal.DefaultJsonParseOpts;
 import ratpack.core.jackson.internal.DefaultJsonRender;
-import ratpack.core.parse.NoOptParserSupport;
 import ratpack.core.parse.Parse;
-import ratpack.core.sse.ServerSentEvents;
-import ratpack.func.Nullable;
-import ratpack.func.Function;
 import ratpack.exec.registry.Registry;
 import ratpack.exec.stream.StreamMapper;
 import ratpack.exec.stream.Streams;
@@ -47,14 +43,14 @@ import java.io.OutputStream;
  *
  * <h3><a name="rendering">Rendering as JSON</a></h3>
  * <p>
- * The methods that return a {@link JsonRender} are to be used with the {@link Context#render(Object)} method for serializing objects to the response as JSON.
+ * The methods that return a {@link JsonRender} are to be used with the {@link ratpack.core.handling.Context#render(Object)} method for serializing objects to the response as JSON.
  * <pre class="java">{@code
  * import ratpack.test.embed.EmbeddedApp;
- * import ratpack.core.jackson.Jackson;
- * import ratpack.core.http.client.ReceivedResponse;
+ * import ratpack.jackson.Jackson;
+ * import ratpack.http.client.ReceivedResponse;
  * import com.fasterxml.jackson.databind.ObjectMapper;
  *
- * import static ratpack.core.jackson.Jackson.json;
+ * import static ratpack.jackson.Jackson.json;
  * import static org.junit.Assert.*;
  *
  * public class Example {
@@ -83,78 +79,17 @@ import java.io.OutputStream;
  * }
  * }</pre>
  *
- * <h4>Streaming JSON and events</h4>
- * <p>
- * There are several options for streaming JSON data and events.
+ * <h4>Streaming JSON</h4>
  * <p>
  * The {@link #chunkedJsonList(Registry, Publisher)} method can be used for rendering a very large JSON stream/list without buffering the entire list in memory.
- * <p>
- * It is also easy to render {@link ServerSentEvents server sent events}, which can be useful for real time applications and infinite data streams.
- * <pre class="java">{@code
- * import ratpack.test.embed.EmbeddedApp;
- * import ratpack.core.jackson.Jackson;
- * import ratpack.exec.stream.Streams;
- * import ratpack.core.http.client.ReceivedResponse;
- * import com.fasterxml.jackson.databind.ObjectMapper;
- * import org.reactivestreams.Publisher;
- *
- * import java.util.Arrays;
- *
- * import static ratpack.core.jackson.Jackson.toJson;
- * import static ratpack.core.sse.ServerSentEvents.serverSentEvents;
- * import static java.util.stream.Collectors.joining;
- * import static org.junit.Assert.*;
- *
- * public class Example {
- *
- *   public static class Person {
- *     private final String name;
- *     public Person(String name) {
- *       this.name = name;
- *     }
- *     public String getName() {
- *       return name;
- *     }
- *   }
- *
- *   public static void main(String... args) throws Exception {
- *     EmbeddedApp.of(s -> s
- *       .handlers(chain -> chain
- *         .get("stream", ctx -> {
- *           Publisher<Person> people = Streams.publish(Arrays.asList(
- *             new Person("a"),
- *             new Person("b"),
- *             new Person("c")
- *           ));
- *
- *           ctx.render(serverSentEvents(people, e -> e.data(toJson(ctx))));
- *         })
- *       )
- *     ).test(httpClient -> {
- *       ReceivedResponse response = httpClient.get("stream");
- *       assertEquals("text/event-stream;charset=UTF-8", response.getHeaders().get("Content-Type"));
- *
- *       String expectedOutput = Arrays.asList("a", "b", "c")
- *         .stream()
- *         .map(i -> "data: {\"name\":\"" + i + "\"}\n")
- *         .collect(joining("\n"))
- *         + "\n";
- *
- *       assertEquals(expectedOutput, response.getBody().getText());
- *     });
- *   }
- * }
- * }</pre>
- * <p>
- * A similar approach could be used directly with the {@link Response#sendStream(Publisher)} method for a custom “protocol”.
  *
  * <h3><a name="parsing">Parsing JSON requests</a></h3>
  * <p>
- * The methods that return a {@link Parse} are to be used with the {@link Context#parse(Parse)} method for deserializing request bodies containing JSON.
+ * The methods that return a {@link Parse} are to be used with the {@link ratpack.core.handling.Context#parse(ratpack.core.parse.Parse)} method for deserializing request bodies containing JSON.
  * <pre class="java">{@code
  * import ratpack.test.embed.EmbeddedApp;
- * import ratpack.core.jackson.Jackson;
- * import ratpack.core.http.client.ReceivedResponse;
+ * import ratpack.jackson.Jackson;
+ * import ratpack.http.client.ReceivedResponse;
  * import com.fasterxml.jackson.databind.JsonNode;
  * import com.fasterxml.jackson.databind.ObjectMapper;
  * import com.fasterxml.jackson.annotation.JsonProperty;
@@ -162,9 +97,9 @@ import java.io.OutputStream;
  *
  * import java.util.List;
  *
- * import static ratpack.func.Types.listOf;
- * import static ratpack.core.jackson.Jackson.jsonNode;
- * import static ratpack.core.jackson.Jackson.fromJson;
+ * import static ratpack.util.Types.listOf;
+ * import static ratpack.jackson.Jackson.jsonNode;
+ * import static ratpack.jackson.Jackson.fromJson;
  * import static org.junit.Assert.*;
  *
  * public class Example {
@@ -212,19 +147,19 @@ import java.io.OutputStream;
  * }
  * }</pre>
  * <p>
- * A {@link NoOptParserSupport} parser is also rendered for the {@code "application/json"} content type.
- * This allows the use of the {@link Context#parse(java.lang.Class)} and {@link Context#parse(com.google.common.reflect.TypeToken)} methods.
+ * A {@link ratpack.core.parse.NoOptParserSupport} parser is also rendered for the {@code "application/json"} content type.
+ * This allows the use of the {@link ratpack.core.handling.Context#parse(java.lang.Class)} and {@link ratpack.core.handling.Context#parse(com.google.common.reflect.TypeToken)} methods.
  * <pre class="java">{@code
  * import ratpack.test.embed.EmbeddedApp;
- * import ratpack.core.jackson.Jackson;
- * import ratpack.core.http.client.ReceivedResponse;
+ * import ratpack.jackson.Jackson;
+ * import ratpack.http.client.ReceivedResponse;
  * import com.fasterxml.jackson.annotation.JsonProperty;
  * import com.fasterxml.jackson.databind.ObjectMapper;
  * import com.google.common.reflect.TypeToken;
  *
  * import java.util.List;
  *
- * import static ratpack.func.Types.listOf;
+ * import static ratpack.util.Types.listOf;
  * import static org.junit.Assert.*;
  *
  * public class Example {
@@ -271,13 +206,13 @@ import java.io.OutputStream;
  * To configure Jackson behaviour, override this instance.
  * <pre class="java">{@code
  * import ratpack.test.embed.EmbeddedApp;
- * import ratpack.core.http.client.ReceivedResponse;
+ * import ratpack.http.client.ReceivedResponse;
  * import com.fasterxml.jackson.databind.ObjectMapper;
  * import com.fasterxml.jackson.datatype.jdk8.Jdk8Module;
  *
  * import java.util.Optional;
  *
- * import static ratpack.core.jackson.Jackson.json;
+ * import static ratpack.jackson.Jackson.json;
  * import static org.junit.Assert.*;
  *
  * public class Example {
@@ -318,7 +253,7 @@ public abstract class Jackson {
   }
 
   /**
-   * Creates a {@link Context#render renderable object} to render the given object as JSON.
+   * Creates a {@link ratpack.core.handling.Context#render renderable object} to render the given object as JSON.
    * <p>
    * The given object will be converted to JSON using an {@link ObjectWriter} obtained from the context registry.
    * <p>
@@ -332,7 +267,7 @@ public abstract class Jackson {
   }
 
   /**
-   * Creates a {@link Context#render renderable object} to render the given object as JSON.
+   * Creates a {@link ratpack.core.handling.Context#render renderable object} to render the given object as JSON.
    * <p>
    * The given object will be converted to JSON using the given {@link ObjectWriter}.
    * If it is {@code null}, an {@code ObjectWriter} will be obtained from the context registry.
@@ -348,7 +283,7 @@ public abstract class Jackson {
   }
 
   /**
-   * Creates a {@link Context#render renderable object} to render the given object as JSON.
+   * Creates a {@link ratpack.core.handling.Context#render renderable object} to render the given object as JSON.
    * <p>
    * The given object will be converted to JSON using an {@link ObjectWriter} obtained from the context registry
    * with the specified view {@code Class} used to determine which fields are included.
@@ -365,7 +300,7 @@ public abstract class Jackson {
   }
 
   /**
-   * Creates a {@link Context#render renderable object} to render the given object as JSON.
+   * Creates a {@link ratpack.core.handling.Context#render renderable object} to render the given object as JSON.
    * <p>
    * The given object will be converted to JSON using the given {@link ObjectWriter}
    * with the specified view {@code Class} used to determine which fields are included.
@@ -384,7 +319,7 @@ public abstract class Jackson {
   }
 
   /**
-   * Creates a {@link Context#parse parseable object} to parse a request body into a {@link JsonNode}.
+   * Creates a {@link ratpack.core.handling.Context#parse parseable object} to parse a request body into a {@link JsonNode}.
    * <p>
    * The corresponding parser for this type requires the request content type to be {@code "application/json"}.
    * <p>
@@ -399,7 +334,7 @@ public abstract class Jackson {
   }
 
   /**
-   * Creates a {@link Context#parse parseable object} to parse a request body into a {@link JsonNode}.
+   * Creates a {@link ratpack.core.handling.Context#parse parseable object} to parse a request body into a {@link JsonNode}.
    * <p>
    * The corresponding parser for this type requires the request content type to be {@code "application/json"}.
    * <p>
@@ -416,7 +351,7 @@ public abstract class Jackson {
   }
 
   /**
-   * Creates a {@link Context#parse parseable object} to parse a request body into the given type.
+   * Creates a {@link ratpack.core.handling.Context#parse parseable object} to parse a request body into the given type.
    * <p>
    * The corresponding parser for this type requires the request content type to be {@code "application/json"}.
    * <p>
@@ -433,7 +368,7 @@ public abstract class Jackson {
   }
 
   /**
-   * Creates a {@link Context#parse parseable object} to parse a request body into the given type.
+   * Creates a {@link ratpack.core.handling.Context#parse parseable object} to parse a request body into the given type.
    * <p>
    * The corresponding parser for this type requires the request content type to be {@code "application/json"}.
    * <p>
@@ -450,7 +385,7 @@ public abstract class Jackson {
   }
 
   /**
-   * Creates a {@link Context#parse parseable object} to parse a request body into the given type.
+   * Creates a {@link ratpack.core.handling.Context#parse parseable object} to parse a request body into the given type.
    * <p>
    * The corresponding parser for this type requires the request content type to be {@code "application/json"}.
    * <p>
@@ -469,7 +404,7 @@ public abstract class Jackson {
   }
 
   /**
-   * Creates a {@link Context#parse parseable object} to parse a request body into the given type.
+   * Creates a {@link ratpack.core.handling.Context#parse parseable object} to parse a request body into the given type.
    * <p>
    * The corresponding parser for this type requires the request content type to be {@code "application/json"}.
    * <p>
@@ -498,15 +433,15 @@ public abstract class Jackson {
    * If the publisher emits an error, the response will be terminated and no more JSON will be sent.
    * <pre class="java">{@code
    * import ratpack.test.embed.EmbeddedApp;
-   * import ratpack.core.jackson.Jackson;
-   * import ratpack.core.http.client.ReceivedResponse;
-   * import ratpack.exec.stream.Streams;
+   * import ratpack.jackson.Jackson;
+   * import ratpack.http.client.ReceivedResponse;
+   * import ratpack.stream.Streams;
    * import com.fasterxml.jackson.databind.ObjectMapper;
    * import org.reactivestreams.Publisher;
    *
    * import java.util.Arrays;
    *
-   * import static ratpack.core.jackson.Jackson.chunkedJsonList;
+   * import static ratpack.jackson.Jackson.chunkedJsonList;
    * import static org.junit.Assert.*;
    *
    * public class Example {
@@ -604,48 +539,11 @@ public abstract class Jackson {
   }
 
   /**
-   * Creates a mapping function that returns the JSON representation as a string of the input object.
-   * <p>
-   * An {@link ObjectWriter} instance is obtained from the given registry eagerly.
-   * The returned function uses the {@link ObjectWriter#writeValueAsString(Object)} method to convert the input object to JSON.
-   * <pre class="java">{@code
-   * import ratpack.exec.Promise;
-   * import ratpack.test.embed.EmbeddedApp;
-   * import ratpack.core.jackson.Jackson;
-   * import ratpack.core.http.client.ReceivedResponse;
-   * import com.fasterxml.jackson.databind.ObjectMapper;
+   * Deprecated.
    *
-   * import java.util.Arrays;
-   *
-   * import static ratpack.core.jackson.Jackson.toJson;
-   * import static java.util.Collections.singletonMap;
-   * import static org.junit.Assert.*;
-   *
-   * public class Example {
-   *   public static void main(String... args) throws Exception {
-   *     EmbeddedApp.of(s -> s
-   *       .handlers(chain -> chain
-   *         .get(ctx ->
-   *           Promise.value(singletonMap("foo", "bar"))
-   *             .map(toJson(ctx))
-   *             .then(ctx::render)
-   *         )
-   *       )
-   *     ).test(httpClient -> {
-   *       assertEquals("{\"foo\":\"bar\"}", httpClient.getText());
-   *     });
-   *   }
-   * }
-   * }</pre>
-   * <p>
-   * Note that in the above example, it would have been better to just <a href="#rendering">render</a> the result of the blocking call.
-   * Doing so would be more convenient and also set the correct {@code "Content-Type"} header.
-   * This method can be useful when sending the JSON somewhere else than directly to the response, or when {@link Streams#map(Publisher, Function) mapping streams}.
-   *
-   * @param registry the registry to obtain the {@link ObjectWriter} from
-   * @param <T> the type of object to convert to JSON
-   * @return a function that converts objects to their JSON string representation
+   * @deprecated since 1.10 with no replacement
    */
+  @Deprecated
   public static <T> Function<T, String> toJson(Registry registry) {
     return getObjectWriter(registry)::writeValueAsString;
   }

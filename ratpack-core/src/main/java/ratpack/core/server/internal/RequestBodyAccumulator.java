@@ -22,4 +22,6 @@ public interface RequestBodyAccumulator {
 
   void add(HttpContent httpContent);
 
+  void onClose();
+
 }
