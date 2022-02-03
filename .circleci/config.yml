@@ -80,7 +80,7 @@ jobs:
 
       - run:
           name: Upload Artifacts
-          command: ./gradlew artifactoryPublish --max-workers=1 :ratpack-site:deployToHeroku -PbuildInfo.build.number=${CIRCLE_BUILD_NUM}
+          command: ./gradlew publishToSonatypeOss --max-workers=1
 
   deploySite:
     <<: *defaults
