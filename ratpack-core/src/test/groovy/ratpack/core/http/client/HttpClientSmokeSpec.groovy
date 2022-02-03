@@ -433,7 +433,7 @@ class HttpClientSmokeSpec extends BaseHttpClientSpec {
     }
 
     then:
-    text == "ratpack.http.client.HttpClientReadTimeoutException: Read timeout (PT1S) waiting on HTTP server at $otherApp.address".toString()
+    text == "ratpack.core.http.client.HttpClientReadTimeoutException: Read timeout (PT1S) waiting on HTTP server at $otherApp.address".toString()
 
     where:
     pooled << [true, false]
@@ -467,7 +467,7 @@ class HttpClientSmokeSpec extends BaseHttpClientSpec {
     }
 
     then:
-    text == "ratpack.http.client.HttpClientReadTimeoutException: Read timeout (PT1S) waiting on HTTP server at $otherApp.address".toString()
+    text == "ratpack.core.http.client.HttpClientReadTimeoutException: Read timeout (PT1S) waiting on HTTP server at $otherApp.address".toString()
 
     where:
     pooled << [true, false]

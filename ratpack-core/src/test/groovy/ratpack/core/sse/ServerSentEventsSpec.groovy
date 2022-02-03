@@ -28,6 +28,7 @@ import java.util.concurrent.TimeUnit
 import java.util.zip.GZIPInputStream
 
 import static io.netty.handler.codec.http.HttpResponseStatus.OK
+import static ratpack.exec.stream.Streams.*
 
 class ServerSentEventsSpec extends BaseHttpClientSpec {
 

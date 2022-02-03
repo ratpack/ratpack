@@ -27,6 +27,7 @@ import java.util.concurrent.TimeUnit
 
 import static ratpack.core.http.ResponseChunks.stringChunks
 import static ratpack.exec.stream.Streams.flatYield
+import static ratpack.exec.stream.Streams.periodically
 
 class ServerSentEventClientSpec extends BaseHttpClientSpec {
 

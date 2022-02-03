@@ -119,7 +119,7 @@ public interface ExecHarness extends AutoCloseable {
    * @throws Exception any thrown by the function
    */
   default <T> ExecResult<T> yield(Function<? super Execution, ? extends Promise<T>> func) throws Exception {
-    return yield(Action.noop(), func);
+    return this.yield(Action.noop(), func);
   }
 
   /**
@@ -226,11 +226,11 @@ public interface ExecHarness extends AutoCloseable {
   }
 
   default void execute(Function<? super Execution, ? extends Operation> function) throws Exception {
-    yield(e -> function.apply(e).promise()).getValueOrThrow();
+    this.yield(e -> function.apply(e).promise()).getValueOrThrow();
   }
 
   default void execute(Action<? super RegistrySpec> registry, Function<? super Execution, ? extends Operation> function) throws Exception {
-    yield(registry, e -> function.apply(e).promise()).getValueOrThrow();
+    this.yield(registry, e -> function.apply(e).promise()).getValueOrThrow();
   }
 
   default void execute(Operation operation) throws Exception {

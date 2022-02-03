@@ -28,7 +28,7 @@ import ratpack.func.Block;
  *
  * <pre class="java">{@code
  * import ratpack.test.embed.EmbeddedApp;
- * import ratpack.http.client.ReceivedResponse;
+ * import ratpack.core.http.client.ReceivedResponse;
  *
  * import static org.junit.Assert.*;
  *

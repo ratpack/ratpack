@@ -215,7 +215,7 @@ public class Streams {
    * @return a publisher that indefinitely streams the given item
    */
   public static <T> TransformablePublisher<T> constant(final T item) {
-    return yield(yieldRequest -> item);
+    return Streams.yield(yieldRequest -> item);
   }
 
   /**

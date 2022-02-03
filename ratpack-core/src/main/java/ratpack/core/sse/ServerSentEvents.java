@@ -45,16 +45,16 @@ import static java.util.Objects.requireNonNull;
  * Example usage:
  * <pre class="java">{@code
  * import org.reactivestreams.Publisher;
- * import ratpack.http.client.ReceivedResponse;
- * import ratpack.sse.ServerSentEvent;
- * import ratpack.sse.ServerSentEvents;
+ * import ratpack.core.http.client.ReceivedResponse;
+ * import ratpack.core.sse.ServerSentEvent;
+ * import ratpack.core.sse.ServerSentEvents;
  * import ratpack.test.embed.EmbeddedApp;
  *
  * import java.time.Duration;
  * import java.util.Arrays;
  * import java.util.Objects;
  *
- * import static ratpack.stream.Streams.periodically;
+ * import static ratpack.exec.stream.Streams.periodically;
  *
  * import static java.util.stream.Collectors.joining;
  *

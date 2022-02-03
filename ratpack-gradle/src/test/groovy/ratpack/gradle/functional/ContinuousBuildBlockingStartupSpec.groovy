@@ -41,7 +41,7 @@ class ContinuousBuildBlockingStartupSpec extends FunctionalSpec {
 
     file("src/main/java/App.java") << """
       package app;
-      import ratpack.server.RatpackServer;
+      import ratpack.core.server.RatpackServer;
       import java.time.Duration;
       import java.nio.file.Path;
       import java.nio.file.Paths;

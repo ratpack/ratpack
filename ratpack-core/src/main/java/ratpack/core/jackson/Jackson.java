@@ -46,11 +46,11 @@ import java.io.OutputStream;
  * The methods that return a {@link JsonRender} are to be used with the {@link ratpack.core.handling.Context#render(Object)} method for serializing objects to the response as JSON.
  * <pre class="java">{@code
  * import ratpack.test.embed.EmbeddedApp;
- * import ratpack.jackson.Jackson;
- * import ratpack.http.client.ReceivedResponse;
+ * import ratpack.core.jackson.Jackson;
+ * import ratpack.core.http.client.ReceivedResponse;
  * import com.fasterxml.jackson.databind.ObjectMapper;
  *
- * import static ratpack.jackson.Jackson.json;
+ * import static ratpack.core.jackson.Jackson.json;
  * import static org.junit.Assert.*;
  *
  * public class Example {
@@ -88,8 +88,8 @@ import java.io.OutputStream;
  * The methods that return a {@link Parse} are to be used with the {@link ratpack.core.handling.Context#parse(ratpack.core.parse.Parse)} method for deserializing request bodies containing JSON.
  * <pre class="java">{@code
  * import ratpack.test.embed.EmbeddedApp;
- * import ratpack.jackson.Jackson;
- * import ratpack.http.client.ReceivedResponse;
+ * import ratpack.core.jackson.Jackson;
+ * import ratpack.core.http.client.ReceivedResponse;
  * import com.fasterxml.jackson.databind.JsonNode;
  * import com.fasterxml.jackson.databind.ObjectMapper;
  * import com.fasterxml.jackson.annotation.JsonProperty;
@@ -97,9 +97,9 @@ import java.io.OutputStream;
  *
  * import java.util.List;
  *
- * import static ratpack.util.Types.listOf;
- * import static ratpack.jackson.Jackson.jsonNode;
- * import static ratpack.jackson.Jackson.fromJson;
+ * import static ratpack.func.Types.listOf;
+ * import static ratpack.core.jackson.Jackson.jsonNode;
+ * import static ratpack.core.jackson.Jackson.fromJson;
  * import static org.junit.Assert.*;
  *
  * public class Example {
@@ -151,15 +151,15 @@ import java.io.OutputStream;
  * This allows the use of the {@link ratpack.core.handling.Context#parse(java.lang.Class)} and {@link ratpack.core.handling.Context#parse(com.google.common.reflect.TypeToken)} methods.
  * <pre class="java">{@code
  * import ratpack.test.embed.EmbeddedApp;
- * import ratpack.jackson.Jackson;
- * import ratpack.http.client.ReceivedResponse;
+ * import ratpack.core.jackson.Jackson;
+ * import ratpack.core.http.client.ReceivedResponse;
  * import com.fasterxml.jackson.annotation.JsonProperty;
  * import com.fasterxml.jackson.databind.ObjectMapper;
  * import com.google.common.reflect.TypeToken;
  *
  * import java.util.List;
  *
- * import static ratpack.util.Types.listOf;
+ * import static ratpack.func.Types.listOf;
  * import static org.junit.Assert.*;
  *
  * public class Example {
@@ -206,13 +206,13 @@ import java.io.OutputStream;
  * To configure Jackson behaviour, override this instance.
  * <pre class="java">{@code
  * import ratpack.test.embed.EmbeddedApp;
- * import ratpack.http.client.ReceivedResponse;
+ * import ratpack.core.http.client.ReceivedResponse;
  * import com.fasterxml.jackson.databind.ObjectMapper;
  * import com.fasterxml.jackson.datatype.jdk8.Jdk8Module;
  *
  * import java.util.Optional;
  *
- * import static ratpack.jackson.Jackson.json;
+ * import static ratpack.core.jackson.Jackson.json;
  * import static org.junit.Assert.*;
  *
  * public class Example {
@@ -433,15 +433,15 @@ public abstract class Jackson {
    * If the publisher emits an error, the response will be terminated and no more JSON will be sent.
    * <pre class="java">{@code
    * import ratpack.test.embed.EmbeddedApp;
-   * import ratpack.jackson.Jackson;
-   * import ratpack.http.client.ReceivedResponse;
-   * import ratpack.stream.Streams;
+   * import ratpack.core.jackson.Jackson;
+   * import ratpack.core.http.client.ReceivedResponse;
+   * import ratpack.exec.stream.Streams;
    * import com.fasterxml.jackson.databind.ObjectMapper;
    * import org.reactivestreams.Publisher;
    *
    * import java.util.Arrays;
    *
-   * import static ratpack.jackson.Jackson.chunkedJsonList;
+   * import static ratpack.core.jackson.Jackson.chunkedJsonList;
    * import static org.junit.Assert.*;
    *
    * public class Example {
