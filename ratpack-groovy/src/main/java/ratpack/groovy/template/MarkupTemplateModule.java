@@ -68,7 +68,7 @@ import java.nio.file.Path;
  *           .get(ctx -> ctx.render(groovyMarkupTemplate("myTemplate.gtpl", m -> m.put("value", "hello!"))))
  *         )
  *       ).test(httpClient -> {
- *         assertEquals("<html><body><p>hello!</p></body></html>", httpClient.get().getBody().getText());
+ *         assertEquals("{@literal<html><body><p>hello!</p></body></html>}", httpClient.get().getBody().getText());
  *       });
  *     });
  *   }

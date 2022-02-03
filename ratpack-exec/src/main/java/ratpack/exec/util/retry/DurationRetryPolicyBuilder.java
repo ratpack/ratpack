@@ -20,7 +20,7 @@ import java.time.Clock;
 import java.time.Duration;
 
 /**
- * Builds a {@link DurationRetryPolicy}
+ * Builds a {@link DurationRetryPolicy}.
  * @see DurationRetryPolicy#of(ratpack.func.Action)
  * @since 1.7
  */
@@ -42,7 +42,8 @@ public interface DurationRetryPolicyBuilder {
   Clock DEFAULT_CLOCK = Clock.systemDefaultZone();
 
   /**
-   * Builds a {@link DurationRetryPolicy}
+   * Builds a {@link DurationRetryPolicy}.
+   *
    * @return a retry policy
    */
   DurationRetryPolicy build();

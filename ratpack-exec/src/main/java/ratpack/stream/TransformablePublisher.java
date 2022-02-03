@@ -209,7 +209,7 @@ public interface TransformablePublisher<T> extends Publisher<T> {
   }
 
   /**
-   * See {@link Streams#bindExec(Publisher)}
+   * See {@link Streams#bindExec(Publisher)}.
    *
    * @return a publisher bound to the current execution
    * @since 1.4
@@ -219,7 +219,7 @@ public interface TransformablePublisher<T> extends Publisher<T> {
   }
 
   /**
-   * See {@link Streams#bindExec(Publisher, Action)}
+   * See {@link Streams#bindExec(Publisher, Action)}.
    *
    * @param disposer the disposer of unhandled items
    * @return a publisher bound to the current execution
