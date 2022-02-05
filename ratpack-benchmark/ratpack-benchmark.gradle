@@ -16,11 +16,12 @@
 
 plugins {
   id "java"
-  id "me.champeau.gradle.jmh" version "0.2.0"
+//  id "me.champeau.jmh" version "0.6.6" //TODO-Gradle7
+  id 'me.champeau.gradle.jmh' version '0.5.3'
 }
 
 dependencies {
-  compile project(":ratpack-core")
+  implementation project(":ratpack-core")
 }
 
 description = "JMH project for writing micro benchmarks for any ratpack module."

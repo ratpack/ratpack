@@ -20,7 +20,7 @@ import com.google.common.base.StandardSystemProperty
 import ratpack.rx2.RxRatpack
 import ratpack.test.internal.snippets.CodeSnippetTestCase
 import ratpack.test.internal.snippets.CodeSnippetTests
-import ratpack.test.internal.snippets.executer.GradleSnippetExecuter
+import ratpack.manual.snippets.executer.GradleSnippetExecuter
 import ratpack.test.internal.snippets.executer.GroovySnippetExecuter
 import ratpack.test.internal.snippets.executer.JavaSnippetExecuter
 import ratpack.test.internal.snippets.executer.SnippetExecuter

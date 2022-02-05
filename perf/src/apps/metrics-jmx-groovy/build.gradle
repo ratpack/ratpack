@@ -1,8 +1,8 @@
 dependencies {
   <% if (patch <= 19) { %>
-  compile ratpack.dependency("codahale-metrics")
+  implementation ratpack.dependency("codahale-metrics")
   <% } else { %>
-  compile ratpack.dependency("dropwizard-metrics")
+  implementation ratpack.dependency("dropwizard-metrics")
   <% } %>
 }
 

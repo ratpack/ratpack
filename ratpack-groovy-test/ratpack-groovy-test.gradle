@@ -19,7 +19,7 @@ description = "Test time support for Groovy Ratpack apps (or for Groovy based te
 apply from: "$rootDir/gradle/groovyModule.gradle"
 
 dependencies {
-  compile project(":ratpack-groovy"), project(":ratpack-test")
-  compile commonDependencies.jackson
-  compile "org.slf4j:jcl-over-slf4j:${commonVersions.slf4j}"
+  api project(":ratpack-groovy"), project(":ratpack-test")
+  api commonDependencies.jackson
+  implementation "org.slf4j:jcl-over-slf4j:${commonVersions.slf4j}"
 }

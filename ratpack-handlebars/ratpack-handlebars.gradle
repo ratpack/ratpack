@@ -19,12 +19,12 @@ apply from: "$rootDir/gradle/javaModule.gradle"
 description = "Support for Handlebars server side template rendering in Ratpack - https://github.com/jknack/handlebars.java"
 
 dependencies {
-  compile project(":ratpack-guice")
-  compile('com.github.jknack:handlebars:4.1.2') {
+  api project(":ratpack-guice")
+  api('com.github.jknack:handlebars:4.1.2') {
     exclude group: "org.slf4j", module: "slf4j-api"
     exclude group: "org.apache.commons", module: "commons-lang3"
   }
 
-  runtime commonDependencies.commonsLang3
-  runtime commonDependencies.slf4j
+  runtimeOnly commonDependencies.commonsLang3
+  runtimeOnly commonDependencies.slf4j
 }

@@ -25,5 +25,5 @@ ext.apiLinks = [
 ]
 
 dependencies {
-  compile commonDependencies.guava
+  api commonDependencies.guava
 }

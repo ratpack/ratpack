@@ -26,12 +26,12 @@ repositories {
   maven { url "https://repo.gradle.org/gradle/repo" }
 }
 dependencies {
-  compile commonDependencies.groovy
-  compile commonDependencies.toolingApi, {
+  implementation commonDependencies.groovy
+  implementation commonDependencies.toolingApi, {
     exclude group: "org.slf4j", module: "slf4j-api"
   }
-  compile "org.slf4j:slf4j-simple:${commonVersions.slf4j}"
-  testCompile commonDependencies.spock, {
+  implementation "org.slf4j:slf4j-simple:${commonVersions.slf4j}"
+  testImplementation commonDependencies.spock, {
     exclude group: "org.slf4j", module: "slf4j-api"
   }
 }
@@ -86,7 +86,7 @@ repositories {
 }
 
 dependencies {
-  compile 'org.slf4j:slf4j-simple:${commonVersions.slf4j}'
+  implementation 'org.slf4j:slf4j-simple:${commonVersions.slf4j}'
 }
 
 version = "$params.version"

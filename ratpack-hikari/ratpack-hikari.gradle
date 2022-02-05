@@ -3,13 +3,13 @@ description = "Integration with the HikariCP JDBC connection pool for Ratpack - 
 apply from: "$rootDir/gradle/javaModule.gradle"
 
 dependencies {
-  compile project(":ratpack-guice")
-  compile("com.zaxxer:HikariCP:2.7.8") {
+  api project(":ratpack-guice")
+  api("com.zaxxer:HikariCP:2.7.8") {
     exclude group: "org.slf4j", module: "slf4j-api"
   }
-  testCompile commonDependencies.h2
+  testImplementation commonDependencies.h2
 }
 
-configurations.testCompile.dependencies.withType(ProjectDependency).matching {
+configurations.testImplementation.dependencies.withType(ProjectDependency).matching {
   it.dependencyProject == project(":ratpack-test-internal")
 }

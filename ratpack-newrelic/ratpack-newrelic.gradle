@@ -19,6 +19,6 @@ description = "Integration with the New Relic Monitoring Service - https://newre
 apply from: "$rootDir/gradle/javaModule.gradle"
 
 dependencies {
-  compile project(":ratpack-guice")
-  compile "com.newrelic.agent.java:newrelic-api:${commonVersions.newrelic}"
+  api project(":ratpack-guice")
+  implementation "com.newrelic.agent.java:newrelic-api:${commonVersions.newrelic}"
 }

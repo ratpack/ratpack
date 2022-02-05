@@ -16,7 +16,6 @@
 
 apply plugin: 'groovy'
 apply plugin: 'idea'
-apply from: '../gradle/versionFile.gradle'
 
 repositories {
   mavenCentral()
@@ -24,9 +23,9 @@ repositories {
 }
 
 dependencies {
-  compile localGroovy()
-  compile gradleApi()
-  compile('com.google.javascript:closure-compiler:v20190415') {
+  implementation localGroovy()
+  implementation gradleApi()
+  implementation('com.google.javascript:closure-compiler:v20190415') {
     exclude module: 'junit'
   }
   implementation "com.github.ben-manes:gradle-versions-plugin:0.38.0"

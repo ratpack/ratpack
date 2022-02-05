@@ -23,8 +23,8 @@ ext.apiLinks = [
 ]
 
 dependencies {
-  compile project(":ratpack-core")
-  compile(commonDependencies.reactor)
+  api project(":ratpack-core")
+  api(commonDependencies.reactor)
 
-  testCompile(commonDependencies.reactorTest)
+  testImplementation(commonDependencies.reactorTest)
 }

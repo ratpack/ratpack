@@ -19,9 +19,9 @@ description = "JDBC transaction support for Ratpack"
 apply from: "$rootDir/gradle/javaModule.gradle"
 
 dependencies {
-  compile project(":ratpack-core")
-  testCompile commonDependencies.h2
-  testCompile project(":ratpack-h2")
-  testCompile project(":ratpack-hikari")
+  api project(":ratpack-core")
+  testImplementation commonDependencies.h2
+  testImplementation project(":ratpack-h2")
+  testImplementation project(":ratpack-hikari")
 }
 

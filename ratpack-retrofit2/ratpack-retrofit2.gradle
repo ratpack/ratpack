@@ -19,10 +19,10 @@ apply from: "$rootDir/gradle/javaModule.gradle"
 description = "Integration with the Retrofit2 library - http://square.github.io/retrofit"
 
 dependencies {
-  compile project(':ratpack-core')
-  compile "com.squareup.retrofit2:retrofit:${commonVersions.retrofit}"
-  compile "com.squareup.retrofit2:converter-scalars:${commonVersions.retrofit}"
-  compile("com.squareup.retrofit2:converter-jackson:${commonVersions.retrofit}") {
+  api project(':ratpack-core')
+  api "com.squareup.retrofit2:retrofit:${commonVersions.retrofit}"
+  implementation "com.squareup.retrofit2:converter-scalars:${commonVersions.retrofit}"
+  implementation("com.squareup.retrofit2:converter-jackson:${commonVersions.retrofit}") {
     exclude group: "com.fasterxml.jackson.core", module: "jackson-databind"
   }
 }
