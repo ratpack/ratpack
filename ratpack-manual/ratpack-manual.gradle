@@ -33,7 +33,7 @@ buildscript {
     // Use the master version of gradle-js-plugin since it fixes a Gradle 6 deprecation (from JitPack.io)
     classpath "com.github.eriwen:gradle-js-plugin:d15f4ae"
     classpath "com.google.javascript:closure-compiler:v20150315"
-    classpath "io.freefair.gradle:jsass-plugin:5.3.0"
+    classpath "io.freefair.gradle:jsass-plugin:6.3.0"
   }
 }
 
@@ -49,16 +49,17 @@ repositories {
 }
 
 dependencies {
-  testCompile apiModules
-  testCompile gradleTestKit()
-  testRuntime "org.apache.ant:ant-nodeps:1.8.1"
-  testRuntime "com.fasterxml.jackson.datatype:jackson-datatype-jdk8:${commonVersions.jackson}"
+  testImplementation apiModules
+  testImplementation gradleTestKit()
+
+  testRuntimeOnly "org.apache.ant:ant-nodeps:1.8.1"
+  testRuntimeOnly "com.fasterxml.jackson.datatype:jackson-datatype-jdk8:${commonVersions.jackson}"
 }
 
 // Gradle needs to use its version of Groovy, exclude ours
-configurations.testCompile.exclude module: "groovy-all"
+configurations.testImplementation.exclude module: "groovy-all", group: "org.codehaus.groovy"
 
-def projectDependencies = configurations.testCompile.dependencies.withType(ProjectDependency)
+def projectDependencies = configurations.testImplementation.dependencies.withType(ProjectDependency)
 assert projectDependencies.any { it.dependencyProject.path == ":ratpack-hikari" }  // Hikari creates a clash on commons logging
 projectDependencies.findAll {
   it.dependencyProject.path in [":ratpack-groovy-test", ":ratpack-test-internal"]
@@ -67,7 +68,7 @@ projectDependencies.findAll {
 }
 
 configurations.all {
-  if (it.name in ["testCompile", "testRuntime", "testCompileClasspath", "testRuntimeClasspath"]) {
+  if (it.name in ["testImplementation", "testRuntimeOnly", "testCompileOnly"]) {
     resolutionStrategy {
       force "org.reactivestreams:reactive-streams:1.0.0.final"
     }
@@ -327,6 +328,7 @@ task stylizeManual(type: Sync) {
       from(source)
     }
   }
+  duplicatesStrategy(DuplicatesStrategy.EXCLUDE)
 }
 
 task packageManual(type: Sync) {

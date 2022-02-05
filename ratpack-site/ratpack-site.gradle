@@ -119,14 +119,14 @@ configurations {
     }
   }
   newrelicAgent {}
-  browserTestCompile.extendsFrom testCompile
-  browserTestRuntime.extendsFrom testRuntime
+  browserTestImplementation.extendsFrom testImplementation
+  browserTestRuntimeOnly.extendsFrom testRuntimeOnly
   providedRuntime
   runtime.extendsFrom providedRuntime
   manualVersions.each {
     delegate."manual-$it"
   }
-  runtime.exclude module: "slf4j-simple"
+  runtimeElements.exclude module: "slf4j-simple"
 }
 
 ext {
@@ -141,30 +141,30 @@ sourceSets {
 }
 
 dependencies {
-  compile project(":ratpack-groovy")
-  compile project(":ratpack-dropwizard-metrics")
-  compile project(":ratpack-rx2")
-  compile project(":ratpack-newrelic")
-  compile "org.pegdown:pegdown:${commonVersions.pegdown}"
+  implementation project(":ratpack-groovy")
+  implementation project(":ratpack-dropwizard-metrics")
+  implementation project(":ratpack-rx2")
+  implementation project(":ratpack-newrelic")
+  implementation "org.pegdown:pegdown:${commonVersions.pegdown}"
 
-  runtime "org.apache.logging.log4j:log4j-slf4j-impl:${commonVersions.log4j}", {
+  runtimeOnly "org.apache.logging.log4j:log4j-slf4j-impl:${commonVersions.log4j}", {
     exclude group: "org.slf4j", module: "slf4j-api"
   }
-  runtime "org.apache.logging.log4j:log4j-api:${commonVersions.log4j}"
-  runtime "org.apache.logging.log4j:log4j-core:${commonVersions.log4j}"
-  runtime 'com.lmax:disruptor:3.4.2'
+  runtimeOnly "org.apache.logging.log4j:log4j-api:${commonVersions.log4j}"
+  runtimeOnly "org.apache.logging.log4j:log4j-core:${commonVersions.log4j}"
+  runtimeOnly 'com.lmax:disruptor:3.4.2'
 
-  testCompile project(":ratpack-groovy-test")
-  testCompile project(":ratpack-test-internal")
-  testCompile commonDependencies.spock
-  testCompile 'org.jsoup:jsoup:1.8.1'
+  testImplementation project(":ratpack-groovy-test")
+  testImplementation project(":ratpack-test-internal")
+  testImplementation commonDependencies.spock
+  testImplementation 'org.jsoup:jsoup:1.8.1'
   latestManual isHeroku ? "io.ratpack:ratpack-manual:$version" : project(path: ":ratpack-manual", configuration: "zip")
 
-  browserTestCompile("org.gebish:geb-spock:2.1") {
+  browserTestImplementation("org.gebish:geb-spock:2.1") {
     exclude group: "org.codehaus.groovy", module: "groovy-all"
     exclude group: "junit", module: "junit"
   }
-  browserTestCompile "org.seleniumhq.selenium:selenium-chrome-driver:2.45.0", {
+  browserTestImplementation "org.seleniumhq.selenium:selenium-chrome-driver:2.45.0", {
     exclude module: 'guava'
     exclude group: "cglib", module: "cglib-nodep"
   }

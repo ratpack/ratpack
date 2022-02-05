@@ -19,7 +19,7 @@ description = "Kryo based serialization for session data"
 apply from: "$rootDir/gradle/javaModule.gradle"
 
 dependencies {
-  compile project(":ratpack-session")
-  compile "com.esotericsoftware.kryo:kryo5:5.1.0"
-  testCompile testFixtures(project(":ratpack-session"))
+  api project(":ratpack-session")
+  api "com.esotericsoftware.kryo:kryo5:5.1.0"
+  testImplementation testFixtures(project(":ratpack-session"))
 }

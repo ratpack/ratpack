@@ -19,8 +19,8 @@ description = "Integration with Hashicorp's Consul - https://www.consul.io/"
 apply from: "$rootDir/gradle/javaModule.gradle"
 
 dependencies {
-  compile project(":ratpack-core")
-  compile 'com.orbitz.consul:consul-client:1.4.2', {
+  api project(":ratpack-core")
+  api 'com.orbitz.consul:consul-client:1.4.2', {
     exclude group: "com.google.guava", module: "guava"
     exclude group: "org.slf4j", module: "slf4j-api"
     exclude group: "com.fasterxml.jackson.core", module: "jackson-core"
@@ -34,8 +34,8 @@ dependencies {
     exclude group: "com.squareup.retrofit2", module: "retrofit"
     exclude group: "com.squareup.retrofit2", module: "converter-jackson"
   }
-  compile "com.squareup.retrofit2:retrofit:${commonVersions.retrofit}"
-  compile("com.squareup.retrofit2:converter-jackson:${commonVersions.retrofit}") {
+  implementation "com.squareup.retrofit2:retrofit:${commonVersions.retrofit}"
+  implementation("com.squareup.retrofit2:converter-jackson:${commonVersions.retrofit}") {
     exclude group: "com.fasterxml.jackson.core", module: "jackson-databind"
   }
 }

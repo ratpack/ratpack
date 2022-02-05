@@ -20,25 +20,23 @@ apply from: "$rootDir/gradle/javaModule.gradle"
 apply from: "$rootDir/gradle/versionFile.gradle"
 
 dependencies {
-  compile project(":ratpack-func")
-  compile commonDependencies.guava
-  compile commonDependencies.slf4j
+  api project(":ratpack-func")
+  api "io.netty:netty-buffer:$commonVersions.netty"
+  api "io.netty:netty-transport-native-epoll:${commonVersions.netty}:linux-x86_64"
+  api "io.netty:netty-tcnative:${commonVersions.nettyTCNative}:linux-x86_64"
+  api "org.reactivestreams:reactive-streams:${commonVersions.reactiveStreams}"
+  api commonDependencies.slf4j
 
-  compile "io.netty:netty-buffer:$commonVersions.netty"
-  compile "io.netty:netty-transport-native-epoll:${commonVersions.netty}:linux-x86_64"
-  compile "io.netty:netty-tcnative:${commonVersions.nettyTCNative}:linux-x86_64"
-  compile "org.reactivestreams:reactive-streams:${commonVersions.reactiveStreams}"
-
-  testCompile("org.reactivestreams:reactive-streams-tck:${commonVersions.reactiveStreams}") {
+  testImplementation("org.reactivestreams:reactive-streams-tck:${commonVersions.reactiveStreams}") {
     exclude group: "junit", module: "junit"
     exclude group: "org.yaml", module: "snakeyaml"
     exclude group: "org.testng", module: "testng"
   }
-  testCompile('org.testng:testng:6.13.1')
-  testCompile('org.mockito:mockito-core:1.10.19') {
+  testImplementation('org.testng:testng:6.13.1')
+  testImplementation('org.mockito:mockito-core:1.10.19') {
     exclude group: "org.hamcrest", module: "hamcrest-core"
   }
 
   //Add this so that we can reference the RX module in Javadoc code snippets for Promise
-  testRuntime project(":ratpack-rx2")
+  testRuntimeOnly project(":ratpack-rx2")
 }

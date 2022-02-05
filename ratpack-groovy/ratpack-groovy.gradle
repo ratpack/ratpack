@@ -24,9 +24,11 @@ ext.apiLinks = [
 ]
 
 dependencies {
-  compile project(":ratpack-core")
-  compile project(":ratpack-guice")
-  testCompile project(":ratpack-test")
+  api project(":ratpack-core")
+  api project(":ratpack-guice")
+
+  implementation 'org.javassist:javassist:3.28.0-GA'
+  testImplementation project(":ratpack-test")
 }
 
 processResources {

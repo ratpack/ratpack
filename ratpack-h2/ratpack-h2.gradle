@@ -19,6 +19,6 @@ description = "Integration with the H2 database for Ratpack - http://www.h2datab
 apply from: "$rootDir/gradle/javaModule.gradle"
 
 dependencies {
-  compile project(":ratpack-guice")
-  compile commonDependencies.h2
+  api project(":ratpack-guice")
+  implementation commonDependencies.h2
 }

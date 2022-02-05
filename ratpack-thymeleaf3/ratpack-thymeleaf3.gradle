@@ -19,11 +19,11 @@ description = "Integration with the Thymeleaf server side template rendering lib
 apply from: "$rootDir/gradle/javaModule.gradle"
 
 dependencies {
-  compile project(":ratpack-guice")
-  compile('org.thymeleaf:thymeleaf:3.0.9.RELEASE') {
+  api project(":ratpack-guice")
+  api('org.thymeleaf:thymeleaf:3.0.9.RELEASE') {
     exclude group: 'org.slf4j', module: 'slf4j-api'
     exclude group: 'org.javassist', module: 'javassist'
   }
-  compile 'javax.servlet:javax.servlet-api:3.1.0'
-  runtime commonDependencies.slf4j
+  implementation 'javax.servlet:javax.servlet-api:3.1.0'
+  runtimeOnly commonDependencies.slf4j
 }

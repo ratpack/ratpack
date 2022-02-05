@@ -30,17 +30,17 @@ description = "Build time Ratpack support with the Gradle build tool - http://gr
 apply from: "$rootDir/gradle/javaModule.gradle"
 apply from: "$rootDir/gradle/versionFile.gradle"
 
-configurations.testCompile.dependencies.clear()
+configurations.testImplementation.dependencies.clear()
 
 sourceCompatibility = "1.8"
 targetCompatibility = "1.8"
 
 dependencies {
-  compile gradleApi()
+  implementation gradleApi()
 
-  testCompile gradleTestKit()
-  testCompile commonDependencies.guava
-  testCompile 'org.spockframework:spock-core:1.2-groovy-2.5', {
+  testImplementation gradleTestKit()
+  testImplementation commonDependencies.guava
+  testImplementation 'org.spockframework:spock-core:1.2-groovy-2.5', {
     exclude module: "groovy-all", group: "org.codehaus.groovy"
   }
 }

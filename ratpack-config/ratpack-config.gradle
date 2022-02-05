@@ -29,17 +29,17 @@ ext.apiLinks = [
 ]
 
 dependencies {
-  compile project(":ratpack-func")
+  api project(":ratpack-func")
 
-  compile commonDependencies.jackson
-  compile("com.fasterxml.jackson.dataformat:jackson-dataformat-yaml:${commonVersions.jackson}") {
+  api commonDependencies.jackson
+  implementation("com.fasterxml.jackson.dataformat:jackson-dataformat-yaml:${commonVersions.jackson}") {
     exclude group: "org.yaml", module: "snakeyaml"
   }
-  compile("com.fasterxml.jackson.datatype:jackson-datatype-guava:${commonVersions.jackson}") {
+  implementation("com.fasterxml.jackson.datatype:jackson-datatype-guava:${commonVersions.jackson}") {
     exclude group: "com.google.guava", module: "guava"
     exclude group: "org.yaml", module: "snakeyaml"
   }
-  compile commonDependencies.snakeyaml
-  compile "com.fasterxml.jackson.datatype:jackson-datatype-jdk8:${commonVersions.jackson}"
-  compile "com.fasterxml.jackson.datatype:jackson-datatype-jsr310:${commonVersions.jackson}"
+  implementation commonDependencies.snakeyaml
+  implementation "com.fasterxml.jackson.datatype:jackson-datatype-jdk8:${commonVersions.jackson}"
+  implementation "com.fasterxml.jackson.datatype:jackson-datatype-jsr310:${commonVersions.jackson}"
 }

@@ -62,6 +62,8 @@ public class RatpackPlugin implements Plugin<Project> {
     final RatpackExtension ratpackExtension = project.getExtensions().getByType(RatpackExtension.class);
 
     SourceSetContainer sourceSets = project.getConvention().getPlugin(JavaPluginConvention.class).getSourceSets();
+    // TODO-Gradle7
+//    SourceSetContainer sourceSets = project.getExtensions().getByType(JavaPluginExtension.class).getSourceSets();
     SourceSet mainSourceSet = sourceSets.getByName(SourceSet.MAIN_SOURCE_SET_NAME);
     mainSourceSet.getResources().srcDir((Callable<File>) ratpackExtension::getBaseDir);
 

@@ -24,10 +24,10 @@ ext.apiLinks = [
 ]
 
 dependencies {
-  compile project(":ratpack-core")
-  compile project(":ratpack-guice")
-  compile "org.springframework.boot:spring-boot-autoconfigure:$commonVersions.springBoot"
-  testCompile "org.springframework:spring-web:4.2.3.RELEASE"
-  testCompile "org.springframework:spring-test:4.2.3.RELEASE"
-  testCompile project(":ratpack-groovy")
+  api project(":ratpack-core")
+  api project(":ratpack-guice")
+  api "org.springframework.boot:spring-boot-autoconfigure:$commonVersions.springBoot"
+  testImplementation "org.springframework:spring-web:4.2.3.RELEASE"
+  testImplementation "org.springframework:spring-test:4.2.3.RELEASE"
+  testImplementation project(":ratpack-groovy")
 }

@@ -33,39 +33,38 @@ ext.apiLinks = [
 ]
 
 dependencies {
-  compile project(":ratpack-exec")
-  compile project(":ratpack-config")
-  compile "io.netty:netty-codec-http:$commonVersions.netty"
-  compile "io.netty:netty-handler:$commonVersions.netty"
-  compile "io.netty:netty-handler-proxy:$commonVersions.netty"
-  compile "io.netty:netty-resolver-dns:$commonVersions.netty"
-  runtime "io.netty:netty-resolver-dns-native-macos:$commonVersions.netty:osx-x86_64"
-  compile 'com.sun.activation:javax.activation:1.2.0'
+  api project(":ratpack-exec")
+  api project(":ratpack-config")
+  api "io.netty:netty-codec-http:$commonVersions.netty"
+  api "io.netty:netty-handler:$commonVersions.netty"
+  api "io.netty:netty-handler-proxy:$commonVersions.netty"
+  api "io.netty:netty-resolver-dns:$commonVersions.netty"
+  api 'com.sun.activation:javax.activation:1.2.0'
 
-  compile("com.github.ben-manes.caffeine:caffeine:${commonVersions.caffeine}") {
+  //TODO-Gradle7 This isn't used in public API, but ratpack-site:testClasses fails with groovy not finding Caffeine's LoadingCache
+  api("com.github.ben-manes.caffeine:caffeine:${commonVersions.caffeine}") {
     exclude group: "com.google.errorprone", module: "error_prone_annotations"
   }
+  implementation 'org.javassist:javassist:3.28.0-GA'
 
-  compile 'org.javassist:javassist:3.22.0-GA'
-
-  compile commonDependencies.jackson
-  compile("com.fasterxml.jackson.dataformat:jackson-dataformat-yaml:${commonVersions.jackson}") {
+  implementation("com.fasterxml.jackson.dataformat:jackson-dataformat-yaml:${commonVersions.jackson}") {
     exclude group: "org.yaml", module: "snakeyaml"
   }
-  compile("com.fasterxml.jackson.datatype:jackson-datatype-guava:${commonVersions.jackson}") {
+  implementation("com.fasterxml.jackson.datatype:jackson-datatype-guava:${commonVersions.jackson}") {
     exclude group: "com.google.guava", module: "guava"
     exclude group: "org.yaml", module: "snakeyaml"
   }
-  compile commonDependencies.snakeyaml
-  compile "com.fasterxml.jackson.datatype:jackson-datatype-jdk8:${commonVersions.jackson}"
-  compile "com.fasterxml.jackson.datatype:jackson-datatype-jsr310:${commonVersions.jackson}"
+  implementation commonDependencies.snakeyaml
+  implementation "com.fasterxml.jackson.datatype:jackson-datatype-jdk8:${commonVersions.jackson}"
+  implementation "com.fasterxml.jackson.datatype:jackson-datatype-jsr310:${commonVersions.jackson}"
 
-  testCompile "org.apache.commons:commons-lang3:${commonVersions.commonsLang3}"
+  runtimeOnly "io.netty:netty-resolver-dns-native-macos:$commonVersions.netty:osx-x86_64"
+  testImplementation commonDependencies.commonsLang3
 
-  testCompile('com.opencsv:opencsv:3.3') {
+  testImplementation('com.opencsv:opencsv:3.3') {
     exclude group: "org.apache.commons", module: "commons-lang3"
   }
-  testCompile('com.github.tomakehurst:wiremock:1.56') {
+  testImplementation('com.github.tomakehurst:wiremock:1.56') {
     exclude group: "org.slf4j", module: "slf4j-api"
     exclude group: "com.fasterxml.jackson.core", module: "jackson-annotations"
     exclude group: "com.fasterxml.jackson.core", module: "jackson-core"

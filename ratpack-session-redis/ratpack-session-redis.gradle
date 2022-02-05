@@ -19,10 +19,10 @@ description = "Support for Redis session storage for Ratpack applications"
 apply from: "$rootDir/gradle/javaModule.gradle"
 
 dependencies {
-  compile project(":ratpack-guice")
-  compile project(":ratpack-session")
+  api project(":ratpack-guice")
+  api project(":ratpack-session")
 
-  compile('io.lettuce:lettuce-core:5.3.1.RELEASE') {
+  implementation('io.lettuce:lettuce-core:5.3.1.RELEASE') {
     exclude group: "io.netty", module: "netty-common"
     exclude group: "io.netty", module: "netty-handler"
     exclude group: "io.netty", module: "netty-transport"
@@ -31,8 +31,8 @@ dependencies {
     exclude group: "org.reactivestreams", module: "reactive-streams"
     exclude group: "io.projectreactor", module: "reactor-core"
   }
-  compile commonDependencies.reactor
-  testCompile "it.ozimov:embedded-redis:0.7.3", {
+  implementation commonDependencies.reactor
+  testImplementation "it.ozimov:embedded-redis:0.7.3", {
     exclude group: "org.slf4j", module: "slf4j-api"
     exclude group: "com.google.guava", module: "guava"
   }

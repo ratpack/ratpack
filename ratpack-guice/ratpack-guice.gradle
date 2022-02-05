@@ -27,9 +27,9 @@ configurations {
 }
 
 dependencies {
-  compile project(":ratpack-core")
-  compile commonDependencies.guice
-  compile "com.google.inject.extensions:guice-multibindings:$commonVersions.guice", {
+  api project(":ratpack-core")
+  api commonDependencies.guice
+  api "com.google.inject.extensions:guice-multibindings:$commonVersions.guice", {
     exclude group: "com.google.guava", module: "guava"
     exclude group: "com.google.inject", module: "guice"
   }
