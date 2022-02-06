@@ -1,11 +1,11 @@
 import ratpack.groovy.template.MarkupTemplateModule
 import ratpack.groovy.template.TextTemplateModule
 import ratpack.handlebars.HandlebarsModule
-import ratpack.thymeleaf.ThymeleafModule
+import ratpack.thymeleaf3.ThymeleafModule
 
 import static ratpack.groovy.Groovy.*
 import static ratpack.handlebars.Template.handlebarsTemplate
-import static ratpack.thymeleaf.Template.thymeleafTemplate
+import static ratpack.thymeleaf3.Template.thymeleafTemplate
 
 import ratpack.perf.incl.*
 
