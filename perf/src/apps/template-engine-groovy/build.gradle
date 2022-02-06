@@ -1,4 +1,4 @@
 dependencies {
   implementation ratpack.dependency("handlebars")
-  implementation ratpack.dependency("thymeleaf")
+  implementation ratpack.dependency("thymeleaf3")
 }
