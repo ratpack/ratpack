@@ -22,6 +22,9 @@ dependencies {
   compile 'org.java-websocket:Java-WebSocket:1.3.8'
   compile 'cglib:cglib-nodep:3.1'
   compile commonDependencies.commonsLang3
+  compile("org.apiguardian:apiguardian-api:1.1.2") {
+    because "Needed after upgrading to junit-jupiter-api:5.x, otherwise javadoc snippet tests fail. Somehow related to https://github.com/junit-team/junit5/issues/1104"
+  }
 
   runtime "org.apache.logging.log4j:log4j-slf4j-impl:${commonVersions.log4j}", {
     exclude group: "org.slf4j", module: "slf4j-api"

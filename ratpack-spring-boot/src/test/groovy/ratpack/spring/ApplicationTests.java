@@ -15,8 +15,8 @@
  */
 package ratpack.spring;
 
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
@@ -29,7 +29,7 @@ import org.springframework.context.annotation.Import;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
-import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
+import org.springframework.test.context.junit.jupiter.SpringExtension;
 import ratpack.func.Action;
 import ratpack.handling.Chain;
 import ratpack.server.RatpackServer;
@@ -38,10 +38,10 @@ import ratpack.spring.config.EnableRatpack;
 
 import java.util.Collections;
 
-import static org.junit.Assert.*;
+import static org.junit.jupiter.api.Assertions.*;
 import static ratpack.jackson.Jackson.json;
 
-@RunWith(SpringJUnit4ClassRunner.class)
+@ExtendWith(SpringExtension.class)
 @SpringApplicationConfiguration(classes = Application.class)
 @IntegrationTest({"debug=true", "server.port=0"})
 public class ApplicationTests {
@@ -63,7 +63,7 @@ public class ApplicationTests {
     ResponseEntity<String> response = restTemplate.getForEntity("http://localhost:" + server.getBindPort() + "/none",
       String.class);
     assertEquals(HttpStatus.NOT_FOUND, response.getStatusCode());
-    assertNull("Default 404 handler has null body", response.getBody());
+    assertNull(response.getBody(), "Default 404 handler has null body");
   }
 
   @Configuration

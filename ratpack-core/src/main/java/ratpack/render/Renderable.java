@@ -28,7 +28,7 @@ import ratpack.handling.Context;
  * import ratpack.render.Renderable;
  * import ratpack.test.embed.EmbeddedApp;
  *
- * import static org.junit.Assert.*;
+ * import static org.junit.jupiter.api.Assertions.*;
  *
  * public class Example {
  *   static class Thing implements Renderable {

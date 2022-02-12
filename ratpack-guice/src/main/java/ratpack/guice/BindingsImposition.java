@@ -31,7 +31,7 @@ import ratpack.impose.Impositions;
  * import ratpack.impose.ImpositionsSpec;
  * import ratpack.test.MainClassApplicationUnderTest;
  *
- * import static org.junit.Assert.assertEquals;
+ * import static org.junit.jupiter.api.Assertions.assertEquals;
  *
  * public class Example {
  *

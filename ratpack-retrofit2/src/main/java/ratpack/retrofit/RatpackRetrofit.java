@@ -43,7 +43,7 @@ import java.net.URI;
  * import ratpack.test.embed.EmbeddedApp;
  * import retrofit2.http.GET;
  *
- * import static org.junit.Assert.*;
+ * import static org.junit.jupiter.api.Assertions.*;
  *
  * public class ExampleRetrofitClient {
  *

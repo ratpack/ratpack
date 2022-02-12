@@ -119,7 +119,7 @@ public interface TransformablePublisher<T> extends Publisher<T> {
    * import java.util.Arrays;
    * import java.util.List;
    *
-   * import static org.junit.Assert.*;
+   * import static org.junit.jupiter.api.Assertions.*;
    *
    * public class Example {
    *   public static void main(String... args) throws Exception {
@@ -139,7 +139,7 @@ public interface TransformablePublisher<T> extends Publisher<T> {
    * import ratpack.stream.Streams;
    * import ratpack.test.exec.ExecHarness;
    *
-   * import static org.junit.Assert.*;
+   * import static org.junit.jupiter.api.Assertions.*;
    *
    * public class Example {
    *   public static void main(String... args) throws Exception {

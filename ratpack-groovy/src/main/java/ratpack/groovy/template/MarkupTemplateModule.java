@@ -55,7 +55,7 @@ import java.nio.file.Path;
  * import java.nio.file.Path;
  *
  * import static ratpack.groovy.Groovy.groovyMarkupTemplate;
- * import static org.junit.Assert.*;
+ * import static org.junit.jupiter.api.Assertions.*;
  *
  * public class Example {
  *   public static void main(String... args) throws Exception {

@@ -16,16 +16,16 @@
 
 package ratpack.dropwizard.metrics
 
-import org.junit.Rule
-import org.junit.rules.TemporaryFolder
 import ratpack.config.ConfigData
 import ratpack.test.internal.RatpackGroovyDslSpec
+import ratpack.test.internal.spock.TempDir
+import ratpack.test.internal.spock.TemporaryFolder
 
 import java.time.Duration
 
 class MetricsExternalConfigSpec extends RatpackGroovyDslSpec {
 
-  @Rule
+  @TempDir
   TemporaryFolder tempFolder
 
   def "can explicitly disable a reporter"() {

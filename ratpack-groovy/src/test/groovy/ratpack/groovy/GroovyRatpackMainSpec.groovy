@@ -16,16 +16,16 @@
 
 package ratpack.groovy
 
-import org.junit.Rule
-import org.junit.rules.TemporaryFolder
 import ratpack.groovy.test.GroovyRatpackMainApplicationUnderTest
 import ratpack.test.MainClassApplicationUnderTest
 import ratpack.test.internal.BaseRatpackSpec
+import ratpack.test.internal.spock.TempDir
+import ratpack.test.internal.spock.TemporaryFolder
 
 class GroovyRatpackMainSpec extends BaseRatpackSpec {
 
-  @Rule
-  TemporaryFolder dir = new TemporaryFolder()
+  @TempDir
+  TemporaryFolder dir
 
   def "starts ratpack app"() {
     given:

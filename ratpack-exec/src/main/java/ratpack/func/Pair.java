@@ -25,7 +25,7 @@ package ratpack.func;
  * import ratpack.exec.Promise;
  * import ratpack.test.embed.EmbeddedApp;
  *
- * import static org.junit.Assert.assertEquals;
+ * import static org.junit.jupiter.api.Assertions.assertEquals;
  *
  * public class Example {
  *

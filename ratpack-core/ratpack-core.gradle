@@ -68,6 +68,7 @@ dependencies {
     exclude group: "com.fasterxml.jackson.core", module: "jackson-databind"
     exclude group: "com.google.guava", module: "guava"
   }
+  testImplementation "org.codehaus.groovy:groovy-json:${commonVersions.groovy}"
 }
 
 // Reactive Streams TCK uses TestNG, and Gradle can't run TestNG and JUnit in the same run.

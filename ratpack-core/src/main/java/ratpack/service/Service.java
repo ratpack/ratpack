@@ -35,7 +35,7 @@ import ratpack.server.RatpackServer;
  *
  * import java.util.List;
  * import java.util.LinkedList;
- * import static org.junit.Assert.*;
+ * import static org.junit.jupiter.api.Assertions.*;
  *
  * public class Example {
  *
@@ -89,7 +89,7 @@ import ratpack.server.RatpackServer;
  *
  * import java.util.List;
  * import java.util.LinkedList;
- * import static org.junit.Assert.*;
+ * import static org.junit.jupiter.api.Assertions.*;
  *
  * public class Example {
  *
@@ -149,7 +149,7 @@ import ratpack.server.RatpackServer;
  *
  * import java.util.List;
  * import java.util.LinkedList;
- * import static org.junit.Assert.*;
+ * import static org.junit.jupiter.api.Assertions.*;
  *
  * public class Example {
  *

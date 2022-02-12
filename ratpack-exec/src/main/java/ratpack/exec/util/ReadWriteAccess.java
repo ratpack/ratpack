@@ -58,7 +58,7 @@ import java.util.concurrent.locks.ReadWriteLock;
  * import java.time.Duration;
  *
  * import static java.nio.file.StandardOpenOption.*;
- * import static org.junit.Assert.assertEquals;
+ * import static org.junit.jupiter.api.Assertions.assertEquals;
  *
  * public class Example {
  *

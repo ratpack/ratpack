@@ -16,24 +16,43 @@
 
 package ratpack.test.internal.snippets;
 
-import org.junit.runner.RunWith;
-import org.junit.runner.Runner;
-import ratpack.test.internal.snippets.junit.DelegatingTestRunner;
-import ratpack.test.internal.snippets.junit.RunnerProvider;
+import org.junit.jupiter.api.DynamicTest;
+import org.junit.jupiter.api.TestFactory;
 
-import java.util.LinkedList;
-import java.util.List;
+import java.time.Duration;
+import java.util.Collection;
+import java.util.stream.Stream;
 
-@RunWith(DelegatingTestRunner.class)
-abstract public class CodeSnippetTestCase implements RunnerProvider {
+import static org.junit.jupiter.api.Assertions.assertTimeout;
+import static org.junit.jupiter.api.Assumptions.assumeTrue;
+import static ratpack.util.Exceptions.uncheck;
 
-  protected abstract void addTests(CodeSnippetTests tests);
+abstract public class CodeSnippetTestCase {
 
-  public final List<Runner> getRunners() {
-    List<Runner> runners = new LinkedList<>();
-    CodeSnippetTests tests = new DefaultCodeSnippetTests(getClass(), runners);
-    addTests(tests);
-    return runners;
+  protected abstract Collection<TestCodeSnippet> registerTests();
+
+  @TestFactory
+  public Stream<DynamicTest> getTests() {
+    return DynamicTest.stream(
+      registerTests().stream(),
+      TestCodeSnippet::getTestName,
+      snippet -> {
+        String filter = System.getProperty("filter");
+        assumeTrue(filter == null || filter.equals(snippet.getTestName()));
+        assertTimeout(Duration.ofSeconds(30), () -> {
+          try {
+            snippet.getExecuter().execute(snippet);
+          } catch (Throwable t) {
+            Throwable transform;
+            try {
+              transform = snippet.getExceptionTransformer().transform(t, snippet.getExecuter().getFixture().getOffset());
+            } catch (Exception e) {
+              throw uncheck(e);
+            }
+            throw transform;
+          }
+        });
+      });
   }
 
 }
