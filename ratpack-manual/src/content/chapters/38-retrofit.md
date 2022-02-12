@@ -35,7 +35,7 @@ import ratpack.retrofit.RatpackRetrofit;
 import ratpack.test.embed.EmbeddedApp;
 import retrofit2.http.GET;
 
-import static org.junit.Assert.*;
+import static org.junit.jupiter.api.Assertions.*;
 
 public class Example {
 
@@ -109,7 +109,7 @@ import ratpack.test.embed.EmbeddedApp;
 import retrofit2.http.GET;
 import retrofit2.Retrofit;
 
-import static org.junit.Assert.*;
+import static org.junit.jupiter.api.Assertions.*;
 
   
 public class Example {
@@ -174,7 +174,7 @@ import retrofit2.Retrofit;
 import java.util.List;
 
 import static ratpack.core.jackson.Jackson.json;
-import static org.junit.Assert.*;
+import static org.junit.jupiter.api.Assertions.*;
 
   
 public class Example {

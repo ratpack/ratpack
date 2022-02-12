@@ -34,7 +34,7 @@ import java.util.Map;
  * <pre class="java">{@code
  * import ratpack.core.http.HttpUrlBuilder;
  *
- * import static org.junit.Assert.assertEquals;
+ * import static org.junit.jupiter.api.Assertions.assertEquals;
  *
  * public class Example {
  *

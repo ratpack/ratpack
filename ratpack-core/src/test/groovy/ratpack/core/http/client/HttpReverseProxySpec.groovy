@@ -469,20 +469,20 @@ connection: close
     }
 
     initialRequestLatch.await()
-    def response = readStream(s.inputStream, Duration.ofSeconds(1))
+    def resp = readStream(s.inputStream, Duration.ofSeconds(1))
 
     then:
-    response == """HTTP/1.1 100 Continue\r\n\r\n"""
+    resp == """HTTP/1.1 100 Continue\r\n\r\n"""
 
     when:
     withSocket(s) {
       write("{\"message\": \"hi\"}\r\n")
       flush()
     }
-    response = s.inputStream.getText(CharsetUtil.UTF_8.name()).normalize()
+    resp = s.inputStream.getText(CharsetUtil.UTF_8.name()).normalize()
 
     then:
-    response == """HTTP/1.1 200 OK
+    resp == """HTTP/1.1 200 OK
 content-type: text/plain;charset=UTF-8
 content-length: 17
 connection: close
@@ -537,10 +537,10 @@ connection: close
     }
 
     initialRequestLatch.await()
-    def response = readStream(s.inputStream, Duration.ofSeconds(1))
+    def resp = readStream(s.inputStream, Duration.ofSeconds(1))
 
     then:
-    response == """HTTP/1.1 100 Continue\r\n\r\n"""
+    resp == """HTTP/1.1 100 Continue\r\n\r\n"""
 
     when:
     withSocket(s) {
@@ -548,10 +548,10 @@ connection: close
       flush()
     }
     replyLatch.await()
-    response = s.inputStream.getText(CharsetUtil.UTF_8.name()).normalize()
+    resp = s.inputStream.getText(CharsetUtil.UTF_8.name()).normalize()
 
     then:
-    response == """HTTP/1.1 413 Request Entity Too Large
+    resp == """HTTP/1.1 413 Request Entity Too Large
 content-length: 0
 connection: close
 
@@ -610,20 +610,20 @@ connection: close
     }
 
     initialRequestLatch.await()
-    def response = readStream(s.inputStream, Duration.ofSeconds(1))
+    def resp = readStream(s.inputStream, Duration.ofSeconds(1))
 
     then:
-    response == """HTTP/1.1 100 Continue\r\n\r\n"""
+    resp == """HTTP/1.1 100 Continue\r\n\r\n"""
 
     when:
     withSocket(s) {
       write("{\"message\": \"hi\"}\r\n")
       flush()
     }
-    response = s.inputStream.getText(CharsetUtil.UTF_8.name()).normalize()
+    resp = s.inputStream.getText(CharsetUtil.UTF_8.name()).normalize()
 
     then:
-    response == """HTTP/1.1 200 OK
+    resp == """HTTP/1.1 200 OK
 content-type: text/plain;charset=UTF-8
 content-length: 17
 connection: close
@@ -685,20 +685,20 @@ connection: close
     }
 
     initialRequestLatch.await()
-    def response = readStream(s.inputStream, Duration.ofSeconds(1))
+    def resp = readStream(s.inputStream, Duration.ofSeconds(1))
 
     then:
-    response == """HTTP/1.1 100 Continue\r\n\r\n"""
+    resp == """HTTP/1.1 100 Continue\r\n\r\n"""
 
     when:
     withSocket(s) {
       write("{\"message\": \"hi\"}\r\n")
       flush()
     }
-    response = s.inputStream.getText(CharsetUtil.UTF_8.name()).normalize()
+    resp = s.inputStream.getText(CharsetUtil.UTF_8.name()).normalize()
 
     then:
-    response == """HTTP/1.1 200 OK
+    resp == """HTTP/1.1 200 OK
 content-type: text/plain;charset=UTF-8
 content-length: 17
 connection: close

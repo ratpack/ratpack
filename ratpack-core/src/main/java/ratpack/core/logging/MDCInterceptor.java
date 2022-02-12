@@ -53,7 +53,7 @@ import java.util.Map;
  * import org.slf4j.Logger;
  * import org.slf4j.LoggerFactory;
  *
- * import static org.junit.Assert.assertEquals;
+ * import static org.junit.jupiter.api.Assertions.assertEquals;
  *
  * import ratpack.core.logging.MDCInterceptor;
  *
@@ -139,7 +139,7 @@ public final class MDCInterceptor implements ExecInterceptor {
    * import ratpack.core.logging.MDCInterceptor;
    * import ratpack.test.embed.EmbeddedApp;
    *
-   * import static org.junit.Assert.assertEquals;
+   * import static org.junit.jupiter.api.Assertions.assertEquals;
    *
    * public class Example {
    *   public static void main(String... args) throws Exception {

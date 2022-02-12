@@ -93,7 +93,7 @@ public abstract class Types {
    *
    * import java.util.List;
    *
-   * import static org.junit.Assert.*;
+   * import static org.junit.jupiter.api.Assertions.*;
    *
    * public class Example {
    *   public static void main(String... args) {

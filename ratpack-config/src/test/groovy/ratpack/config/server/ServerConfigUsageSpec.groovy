@@ -16,16 +16,17 @@
 
 package ratpack.config.server
 
-import org.junit.Rule
-import org.junit.rules.TemporaryFolder
 import ratpack.core.server.ServerConfig
 import ratpack.core.server.internal.ServerConfigData
+import ratpack.test.internal.spock.TempDir
+import ratpack.test.internal.spock.TemporaryFolder
 
 import java.nio.file.Path
 import java.security.KeyStore
 
 class ServerConfigUsageSpec extends ConfigUsageSpec {
-  @Rule
+
+  @TempDir
   TemporaryFolder temporaryFolder
 
   def "can get ServerConfig with defaults from no data"() {

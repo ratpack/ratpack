@@ -143,7 +143,7 @@ public interface Context extends Registry {
    * import ratpack.exec.registry.Registry;
    * import ratpack.test.embed.EmbeddedApp;
    *
-   * import static org.junit.Assert.assertEquals;
+   * import static org.junit.jupiter.api.Assertions.assertEquals;
    *
    * public class Example {
    *
@@ -192,7 +192,7 @@ public interface Context extends Registry {
    * <pre class="java">{@code
    * import ratpack.test.embed.EmbeddedApp;
    *
-   * import static org.junit.Assert.*;
+   * import static org.junit.jupiter.api.Assertions.*;
    *
    * public class Example {
    *   public static void main(String[] args) throws Exception {

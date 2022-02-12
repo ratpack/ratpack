@@ -130,7 +130,7 @@ public class Streams {
    *
    * import java.util.Arrays;
    * import java.util.List;
-   * import static org.junit.Assert.*;
+   * import static org.junit.jupiter.api.Assertions.*;
    *
    * public class Example {
    *   public static void main(String... args) throws Exception {
@@ -175,7 +175,7 @@ public class Streams {
    *
    * import java.util.Arrays;
    * import java.util.List;
-   * import static org.junit.Assert.*;
+   * import static org.junit.jupiter.api.Assertions.*;
    *
    * public class Example {
    *   public static void main(String... args) throws Exception {
@@ -249,7 +249,7 @@ public class Streams {
    * import java.util.Arrays;
    * import java.util.List;
    *
-   * import static org.junit.Assert.*;
+   * import static org.junit.jupiter.api.Assertions.*;
    *
    * public class Example {
    *   public static void main(String... args) throws Exception {
@@ -293,7 +293,7 @@ public class Streams {
    * import java.util.Arrays;
    * import java.util.List;
    *
-   * import static org.junit.Assert.*;
+   * import static org.junit.jupiter.api.Assertions.*;
    *
    * public class Example {
    *   public static void main(String... args) throws Exception {
@@ -791,7 +791,7 @@ public class Streams {
    * import java.util.List;
    *
    * import static java.util.Arrays.asList;
-   * import static org.junit.Assert.assertEquals;
+   * import static org.junit.jupiter.api.Assertions.assertEquals;
    *
    * public class Example {
    *

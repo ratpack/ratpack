@@ -27,7 +27,7 @@ dependencies {
   api project(":ratpack-core")
   api project(":ratpack-guice")
   api "org.springframework.boot:spring-boot-autoconfigure:$commonVersions.springBoot"
-  testImplementation "org.springframework:spring-web:4.2.3.RELEASE"
-  testImplementation "org.springframework:spring-test:4.2.3.RELEASE"
+  testImplementation "org.springframework:spring-web:5.3.15"
+  testImplementation "org.springframework:spring-test:5.3.15"
   testImplementation project(":ratpack-groovy")
 }

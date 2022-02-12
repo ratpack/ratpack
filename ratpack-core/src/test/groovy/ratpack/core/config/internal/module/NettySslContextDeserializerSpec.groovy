@@ -14,22 +14,22 @@
  * limitations under the License.
  */
 
-package ratpack.config.internal.module
+package ratpack.core.config.internal.module
 
 import com.fasterxml.jackson.core.JsonParser
 import com.fasterxml.jackson.databind.DeserializationContext
 import com.fasterxml.jackson.databind.node.JsonNodeFactory
 import com.fasterxml.jackson.databind.node.ObjectNode
-import org.junit.Rule
-import org.junit.rules.TemporaryFolder
 import ratpack.test.internal.BaseRatpackSpec
+import ratpack.test.internal.spock.TempDir
+import ratpack.test.internal.spock.TemporaryFolder
 
 import java.nio.file.Path
 import java.security.KeyStore
 
 class NettySslContextDeserializerSpec extends BaseRatpackSpec {
 
-  @Rule
+  @TempDir
   TemporaryFolder tempFolder
 
   DeserializationContext context = null

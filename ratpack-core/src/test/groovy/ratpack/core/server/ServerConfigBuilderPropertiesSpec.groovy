@@ -18,17 +18,17 @@ package ratpack.core.server
 
 import com.google.common.base.StandardSystemProperty
 import com.google.common.io.Files
-import org.junit.Rule
-import org.junit.rules.TemporaryFolder
 import ratpack.test.internal.BaseRatpackSpec
+import ratpack.test.internal.spock.TempDir
+import ratpack.test.internal.spock.TemporaryFolder
 import spock.lang.IgnoreIf
 
 class ServerConfigBuilderPropertiesSpec extends BaseRatpackSpec {
 
-  @Rule
+  @TempDir
   TemporaryFolder tempFolder
 
-    ServerConfigBuilder builder
+  ServerConfigBuilder builder
 
   def setup() {
     builder = ServerConfig.builder()

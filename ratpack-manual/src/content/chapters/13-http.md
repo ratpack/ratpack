@@ -89,7 +89,7 @@ Additional flavors are available for configuring the [rejection action](api/ratp
 import ratpack.core.http.client.ReceivedResponse;
 import ratpack.test.embed.EmbeddedApp;
 
-import static org.junit.Assert.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 public class Example {
   public static void main(String... args) throws Exception {
@@ -134,8 +134,8 @@ import ratpack.core.http.Response;
 import ratpack.core.http.Status;
 import ratpack.test.embed.EmbeddedApp;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 public class Example {
   public static void main(String... args) throws Exception {
@@ -160,7 +160,7 @@ This will send a response with no response body.
 import ratpack.core.http.client.ReceivedResponse;
 import ratpack.test.embed.EmbeddedApp;
 
-import static org.junit.Assert.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 public class Example {
   public static void main(String... args) throws Exception {
@@ -181,8 +181,8 @@ If you want to send a plain text response you can use [`Response#send(String)`](
 import ratpack.core.http.client.ReceivedResponse;
 import ratpack.test.embed.EmbeddedApp;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 public class Example {
   public static void main(String... args) throws Exception {
@@ -213,7 +213,7 @@ In the following example, we utilize the context's `render(Object)` method to re
 import ratpack.core.http.client.ReceivedResponse;
 import ratpack.test.embed.EmbeddedApp;
 
-import static org.junit.Assert.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 public class Example {
   public static void main(String... args) throws Exception {
@@ -237,7 +237,7 @@ If you attempt to render a type that is not registered, it will result in a serv
 import ratpack.core.http.client.ReceivedResponse;
 import ratpack.test.embed.EmbeddedApp;
 
-import static org.junit.Assert.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 public class Example {
 
@@ -270,7 +270,7 @@ import ratpack.core.http.client.ReceivedResponse;
 import ratpack.core.render.RendererSupport;
 import ratpack.test.embed.EmbeddedApp;
 
-import static org.junit.Assert.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 public class Example {
 
@@ -344,8 +344,8 @@ import ratpack.core.http.Headers;
 import ratpack.core.http.Request;
 import ratpack.core.http.Status;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 public class Example {
   public static void main(String... args) throws Exception {
@@ -386,7 +386,7 @@ import ratpack.core.http.client.ReceivedResponse;
 import ratpack.test.embed.EmbeddedApp;
 import ratpack.core.http.Headers;
 
-import static org.junit.Assert.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 public class Example {
   public static void main(String... args) throws Exception {
@@ -417,7 +417,7 @@ import ratpack.core.http.MutableHeaders;
 import ratpack.core.http.client.ReceivedResponse;
 import ratpack.test.embed.EmbeddedApp;
 
-import static org.junit.Assert.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 public class Example {
   public static void main(String... args) throws Exception {
@@ -452,7 +452,7 @@ To retrieve the value of a cookie, you can use [`Request#oneCookie(String)`](api
 import ratpack.core.http.client.ReceivedResponse;
 import ratpack.test.embed.EmbeddedApp;
 
-import static org.junit.Assert.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 public class Example {
   public static void main(String... args) throws Exception {
@@ -481,7 +481,7 @@ import ratpack.test.embed.EmbeddedApp;
 
 import java.util.Set;
 
-import static org.junit.Assert.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 public class Example {
   public static void main(String... args) throws Exception {
@@ -514,8 +514,8 @@ To retrieve the set of cookies to be set with the response you may use [`Respons
 import ratpack.core.http.client.ReceivedResponse;
 import ratpack.test.embed.EmbeddedApp;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 public class Example {
   public static void main(String... args) throws Exception {
@@ -538,7 +538,7 @@ If you want to expire a cookie, you can do so with [`Response#expireCookie()`](a
 import ratpack.core.http.client.ReceivedResponse;
 import ratpack.test.embed.EmbeddedApp;
 
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 public class Example {
   public static void main(String... args) throws Exception {

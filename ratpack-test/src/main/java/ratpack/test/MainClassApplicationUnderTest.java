@@ -31,7 +31,7 @@ import java.lang.reflect.Modifier;
  * import ratpack.core.server.RatpackServer;
  * import ratpack.test.MainClassApplicationUnderTest;
  *
- * import static org.junit.Assert.assertEquals;
+ * import static org.junit.jupiter.api.Assertions.assertEquals;
  *
  * public class Example {
  *

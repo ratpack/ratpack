@@ -40,8 +40,8 @@ dependencies {
 
   testImplementation gradleTestKit()
   testImplementation commonDependencies.guava
-  testImplementation 'org.spockframework:spock-core:1.2-groovy-2.5', {
-    exclude module: "groovy-all", group: "org.codehaus.groovy"
+  testImplementation 'org.spockframework:spock-core:2.0-groovy-2.5', {
+    exclude module: "groovy", group: "org.codehaus.groovy"
   }
 }
 

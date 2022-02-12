@@ -314,7 +314,7 @@ public interface ServerConfigBuilder extends ConfigDataBuilder {
    *
    * <pre class="java-args">{@code
    * import ratpack.test.embed.EmbeddedApp;
-   * import static org.junit.Assert.assertEquals;
+   * import static org.junit.jupiter.api.Assertions.assertEquals;
    *
    * public class Example {
    *   static class Thing {
@@ -533,10 +533,11 @@ public interface ServerConfigBuilder extends ConfigDataBuilder {
    * <p>
    * The {@code pointer} argument is of the same format given to the {@link ConfigData#get(String, Class)} method.
    * <pre class="java">{@code
-   * import org.junit.Assert;
    * import ratpack.test.embed.EmbeddedApp;
    *
    * import java.util.Collections;
+   *
+   * import static org.junit.jupiter.api.Assertions.*;
    *
    * public class Example {
    *   static class MyConfig {
@@ -553,7 +554,7 @@ public interface ServerConfigBuilder extends ConfigDataBuilder {
    *             .get(ctx -> ctx.render(ctx.get(MyConfig.class).value))
    *         )
    *     ).test(httpClient ->
-   *       Assert.assertEquals("foo", httpClient.getText())
+   *       assertEquals("foo", httpClient.getText())
    *     );
    *   }
    * }

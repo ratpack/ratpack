@@ -29,7 +29,7 @@ import io.netty.handler.ssl.SslContext;
 import ratpack.config.*;
 import ratpack.config.internal.DefaultConfigData;
 import ratpack.config.internal.DefaultConfigDataBuilder;
-import ratpack.config.internal.module.NettySslContextDeserializer;
+import ratpack.core.config.internal.module.NettySslContextDeserializer;
 import ratpack.config.internal.module.ServerConfigDataDeserializer;
 import ratpack.config.FileSystemBinding;
 import ratpack.core.impose.ForceDevelopmentImposition;

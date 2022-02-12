@@ -66,7 +66,7 @@ public interface Promise<T> {
    * import ratpack.exec.Promise;
    * import ratpack.test.exec.ExecHarness;
    *
-   * import static org.junit.Assert.assertEquals;
+   * import static org.junit.jupiter.api.Assertions.assertEquals;
    *
    * public class Example {
    *   public static void main(String[] args) throws Exception {
@@ -106,7 +106,7 @@ public interface Promise<T> {
    * import ratpack.exec.Promise;
    * import ratpack.test.exec.ExecHarness;
    *
-   * import static org.junit.Assert.assertEquals;
+   * import static org.junit.jupiter.api.Assertions.assertEquals;
    *
    * public class Example {
    *   public static void main(String[] args) throws Exception {
@@ -181,7 +181,7 @@ public interface Promise<T> {
    * import ratpack.exec.Promise;
    * import ratpack.test.exec.ExecHarness;
    *
-   * import static org.junit.Assert.assertEquals;
+   * import static org.junit.jupiter.api.Assertions.assertEquals;
    *
    * public class Example {
    *   public static void main(String[] args) throws Exception {
@@ -228,7 +228,7 @@ public interface Promise<T> {
    * import ratpack.exec.Promise;
    * import ratpack.test.exec.ExecHarness;
    *
-   * import static org.junit.Assert.assertSame;
+   * import static org.junit.jupiter.api.Assertions.assertSame;
    *
    * public class Example {
    *   public static void main(String[] args) throws Exception {
@@ -285,7 +285,7 @@ public interface Promise<T> {
    * import ratpack.exec.ExecResult;
    * import ratpack.exec.Promise;
    *
-   * import static org.junit.Assert.assertEquals;
+   * import static org.junit.jupiter.api.Assertions.assertEquals;
    *
    * public class Example {
    *   public static void main(String... args) throws Exception {
@@ -367,7 +367,7 @@ public interface Promise<T> {
    * import ratpack.core.http.TypedData;
    * import ratpack.test.embed.EmbeddedApp;
    *
-   * import static org.junit.Assert.assertEquals;
+   * import static org.junit.jupiter.api.Assertions.assertEquals;
    *
    * public class Example {
    *   public static void main(String... args) throws Exception {
@@ -463,7 +463,7 @@ public interface Promise<T> {
    * import ratpack.exec.ExecResult;
    * import ratpack.exec.Promise;
    *
-   * import static org.junit.Assert.assertEquals;
+   * import static org.junit.jupiter.api.Assertions.assertEquals;
    *
    * public class Example {
    *   public static void main(String... args) throws Exception {
@@ -504,7 +504,7 @@ public interface Promise<T> {
    * import ratpack.exec.ExecResult;
    * import ratpack.exec.Promise;
    *
-   * import static org.junit.Assert.assertEquals;
+   * import static org.junit.jupiter.api.Assertions.assertEquals;
    *
    * public class Example {
    *   public static void main(String... args) throws Exception {
@@ -536,7 +536,7 @@ public interface Promise<T> {
    * import ratpack.exec.ExecResult;
    * import ratpack.exec.Promise;
    *
-   * import static org.junit.Assert.assertEquals;
+   * import static org.junit.jupiter.api.Assertions.assertEquals;
    *
    * public class Example {
    *   public static void main(String... args) throws Exception {
@@ -607,7 +607,7 @@ public interface Promise<T> {
    * import java.util.Arrays;
    * import java.util.List;
    *
-   * import static org.junit.Assert.assertEquals;
+   * import static org.junit.jupiter.api.Assertions.assertEquals;
    *
    * public class Example {
    *   public static void main(String... args) throws Exception {
@@ -657,7 +657,7 @@ public interface Promise<T> {
    * import java.util.Arrays;
    * import java.util.List;
    *
-   * import static org.junit.Assert.assertEquals;
+   * import static org.junit.jupiter.api.Assertions.assertEquals;
    *
    * public class Example {
    *
@@ -718,7 +718,7 @@ public interface Promise<T> {
    * import java.util.Arrays;
    * import java.util.List;
    *
-   * import static org.junit.Assert.assertEquals;
+   * import static org.junit.jupiter.api.Assertions.assertEquals;
    *
    * public class Example {
    *
@@ -777,7 +777,7 @@ public interface Promise<T> {
    * import ratpack.exec.ExecResult;
    * import ratpack.exec.Promise;
    *
-   * import static org.junit.Assert.assertEquals;
+   * import static org.junit.jupiter.api.Assertions.assertEquals;
    *
    * public class Example {
    *   private static String value;
@@ -942,7 +942,7 @@ public interface Promise<T> {
    * import ratpack.test.exec.ExecHarness;
    * import ratpack.exec.ExecResult;
    * import ratpack.exec.Promise;
-   * import static org.junit.Assert.assertEquals;
+   * import static org.junit.jupiter.api.Assertions.assertEquals;
    *
    * public class Example {
    *   public static void main(String... args) throws Exception {
@@ -961,7 +961,7 @@ public interface Promise<T> {
    * import ratpack.test.exec.ExecHarness;
    * import ratpack.exec.ExecResult;
    * import ratpack.exec.Promise;
-   * import static org.junit.Assert.assertEquals;
+   * import static org.junit.jupiter.api.Assertions.assertEquals;
    *
    * public class Example {
    *   public static void main(String... args) throws Exception {
@@ -1142,7 +1142,7 @@ public interface Promise<T> {
    * import ratpack.exec.Promise;
    * import ratpack.test.exec.ExecHarness;
    *
-   * import static org.junit.Assert.assertEquals;
+   * import static org.junit.jupiter.api.Assertions.assertEquals;
    *
    * public class Example {
    *   public static void main(String... args) throws Exception {
@@ -1170,7 +1170,7 @@ public interface Promise<T> {
    * import ratpack.exec.Promise;
    * import ratpack.test.exec.ExecHarness;
    *
-   * import static org.junit.Assert.assertEquals;
+   * import static org.junit.jupiter.api.Assertions.assertEquals;
    *
    * public class Example {
    *   public static void main(String... args) throws Exception {
@@ -1193,7 +1193,7 @@ public interface Promise<T> {
    * import ratpack.exec.Promise;
    * import ratpack.test.exec.ExecHarness;
    *
-   * import static org.junit.Assert.assertEquals;
+   * import static org.junit.jupiter.api.Assertions.assertEquals;
    *
    * public class Example {
    *   public static void main(String... args) throws Exception {
@@ -1237,7 +1237,7 @@ public interface Promise<T> {
    * import java.util.LinkedList;
    * import java.util.List;
    *
-   * import static org.junit.Assert.assertEquals;
+   * import static org.junit.jupiter.api.Assertions.assertEquals;
    *
    * public class Example {
    *   private static final List<String> LOG = new LinkedList<>();
@@ -1279,7 +1279,7 @@ public interface Promise<T> {
    * import ratpack.exec.Promise;
    * import ratpack.exec.Blocking;
    *
-   * import static org.junit.Assert.assertEquals;
+   * import static org.junit.jupiter.api.Assertions.assertEquals;
    *
    * public class Example {
    *   public static void main(String[] args) throws Exception {
@@ -1319,7 +1319,7 @@ public interface Promise<T> {
    * import ratpack.exec.ExecResult;
    * import ratpack.exec.Promise;
    *
-   * import static org.junit.Assert.assertEquals;
+   * import static org.junit.jupiter.api.Assertions.assertEquals;
    *
    * public class Example {
    *   public static void main(String... args) throws Exception {
@@ -1351,7 +1351,7 @@ public interface Promise<T> {
    * import ratpack.exec.ExecResult;
    * import ratpack.exec.Promise;
    *
-   * import static org.junit.Assert.assertEquals;
+   * import static org.junit.jupiter.api.Assertions.assertEquals;
    *
    * public class Example {
    *   public static void main(String... args) throws Exception {
@@ -1388,7 +1388,7 @@ public interface Promise<T> {
    *
    * import java.util.List;
    *
-   * import static org.junit.Assert.*;
+   * import static org.junit.jupiter.api.Assertions.*;
    *
    * public class Example {
    *   public static ExecResult<Integer> yield(int i, List<Integer> collector) throws Exception {
@@ -1423,7 +1423,7 @@ public interface Promise<T> {
    * import ratpack.core.handling.Context;
    * import ratpack.test.embed.EmbeddedApp;
    *
-   * import static org.junit.Assert.assertEquals;
+   * import static org.junit.jupiter.api.Assertions.assertEquals;
    *
    * public class Example {
    *   public static Promise<Integer> getAge(Context ctx) {
@@ -1498,7 +1498,7 @@ public interface Promise<T> {
    *
    * import java.util.concurrent.atomic.AtomicLong;
    *
-   * import static org.junit.Assert.assertEquals;
+   * import static org.junit.jupiter.api.Assertions.assertEquals;
    *
    * public class Example {
    *   public static void main(String... args) throws Exception {
@@ -1529,16 +1529,16 @@ public interface Promise<T> {
    * import ratpack.exec.Promise;
    * import ratpack.test.exec.ExecHarness;
    *
-   * import static org.junit.Assert.assertTrue;
+   * import static org.junit.jupiter.api.Assertions.assertTrue;
    *
    * public class Example {
    *   public static void main(String... args) throws Exception {
    *     ExecHarness.runSingle(c -> {
    *       Throwable error = new Exception("bang!");
    *       Promise<Object> cached = Promise.error(error).cache();
-   *       cached.onError(t -> assertTrue(t == error)).then(i -> assertTrue("not called", false));
-   *       cached.onError(t -> assertTrue(t == error)).then(i -> assertTrue("not called", false));
-   *       cached.onError(t -> assertTrue(t == error)).then(i -> assertTrue("not called", false));
+   *       cached.onError(t -> assertTrue(t == error)).then(i -> assertTrue(false, "not called"));
+   *       cached.onError(t -> assertTrue(t == error)).then(i -> assertTrue(false, "not called"));
+   *       cached.onError(t -> assertTrue(t == error)).then(i -> assertTrue(false, "not called"));
    *     });
    *   }
    * }
@@ -1583,7 +1583,7 @@ public interface Promise<T> {
    * import java.util.List;
    * import java.util.concurrent.atomic.AtomicInteger;
    *
-   * import static org.junit.Assert.assertEquals;
+   * import static org.junit.jupiter.api.Assertions.assertEquals;
    *
    * public class Example {
    *
@@ -1673,7 +1673,7 @@ public interface Promise<T> {
    * import java.time.Duration;
    * import java.util.concurrent.atomic.AtomicInteger;
    *
-   * import static org.junit.Assert.assertEquals;
+   * import static org.junit.jupiter.api.Assertions.assertEquals;
    *
    * public class Example {
    *
@@ -1771,7 +1771,7 @@ public interface Promise<T> {
    * import java.util.Arrays;
    * import java.util.List;
    *
-   * import static org.junit.Assert.assertEquals;
+   * import static org.junit.jupiter.api.Assertions.assertEquals;
    *
    * public class Example {
    *   public static void main(String... args) throws Exception {
@@ -1814,7 +1814,7 @@ public interface Promise<T> {
    * import java.util.Arrays;
    * import java.util.List;
    *
-   * import static org.junit.Assert.assertEquals;
+   * import static org.junit.jupiter.api.Assertions.assertEquals;
    *
    * public class Example {
    *   public static void main(String... args) throws Exception {
@@ -1885,7 +1885,7 @@ public interface Promise<T> {
    *
    * import java.util.concurrent.atomic.AtomicInteger;
    *
-   * import static org.junit.Assert.assertTrue;
+   * import static org.junit.jupiter.api.Assertions.assertTrue;
    *
    * public class Example {
    *   public static void main(String... args) throws Exception {
@@ -1939,9 +1939,10 @@ public interface Promise<T> {
    * It is typically used to close some resource after an asynchronous operation.
    *
    * <pre class="java">{@code
-   * import org.junit.Assert;
    * import ratpack.exec.Promise;
    * import ratpack.test.exec.ExecHarness;
+   *
+   * import static org.junit.jupiter.api.Assertions.assertTrue;
    *
    * public class Example {
    *   static class MyResource implements AutoCloseable {
@@ -1973,14 +1974,14 @@ public interface Promise<T> {
    *       MyResource myResource = new MyResource(false);
    *       resourceUsingMethod(myResource)
    *         .close(myResource)
-   *         .then(value -> Assert.assertTrue(myResource.closed));
+   *         .then(value -> assertTrue(myResource.closed));
    *     });
    *
    *     ExecHarness.runSingle(e -> {
    *       MyResource myResource = new MyResource(true);
    *       resourceUsingMethod(myResource)
    *         .close(myResource)
-   *         .onError(error -> Assert.assertTrue(myResource.closed))
+   *         .onError(error -> assertTrue(myResource.closed))
    *         .then(value -> {
    *           throw new UnsupportedOperationException("should not reach here!");
    *         });
@@ -2231,7 +2232,7 @@ public interface Promise<T> {
    *
    * import java.util.concurrent.CyclicBarrier;
    *
-   * import static org.junit.Assert.assertEquals;
+   * import static org.junit.jupiter.api.Assertions.assertEquals;
    *
    * public class Example {
    *
@@ -2318,7 +2319,7 @@ public interface Promise<T> {
    * import java.util.List;
    * import java.util.concurrent.atomic.AtomicInteger;
    *
-   * import static org.junit.Assert.assertEquals;
+   * import static org.junit.jupiter.api.Assertions.assertEquals;
    *
    * public class Example {
    *   private static final List<String> LOG = new LinkedList<>();
@@ -2382,7 +2383,7 @@ public interface Promise<T> {
    * import java.util.List;
    * import java.util.concurrent.atomic.AtomicInteger;
    *
-   * import static org.junit.Assert.assertEquals;
+   * import static org.junit.jupiter.api.Assertions.assertEquals;
    *
    * public class Example {
    *   private static final List<String> LOG = new LinkedList<>();

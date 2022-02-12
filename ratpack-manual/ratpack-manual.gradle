@@ -51,6 +51,11 @@ repositories {
 dependencies {
   testImplementation apiModules
   testImplementation gradleTestKit()
+  // TODO-Gradle7 this is necessary because of the Junit 4 section in 31-groovy.md
+  // See - https://issues.apache.org/jira/browse/GROOVY-9767
+  testImplementation("org.codehaus.groovy:groovy-test:${commonVersions.groovy}") {
+    exclude group: "org.codehaus.groovy", module: "groovy"
+  }
 
   testRuntimeOnly "org.apache.ant:ant-nodeps:1.8.1"
   testRuntimeOnly "com.fasterxml.jackson.datatype:jackson-datatype-jdk8:${commonVersions.jackson}"

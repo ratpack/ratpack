@@ -67,7 +67,7 @@ public abstract class ReactorRatpack {
    * import ratpack.reactor.ReactorRatpack;
    * import ratpack.test.embed.EmbeddedApp;
    * import rx.Observable;
-   * import static org.junit.Assert.assertEquals;
+   * import static org.junit.jupiter.api.Assertions.assertEquals;
    * <p>
    * public class Example {
    * public static void main(String... args) throws Exception {
@@ -100,7 +100,7 @@ public abstract class ReactorRatpack {
    * import ratpack.exec.Operation;
    * import ratpack.test.exec.ExecHarness;
    * <p>
-   * import public static org.junit.Assert.assertTrue;
+   * import public static org.junit.jupiter.api.Assertions.assertTrue;
    * <p>
    * public class Example {
    * public static boolean executed;
@@ -134,7 +134,7 @@ public abstract class ReactorRatpack {
    * import ratpack.exec.Promise;
    * import ratpack.test.exec.ExecHarness;
    * <p>
-   * import public static org.junit.Assert.assertEquals;
+   * import public static org.junit.jupiter.api.Assertions.assertEquals;
    * <p>
    * public class Example {
    * public static String value;
@@ -178,7 +178,7 @@ public abstract class ReactorRatpack {
    * import java.util.LinkedList;
    * import java.util.List;
    * <p>
-   * import public static org.junit.Assert.assertEquals;
+   * import public static org.junit.jupiter.api.Assertions.assertEquals;
    * <p>
    * public class Example {
    * public static void main(String... args) throws Exception {
@@ -215,7 +215,7 @@ public abstract class ReactorRatpack {
    * import ratpack.exec.Promise;
    * import ratpack.test.exec.ExecHarness;
    * <p>
-   * import public static org.junit.Assert.assertEquals;
+   * import public static org.junit.jupiter.api.Assertions.assertEquals;
    * <p>
    * public class Example {
    * public static String value;
@@ -253,7 +253,7 @@ public abstract class ReactorRatpack {
    * import reactor.core.publisher.flux;
    * import java.util.List;
    * import java.util.Arrays;
-   * import public static org.junit.Assert.assertEquals;
+   * import public static org.junit.jupiter.api.Assertions.assertEquals;
    * <p>
    * public class Example {
    * public static class AsyncService {
@@ -306,7 +306,7 @@ public abstract class ReactorRatpack {
    * import ratpack.reactor.ReactorRatpack;
    * import ratpack.test.exec.ExecHarness;
    * import reactor.core.publisher.Mono;
-   * import public static org.junit.Assert.assertEquals;
+   * import public static org.junit.jupiter.api.Assertions.assertEquals;
    * <p>
    * public class Example {
    * public static class AsyncService {
@@ -334,7 +334,7 @@ public abstract class ReactorRatpack {
    * import ratpack.reactor.ReactorRatpack;
    * import ratpack.test.exec.ExecHarness;
    * import reactor.core.publisher.Flux;
-   * import public static org.junit.Assert.assertEquals;
+   * import public static org.junit.jupiter.api.Assertions.assertEquals;
    * <p>
    * public class Example {
    * public static void main(String[] args) throws Throwable {
@@ -375,7 +375,7 @@ public abstract class ReactorRatpack {
    * import ratpack.test.exec.ExecHarness;
    * import reactor.core.publisher.Flux;
    * import java.util.List;
-   * import public static org.junit.Assert.assertEquals;
+   * import public static org.junit.jupiter.api.Assertions.assertEquals;
    * <p>
    * public class Example {
    * public static class AsyncService {
@@ -467,7 +467,7 @@ public abstract class ReactorRatpack {
    * <p>
    * import reactor.core.publisher.Flux;
    * <p>
-   * import public static org.junit.Assert.assertEquals;
+   * import public static org.junit.jupiter.api.Assertions.assertEquals;
    * import public static org.junit.Assert.assertNotEquals;
    * <p>
    * public class Example {
@@ -525,7 +525,7 @@ public abstract class ReactorRatpack {
    * <p>
    * import reactor.core.publisher.Flux;
    * <p>
-   * import public static org.junit.Assert.assertEquals;
+   * import public static org.junit.jupiter.api.Assertions.assertEquals;
    * <p>
    * public class Example {
    * public static void main(String[] args) throws Exception {
@@ -581,7 +581,7 @@ public abstract class ReactorRatpack {
    * import java.util.Collections;
    * import java.util.concurrent.CyclicBarrier;
    * <p>
-   * import public static org.junit.Assert.assertEquals;
+   * import public static org.junit.jupiter.api.Assertions.assertEquals;
    * <p>
    * public class Example {
    * public static void main(String[] args) throws Exception {

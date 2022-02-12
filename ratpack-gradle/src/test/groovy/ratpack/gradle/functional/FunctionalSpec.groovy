@@ -22,17 +22,17 @@ import org.gradle.testfixtures.ProjectBuilder
 import org.gradle.testkit.runner.BuildResult
 import org.gradle.testkit.runner.GradleRunner
 import org.gradle.testkit.runner.internal.DefaultGradleRunner
-import org.junit.Rule
-import org.junit.rules.TemporaryFolder
 import spock.lang.Specification
+import spock.lang.TempDir
 import spock.util.concurrent.PollingConditions
 
 import java.util.concurrent.CountDownLatch
 import java.util.concurrent.TimeUnit
 
 abstract class FunctionalSpec extends Specification {
-  @Rule
-  TemporaryFolder dir
+
+  @TempDir
+  File dir
 
   String gradleVersion
 
@@ -48,10 +48,10 @@ abstract class FunctionalSpec extends Specification {
     loggingBuffer.reset()
     def runner = (GradleRunner.create() as DefaultGradleRunner)
       .withJvmArguments("-Xmx256m")
-      .withProjectDir(dir.root)
+      .withProjectDir(dir)
       .forwardStdOutput(new OutputStreamWriter(new TeeOutputStream(loggingBuffer, System.out)))
       .forwardStdError(new OutputStreamWriter(new TeeOutputStream(loggingBuffer, System.err)))
-      .withTestKitDir(uniqueDaemon ? new File(dir.root, "testkit") : getTestKitDir())
+      .withTestKitDir(uniqueDaemon ? new File(dir, "testkit") : getTestKitDir())
       .withArguments(args.toList() + ["-g", getTestKitDir().absolutePath])
 
     if (gradleVersion) {
@@ -84,17 +84,13 @@ abstract class FunctionalSpec extends Specification {
   File makeFile(String path) {
     def f = file(path)
     if (!f.exists()) {
-      def parts = path.split("/")
-      if (parts.size() > 1) {
-        dir.newFolder(*parts[0..-2])
-      }
-      dir.newFile(path)
+      f.createNewFile()
     }
     f
   }
 
   File file(String path) {
-    def file = new File(dir.root, path)
+    def file = new File(dir, path)
     assert file.parentFile.mkdirs() || file.parentFile.exists()
     file
   }
@@ -152,12 +148,12 @@ abstract class FunctionalSpec extends Specification {
 
   def cleanup() {
     if (uniqueDaemon) {
-      new File(dir.root, ".stopgradle").createNewFile()
+      new File(dir, ".stopgradle").createNewFile()
     }
   }
 
   def unzip(File source, File destination) {
-    def project = ProjectBuilder.builder().withProjectDir(dir.root).build()
+    def project = ProjectBuilder.builder().withProjectDir(dir).build()
     project.copy {
       from project.zipTree(source)
       into destination

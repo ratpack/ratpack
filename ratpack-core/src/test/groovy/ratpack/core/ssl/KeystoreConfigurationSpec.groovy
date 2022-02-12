@@ -16,18 +16,19 @@
 
 package ratpack.core.ssl
 
-import org.junit.Rule
-import org.junit.rules.TemporaryFolder
 import ratpack.core.server.ServerConfig
 import ratpack.test.internal.BaseRatpackSpec
+import ratpack.test.internal.spock.TempDir
+import ratpack.test.internal.spock.TemporaryFolder
 import spock.lang.Ignore
 
 @Ignore("TODO - john")
+// TODO
 class KeystoreConfigurationSpec extends BaseRatpackSpec {
 
   private static final String KEYSTORE_PATH = "ratpack/ssl/dummy.keystore"
 
-  @Rule
+  @TempDir
   TemporaryFolder temporaryFolder
 
   def "can configure SSL keystore using a keystore file property that is #description"() {

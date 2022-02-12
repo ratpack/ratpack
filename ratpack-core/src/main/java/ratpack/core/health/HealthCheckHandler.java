@@ -37,7 +37,7 @@ import java.util.Optional;
  * import ratpack.core.health.HealthCheckHandler;
  * import ratpack.test.embed.EmbeddedApp;
  *
- * import static org.junit.Assert.*;
+ * import static org.junit.jupiter.api.Assertions.*;
  *
  * public class Example {
  *

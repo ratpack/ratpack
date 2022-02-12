@@ -17,8 +17,6 @@
 package ratpack.test.internal
 
 import io.netty.util.CharsetUtil
-import org.junit.Rule
-import org.junit.rules.TemporaryFolder
 import ratpack.core.error.ServerErrorHandler
 import ratpack.core.error.internal.DefaultDevelopmentErrorHandler
 import ratpack.groovy.handling.GroovyChain
@@ -26,13 +24,15 @@ import ratpack.groovy.test.embed.GroovyEmbeddedApp
 import ratpack.core.http.client.RequestSpec
 import ratpack.test.embed.EmbeddedApp
 import ratpack.test.http.TestHttpClient
+import ratpack.test.internal.spock.TempDir
+import ratpack.test.internal.spock.TemporaryFolder
 import spock.lang.AutoCleanup
 
 import java.nio.charset.Charset
 
 abstract class EmbeddedRatpackSpec extends BaseRatpackSpec {
 
-  @Rule
+  @TempDir
   TemporaryFolder temporaryFolder
 
   @Delegate

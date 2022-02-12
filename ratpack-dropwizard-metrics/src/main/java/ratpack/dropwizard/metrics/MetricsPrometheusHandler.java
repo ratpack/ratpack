@@ -34,7 +34,7 @@ import java.io.Writer;
  * This handler should be bound to an application path, and most likely only for the GET method…
  * <pre class="java-chain-dsl">
  * import ratpack.dropwizard.metrics.MetricsPrometheusHandler;
- * import static org.junit.Assert.*;
+ * import static org.junit.jupiter.api.Assertions.*;
  *
  * assertTrue(chain instanceof ratpack.core.handling.Chain);
  * chain.get("admin/metrics", new MetricsPrometheusHandler());

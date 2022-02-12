@@ -201,7 +201,7 @@ public abstract class Gson {
    * import java.util.Arrays;
    *
    * import static ratpack.gson.Gson.chunkedJsonList;
-   * import static org.junit.Assert.*;
+   * import static org.junit.jupiter.api.Assertions.*;
    *
    * public class Example {
    *   public static void main(String... args) throws Exception {
@@ -315,7 +315,7 @@ public abstract class Gson {
    *
    * import static ratpack.gson.Gson.toJson;
    * import static java.util.Collections.singletonMap;
-   * import static org.junit.Assert.*;
+   * import static org.junit.jupiter.api.Assertions.*;
    *
    * public class Example {
    *   public static void main(String... args) throws Exception {

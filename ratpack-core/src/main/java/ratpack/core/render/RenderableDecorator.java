@@ -41,7 +41,7 @@ import java.util.function.BiFunction;
  * import ratpack.core.render.Renderer;
  * import ratpack.core.render.RenderableDecorator;
  *
- * import static org.junit.Assert.*;
+ * import static org.junit.jupiter.api.Assertions.*;
  *
  * public class Example {
  *   public static void main(String... args) throws Exception {
