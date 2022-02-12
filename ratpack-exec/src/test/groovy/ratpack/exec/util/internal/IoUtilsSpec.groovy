@@ -18,9 +18,9 @@ package ratpack.exec.util.internal
 
 import com.google.common.collect.ImmutableMap
 import io.netty.buffer.ByteBufAllocator
-import org.junit.Rule
-import org.junit.rules.TemporaryFolder
 import ratpack.test.internal.BaseRatpackSpec
+import ratpack.test.internal.spock.TempDir
+import ratpack.test.internal.spock.TemporaryFolder
 
 import java.nio.charset.StandardCharsets
 import java.nio.file.FileSystems
@@ -30,7 +30,7 @@ import java.util.zip.ZipOutputStream
 class IoUtilsSpec extends BaseRatpackSpec {
   private final ByteBufAllocator allocator = ByteBufAllocator.DEFAULT
 
-  @Rule
+  @TempDir
   TemporaryFolder temporaryFolder
 
   def "doesn't require write-access to directory containing a zipped resource"() {

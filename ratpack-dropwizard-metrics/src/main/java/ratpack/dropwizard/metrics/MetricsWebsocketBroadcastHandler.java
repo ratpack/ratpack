@@ -32,7 +32,7 @@ import static ratpack.core.websocket.WebSockets.websocketByteBufBroadcast;
  * This handler should be bound to an application path, and most likely only for the GET method…
  * <pre class="java-chain-dsl">
  * import ratpack.dropwizard.metrics.MetricsWebsocketBroadcastHandler;
- * import static org.junit.Assert.*;
+ * import static org.junit.jupiter.api.Assertions.*;
  *
  * assertTrue(chain instanceof ratpack.core.handling.Chain);
  * chain.get("admin/metrics", new MetricsWebsocketBroadcastHandler());

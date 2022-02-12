@@ -17,7 +17,7 @@
 package ratpack.test.internal.testname;
 
 import org.spockframework.runtime.IRunListener;
-import org.spockframework.runtime.extension.AbstractAnnotationDrivenExtension;
+import org.spockframework.runtime.extension.IAnnotationDrivenExtension;
 import org.spockframework.runtime.model.ErrorInfo;
 import org.spockframework.runtime.model.FeatureInfo;
 import org.spockframework.runtime.model.IterationInfo;
@@ -25,7 +25,7 @@ import org.spockframework.runtime.model.SpecInfo;
 
 import java.util.Optional;
 
-public final class TrackCurrentTestNameExtension extends AbstractAnnotationDrivenExtension<TrackCurrentTestName> {
+public final class TrackCurrentTestNameExtension implements IAnnotationDrivenExtension<TrackCurrentTestName> {
 
     @Override
     public void visitSpecAnnotation(TrackCurrentTestName unroll, SpecInfo spec) {

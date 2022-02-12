@@ -12,7 +12,7 @@ Files from the base dir can be served, using the [`Chain.files()`](api/ratpack/c
 import ratpack.test.embed.EmbeddedApp;
 import ratpack.test.embed.EphemeralBaseDir;
 
-import static org.junit.Assert.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 public class Example {
   public static void main(String... args) throws Exception {
@@ -52,7 +52,7 @@ Individual files can be served by using the [`Context.file()`](api/ratpack/core/
 import ratpack.test.embed.EmbeddedApp;
 import ratpack.test.embed.EphemeralBaseDir;
 
-import static org.junit.Assert.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 public class Example {
   public static void main(String... args) throws Exception {

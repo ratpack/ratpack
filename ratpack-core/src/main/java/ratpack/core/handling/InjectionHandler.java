@@ -47,7 +47,7 @@ import static ratpack.func.Exceptions.uncheck;
  * import ratpack.core.handling.InjectionHandler;
  * import ratpack.test.embed.EmbeddedApp;
  *
- * import static org.junit.Assert.assertEquals;
+ * import static org.junit.jupiter.api.Assertions.assertEquals;
  *
  * public class Example {
  *
@@ -93,7 +93,7 @@ import static ratpack.func.Exceptions.uncheck;
  * import ratpack.core.handling.InjectionHandler;
  * import ratpack.test.embed.EmbeddedApp;
  *
- * import static org.junit.Assert.assertEquals;
+ * import static org.junit.jupiter.api.Assertions.assertEquals;
  *
  * import java.util.Optional;
  *

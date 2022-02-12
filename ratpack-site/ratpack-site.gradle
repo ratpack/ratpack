@@ -160,7 +160,7 @@ dependencies {
   testImplementation 'org.jsoup:jsoup:1.8.1'
   latestManual isHeroku ? "io.ratpack:ratpack-manual:$version" : project(path: ":ratpack-manual", configuration: "zip")
 
-  browserTestImplementation("org.gebish:geb-spock:2.1") {
+  browserTestImplementation("org.gebish:geb-spock:4.1") {
     exclude group: "org.codehaus.groovy", module: "groovy-all"
     exclude group: "junit", module: "junit"
   }
@@ -268,6 +268,7 @@ processTestResources.dependsOn writeTestConfig
 
 processResources {
   inputs.files configurations.latestManual
+  duplicatesStrategy(DuplicatesStrategy.EXCLUDE)
   into "manual/" + version - "-SNAPSHOT", {
     from { zipTree(configurations.latestManual.singleFile) }
   }
@@ -316,7 +317,7 @@ distributions.main.contents {
 
 distTar {
   compression = Compression.GZIP
-  version = null
+  archiveVersion.set(null)
 }
 
 run.ext.set("ratpack.flattenClassloaders", true)

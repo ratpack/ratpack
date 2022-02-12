@@ -12,7 +12,7 @@ Just like the Ratpack server, the `HttpClient` also uses Netty under the hood an
 import ratpack.core.http.client.HttpClient;
 import ratpack.test.embed.EmbeddedApp;
 
-import static org.junit.Assert.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 public class Example {
   public static void main(String... args) throws Exception {

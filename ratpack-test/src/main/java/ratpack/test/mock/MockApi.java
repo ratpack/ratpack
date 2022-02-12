@@ -36,7 +36,7 @@ import ratpack.func.Exceptions;
  * import ratpack.test.handling.HandlerFactory;
  * import ratpack.test.mock.MockApi;
  *
- * import static org.junit.Assert.assertEquals;
+ * import static org.junit.jupiter.api.Assertions.assertEquals;
  *
  * public class Example {
  *   public static void main(String... args) throws Exception {

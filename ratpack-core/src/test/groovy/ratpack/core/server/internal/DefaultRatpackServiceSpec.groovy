@@ -17,16 +17,16 @@
 package ratpack.core.server.internal
 
 import com.google.common.base.StandardSystemProperty
-import org.junit.Rule
-import org.junit.rules.TemporaryFolder
 import ratpack.core.server.RatpackServer
 import ratpack.core.server.ServerConfig
 import ratpack.test.internal.BaseRatpackSpec
+import ratpack.test.internal.spock.TempDir
+import ratpack.test.internal.spock.TemporaryFolder
 import spock.lang.IgnoreIf
 
 class DefaultRatpackServiceSpec extends BaseRatpackSpec {
 
-  @Rule
+  @TempDir
   TemporaryFolder temporaryFolder
 
   @IgnoreIf({ StandardSystemProperty.OS_NAME.value().startsWith("Windows") })

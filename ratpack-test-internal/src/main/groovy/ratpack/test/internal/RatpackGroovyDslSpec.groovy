@@ -37,7 +37,11 @@ abstract class RatpackGroovyDslSpec extends EmbeddedBaseDirRatpackSpec {
   protected Injector parentInjector
 
   @Delegate
-  final EmbeddedApp application = createApplication()
+  final EmbeddedApp internalApp = createApplication()
+
+  EmbeddedApp getApplication() {
+    return internalApp
+  }
 
   protected EmbeddedApp createApplication() {
     fromServer {

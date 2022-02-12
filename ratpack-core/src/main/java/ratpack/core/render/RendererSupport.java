@@ -36,7 +36,7 @@ import java.util.Arrays;
  * import ratpack.core.render.RendererSupport;
  * import ratpack.test.embed.EmbeddedApp;
  *
- * import static org.junit.Assert.assertEquals;
+ * import static org.junit.jupiter.api.Assertions.assertEquals;
  *
  * public class Example {
  *

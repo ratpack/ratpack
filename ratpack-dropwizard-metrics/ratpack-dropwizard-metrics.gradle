@@ -50,4 +50,5 @@ dependencies {
   implementation("io.prometheus:simpleclient_dropwizard:${commonVersions.prometheusClient}") {
     exclude group: "io.dropwizard.metrics", module: "metrics-core"
   }
+  testImplementation "org.codehaus.groovy:groovy-json:${commonVersions.groovy}"
 }

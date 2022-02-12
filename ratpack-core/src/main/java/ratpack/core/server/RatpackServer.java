@@ -35,7 +35,7 @@ import java.util.Optional;
  * import ratpack.core.server.ServerConfig;
  *
  * import ratpack.test.ServerBackedApplicationUnderTest;
- * import static org.junit.Assert.*;
+ * import static org.junit.jupiter.api.Assertions.*;
  *
  * public class Example {
  *   public static void main(String... args) throws Exception {
@@ -169,7 +169,7 @@ public interface RatpackServer {
    * <pre>{@code
    * import ratpack.core.server.RatpackServer;
    * import ratpack.test.ApplicationUnderTest;
-   * import static org.junit.Assert.*;
+   * import static org.junit.jupiter.api.Assertions.*;
    *
    * public class Example {
    *   public static void main(String... args) throws Exception {

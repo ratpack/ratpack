@@ -39,7 +39,7 @@ import java.time.Duration;
  * import ratpack.test.embed.EmbeddedApp;
  *
  * import java.net.URI;
- * import static org.junit.Assert.*;
+ * import static org.junit.jupiter.api.Assertions.*;
  *
  * public class ExampleHttpClient {
  *

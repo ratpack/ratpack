@@ -42,7 +42,7 @@ abstract class AbstractJavadocCodeSnippetTests extends CodeSnippetTestCase {
   abstract String getProjectName()
 
   @Override
-  protected void addTests(CodeSnippetTests tests) {
+  protected Collection<TestCodeSnippet> registerTests() {
     File cwd = new File(StandardSystemProperty.USER_DIR.value())
     File root
     if (new File(cwd, "${projectName}.gradle").exists()) {
@@ -53,10 +53,8 @@ abstract class AbstractJavadocCodeSnippetTests extends CodeSnippetTestCase {
 
     def mainSrc = new File(root, "src/main")
     if (mainSrc.exists()) {
-      FIXTURES.each { selector, executer ->
-        JavadocSnippetExtractor.extract(mainSrc, "**/*.java", selector, executer).each {
-          tests.add(it)
-        }
+      FIXTURES.collectMany { selector, executer ->
+        JavadocSnippetExtractor.extract(mainSrc, "**/*.java", selector, executer)
       }
     }
   }

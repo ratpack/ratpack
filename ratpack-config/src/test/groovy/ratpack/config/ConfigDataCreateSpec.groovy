@@ -19,14 +19,14 @@ package ratpack.config
 import com.google.common.base.Charsets
 import com.google.common.io.ByteSource
 import groovy.transform.Canonical
-import org.junit.Rule
-import org.junit.rules.TemporaryFolder
 import ratpack.core.server.ServerConfig
 import ratpack.core.server.internal.ServerConfigData
 import ratpack.core.service.Service
 import ratpack.core.service.StartEvent
 import ratpack.func.Action
 import ratpack.test.internal.RatpackGroovyDslSpec
+import ratpack.test.internal.spock.TempDir
+import ratpack.test.internal.spock.TemporaryFolder
 import spock.util.concurrent.PollingConditions
 
 import java.nio.file.Files
@@ -38,7 +38,7 @@ class ConfigDataCreateSpec extends RatpackGroovyDslSpec {
   @SuppressWarnings("GroovyUnusedDeclaration")
   PollingConditions polling = new PollingConditions()
 
-  @Rule
+  @TempDir
   TemporaryFolder temporaryFolder
 
   def "supports initially null children config objects"() {

@@ -34,10 +34,11 @@ public interface ExecSpec {
    * <p>
    * The given action will be invoked with any exceptions that are thrown and not handled.
    * <pre class="java">{@code
-   * import org.junit.Assert;
    * import ratpack.exec.Execution;
    * import ratpack.exec.Promise;
    * import ratpack.test.exec.ExecHarness;
+   *
+   * import static org.junit.jupiter.api.Assertions.assertEquals;
    *
    * public class Example {
    *   public static void main(String... args) throws Exception {
@@ -50,7 +51,7 @@ public interface ExecSpec {
    *           )
    *     )).getValue();
    *
-   *     Assert.assertEquals("global error handler", value);
+   *     assertEquals(value, "global error handler");
    *   }
    * }
    * }</pre>
