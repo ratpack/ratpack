@@ -20,6 +20,6 @@ apply from: "$rootDir/gradle/javaModule.gradle"
 
 dependencies {
   api project(":ratpack-session")
-  api "com.esotericsoftware.kryo:kryo5:5.1.0"
+  api "com.esotericsoftware.kryo:kryo5:5.3.0"
   testImplementation testFixtures(project(":ratpack-session"))
 }
