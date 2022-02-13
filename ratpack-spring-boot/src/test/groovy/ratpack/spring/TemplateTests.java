@@ -23,9 +23,8 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
-import org.springframework.boot.test.IntegrationTest;
-import org.springframework.boot.test.SpringApplicationConfiguration;
-import org.springframework.boot.test.TestRestTemplate;
+import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.test.web.client.TestRestTemplate;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
@@ -34,13 +33,11 @@ import ratpack.groovy.template.TextTemplateModule;
 import ratpack.core.handling.Context;
 import ratpack.core.handling.Handler;
 import ratpack.core.server.RatpackServer;
-import ratpack.spring.TemplateTests.Application;
 import ratpack.spring.config.EnableRatpack;
 import ratpack.spring.config.RatpackProperties;
 
 @ExtendWith(SpringExtension.class)
-@SpringApplicationConfiguration(classes = Application.class)
-@IntegrationTest("server.port=0")
+@SpringBootTest(webEnvironment= SpringBootTest.WebEnvironment.RANDOM_PORT)
 public class TemplateTests {
 
   private TestRestTemplate restTemplate = new TestRestTemplate();

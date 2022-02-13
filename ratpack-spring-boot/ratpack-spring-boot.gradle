@@ -29,5 +29,6 @@ dependencies {
   api "org.springframework.boot:spring-boot-autoconfigure:$commonVersions.springBoot"
   testImplementation "org.springframework:spring-web:5.3.15"
   testImplementation "org.springframework:spring-test:5.3.15"
+  testImplementation "org.springframework.boot:spring-boot-test:$commonVersions.springBoot"
   testImplementation project(":ratpack-groovy")
 }
