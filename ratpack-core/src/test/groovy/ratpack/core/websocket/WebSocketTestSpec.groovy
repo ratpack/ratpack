@@ -16,6 +16,7 @@
 
 package ratpack.core.websocket
 
+import org.java_websocket.enums.Opcode
 import org.java_websocket.framing.Framedata
 import org.reactivestreams.Publisher
 import org.reactivestreams.Subscriber
@@ -303,7 +304,7 @@ class WebSocketTestSpec extends RatpackGroovyDslSpec {
     client.sendPing()
 
     then:
-    client.receivedFragments.poll(5, TimeUnit.SECONDS).opcode == Framedata.Opcode.PONG
+    client.receivedFragments.poll(5, TimeUnit.SECONDS).opcode == Opcode.PONG
 
     cleanup:
     client.close()
