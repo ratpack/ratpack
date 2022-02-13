@@ -17,7 +17,6 @@
 package ratpack.core.websocket
 
 import org.java_websocket.enums.Opcode
-import org.java_websocket.framing.Framedata
 import org.reactivestreams.Publisher
 import org.reactivestreams.Subscriber
 import ratpack.exec.ExecController
