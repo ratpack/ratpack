@@ -59,7 +59,7 @@ public interface EphemeralBaseDir extends AutoCloseable {
     return dir(
       Exceptions.uncheck(() ->
           Files.createTempDirectory("ratpack", PosixFilePermissions.asFileAttribute(
-            PosixFilePermissions.fromString("rw-------")
+            PosixFilePermissions.fromString("rwx------")
           ))
       )
     );
