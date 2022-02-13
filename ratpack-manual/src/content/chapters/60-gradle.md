@@ -72,7 +72,7 @@ repositories {
 }
 
 dependencies {
-  compile ratpack.dependency("dropwizard-metrics")
+  implementation ratpack.dependency("dropwizard-metrics")
 }
 ```
 

@@ -384,3 +384,5 @@ configurations.create("zip")
 artifacts {
   zip manualZip
 }
+
+tasks.test.inputs.dir file("src/content")
