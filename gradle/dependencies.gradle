@@ -19,7 +19,7 @@ ext {
     slf4j            : "1.7.36",
     netty            : "4.1.73.Final",
     nettyTCNative    : "2.0.48.Final",
-    guava            : "31.0.1-jre", //29.0-jre
+    guava            : "31.0.1-jre",
     groovy           : "2.5.4",
     rxjava2          : "2.2.21",
     reactor          : "3.4.14",
@@ -30,7 +30,7 @@ ext {
     log4j            : "2.17.1",
     newrelic         : "5.13.0",
     reactiveStreams  : "1.0.3",
-    guice            : "5.1.0", //4.2.3
+    guice            : "5.1.0",
     springBoot       : "2.6.3",
     caffeine         : "3.0.5",
     retrofit         : "2.9.0",
@@ -86,7 +86,7 @@ ext {
     reactorTest: "io.projectreactor:reactor-test:${commonVersions.reactor}",
     jackson    : "com.fasterxml.jackson.core:jackson-databind:${commonVersions.jackson}",
     slf4j      : "org.slf4j:slf4j-api:${commonVersions.slf4j}",
-    h2         : "com.h2database:h2:2.1.210", //1.4.197
+    h2         : "com.h2database:h2:2.1.210",
     toolingApi : dependencies.create("org.gradle:gradle-tooling-api:${gradle.gradleVersion}", {
       exclude group: "org.slf4j", module: "slf4j-api"
     }),

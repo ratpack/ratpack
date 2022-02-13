@@ -21,6 +21,9 @@ dependencies {
   api commonDependencies.spock
   api 'org.java-websocket:Java-WebSocket:1.5.2'
   api "org.junit.jupiter:junit-jupiter-api:5.8.2"
+  api("org.apiguardian:apiguardian-api:1.1.2") {
+    because "Needed after upgrading to junit-jupiter-api:5.8.2, otherwise javadoc snippet tests fail. Somehow related to https://github.com/junit-team/junit5/issues/1104"
+  }
   implementation 'cglib:cglib-nodep:3.3.0'
   implementation commonDependencies.commonsLang3
   implementation "org.apache.commons:commons-text:1.9"
