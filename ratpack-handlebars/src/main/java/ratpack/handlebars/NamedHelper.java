@@ -66,6 +66,8 @@ import com.github.jknack.handlebars.Helper;
  *   }
  * }
  * }</pre>
+ *
+ * @param <T> The context object type.
  */
 public interface NamedHelper<T> extends Helper<T> {
   String getName();

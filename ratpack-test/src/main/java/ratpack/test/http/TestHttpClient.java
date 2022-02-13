@@ -58,17 +58,22 @@ public interface TestHttpClient {
   }
 
   /**
+   * Retrieves the application under test that is bound to this client.
+   *
    * @return the application requests are being made against
    */
   ApplicationUnderTest getApplicationUnderTest();
 
   /**
+   * Configure the settings for outgoing requests from this client.
+   *
    * @param requestAction an {@link Action} that will act on the {@link RequestSpec} this is used to configure details of the next request
    * @return this
    */
   TestHttpClient requestSpec(Action<? super RequestSpec> requestAction);
 
   /**
+   * Specify query parameters to be included with outgoing requests from this client.
    *
    * @param params the params that will be used with the HttpUrlBuilder passed into {@link HttpUrlBuilder#params(Action)}
    * @return this
@@ -81,6 +86,8 @@ public interface TestHttpClient {
   void resetRequest();
 
   /**
+   * Retrieve the response from the last request made by this client.
+   *
    * @return the response from the last request sent
    */
   ReceivedResponse getResponse();
