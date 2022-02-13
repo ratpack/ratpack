@@ -20,10 +20,10 @@ apply from: "$rootDir/gradle/javaModule.gradle"
 
 dependencies {
   api project(":ratpack-guice")
-  api('org.thymeleaf:thymeleaf:3.0.9.RELEASE') {
+  api('org.thymeleaf:thymeleaf:3.0.15.RELEASE') {
     exclude group: 'org.slf4j', module: 'slf4j-api'
     exclude group: 'org.javassist', module: 'javassist'
   }
-  implementation 'javax.servlet:javax.servlet-api:3.1.0'
+  implementation 'javax.servlet:javax.servlet-api:4.0.1'
   runtimeOnly commonDependencies.slf4j
 }

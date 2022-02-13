@@ -122,7 +122,7 @@ public class ServerSentEventStreamBuffer implements Publisher<ByteBuf> {
 
       @Override
       protected boolean shouldFlush() {
-        return (!isEmpty() && needsFlush) || super.shouldFlush();
+        return !isEmpty() && needsFlush || super.shouldFlush();
       }
 
       @Override

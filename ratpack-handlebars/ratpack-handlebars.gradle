@@ -20,7 +20,7 @@ description = "Support for Handlebars server side template rendering in Ratpack 
 
 dependencies {
   api project(":ratpack-guice")
-  api('com.github.jknack:handlebars:4.1.2') {
+  api('com.github.jknack:handlebars:4.3.0') {
     exclude group: "org.slf4j", module: "slf4j-api"
     exclude group: "org.apache.commons", module: "commons-lang3"
   }

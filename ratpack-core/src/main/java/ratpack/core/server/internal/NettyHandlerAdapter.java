@@ -136,7 +136,7 @@ public class NettyHandlerAdapter extends ChannelInboundHandlerAdapter {
     String transferEncoding = requestHeaders.get(HttpHeaderNames.TRANSFER_ENCODING);
 
     //If there is a content length or transfer encoding that indicates there is a body
-    boolean hasBody = (contentLength > 0) || (transferEncoding != null);
+    boolean hasBody = contentLength > 0 || transferEncoding != null;
 
     RequestBody requestBody = hasBody ? new RequestBody(contentLength, nettyRequest, ctx) : null;
 

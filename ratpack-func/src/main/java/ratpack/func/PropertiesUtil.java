@@ -28,7 +28,7 @@ public class PropertiesUtil {
   }
 
   public static boolean flatEquals(Properties a, Properties b) {
-    return (a == b) || (a != null && flatten(a).equals(flatten(b)));
+    return a == b || a != null && flatten(a).equals(flatten(b));
   }
 
   private static Map<String, String> flatten(Properties properties) {

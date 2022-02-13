@@ -353,7 +353,7 @@ public class DefaultResponse implements Response {
 
   private boolean mustNotHaveBody() {
     int code = status.getCode();
-    return (code >= 100 && code < 200) || code == 204 || code == 304;
+    return code >= 100 && code < 200 || code == 204 || code == 304;
   }
 
   private void finalizeResponse(Runnable then, Consumer<? super RuntimeException> onError) {

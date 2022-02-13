@@ -28,6 +28,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardOpenOption;
 import java.nio.file.attribute.FileTime;
+import java.nio.file.attribute.PosixFilePermissions;
 
 /**
  * A helper for creating a base dir programmatically, typically at test time.
@@ -55,7 +56,13 @@ public interface EphemeralBaseDir extends AutoCloseable {
    * @return a new embedded base dir
    */
   static EphemeralBaseDir tmpDir() {
-    return dir(com.google.common.io.Files.createTempDir());
+    return dir(
+      Exceptions.uncheck(() ->
+          Files.createTempDirectory("ratpack", PosixFilePermissions.asFileAttribute(
+            PosixFilePermissions.fromString("rw-------")
+          ))
+      )
+    );
   }
 
   /**
@@ -67,6 +74,18 @@ public interface EphemeralBaseDir extends AutoCloseable {
    * @return a new embedded base dir
    */
   static EphemeralBaseDir dir(File dir) {
+    return new PathEphemeralBaseDir(dir);
+  }
+
+  /**
+   * Creates a new base dir, using the given dir as the root.
+   * <p>
+   * <b>Note:</b> if the returned base dir is closed, the given dir will be deleted.
+   *
+   * @param dir the base dir root
+   * @return a new embedded base dir
+   */
+  static EphemeralBaseDir dir(Path dir) {
     return new PathEphemeralBaseDir(dir);
   }
 

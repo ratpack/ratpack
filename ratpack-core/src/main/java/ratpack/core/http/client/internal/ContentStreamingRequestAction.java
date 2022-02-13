@@ -90,7 +90,7 @@ public class ContentStreamingRequestAction extends RequestActionSupport<Streamed
         this.response = (HttpResponse) httpObject;
 
         int code = response.status().code();
-        if ((code >= 100 && code < 200) || code == 204) {
+        if (code >= 100 && code < 200 || code == 204) {
           response.headers().remove(HttpHeaderNames.CONTENT_LENGTH);
         }
 

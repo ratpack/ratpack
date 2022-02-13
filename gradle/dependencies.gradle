@@ -16,30 +16,30 @@
 
 ext {
   commonVersions = [
-    slf4j            : "1.7.32",
+    slf4j            : "1.7.36",
     netty            : "4.1.73.Final",
     nettyTCNative    : "2.0.48.Final",
-    guava            : "29.0-jre",
+    guava            : "31.0.1-jre", //29.0-jre
     groovy           : "2.5.4",
-    rxjava2          : "2.2.19",
-    reactor          : "3.3.7.RELEASE",
-    jackson          : "2.11.1",
-    dropwizardMetrics: "4.1.9",
+    rxjava2          : "2.2.21",
+    reactor          : "3.4.14",
+    jackson          : "2.13.1",
+    dropwizardMetrics: "4.2.8",
     pegdown          : "1.6.0",
     spock            : "2.0-groovy-2.5",
     log4j            : "2.17.1",
     newrelic         : "5.13.0",
     reactiveStreams  : "1.0.3",
-    guice            : "4.2.3",
+    guice            : "5.1.0", //4.2.3
     springBoot       : "2.6.3",
-    caffeine         : "2.8.8",
+    caffeine         : "3.0.5",
     retrofit         : "2.9.0",
     commonsLogging   : "1.2",
     commonsCodec     : "1.14",
-    snakeyaml        : "1.27",
-    prometheusClient : "0.2.0",
+    snakeyaml        : "1.30",
+    prometheusClient : "0.15.0",
     shadow           : "5.2.0",
-    commonsLang3     : "3.10"
+    commonsLang3     : "3.12.0"
   ]
 
   if (System.getenv('CI_GROOVY_VERSION')) {
@@ -86,7 +86,7 @@ ext {
     reactorTest: "io.projectreactor:reactor-test:${commonVersions.reactor}",
     jackson    : "com.fasterxml.jackson.core:jackson-databind:${commonVersions.jackson}",
     slf4j      : "org.slf4j:slf4j-api:${commonVersions.slf4j}",
-    h2         : "com.h2database:h2:1.4.197",
+    h2         : "com.h2database:h2:2.1.210", //1.4.197
     toolingApi : dependencies.create("org.gradle:gradle-tooling-api:${gradle.gradleVersion}", {
       exclude group: "org.slf4j", module: "slf4j-api"
     }),

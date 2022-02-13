@@ -20,7 +20,7 @@ apply from: "$rootDir/gradle/javaModule.gradle"
 
 dependencies {
   api project(":ratpack-core")
-  api 'com.orbitz.consul:consul-client:1.4.2', {
+  api 'com.orbitz.consul:consul-client:1.5.3', {
     exclude group: "com.google.guava", module: "guava"
     exclude group: "org.slf4j", module: "slf4j-api"
     exclude group: "com.fasterxml.jackson.core", module: "jackson-core"

@@ -32,7 +32,7 @@ buildscript {
     classpath "io.freefair.gradle:jsass-plugin:5.3.0"
     // Use the master version of gradle-js-plugin since it fixes a Gradle 6 deprecation (from JitPack.io)
     classpath "com.github.eriwen:gradle-js-plugin:d15f4ae"
-    classpath "com.google.javascript:closure-compiler:v20150315"
+    classpath "com.google.javascript:closure-compiler:v20220202" //v20150315
   }
 }
 
@@ -152,19 +152,19 @@ dependencies {
   }
   runtimeOnly "org.apache.logging.log4j:log4j-api:${commonVersions.log4j}"
   runtimeOnly "org.apache.logging.log4j:log4j-core:${commonVersions.log4j}"
-  runtimeOnly 'com.lmax:disruptor:3.4.2'
+  runtimeOnly 'com.lmax:disruptor:3.4.4'
 
   testImplementation project(":ratpack-groovy-test")
   testImplementation project(":ratpack-test-internal")
   testImplementation commonDependencies.spock
-  testImplementation 'org.jsoup:jsoup:1.8.1'
+  testImplementation 'org.jsoup:jsoup:1.14.3'
   latestManual isHeroku ? "io.ratpack:ratpack-manual:$version" : project(path: ":ratpack-manual", configuration: "zip")
 
-  browserTestImplementation("org.gebish:geb-spock:4.1") {
+  browserTestImplementation("org.gebish:geb-spock:5.1") {
     exclude group: "org.codehaus.groovy", module: "groovy-all"
     exclude group: "junit", module: "junit"
   }
-  browserTestImplementation "org.seleniumhq.selenium:selenium-chrome-driver:2.45.0", {
+  browserTestImplementation "org.seleniumhq.selenium:selenium-chrome-driver:4.1.2", {
     exclude module: 'guava'
     exclude group: "cglib", module: "cglib-nodep"
   }

@@ -32,7 +32,7 @@
         </module>
 
         <module name="JavadocMethod">
-            <property name="scope" value="package"/>
+            <property name="accessModifiers" value="package"/>
         </module>
 
     </module>

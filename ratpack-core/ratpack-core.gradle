@@ -63,10 +63,10 @@ dependencies {
 
   testImplementation commonDependencies.commonsLang3
 
-  testImplementation('com.opencsv:opencsv:3.3') {
+  testImplementation('com.opencsv:opencsv:5.5.2') {
     exclude group: "org.apache.commons", module: "commons-lang3"
   }
-  testImplementation('com.github.tomakehurst:wiremock:1.56') {
+  testImplementation('com.github.tomakehurst:wiremock:2.27.2') {
     exclude group: "org.slf4j", module: "slf4j-api"
     exclude group: "com.fasterxml.jackson.core", module: "jackson-annotations"
     exclude group: "com.fasterxml.jackson.core", module: "jackson-core"

@@ -27,6 +27,7 @@ import java.util.Map;
 import java.util.Set;
 
 public class ThymeleafServletContextAdapter implements ServletContext {
+
   @Override
   public String getContextPath() {
     throw new UnsupportedOperationException("Not implemented");
@@ -187,6 +188,11 @@ public class ThymeleafServletContextAdapter implements ServletContext {
   }
 
   @Override
+  public ServletRegistration.Dynamic addJspFile(String servletName, String jspFile) {
+    throw new UnsupportedOperationException("Not implemented");
+  }
+
+  @Override
   public <T extends Servlet> T createServlet(Class<T> clazz) throws ServletException {
     throw new UnsupportedOperationException("Not implemented");
   }
@@ -290,4 +296,35 @@ public class ThymeleafServletContextAdapter implements ServletContext {
   public String getVirtualServerName() {
     throw new UnsupportedOperationException("Not implemented");
   }
+
+  @Override
+  public int getSessionTimeout() {
+    throw new UnsupportedOperationException("Not implemented");
+  }
+
+  @Override
+  public void setSessionTimeout(int sessionTimeout) {
+    throw new UnsupportedOperationException("Not implemented");
+  }
+
+  @Override
+  public String getRequestCharacterEncoding() {
+    throw new UnsupportedOperationException("Not implemented");
+  }
+
+  @Override
+  public void setRequestCharacterEncoding(String encoding) {
+    throw new UnsupportedOperationException("Not implemented");
+  }
+
+  @Override
+  public String getResponseCharacterEncoding() {
+    throw new UnsupportedOperationException("Not implemented");
+  }
+
+  @Override
+  public void setResponseCharacterEncoding(String encoding) {
+    throw new UnsupportedOperationException("Not implemented");
+  }
+
 }

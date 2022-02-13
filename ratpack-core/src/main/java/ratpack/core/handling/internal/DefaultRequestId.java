@@ -37,7 +37,7 @@ public class DefaultRequestId implements RequestId {
 
     DefaultRequestId that = (DefaultRequestId) o;
 
-    return (id != null && id.equals(that.id)) || (id == null && that.id == null);
+    return id != null && id.equals(that.id) || id == null && that.id == null;
   }
 
   @Override

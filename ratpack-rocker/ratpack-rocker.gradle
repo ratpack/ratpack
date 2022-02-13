@@ -22,10 +22,10 @@ apply from: "$rootDir/gradle/versionFile.gradle"
 dependencies {
   api project(":ratpack-core")
   api commonDependencies.guice
-  api 'com.fizzed:rocker-runtime:0.18.0', {
+  api 'com.fizzed:rocker-runtime:1.3.0', {
     exclude group: "org.slf4j", module: "slf4j-api"
   }
-  testImplementation 'com.fizzed:rocker-compiler:0.18.0', {
+  testImplementation 'com.fizzed:rocker-compiler:1.3.0', {
     exclude group: "org.slf4j", module: "slf4j-api"
     exclude group: "org.apache.commons", module: "commons-lang3"
   }

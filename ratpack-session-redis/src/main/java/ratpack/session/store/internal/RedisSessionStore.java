@@ -17,6 +17,7 @@
 package ratpack.session.store.internal;
 
 import com.google.inject.Inject;
+import io.lettuce.core.RedisClient;
 import io.lettuce.core.RedisURI;
 import io.lettuce.core.api.async.RedisAsyncCommands;
 import io.netty.buffer.ByteBuf;
@@ -34,7 +35,7 @@ public class RedisSessionStore implements SessionStore {
 
   private final RedisSessionModule.Config config;
 
-  private TimerExposingRedisClient redisClient;
+  private RedisClient redisClient;
   private RedisAsyncCommands<AsciiString, ByteBuf> connection;
 
   @Inject
@@ -90,7 +91,7 @@ public class RedisSessionStore implements SessionStore {
 
   @Override
   public void onStart(StartEvent event) throws Exception {
-    redisClient = new TimerExposingRedisClient(null, getRedisURI());
+    redisClient = RedisClient.create(null, getRedisURI());
     connection = redisClient.connect(new AsciiStringByteBufRedisCodec()).async();
   }
 
@@ -98,7 +99,6 @@ public class RedisSessionStore implements SessionStore {
   public void onStop(StopEvent event) throws Exception {
     if (redisClient != null) {
       try {
-        redisClient.getTimer().stop();
         redisClient.shutdown();
       } finally {
         redisClient = null;
@@ -110,7 +110,7 @@ public class RedisSessionStore implements SessionStore {
     RedisURI.Builder builder = RedisURI.Builder.redis(config.getHost());
 
     if (config.getPassword() != null) {
-      builder.withPassword(config.getPassword());
+      builder.withPassword(config.getPassword().toCharArray());
     }
 
     if (config.getPort() != null) {

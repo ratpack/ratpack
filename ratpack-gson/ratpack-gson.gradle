@@ -20,5 +20,5 @@ apply from: "$rootDir/gradle/javaModule.gradle"
 
 dependencies {
   api project(":ratpack-guice")
-  api 'com.google.code.gson:gson:2.8.5'
+  api 'com.google.code.gson:gson:2.9.0'
 }

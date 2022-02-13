@@ -48,12 +48,6 @@ class RecordingWebSocketClient extends WebSocketClient {
     serverHandshake = handshakedata
   }
 
-  @SuppressWarnings("GrDeprecatedAPIUsage")
-  @Override
-  void onFragment(Framedata frame) {
-    receivedFragments.put frame
-  }
-
   @Override
   void onWebsocketPong(org.java_websocket.WebSocket conn, Framedata f) {
     receivedFragments.put f

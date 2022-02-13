@@ -32,7 +32,7 @@ class NoContentLengthOnNoBodyHttpObjectAggregator extends HttpObjectAggregator {
     if (aggregated.content().readableBytes() == 0 && aggregated instanceof HttpResponse) {
       HttpResponse httpResponse = (HttpResponse) aggregated;
       int status = httpResponse.status().code();
-      if (status == 204 || (status >= 100 && status < 200)) {
+      if (status == 204 || status >= 100 && status < 200) {
         httpResponse.headers().remove(HttpHeaderNames.CONTENT_LENGTH);
         return;
       } else if (status == 304) {

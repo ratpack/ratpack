@@ -22,7 +22,7 @@ dependencies {
   api project(":ratpack-guice")
   api project(":ratpack-session")
 
-  implementation('io.lettuce:lettuce-core:5.3.1.RELEASE') {
+  implementation('io.lettuce:lettuce-core:6.1.6.RELEASE') {
     exclude group: "io.netty", module: "netty-common"
     exclude group: "io.netty", module: "netty-handler"
     exclude group: "io.netty", module: "netty-transport"

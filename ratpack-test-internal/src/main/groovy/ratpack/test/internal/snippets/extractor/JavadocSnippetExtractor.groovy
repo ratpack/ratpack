@@ -16,7 +16,7 @@
 
 package ratpack.test.internal.snippets.extractor
 
-import org.apache.commons.lang3.StringEscapeUtils
+import org.apache.commons.text.StringEscapeUtils
 import ratpack.test.internal.snippets.TestCodeSnippet
 import ratpack.test.internal.snippets.executer.ExceptionTransformer
 import ratpack.test.internal.snippets.executer.SnippetExecuter

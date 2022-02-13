@@ -31,7 +31,6 @@ import ratpack.core.server.internal.DefaultResponseTransmitter
 import java.time.Clock
 import java.util.concurrent.atomic.AtomicBoolean
 
-import static org.mockito.Matchers.any
 import static org.mockito.Mockito.*
 
 class DefaultResponseTransmitterBlackboxVerification extends SubscriberBlackboxVerification<ByteBuf> {

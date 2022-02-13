@@ -57,7 +57,7 @@ public abstract class AbstractPropertiesConfigSource implements ConfigSource {
     int nextOpenBracket = key.indexOf('[');
     boolean hasDelimiter = nextDot != -1;
     boolean hasIndexing = nextOpenBracket != -1;
-    if (hasDelimiter && (!hasIndexing || (nextDot < nextOpenBracket))) {
+    if (hasDelimiter && (!hasIndexing || nextDot < nextOpenBracket)) {
       String fieldName = key.substring(0, nextDot);
       String remainingKey = key.substring(nextDot + 1);
       ObjectNode childNode = (ObjectNode) node.get(fieldName);
