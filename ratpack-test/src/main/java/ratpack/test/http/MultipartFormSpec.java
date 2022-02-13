@@ -19,7 +19,7 @@ package ratpack.test.http;
 public interface MultipartFormSpec {
 
   /**
-   * Add a field to the multipart form
+   * Add a field to the multipart form.
    * <p>
    * Note: Can be called multiple times to associate more than one value with a given field.
    *
@@ -30,9 +30,9 @@ public interface MultipartFormSpec {
   MultipartFormSpec field(String name, String value);
 
   /**
-   * A specification of a file to upload (see RFC2388)
+   * A specification of a file to upload (see RFC2388).
    * <p>
-   * Can be used to construct a multipart form with files
+   * Can be used to construct a multipart form with files.
    *
    * @return a specification of a multipart file
    */

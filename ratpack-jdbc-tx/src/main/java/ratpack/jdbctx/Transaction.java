@@ -294,7 +294,7 @@ public interface Transaction {
   }
 
   /**
-   * Returns the current transaction if present
+   * Returns the current transaction if present.
    *
    * @return the current transaction if present
    * @throws TransactionException if there is no bound transaction

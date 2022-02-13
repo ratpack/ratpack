@@ -272,7 +272,7 @@ public interface ServerConfigBuilder extends ConfigDataBuilder {
   ServerConfigBuilder writeSpinCount(int writeSpinCount);
 
   /**
-   * The path where to store the bind port
+   * The path where to store the bind port.
    *
    * @param portFile the path file
    * @return {@code this}

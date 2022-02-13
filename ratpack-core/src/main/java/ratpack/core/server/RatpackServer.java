@@ -209,7 +209,7 @@ public interface RatpackServer {
   RatpackServer reload() throws Exception;
 
   /**
-   * Convenience method to provide easy access to the application registry via a server reference
+   * Convenience method to provide easy access to the application registry via a server reference.
    *
    * @return a Ratpack registry
    * @since 1.6

@@ -176,7 +176,7 @@ public interface RequestFixture {
   RequestFixture body(String text, String contentType);
 
   /**
-   * A specification of a file to upload (see RFC2388)
+   * A specification of a file to upload (see RFC2388).
    * <p>
    * Can be used to construct a multipart form with files
    *
@@ -185,7 +185,7 @@ public interface RequestFixture {
   MultipartFileSpec file();
 
   /**
-   * Uploads a file via a multipart form (see RFC2388)
+   * Uploads a file via a multipart form (see RFC2388).
    *
    * @param field form field name
    * @param filename filename of uploaded file
@@ -195,7 +195,7 @@ public interface RequestFixture {
   RequestFixture file(String field, String filename, String data);
 
   /**
-   * A specification of a multipart form (see RFC2388)
+   * A specification of a multipart form (see RFC2388).
    * <p>
    * Can be used to construct a multipart form with name value pairs and files
    * <p>
@@ -206,7 +206,7 @@ public interface RequestFixture {
   MultipartFormSpec form();
 
   /**
-   * Sets the fields on a multipart form (see RFC2388)
+   * Sets the fields on a multipart form (see RFC2388).
    *
    * @param fields map of field name to field value
    * @return this

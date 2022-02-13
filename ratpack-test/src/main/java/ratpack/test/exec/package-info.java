@@ -16,7 +16,7 @@
 
 /**
  * Test fixtures for executing and evaluating {@link ratpack.exec.Promise} and {@link ratpack.exec.Operation}
- * outside of a server instance
+ * outside of a server instance.
  *
  * @see ratpack.test.exec.ExecHarness
  */

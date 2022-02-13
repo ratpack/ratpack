@@ -21,7 +21,8 @@ import ratpack.func.Action;
 import java.time.Duration;
 
 /**
- * Builds an {@link AttemptRetryPolicy}
+ * Builds an {@link AttemptRetryPolicy}.
+ *
  * @see AttemptRetryPolicy#of(Action)
  * @since 1.7
  */
@@ -38,20 +39,23 @@ public interface AttemptRetryPolicyBuilder {
   int DEFAULT_MAX_ATTEMPTS = 5;
 
   /**
-   * Builds an {@link AttemptRetryPolicy}
+   * Builds an {@link AttemptRetryPolicy}.
+   *
    * @return a retry policy
    */
   AttemptRetryPolicy build();
 
   /**
-   * The delay strategy
+   * The delay strategy.
+   *
    * @param delay the delay strategy
    * @return this
    */
   AttemptRetryPolicyBuilder delay(Delay delay);
 
   /**
-   * Maximum number of allowed retry attempts
+   * Maximum number of allowed retry attempts.
+   *
    * @param maxAttempts maximum number of allowed retry attempts
    * @return this
    */

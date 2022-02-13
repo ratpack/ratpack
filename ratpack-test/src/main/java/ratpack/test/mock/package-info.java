@@ -15,7 +15,7 @@
  */
 
 /**
- * Support for creating mocks for remote APIs
+ * Support for creating mocks for remote APIs.
  *
  * @see ratpack.test.mock.MockApi
  */

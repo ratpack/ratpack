@@ -178,17 +178,17 @@ public abstract class Groovy {
   public static abstract class Script {
 
     /**
-     * {@value}
+     * {@value}.
      */
     public static final String DEFAULT_HANDLERS_PATH = "handlers.groovy";
 
     /**
-     * {@value}
+     * {@value}.
      */
     public static final String DEFAULT_BINDINGS_PATH = "bindings.groovy";
 
     /**
-     * {@value}
+     * {@value}.
      */
     public static final String DEFAULT_APP_PATH = "ratpack.groovy";
 
@@ -274,7 +274,7 @@ public abstract class Groovy {
     }
 
     /**
-     * Creates an application defining action from a Groovy script named {@value #DEFAULT_APP_PATH}
+     * Creates an application defining action from a Groovy script named {@value #DEFAULT_APP_PATH}.
      * <p>
      * This method returns an action that can be used with {@link RatpackServer#of(Action)} to create an application.
      * <p>

@@ -73,7 +73,7 @@ public final class UserRegistryImposition implements Imposition {
   }
 
   /**
-   * Returns the registry of additions, taking the original user registry as the argument
+   * Returns the registry of additions, taking the original user registry as the argument.
    *
    * @param userRegistry the user registry
    * @return a registry to join on to the user registry

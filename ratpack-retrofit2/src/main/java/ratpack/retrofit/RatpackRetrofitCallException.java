@@ -39,7 +39,8 @@ public class RatpackRetrofitCallException extends Exception {
   private final Response<?> response;
 
   /**
-   * Create a wrapped Retrofit exception
+   * Create a wrapped Retrofit exception.
+   *
    * @param request the Retrofit {@link Request} that initiated HTTP request.
    * @param response the underlying Retrofit {@link Response} from the HTTP request.
    * @since 1.6.0
@@ -58,6 +59,7 @@ public class RatpackRetrofitCallException extends Exception {
   /**
    * Get the underlying response that resulted in the exception for this HTTP request.
    * This is useful for mapping the exception based on the response information.
+   *
    * @return The response for the HTTP call.
    * @since 1.6.0
    */

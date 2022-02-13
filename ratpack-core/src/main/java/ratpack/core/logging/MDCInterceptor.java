@@ -89,9 +89,13 @@ import java.util.Map;
  * }</pre>
  * <p>
  * Given the code above, using the Log4j bindings with configuration such as:
- * <pre>{@code <Console name="Console" target="SYSTEM_OUT">
+ * <pre>
+ * {@code
+ * <Console name="Console" target="SYSTEM_OUT">
  *   <PatternLayout pattern="%d{HH:mm:ss.SSS} [%t] %-5level %logger{36} - %msg - [%X{clientIp}] %n"/>
- * </Console>}</pre>
+ * </Console>
+ * }
+ * </pre>
  * <p>
  * The client IP address will be appended to all log messages made while processing requests.
  * <h3>Inheritance</h3>
