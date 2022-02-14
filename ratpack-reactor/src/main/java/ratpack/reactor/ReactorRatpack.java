@@ -88,6 +88,9 @@ public abstract class ReactorRatpack {
    * }</pre>
    */
   public static void initialize() {
+    // This is required after upgrading reactor 3.3.7 -> 3.4.14
+    // Due to https://github.com/reactor/reactor-core/issues/1431
+    Hooks.onErrorDropped(reactor.core.Exceptions::bubble);
     Hooks.onLastOperator(ErrorForwarding::decorate);
   }
 
