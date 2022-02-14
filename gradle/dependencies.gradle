@@ -32,7 +32,7 @@ ext {
     reactiveStreams  : "1.0.3",
     guice            : "5.1.0",
     springBoot       : "2.6.3",
-    caffeine         : "3.0.5",
+    caffeine         : "2.9.3", // 3.x requires Java 11
     retrofit         : "2.9.0",
     commonsLogging   : "1.2",
     commonsCodec     : "1.14",
