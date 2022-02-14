@@ -31,8 +31,10 @@ import com.google.inject.multibindings.Multibinder;
 import io.netty.buffer.ByteBufAllocator;
 import io.netty.buffer.PooledByteBufAllocator;
 import io.netty.buffer.UnpooledByteBufAllocator;
+import io.prometheus.client.Collector;
 import io.prometheus.client.CollectorRegistry;
 import io.prometheus.client.dropwizard.DropwizardExports;
+import io.prometheus.client.dropwizard.samplebuilder.SampleBuilder;
 import ratpack.dropwizard.metrics.internal.*;
 import ratpack.func.Action;
 import ratpack.guice.ConfigurableModule;
@@ -42,6 +44,11 @@ import ratpack.core.service.StartEvent;
 import ratpack.core.service.StopEvent;
 
 import javax.inject.Inject;
+
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+import java.util.regex.Pattern;
 
 import static com.google.inject.Scopes.SINGLETON;
 import static java.util.concurrent.TimeUnit.SECONDS;
@@ -272,7 +279,7 @@ public class DropwizardMetricsModule extends ConfigurableModule<DropwizardMetric
       if (config.isPrometheusCollection()) {
         final CollectorRegistry collectorRegistry = injector.getInstance(CollectorRegistry.class);
         final MetricRegistry metricRegistry = injector.getInstance(MetricRegistry.class);
-        collectorRegistry.register(new DropwizardExports(metricRegistry));
+        collectorRegistry.register(new DropwizardExports(metricRegistry, new CustomSampleBuilder()));
       }
     }
 
@@ -284,6 +291,28 @@ public class DropwizardMetricsModule extends ConfigurableModule<DropwizardMetric
           scheduledReporter.stop();
         }
       }
+    }
+  }
+
+  // This is a custom name mapper that replicates that behavior of simply prefixing metrics that start with a digit
+  // with an underscore, which changed in https://github.com/prometheus/client_java/pull/435 to replace the
+  // leading digit with an underscore instead of prefixing it.
+  private static class CustomSampleBuilder implements SampleBuilder {
+
+    private static final Pattern PREFIX = Pattern.compile("^([0-9])");
+
+    @Override
+    public Collector.MetricFamilySamples.Sample createSample(final String dropwizardName, final String nameSuffix, final List<String> additionalLabelNames, final List<String> additionalLabelValues, final double value) {
+      final String suffix = nameSuffix == null ? "" : nameSuffix;
+      final List<String> labelNames = additionalLabelNames == null ? Collections.<String>emptyList() : additionalLabelNames;
+      final List<String> labelValues = additionalLabelValues == null ? Collections.<String>emptyList() : additionalLabelValues;
+      final String initialName = PREFIX.matcher(dropwizardName).replaceFirst("_$1");
+      return new Collector.MetricFamilySamples.Sample(
+        Collector.sanitizeMetricName(initialName + suffix),
+        new ArrayList<String>(labelNames),
+        new ArrayList<String>(labelValues),
+        value
+      );
     }
   }
 
