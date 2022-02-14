@@ -91,7 +91,7 @@ public class RedisSessionStore implements SessionStore {
 
   @Override
   public void onStart(StartEvent event) throws Exception {
-    redisClient = RedisClient.create(null, getRedisURI());
+    redisClient = RedisClient.create(getRedisURI());
     connection = redisClient.connect(new AsciiStringByteBufRedisCodec()).async();
   }
 

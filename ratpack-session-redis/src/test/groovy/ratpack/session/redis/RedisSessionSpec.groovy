@@ -31,7 +31,7 @@ class RedisSessionSpec extends RatpackGroovyDslSpec {
 
   boolean isRedisAlreadyRunning() {
     try {
-      RedisClient.create('localhost').connect().sync().withCloseable {
+      RedisClient.create('redis://localhost:6379').connect().sync().withCloseable {
         it.ping().equalsIgnoreCase('pong')
       }
     } catch (Exception ignored) {
