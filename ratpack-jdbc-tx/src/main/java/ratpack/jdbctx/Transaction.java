@@ -77,7 +77,7 @@ import java.util.Optional;
  *
  *     try (Connection connection = txDs.getConnection()) {
  *       try (Statement statement = connection.createStatement()) {
- *         statement.executeUpdate("CREATE TABLE tbl (value VARCHAR(50)) ");
+ *         statement.executeUpdate("CREATE TABLE `tbl` (`value` VARCHAR(50))");
  *       }
  *     }
  *
@@ -108,7 +108,7 @@ import java.util.Optional;
  *   private static Operation insert(String value) {
  *     return Blocking.op(() -> {
  *       try (Connection connection = txDs.getConnection()) {
- *         connection.createStatement().execute("INSERT INTO tbl (value) VALUES (" + value + ")");
+ *         connection.createStatement().execute("INSERT INTO `tbl` (`value`) VALUES (" + value + ")");
  *       }
  *     });
  *   }
@@ -118,7 +118,7 @@ import java.util.Optional;
  *       Blocking.get(() -> {
  *         try (Connection connection = txDs.getConnection()) {
  *           Statement statement = connection.createStatement();
- *           ResultSet resultSet = statement.executeQuery("SELECT value FROM tbl;");
+ *           ResultSet resultSet = statement.executeQuery("SELECT `value` FROM `tbl`;");
  *           List<String> actual = new ArrayList<>();
  *           while (resultSet.next()) {
  *             actual.add(resultSet.getString(1));
