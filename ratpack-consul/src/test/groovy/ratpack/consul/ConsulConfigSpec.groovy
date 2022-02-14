@@ -30,8 +30,8 @@ class ConsulConfigSpec extends BaseRatpackSpec {
   EmbeddedApp consul = GroovyEmbeddedApp.of {
     handlers {
       prefix("v1") {
-        get("agent/self") {
-          render "ok"
+        get("status/leader") {
+          render "127.0.01:8500"
         }
         get("kv/:key") {
           render json([
