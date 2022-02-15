@@ -703,6 +703,23 @@ public class Streams {
   }
 
   /**
+   * Returns a publisher that emits elements from the given publisher, while the {@code condition} is true.
+   * <p>
+   * When the condition returns false, the upstream subscription will be cancelled and the stream completed.
+   * <p>
+   * If the upstream publisher completes before the condition returns false, then the stream completes as normal.
+   *
+   * @param condition the predicate to determine if the stream should complete
+   * @param upstreamPublisher the publisher to take from
+   * @param <T> the type of emitted item
+   * @return a publisher that will emit until the condition returns false
+   * @since 2.0
+   */
+  public static <T> TransformablePublisher<T> takeWhile(Predicate<T> condition, Publisher<T> upstreamPublisher) {
+    return new TakeWhilePublisher<>(condition, upstreamPublisher);
+  }
+
+  /**
    * Returns a publisher that aggregates the given publishers into a single stream of elements, without interleaving them.
    * <p>
    * The returned publisher obeys the following rules:

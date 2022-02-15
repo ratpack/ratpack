@@ -270,6 +270,17 @@ public interface TransformablePublisher<T> extends Publisher<T> {
     return Streams.take(count, this);
   }
 
+
+  /**
+   * See {@link Streams#takeWhile(Predicate, Publisher)}.
+   *
+   * @return a publisher that will emit as long as the given predicate is true
+   * @since 2.0
+   */
+  default TransformablePublisher<T> takeWhile(Predicate<T> condition) {
+    return Streams.takeWhile(condition, this);
+  }
+
   /**
    * See {@link Streams#batch(int, Publisher, Action)}.
    *
