@@ -24,10 +24,11 @@ import io.netty.channel.socket.SocketChannel;
 import io.netty.handler.codec.http.HttpRequest;
 import io.netty.handler.codec.http.HttpRequestDecoder;
 import io.netty.handler.codec.http.HttpResponseEncoder;
+import io.netty.handler.ssl.SniHandler;
 import io.netty.handler.ssl.SslContext;
-import io.netty.handler.ssl.SslHandler;
 import io.netty.handler.stream.ChunkedWriteHandler;
 import io.netty.util.AttributeKey;
+import io.netty.util.Mapping;
 import io.netty.util.ReferenceCountUtil;
 import io.netty.util.ResourceLeakDetector;
 import org.slf4j.Logger;
@@ -59,7 +60,6 @@ import ratpack.func.Exceptions;
 import ratpack.func.Types;
 import ratpack.exec.util.internal.TransportDetector;
 
-import javax.net.ssl.SSLEngine;
 import java.io.FileOutputStream;
 import java.net.InetSocketAddress;
 import java.nio.file.Path;
@@ -179,7 +179,7 @@ public class DefaultRatpackServer implements RatpackServer {
         boundAddress,
         channel,
         execController,
-        serverConfig.getSslContext() != null,
+        serverConfig.getSslContext() != null || serverConfig.getSniSslContext() != null,
         applicationState
       );
     } catch (Throwable e) {
@@ -277,8 +277,6 @@ public class DefaultRatpackServer implements RatpackServer {
 
   private static Channel buildChannel(ServerConfig serverConfig, ChannelHandler handlerAdapter, ExecController execController) throws InterruptedException {
 
-    SslContext sslContext = serverConfig.getSslContext();
-
     ServerBootstrap serverBootstrap = new ServerBootstrap();
 
     serverConfig.getConnectTimeoutMillis().ifPresent(i -> {
@@ -314,9 +312,14 @@ public class DefaultRatpackServer implements RatpackServer {
 
           new ConnectionIdleTimeout(pipeline, serverConfig.getIdleTimeout());
 
-          if (sslContext != null) {
-            SSLEngine sslEngine = sslContext.newEngine(ByteBufAllocator.DEFAULT);
-            pipeline.addLast("ssl", new SslHandler(sslEngine));
+          Mapping<String, SslContext> sniSslContext = serverConfig.getSniSslContext();
+          if (sniSslContext != null) {
+            pipeline.addLast("sniSsl", new SniHandler(sniSslContext));
+          } else {
+            SslContext sslContext = serverConfig.getSslContext();
+            if (sslContext != null) {
+              pipeline.addLast("ssl", sslContext.newHandler(ByteBufAllocator.DEFAULT));
+            }
           }
 
           pipeline.addLast("decoder", new HttpRequestDecoder(

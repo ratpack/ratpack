@@ -16,42 +16,13 @@
 
 package ratpack.core.config.internal.module
 
-import com.fasterxml.jackson.core.JsonParser
-import com.fasterxml.jackson.databind.DeserializationContext
-import com.fasterxml.jackson.databind.node.JsonNodeFactory
-import com.fasterxml.jackson.databind.node.ObjectNode
-import ratpack.test.internal.BaseRatpackSpec
-import ratpack.test.internal.spock.TempDir
-import ratpack.test.internal.spock.TemporaryFolder
 
-import java.nio.file.Path
-import java.security.KeyStore
+class NettySslContextDeserializerSpec extends AbstractSslContextDeserializerSpec {
 
-class NettySslContextDeserializerSpec extends BaseRatpackSpec {
-
-  @TempDir
-  TemporaryFolder tempFolder
-
-  DeserializationContext context = null
   NettySslContextDeserializer deserializer = new NettySslContextDeserializer()
-  ObjectNode objectNode = JsonNodeFactory.instance.objectNode()
-  JsonParser jsonParser = Stub(JsonParser)
 
   def setup() {
     jsonParser.readValueAsTree() >> objectNode
-  }
-
-  /**
-   * Creates an empty keystore file with the given password at the path provided.
-   *
-   * @param path the name of the file to create.
-   * @param password the password to assign to the file.  Not enforced, but when used for real,
-   * it should have 6 characters or more.
-   */
-  public static void createKeystore(Path path, String password) {
-    def ks = KeyStore.getInstance("JKS")
-    ks.load(null, password.toCharArray())
-    path.withOutputStream { ks.store(it, password.toCharArray()) }
   }
 
   def "deserialize called without any expected nodes set"() {

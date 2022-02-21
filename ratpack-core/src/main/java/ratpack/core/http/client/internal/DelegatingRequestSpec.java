@@ -24,6 +24,7 @@ import ratpack.core.http.client.RequestSpec;
 import ratpack.func.Action;
 import ratpack.func.Function;
 
+import javax.net.ssl.SSLParameters;
 import java.net.URI;
 import java.time.Duration;
 
@@ -65,6 +66,16 @@ public class DelegatingRequestSpec implements RequestSpec {
   public RequestSpec sslContext(SslContext sslContext) {
     delegate.sslContext(sslContext);
     return this;
+  }
+
+  @Override
+  public Action<? super SSLParameters> getSslParams() {
+    return delegate.getSslParams();
+  }
+
+  @Override
+  public RequestSpec sslParams(Action<? super SSLParameters> sslParams) {
+    return delegate.sslParams(sslParams);
   }
 
   @Override

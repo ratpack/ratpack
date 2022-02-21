@@ -26,6 +26,7 @@ import ratpack.core.http.MutableHeaders;
 import ratpack.func.Action;
 import ratpack.func.Function;
 
+import javax.net.ssl.SSLParameters;
 import java.io.OutputStream;
 import java.net.URI;
 import java.nio.charset.Charset;
@@ -88,6 +89,14 @@ public interface RequestSpec {
   SslContext getSslContext();
 
   /**
+   * Get additional configuration, such as SNI names, for the TLS/SSL connection to the server.
+   *
+   * @return additional configuration properties for TLS/SSL connection.
+   * @since 2.0
+   */
+  Action<? super SSLParameters> getSslParams();
+
+  /**
    * Sets the {@link SslContext} used for client and server SSL authentication.
    *
    * @param sslContext SSL context with keystore as well as trust store
@@ -95,6 +104,15 @@ public interface RequestSpec {
    * @see SslContextBuilder#forClient()
    */
   RequestSpec sslContext(SslContext sslContext);
+
+  /**
+   * Sets additional configuration, such as SNI names, for the TLS/SSL connection to the server.
+   *
+   * @param action the additional configuration to apply.
+   * @return {@code this}
+   * @since 2.0
+   */
+  RequestSpec sslParams(Action<? super SSLParameters> action);
 
   /**
    * @return {@link MutableHeaders} that can be used to configure the headers that will be used for the request.

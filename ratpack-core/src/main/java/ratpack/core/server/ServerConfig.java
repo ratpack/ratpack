@@ -19,6 +19,7 @@ package ratpack.core.server;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.reflect.TypeToken;
 import io.netty.handler.ssl.SslContext;
+import io.netty.util.Mapping;
 import ratpack.config.ConfigData;
 import ratpack.config.ConfigObject;
 import ratpack.config.FileSystemBinding;
@@ -210,6 +211,17 @@ public interface ServerConfig extends ConfigData {
    * @return The SSL context or <code>null</code> if the application does not use SSL.
    */
   SslContext getSslContext();
+
+  /**
+   * The set of Server Name Indication (SNI) mapped SSL context to use.
+   * <p>
+   * This method allows providing a different set of SSL configuration based on the domain requested by the client.
+   * <p>
+   * This configuration supersedes that provided by {@link #getSslContext()}.
+   *
+   * @since 2.0
+   */
+  Mapping<String, SslContext> getSniSslContext();
 
   /**
    * The max content length to use for the HttpObjectAggregator.

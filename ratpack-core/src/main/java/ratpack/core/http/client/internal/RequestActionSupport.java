@@ -44,6 +44,7 @@ import ratpack.exec.Execution;
 import ratpack.exec.Upstream;
 import ratpack.exec.internal.DefaultExecution;
 import ratpack.func.Action;
+import ratpack.func.Exceptions;
 import ratpack.func.Function;
 
 import javax.net.ssl.SSLEngine;
@@ -527,6 +528,9 @@ abstract class RequestActionSupport<T> implements Upstream<T> {
     sslEngine.setUseClientMode(true);
     SSLParameters sslParameters = sslEngine.getSSLParameters();
     sslParameters.setEndpointIdentificationAlgorithm("HTTPS");
+    if (requestConfig.sslParams != null) {
+      Exceptions.uncheck(() -> requestConfig.sslParams.execute(sslParameters));
+    }
     sslEngine.setSSLParameters(sslParameters);
     return new SslHandler(sslEngine);
   }

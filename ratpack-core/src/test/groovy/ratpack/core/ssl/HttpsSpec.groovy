@@ -30,14 +30,16 @@ import ratpack.test.internal.RatpackGroovyDslSpec
 import spock.lang.Shared
 import sun.security.provider.certpath.SunCertPathBuilderException
 
+import javax.net.ssl.SNIHostName
 import java.security.cert.CertificateException
 
 class HttpsSpec extends RatpackGroovyDslSpec {
 
   @Shared
-    nonLocalHostCert = new SelfSignedCertificate("barbar")
+  nonLocalHostCert = new SelfSignedCertificate("barbar")
+
   @Shared
-    localHostCert = new SelfSignedCertificate("localhost")
+  localHostCert = new SelfSignedCertificate("localhost")
 
   def "client requires verified domain name in cert - #valid"() {
     given:
@@ -185,5 +187,53 @@ class HttpsSpec extends RatpackGroovyDslSpec {
     testAppender.stop()
     logs.removeAppender(testAppender)
     logs.setAdditive(false)
+  }
+  
+  def "can serve multiple certificates using sni"() {
+    given:
+    def ratpackCert = new SelfSignedCertificate("*.ratpack.io")
+    SslContext localhostContext = SslContextBuilder.forServer(localHostCert.certificate(), localHostCert.privateKey()).build()
+    SslContext ratpackDomainContext = SslContextBuilder.forServer(ratpackCert.certificate(), ratpackCert.privateKey()).build()
+
+    SslContext clientContext = SslContextBuilder.forClient()
+      .trustManager(localHostCert.cert(), ratpackCert.cert())
+      .build()
+
+    serverConfig {
+      sniSsl(localhostContext) { b ->
+        b.add("*.ratpack.io", ratpackDomainContext)
+      }
+    }
+
+    when:
+    handlers {
+      get {
+        render "ok"
+      }
+    }
+
+    then: "Requested using localhost with a trusted cert"
+    requestSpec {
+      it.sslContext(clientContext)
+    }.getText()
+
+    and: "Request fails if cert host isn't trusted"
+    try {
+      requestSpec {
+        it.sslContext(clientContext)
+      }.getText("https://127.0.0.1:${applicationUnderTest.address.port}/")
+    } catch (UncheckedIOException e) {
+      def root = Throwables.getRootCause(e)
+      assert root instanceof CertificateException
+      assert root.message == "No subject alternative names present"
+    }
+
+    and: "Request succeeds is provided a trusted alternative SNI name for the request"
+    requestSpec {
+      it.sslContext(clientContext)
+      it.sslParams { p ->
+        p.setServerNames([new SNIHostName("api.ratpack.io")])
+      }
+    }.getText("https://127.0.0.1:${applicationUnderTest.address.port}/")
   }
 }

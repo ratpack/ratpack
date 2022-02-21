@@ -18,6 +18,8 @@ package ratpack.core.server
 
 import io.netty.handler.ssl.SslContext
 import io.netty.handler.ssl.SslContextBuilder
+import io.netty.handler.ssl.util.SelfSignedCertificate
+import io.netty.util.Mapping
 import ratpack.core.ssl.internal.SslContexts
 import ratpack.test.internal.BaseRatpackSpec
 
@@ -177,6 +179,25 @@ class ServerConfigBuilderSpec extends BaseRatpackSpec {
     then:
     sslContext
 
+  }
+
+  def "set sni ssl context"() {
+    given:
+    def is = ServerConfigBuilderSpec.classLoader.getResourceAsStream('ratpack/core/server/keystore.jks')
+    def keyFactory = SslContexts.keyManagerFactory(is, 'password'.toCharArray())
+    SslContext defaultContext = SslContextBuilder.forServer(keyFactory).build()
+
+    SelfSignedCertificate exampleCert = new SelfSignedCertificate("*.example.com")
+    SslContext exampleContext = SslContextBuilder.forServer(exampleCert.certificate(), exampleCert.privateKey()).build()
+
+    when:
+    Mapping<String, SslContext> mapping = builder.sniSsl(defaultContext) { b ->
+      b.add("*.example.com", exampleContext)
+    }.build().sniSslContext
+
+    then:
+    mapping.map("foo.example.com") == exampleContext
+    mapping.map("ratpack.com") == defaultContext
   }
 
   def "new builder has default connect timeout millis"() {
