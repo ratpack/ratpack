@@ -84,13 +84,8 @@ public class DefaultServerConfig extends DelegatingConfigData implements ServerC
   }
 
   @Override
-  public SslContext getSslContext() {
+  public Mapping<String, SslContext> getSslContext() {
     return serverConfigData.getSslContext();
-  }
-
-  @Override
-  public Mapping<String, SslContext> getSniSslContext() {
-    return serverConfigData.getSniSslContext();
   }
 
   @Override

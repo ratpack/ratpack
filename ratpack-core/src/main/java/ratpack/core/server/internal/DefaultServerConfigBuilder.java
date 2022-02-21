@@ -34,6 +34,7 @@ import ratpack.config.internal.DefaultConfigDataBuilder;
 import ratpack.core.config.internal.module.NettySslContextDeserializer;
 import ratpack.config.FileSystemBinding;
 import ratpack.core.config.internal.module.ServerConfigDataDeserializer;
+import ratpack.core.config.internal.module.SniSslContextDeserializer;
 import ratpack.core.impose.ForceDevelopmentImposition;
 import ratpack.core.impose.ForceServerListenPortImposition;
 import ratpack.core.impose.Impositions;
@@ -197,19 +198,19 @@ public class DefaultServerConfigBuilder implements ServerConfigBuilder {
 
   @Override
   public ServerConfigBuilder ssl(SslContext sslContext) {
-    return addToServer(n -> n.putPOJO("ssl", sslContext));
+    return ssl(sslContext, Action.noop());
   }
 
   @Override
-  public ServerConfigBuilder sniSsl(SslContext defaultContext, Action<? super DomainWildcardMappingBuilder<SslContext>> sniConfiguration) {
-    DomainWildcardMappingBuilder<SslContext> builder = new DomainWildcardMappingBuilder<>(defaultContext);
+  public ServerConfigBuilder ssl(SslContext sslContext, Action<? super DomainWildcardMappingBuilder<SslContext>> sniConfiguration) {
+    DomainWildcardMappingBuilder<SslContext> builder = new DomainWildcardMappingBuilder<>(sslContext);
     Exceptions.uncheck(() -> sniConfiguration.execute(builder));
-    return sniSsl(builder.build());
+    return ssl(builder.build());
   }
 
   @Override
-  public ServerConfigBuilder sniSsl(Mapping<String, SslContext> sniConfiguration) {
-    return addToServer(n -> n.putPOJO("sniSsl", sniConfiguration));
+  public ServerConfigBuilder ssl(Mapping<String, SslContext> sniConfiguration) {
+    return addToServer(n -> n.putPOJO("ssl", sniConfiguration));
   }
 
   @Override
@@ -446,7 +447,7 @@ public class DefaultServerConfigBuilder implements ServerConfigBuilder {
         serverEnvironment.getPublicAddress(),
         baseDirSupplier
       ));
-//      addDeserializer(SniSslMapping.class, new SniSslMappingDeserializer());
+      addDeserializer(Mapping.class, new SniSslContextDeserializer());
       addDeserializer(SslContext.class, new NettySslContextDeserializer());
     }
   }

@@ -27,7 +27,6 @@ import com.fasterxml.jackson.databind.node.POJONode;
 import io.netty.handler.ssl.ClientAuth;
 import io.netty.handler.ssl.IdentityCipherSuiteFilter;
 import io.netty.handler.ssl.JdkSslContext;
-import io.netty.handler.ssl.SslContext;
 import io.netty.util.Mapping;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -106,10 +105,7 @@ public class ServerConfigDataDeserializer extends JsonDeserializer<ServerConfigD
       data.setRequireClientSslAuth(serverNode.get("requireClientSslAuth").asBoolean(false));
     }
     if (serverNode.hasNonNull("ssl")) {
-      data.setSslContext(toValue(codec, serverNode.get("ssl"), SslContext.class));
-    }
-    if (serverNode.hasNonNull("sniSsl")) {
-      data.setSniSslContext(Types.cast(toValue(codec, serverNode.get("sniSsl"), Mapping.class)));
+      data.setSslContext(Types.cast(toValue(codec, serverNode.get("ssl"), Mapping.class)));
     }
     if (serverNode.hasNonNull("baseDir")) {
       throw new IllegalStateException("baseDir value cannot be set via config, it must be set directly via ServerConfigBuilder.baseDir()");

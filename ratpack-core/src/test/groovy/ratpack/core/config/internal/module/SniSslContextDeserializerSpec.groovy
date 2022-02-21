@@ -22,7 +22,6 @@ import com.fasterxml.jackson.databind.node.ObjectNode
 class SniSslContextDeserializerSpec extends AbstractSslContextDeserializerSpec {
 
   SniSslContextDeserializer deserializer = new SniSslContextDeserializer()
-  ObjectNode defaultNode = JsonNodeFactory.instance.objectNode()
 
   def "deserialize called without any expected nodes set"() {
     when:
@@ -30,13 +29,12 @@ class SniSslContextDeserializerSpec extends AbstractSslContextDeserializerSpec {
 
     then:
     def e = thrown(IllegalStateException)
-    e.message == 'default ssl context must be specified if any sni properties are set'
+    e.message == 'error with default ssl context: keystoreFile must be set if any ssl properties are set'
   }
 
   def "deserialize called with just keystoreFile set for default context"() {
     given:
-    defaultNode.put('keystoreFile', 'does-not-matter')
-    objectNode.set("default", defaultNode)
+    objectNode.put('keystoreFile', 'does-not-matter')
 
     when:
     deserializer.deserialize(jsonParser, context)
@@ -48,10 +46,9 @@ class SniSslContextDeserializerSpec extends AbstractSslContextDeserializerSpec {
 
   def "deserialize called with truststore but no password for default context"() {
     given:
-    defaultNode.put('keystoreFile', 'does-not-matter')
-    defaultNode.put('keystorePassword', 'does-not-matter')
-    defaultNode.put('truststoreFile', 'does-not-matter')
-    objectNode.set("default", defaultNode)
+    objectNode.put('keystoreFile', 'does-not-matter')
+    objectNode.put('keystorePassword', 'does-not-matter')
+    objectNode.put('truststoreFile', 'does-not-matter')
 
     when:
     deserializer.deserialize(jsonParser, context)
@@ -66,9 +63,8 @@ class SniSslContextDeserializerSpec extends AbstractSslContextDeserializerSpec {
     def keyStoreFile = tempFolder.newFile('keystore.jks').toPath()
     def keyStorePassword = 'totally-unexpected'
     createKeystore(keyStoreFile, keyStorePassword)
-    defaultNode.put('keystoreFile', keyStoreFile.toString())
-    defaultNode.put('keystorePassword', keyStorePassword)
-    objectNode.set("default", defaultNode)
+    objectNode.put('keystoreFile', keyStoreFile.toString())
+    objectNode.put('keystorePassword', keyStorePassword)
 
     when:
     def mapping = deserializer.deserialize(jsonParser, context)
@@ -86,11 +82,10 @@ class SniSslContextDeserializerSpec extends AbstractSslContextDeserializerSpec {
     def trustStorePassword = 'different'
     createKeystore(keyStoreFile, keyStorePassword)
     createKeystore(trustStoreFile, trustStorePassword)
-    defaultNode.put('keystoreFile', keyStoreFile.toString())
-    defaultNode.put('keystorePassword', keyStorePassword)
-    defaultNode.put('truststoreFile', trustStoreFile.toString())
-    defaultNode.put('truststorePassword', trustStorePassword)
-    objectNode.set("default", defaultNode)
+    objectNode.put('keystoreFile', keyStoreFile.toString())
+    objectNode.put('keystorePassword', keyStorePassword)
+    objectNode.put('truststoreFile', trustStoreFile.toString())
+    objectNode.put('truststorePassword', trustStorePassword)
 
     when:
     def mapping = deserializer.deserialize(jsonParser, context)
@@ -105,9 +100,8 @@ class SniSslContextDeserializerSpec extends AbstractSslContextDeserializerSpec {
     def keyStoreFile = tempFolder.newFile('keystore.jks').toPath()
     def keyStorePassword = 'totally-unexpected'
     createKeystore(keyStoreFile, keyStorePassword)
-    defaultNode.put('keystoreFile', keyStoreFile.toString())
-    defaultNode.put('keystorePassword', 'definitely-not-correct')
-    objectNode.set("default", defaultNode)
+    objectNode.put('keystoreFile', keyStoreFile.toString())
+    objectNode.put('keystorePassword', 'definitely-not-correct')
 
     when:
     deserializer.deserialize(jsonParser, context)
@@ -125,11 +119,10 @@ class SniSslContextDeserializerSpec extends AbstractSslContextDeserializerSpec {
     def trustStorePassword = 'different'
     createKeystore(keyStoreFile, keyStorePassword)
     createKeystore(trustStoreFile, trustStorePassword)
-    defaultNode.put('keystoreFile', keyStoreFile.toString())
-    defaultNode.put('keystorePassword', keyStorePassword)
-    defaultNode.put('truststoreFile', trustStoreFile.toString())
-    defaultNode.put('truststorePassword', 'not-the-correct-one')
-    objectNode.set("default", defaultNode)
+    objectNode.put('keystoreFile', keyStoreFile.toString())
+    objectNode.put('keystorePassword', keyStorePassword)
+    objectNode.put('truststoreFile', trustStoreFile.toString())
+    objectNode.put('truststorePassword', 'not-the-correct-one')
 
     when:
     deserializer.deserialize(jsonParser, context)
@@ -281,8 +274,7 @@ class SniSslContextDeserializerSpec extends AbstractSslContextDeserializerSpec {
     def keyStoreFile = tempFolder.newFile('keystore.jks').toPath()
     def keyStorePassword = 'totally-unexpected'
     createKeystore(keyStoreFile, keyStorePassword)
-    defaultNode.put('keystoreFile', keyStoreFile.toString())
-    defaultNode.put('keystorePassword', keyStorePassword)
-    objectNode.set("default", defaultNode)
+    objectNode.put('keystoreFile', keyStoreFile.toString())
+    objectNode.put('keystorePassword', keyStorePassword)
   }
 }

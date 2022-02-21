@@ -200,7 +200,7 @@ class HttpsSpec extends RatpackGroovyDslSpec {
       .build()
 
     serverConfig {
-      sniSsl(localhostContext) { b ->
+      ssl(localhostContext) { b ->
         b.add("*.ratpack.io", ratpackDomainContext)
       }
     }

@@ -113,7 +113,7 @@ By default, the Ratpack server will listen for HTTP traffic on the configuration
 To enable HTTPS traffic, the [ssl(SslContext)](api/ratpack/core/server/ServerConfigBuilder.html#ssl%28io.netty.handler.ssl.SslContext%29) method allows for the SSL certificate and key.
 
 As of v2.0, Ratpack also supports selecting SSL configurations based on the requested host using Server Name Indicators (SNI).
-The [sniSsl(SslContext, Action)](api/ratpack/core/server/ServerConfigBuilder.html#sniSsl%28io.netty.handler.ssl.SslContext,ratpack.func.Action%29) is used to specify the default SSL configuration and any additional domain mappings with alternative SSL configuration.
+The [ssl(SslContext, Action)](api/ratpack/core/server/ServerConfigBuilder.html#ssl%28io.netty.handler.ssl.SslContext,ratpack.func.Action%29) is used to specify the default SSL configuration and any additional domain mappings with alternative SSL configuration.
 The domains specified in the mapping support [DNS Wildcard](https://tools.ietf.org/search/rfc6125#section-6.4) and will match at most one level deep in the domain hierarchy (e.g. `*.ratpack.io` will match `api.ratpack.io` but not `docs.api.ratpack.io`).
 
 ### Registry
