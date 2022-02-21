@@ -18,6 +18,7 @@ package ratpack.core.server.internal;
 
 import com.google.common.collect.ImmutableSet;
 import io.netty.handler.ssl.SslContext;
+import io.netty.util.Mapping;
 import ratpack.config.ConfigData;
 import ratpack.config.ConfigObject;
 import ratpack.config.internal.DelegatingConfigData;
@@ -85,6 +86,11 @@ public class DefaultServerConfig extends DelegatingConfigData implements ServerC
   @Override
   public SslContext getSslContext() {
     return serverConfigData.getSslContext();
+  }
+
+  @Override
+  public Mapping<String, SslContext> getSniSslContext() {
+    return serverConfigData.getSniSslContext();
   }
 
   @Override

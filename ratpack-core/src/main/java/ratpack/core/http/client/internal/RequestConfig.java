@@ -35,6 +35,7 @@ import ratpack.core.http.internal.NettyHeadersBackedMutableHeaders;
 import ratpack.func.Action;
 import ratpack.func.Function;
 
+import javax.net.ssl.SSLParameters;
 import java.io.OutputStream;
 import java.net.URI;
 import java.nio.charset.Charset;
@@ -52,6 +53,7 @@ class RequestConfig {
   final boolean decompressResponse;
   final int maxRedirects;
   final SslContext sslContext;
+  final Action<? super SSLParameters> sslParams;
   final Function<? super ReceivedResponse, Action<? super RequestSpec>> onRedirect;
   final int responseMaxChunkSize;
 
@@ -84,11 +86,12 @@ class RequestConfig {
       spec.decompressResponse,
       spec.maxRedirects,
       spec.sslContext,
+      spec.sslParams,
       spec.onRedirect
     );
   }
 
-  private RequestConfig(URI uri, HttpMethod method, MutableHeaders headers, Content content, int maxContentLength, int responseMaxChunkSize, Duration connectTimeout, Duration readTimeout, boolean decompressResponse, int maxRedirects, SslContext sslContext, Function<? super ReceivedResponse, Action<? super RequestSpec>> onRedirect) {
+  private RequestConfig(URI uri, HttpMethod method, MutableHeaders headers, Content content, int maxContentLength, int responseMaxChunkSize, Duration connectTimeout, Duration readTimeout, boolean decompressResponse, int maxRedirects, SslContext sslContext, Action<? super SSLParameters> sslParams, Function<? super ReceivedResponse, Action<? super RequestSpec>> onRedirect) {
     this.uri = uri;
     this.method = method;
     this.headers = headers;
@@ -100,6 +103,7 @@ class RequestConfig {
     this.decompressResponse = decompressResponse;
     this.maxRedirects = maxRedirects;
     this.sslContext = sslContext;
+    this.sslParams = sslParams;
     this.onRedirect = onRedirect;
   }
 
@@ -119,6 +123,7 @@ class RequestConfig {
     private HttpMethod method = HttpMethod.GET;
     private int maxRedirects = RequestSpec.DEFAULT_MAX_REDIRECTS;
     private SslContext sslContext;
+    private Action<? super SSLParameters> sslParams;
     private Function<? super ReceivedResponse, Action<? super RequestSpec>> onRedirect;
     private final BodyImpl body = new BodyImpl();
     private int responseMaxChunkSize = 8192;
@@ -155,6 +160,17 @@ class RequestConfig {
     @Override
     public SslContext getSslContext() {
       return this.sslContext;
+    }
+
+    @Override
+    public RequestSpec sslParams(Action<? super SSLParameters> sslParams) {
+      this.sslParams = sslParams;
+      return this;
+    }
+
+    @Override
+    public Action<? super SSLParameters> getSslParams() {
+      return this.sslParams;
     }
 
     @Override

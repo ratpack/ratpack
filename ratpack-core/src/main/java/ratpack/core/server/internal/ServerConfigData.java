@@ -17,6 +17,7 @@
 package ratpack.core.server.internal;
 
 import io.netty.handler.ssl.SslContext;
+import io.netty.util.Mapping;
 import ratpack.config.FileSystemBinding;
 import ratpack.core.server.DecodingErrorLevel;
 import ratpack.core.server.ServerConfig;
@@ -38,6 +39,7 @@ public class ServerConfigData {
   private int threads = ServerConfig.DEFAULT_THREADS;
   private URI publicAddress;
   private SslContext sslContext;
+  private Mapping<String, SslContext> sniSslContext;
   private boolean requireClientSslAuth;
   private int maxContentLength = ServerConfig.DEFAULT_MAX_CONTENT_LENGTH;
   private Optional<Integer> connectTimeoutMillis = Optional.empty();
@@ -140,6 +142,14 @@ public class ServerConfigData {
 
   public void setSslContext(SslContext sslContext) {
     this.sslContext = sslContext;
+  }
+
+  public Mapping<String, SslContext> getSniSslContext() {
+    return this.sniSslContext;
+  }
+
+  public void setSniSslContext(Mapping<String, SslContext> sniSslContext) {
+    this.sniSslContext = sniSslContext;
   }
 
   public boolean isRequireClientSslAuth() {

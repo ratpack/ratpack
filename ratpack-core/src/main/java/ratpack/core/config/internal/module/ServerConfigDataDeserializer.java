@@ -28,6 +28,7 @@ import io.netty.handler.ssl.ClientAuth;
 import io.netty.handler.ssl.IdentityCipherSuiteFilter;
 import io.netty.handler.ssl.JdkSslContext;
 import io.netty.handler.ssl.SslContext;
+import io.netty.util.Mapping;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import ratpack.config.FileSystemBinding;
@@ -35,6 +36,7 @@ import ratpack.core.server.DecodingErrorLevel;
 import ratpack.core.server.ServerConfig;
 import ratpack.core.server.internal.ServerConfigData;
 import ratpack.core.server.internal.ServerEnvironment;
+import ratpack.func.Types;
 
 import javax.net.ssl.SSLContext;
 import java.io.IOException;
@@ -105,8 +107,9 @@ public class ServerConfigDataDeserializer extends JsonDeserializer<ServerConfigD
     }
     if (serverNode.hasNonNull("ssl")) {
       data.setSslContext(toValue(codec, serverNode.get("ssl"), SslContext.class));
-    } else if (serverNode.hasNonNull("jdkSsl")) { //TODO-v2 do we need to carry this forward?
-      data.setSslContext(toJdkSslContext(data, toValue(codec, serverNode.get("jdkSsl"), SSLContext.class)));
+    }
+    if (serverNode.hasNonNull("sniSsl")) {
+      data.setSniSslContext(Types.cast(toValue(codec, serverNode.get("sniSsl"), Mapping.class)));
     }
     if (serverNode.hasNonNull("baseDir")) {
       throw new IllegalStateException("baseDir value cannot be set via config, it must be set directly via ServerConfigBuilder.baseDir()");

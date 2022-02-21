@@ -26,6 +26,8 @@ import com.google.common.collect.Maps;
 import com.google.common.io.ByteSource;
 import com.google.common.reflect.TypeToken;
 import io.netty.handler.ssl.SslContext;
+import io.netty.util.DomainWildcardMappingBuilder;
+import io.netty.util.Mapping;
 import ratpack.config.*;
 import ratpack.config.internal.DefaultConfigData;
 import ratpack.config.internal.DefaultConfigDataBuilder;
@@ -40,6 +42,7 @@ import ratpack.core.server.DecodingErrorLevel;
 import ratpack.core.server.ServerConfig;
 import ratpack.core.server.ServerConfigBuilder;
 import ratpack.func.Action;
+import ratpack.func.Exceptions;
 import ratpack.func.Function;
 
 import java.net.InetAddress;
@@ -195,6 +198,18 @@ public class DefaultServerConfigBuilder implements ServerConfigBuilder {
   @Override
   public ServerConfigBuilder ssl(SslContext sslContext) {
     return addToServer(n -> n.putPOJO("ssl", sslContext));
+  }
+
+  @Override
+  public ServerConfigBuilder sniSsl(SslContext defaultContext, Action<? super DomainWildcardMappingBuilder<SslContext>> sniConfiguration) {
+    DomainWildcardMappingBuilder<SslContext> builder = new DomainWildcardMappingBuilder<>(defaultContext);
+    Exceptions.uncheck(() -> sniConfiguration.execute(builder));
+    return sniSsl(builder.build());
+  }
+
+  @Override
+  public ServerConfigBuilder sniSsl(Mapping<String, SslContext> sniConfiguration) {
+    return addToServer(n -> n.putPOJO("sniSsl", sniConfiguration));
   }
 
   @Override
@@ -431,6 +446,7 @@ public class DefaultServerConfigBuilder implements ServerConfigBuilder {
         serverEnvironment.getPublicAddress(),
         baseDirSupplier
       ));
+//      addDeserializer(SniSslMapping.class, new SniSslMappingDeserializer());
       addDeserializer(SslContext.class, new NettySslContextDeserializer());
     }
   }
