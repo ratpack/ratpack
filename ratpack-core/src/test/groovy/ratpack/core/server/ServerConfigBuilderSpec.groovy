@@ -174,7 +174,7 @@ class ServerConfigBuilderSpec extends BaseRatpackSpec {
     SslContext context = SslContextBuilder.forServer(keyFactory).build()
 
     when:
-    SslContext sslContext = builder.ssl(context).build().sslContext
+    Mapping<String, SslContext> sslContext = builder.ssl(context).build().sslContext
 
     then:
     sslContext
@@ -191,9 +191,9 @@ class ServerConfigBuilderSpec extends BaseRatpackSpec {
     SslContext exampleContext = SslContextBuilder.forServer(exampleCert.certificate(), exampleCert.privateKey()).build()
 
     when:
-    Mapping<String, SslContext> mapping = builder.sniSsl(defaultContext) { b ->
+    Mapping<String, SslContext> mapping = builder.ssl(defaultContext) { b ->
       b.add("*.example.com", exampleContext)
-    }.build().sniSslContext
+    }.build().sslContext
 
     then:
     mapping.map("foo.example.com") == exampleContext

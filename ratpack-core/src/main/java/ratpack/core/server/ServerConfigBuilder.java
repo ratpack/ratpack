@@ -301,12 +301,12 @@ public interface ServerConfigBuilder extends ConfigDataBuilder {
    * Domain mapping supports <a href="https://tools.ietf.org/search/rfc6125#section-6.4">DNS Wildcard</a> and will
    * match at most one level deep.
    *
-   * @param defaultContext the default SSL context to use if no domain mapping is found.
+   * @param sslContext the default SSL context to use if no domain mapping is found.
    * @param sniConfiguration the SNI based SSL configuration to apply.
    * @return {@code this}
    * @since 2.0
    */
-  ServerConfigBuilder sniSsl(SslContext defaultContext, Action<? super DomainWildcardMappingBuilder<SslContext>> sniConfiguration);
+  ServerConfigBuilder ssl(SslContext sslContext, Action<? super DomainWildcardMappingBuilder<SslContext>> sniConfiguration);
 
   /**
    * Configures the SSL contexts to use based on the client requested domain if the application serves content over HTTPS.
@@ -321,7 +321,7 @@ public interface ServerConfigBuilder extends ConfigDataBuilder {
    * @since 2.0
    * @see DomainWildcardMappingBuilder
    */
-  ServerConfigBuilder sniSsl(Mapping<String, SslContext> sniConfiguration);
+  ServerConfigBuilder ssl(Mapping<String, SslContext> sniConfiguration);
 
   /**
    * {@inheritDoc}

@@ -38,8 +38,7 @@ public class ServerConfigData {
   private boolean development;
   private int threads = ServerConfig.DEFAULT_THREADS;
   private URI publicAddress;
-  private SslContext sslContext;
-  private Mapping<String, SslContext> sniSslContext;
+  private Mapping<String, SslContext> sslContext;
   private boolean requireClientSslAuth;
   private int maxContentLength = ServerConfig.DEFAULT_MAX_CONTENT_LENGTH;
   private Optional<Integer> connectTimeoutMillis = Optional.empty();
@@ -136,20 +135,12 @@ public class ServerConfigData {
     this.publicAddress = new URI(publicAddress);
   }
 
-  public SslContext getSslContext() {
+  public Mapping<String, SslContext> getSslContext() {
     return sslContext;
   }
 
-  public void setSslContext(SslContext sslContext) {
+  public void setSslContext(Mapping<String, SslContext> sslContext) {
     this.sslContext = sslContext;
-  }
-
-  public Mapping<String, SslContext> getSniSslContext() {
-    return this.sniSslContext;
-  }
-
-  public void setSniSslContext(Mapping<String, SslContext> sniSslContext) {
-    this.sniSslContext = sniSslContext;
   }
 
   public boolean isRequireClientSslAuth() {

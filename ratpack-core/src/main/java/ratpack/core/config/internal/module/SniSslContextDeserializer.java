@@ -35,32 +35,35 @@ public class SniSslContextDeserializer extends JsonDeserializer<Mapping<String, 
 
   @Override
   public Mapping<String, SslContext> deserialize(JsonParser jp, DeserializationContext ctxt) throws IOException, JacksonException {
-    ObjectNode node = jp.readValueAsTree();
 
-    JsonNode defaultNode = node.remove("default");
-    if (defaultNode == null) {
-      throw new IllegalStateException("default ssl context must be specified if any sni properties are set");
-    }
     SslContext defaultContext;
     try {
-      defaultContext = sslContextDeserializer.deserialize(defaultNode.traverse(jp.getCodec()), ctxt);
+      defaultContext = sslContextDeserializer.deserialize(jp, ctxt);
     } catch (IllegalStateException e) {
       throw new IllegalStateException("error with default ssl context: " + e.getMessage(), e);
     } catch (IOException e) {
       throw new IOException("error with default ssl context: " + e.getMessage(), e);
     }
+    if (defaultContext == null) {
+      throw new IllegalStateException("default ssl context must be specified if any ssl properties are set");
+    }
     DomainWildcardMappingBuilder<SslContext> builder = new DomainWildcardMappingBuilder<>(defaultContext);
-    Iterator<String> iter = node.fieldNames();
-    while (iter.hasNext()) {
-      String domain = iter.next();
-      JsonNode domainNode = node.get(domain);
-      try {
-        SslContext domainContext = sslContextDeserializer.deserialize(domainNode.traverse(jp.getCodec()), ctxt);
-        builder.add(domain, domainContext);
-      } catch (IllegalStateException e) {
-        throw new IllegalStateException("error with " + domain + " ssl context: " + e.getMessage(), e);
-      } catch (IOException e) {
-        throw new IOException("error with " + domain + " ssl context: " + e.getMessage(), e);
+    ObjectNode node = jp.readValueAsTree();
+    if (node != null) {
+      Iterator<String> iter = node.fieldNames();
+      while (iter.hasNext()) {
+        String domain = iter.next();
+        JsonNode domainNode = node.get(domain);
+        if (domainNode.isObject()) {
+          try {
+            SslContext domainContext = sslContextDeserializer.deserialize(domainNode.traverse(jp.getCodec()), ctxt);
+            builder.add(domain, domainContext);
+          } catch (IllegalStateException e) {
+            throw new IllegalStateException("error with " + domain + " ssl context: " + e.getMessage(), e);
+          } catch (IOException e) {
+            throw new IOException("error with " + domain + " ssl context: " + e.getMessage(), e);
+          }
+        }
       }
     }
     return builder.build();

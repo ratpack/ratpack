@@ -179,7 +179,7 @@ public class DefaultRatpackServer implements RatpackServer {
         boundAddress,
         channel,
         execController,
-        serverConfig.getSslContext() != null || serverConfig.getSniSslContext() != null,
+        serverConfig.getSslContext() != null,
         applicationState
       );
     } catch (Throwable e) {
@@ -312,14 +312,9 @@ public class DefaultRatpackServer implements RatpackServer {
 
           new ConnectionIdleTimeout(pipeline, serverConfig.getIdleTimeout());
 
-          Mapping<String, SslContext> sniSslContext = serverConfig.getSniSslContext();
+          Mapping<String, SslContext> sniSslContext = serverConfig.getSslContext();
           if (sniSslContext != null) {
-            pipeline.addLast("sniSsl", new SniHandler(sniSslContext));
-          } else {
-            SslContext sslContext = serverConfig.getSslContext();
-            if (sslContext != null) {
-              pipeline.addLast("ssl", sslContext.newHandler(ByteBufAllocator.DEFAULT));
-            }
+            pipeline.addLast("ssl", new SniHandler(sniSslContext));
           }
 
           pipeline.addLast("decoder", new HttpRequestDecoder(

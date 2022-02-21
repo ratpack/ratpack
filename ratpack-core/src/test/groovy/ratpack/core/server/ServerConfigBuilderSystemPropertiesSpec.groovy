@@ -18,6 +18,7 @@ package ratpack.core.server
 
 import com.google.common.io.Resources
 import io.netty.handler.ssl.SslContext
+import io.netty.util.Mapping
 import ratpack.core.impose.Impositions
 import ratpack.core.server.internal.DefaultServerConfigBuilder
 import ratpack.core.server.internal.ServerEnvironment
@@ -193,7 +194,7 @@ class ServerConfigBuilderSystemPropertiesSpec extends BaseRatpackSpec {
     properties.setProperty('ratpack.server.ssl.keystorePassword', keystorePassword)
 
     when:
-    SslContext sslContext = builder.sysProps().build().sslContext
+    Mapping<String, SslContext> sslContext = builder.sysProps().build().sslContext
 
     then:
     sslContext

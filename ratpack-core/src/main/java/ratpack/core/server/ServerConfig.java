@@ -209,19 +209,9 @@ public interface ServerConfig extends ConfigData {
    * The SSL context to use if the application will serve content over HTTPS.
    *
    * @return The SSL context or <code>null</code> if the application does not use SSL.
+   * @since 2.0 this returns a full mapping to support SNI.
    */
-  SslContext getSslContext();
-
-  /**
-   * The set of Server Name Indication (SNI) mapped SSL context to use.
-   * <p>
-   * This method allows providing a different set of SSL configuration based on the domain requested by the client.
-   * <p>
-   * This configuration supersedes that provided by {@link #getSslContext()}.
-   *
-   * @since 2.0
-   */
-  Mapping<String, SslContext> getSniSslContext();
+  Mapping<String, SslContext> getSslContext();
 
   /**
    * The max content length to use for the HttpObjectAggregator.
