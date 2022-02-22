@@ -24,9 +24,6 @@ import com.fasterxml.jackson.databind.JsonDeserializer;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.fasterxml.jackson.databind.node.POJONode;
-import io.netty.handler.ssl.ClientAuth;
-import io.netty.handler.ssl.IdentityCipherSuiteFilter;
-import io.netty.handler.ssl.JdkSslContext;
 import io.netty.util.Mapping;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -37,7 +34,6 @@ import ratpack.core.server.internal.ServerConfigData;
 import ratpack.core.server.internal.ServerEnvironment;
 import ratpack.func.Types;
 
-import javax.net.ssl.SSLContext;
 import java.io.IOException;
 import java.net.InetAddress;
 import java.net.URI;
@@ -133,19 +129,6 @@ public class ServerConfigDataDeserializer extends JsonDeserializer<ServerConfigD
     }
 
     return data;
-  }
-
-  private JdkSslContext toJdkSslContext(ServerConfigData data, SSLContext jdkSslContext) {
-    return new JdkSslContext(
-      jdkSslContext,
-      false,
-      null,
-      IdentityCipherSuiteFilter.INSTANCE,
-      null,
-      data.isRequireClientSslAuth() ? ClientAuth.REQUIRE : ClientAuth.OPTIONAL,
-      null,
-      false
-    );
   }
 
   private int parsePort(JsonNode node) {

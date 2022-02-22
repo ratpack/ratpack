@@ -17,6 +17,8 @@
 package ratpack.core.server
 
 import com.google.common.io.Resources
+import io.netty.handler.ssl.SslContext
+import io.netty.util.Mapping
 import ratpack.core.impose.Impositions
 import ratpack.core.server.internal.DefaultServerConfigBuilder
 import ratpack.core.server.internal.ServerEnvironment
@@ -106,6 +108,35 @@ class ServerConfigBuilderEnvVarsSpec extends BaseRatpackSpec {
 
     expect:
     build('RATPACK_SERVER__SSL__KEYSTORE_FILE': keystoreFile, 'RATPACK_SERVER__SSL__KEYSTORE_PASSWORD': keystorePassword).sslContext
+  }
+
+  def "set sni ssl contexts"() {
+    given:
+    String keystoreFile = Paths.get(Resources.getResource('ratpack/core/server/keystore.jks').toURI()).toString()
+    String keystorePassword = 'password'
+
+    when:
+    Mapping<String, SslContext> sslContext = build([
+      'RATPACK_SERVER__SSL__KEYSTORE_FILE': keystoreFile,
+      'RATPACK_SERVER__SSL__KEYSTORE_PASSWORD': keystorePassword,
+      'RATPACK_SERVER__SSL__RATPACK_IO__KEYSTORE_FILE': keystoreFile,
+      'RATPACK_SERVER__SSL__RATPACK_IO__KEYSTORE_PASSWORD': keystorePassword,
+      'RATPACK_SERVER__SSL___EXAMPLE_COM__KEYSTORE_FILE': keystoreFile,
+      'RATPACK_SERVER__SSL___EXAMPLE_COM__KEYSTORE_PASSWORD': keystorePassword
+    ]).sslContext
+
+    then:
+    sslContext.defaultValue
+    sslContext.map.size() == 2
+
+    def defaultValue = sslContext.map("example.com")
+    def exampleValue = sslContext.map("api.example.com")
+    def ratpackValue = sslContext.map("ratpack.io")
+
+    defaultValue != exampleValue
+    defaultValue != ratpackValue
+    exampleValue != ratpackValue
+
   }
 
   def "set connect timeout millis"() {

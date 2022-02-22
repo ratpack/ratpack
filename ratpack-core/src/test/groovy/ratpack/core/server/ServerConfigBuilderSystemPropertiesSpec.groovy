@@ -200,6 +200,34 @@ class ServerConfigBuilderSystemPropertiesSpec extends BaseRatpackSpec {
     sslContext
   }
 
+  def "set sni ssl contexts"() {
+    given:
+    String keystoreFile = Paths.get(Resources.getResource('ratpack/core/server/keystore.jks').toURI()).toString()
+    String keystorePassword = 'password'
+    properties.setProperty('ratpack.server.ssl.keystoreFile', keystoreFile)
+    properties.setProperty('ratpack.server.ssl.keystorePassword', keystorePassword)
+    properties.setProperty('ratpack.server.ssl.ratpack_io.keystoreFile', keystoreFile)
+    properties.setProperty('ratpack.server.ssl.ratpack_io.keystorePassword', keystorePassword)
+    properties.setProperty('ratpack.server.ssl.*_example_com.keystoreFile', keystoreFile)
+    properties.setProperty('ratpack.server.ssl.*_example_com.keystorePassword', keystorePassword)
+
+    when:
+    Mapping<String, SslContext> sslContext = builder.sysProps().build().sslContext
+
+    then:
+    sslContext.defaultValue
+    sslContext.map.size() == 2
+
+    def defaultValue = sslContext.map("example.com")
+    def exampleValue = sslContext.map("api.example.com")
+    def ratpackValue = sslContext.map("ratpack.io")
+
+    defaultValue != exampleValue
+    defaultValue != ratpackValue
+    exampleValue != ratpackValue
+
+  }
+
   def "set connect timeout millis"() {
     given:
     properties.setProperty('ratpack.server.connectTimeoutMillis', '1000')
