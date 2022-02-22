@@ -36,10 +36,11 @@ class AbstractSslContextDeserializerSpec extends BaseRatpackSpec {
   DeserializationContext context = null
   ObjectNode objectNode = JsonNodeFactory.instance.objectNode()
   JsonParser jsonParser = Stub(JsonParser)
+  ObjectMapper objectMapper = new ObjectMapper()
 
   def setup() {
     jsonParser.readValueAsTree() >> objectNode
-    jsonParser.getCodec() >> new ObjectMapper()
+    jsonParser.getCodec() >> objectMapper
   }
 
   /**

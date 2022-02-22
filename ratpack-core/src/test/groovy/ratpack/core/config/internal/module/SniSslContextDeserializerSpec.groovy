@@ -16,12 +16,34 @@
 
 package ratpack.core.config.internal.module
 
+import com.fasterxml.jackson.databind.module.SimpleModule
 import com.fasterxml.jackson.databind.node.JsonNodeFactory
 import com.fasterxml.jackson.databind.node.ObjectNode
+import io.netty.handler.ssl.SslContext
+import spock.lang.Unroll
 
 class SniSslContextDeserializerSpec extends AbstractSslContextDeserializerSpec {
 
   SniSslContextDeserializer deserializer = new SniSslContextDeserializer()
+
+  def setup() {
+    def module = new SimpleModule()
+    module.addDeserializer(SslContext, new NettySslContextDeserializer())
+    objectMapper.registerModule(module)
+  }
+
+  @Unroll
+  def "normalizes #property to #domain"() {
+    expect:
+    deserializer.normalizeDomainName(property) == domain
+
+    where:
+    property       || domain
+    "ratpack_io"   || "ratpack.io"
+    "*_ratpack_io" || "*.ratpack.io"
+    "ratpackIo"    || "ratpack.io"
+    "_ratpackIo"   || "*.ratpack.io"
+  }
 
   def "deserialize called without any expected nodes set"() {
     when:
@@ -107,7 +129,7 @@ class SniSslContextDeserializerSpec extends AbstractSslContextDeserializerSpec {
     deserializer.deserialize(jsonParser, context)
 
     then:
-    def e = thrown(IOException)
+    def e = thrown(IllegalArgumentException)
     e.message == 'error with default ssl context: Keystore was tampered with, or password was incorrect'
   }
 
@@ -128,7 +150,7 @@ class SniSslContextDeserializerSpec extends AbstractSslContextDeserializerSpec {
     deserializer.deserialize(jsonParser, context)
 
     then:
-    def e = thrown(IOException)
+    def e = thrown(IllegalArgumentException)
     e.message == 'error with default ssl context: Keystore was tampered with, or password was incorrect'
   }
 
@@ -241,7 +263,7 @@ class SniSslContextDeserializerSpec extends AbstractSslContextDeserializerSpec {
     deserializer.deserialize(jsonParser, context)
 
     then:
-    def e = thrown(IOException)
+    def e = thrown(IllegalArgumentException)
     e.message == 'error with *.ratpack.io ssl context: Keystore was tampered with, or password was incorrect'
   }
 
@@ -266,7 +288,7 @@ class SniSslContextDeserializerSpec extends AbstractSslContextDeserializerSpec {
     deserializer.deserialize(jsonParser, context)
 
     then:
-    def e = thrown(IOException)
+    def e = thrown(IllegalArgumentException)
     e.message == 'error with *.ratpack.io ssl context: Keystore was tampered with, or password was incorrect'
   }
 

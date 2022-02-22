@@ -16,12 +16,15 @@
 
 package ratpack.core.config.internal.module;
 
-import com.fasterxml.jackson.core.JacksonException;
 import com.fasterxml.jackson.core.JsonParser;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.core.ObjectCodec;
 import com.fasterxml.jackson.databind.DeserializationContext;
 import com.fasterxml.jackson.databind.JsonDeserializer;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
+import com.fasterxml.jackson.databind.node.POJONode;
+import com.google.common.base.CaseFormat;
 import io.netty.handler.ssl.SslContext;
 import io.netty.util.DomainWildcardMappingBuilder;
 import io.netty.util.Mapping;
@@ -31,16 +34,20 @@ import java.util.Iterator;
 
 public class SniSslContextDeserializer extends JsonDeserializer<Mapping<String, SslContext>> {
 
-  private final NettySslContextDeserializer sslContextDeserializer = new NettySslContextDeserializer();
 
   @Override
-  public Mapping<String, SslContext> deserialize(JsonParser jp, DeserializationContext ctxt) throws IOException, JacksonException {
+  public Mapping<String, SslContext> deserialize(JsonParser jp, DeserializationContext ctxt) throws IOException {
+
+    ObjectCodec codec = jp.getCodec();
+    ObjectNode sslNode = jp.readValueAsTree();
 
     SslContext defaultContext;
     try {
-      defaultContext = sslContextDeserializer.deserialize(jp, ctxt);
+      defaultContext = toValue(codec, sslNode, SslContext.class);
     } catch (IllegalStateException e) {
       throw new IllegalStateException("error with default ssl context: " + e.getMessage(), e);
+    } catch (IllegalArgumentException e) {
+      throw new IllegalArgumentException("error with default ssl context: " + e.getMessage(), e);
     } catch (IOException e) {
       throw new IOException("error with default ssl context: " + e.getMessage(), e);
     }
@@ -48,18 +55,19 @@ public class SniSslContextDeserializer extends JsonDeserializer<Mapping<String, 
       throw new IllegalStateException("default ssl context must be specified if any ssl properties are set");
     }
     DomainWildcardMappingBuilder<SslContext> builder = new DomainWildcardMappingBuilder<>(defaultContext);
-    ObjectNode node = jp.readValueAsTree();
-    if (node != null) {
-      Iterator<String> iter = node.fieldNames();
+    if (sslNode != null) {
+      Iterator<String> iter = sslNode.fieldNames();
       while (iter.hasNext()) {
         String domain = iter.next();
-        JsonNode domainNode = node.get(domain);
+        JsonNode domainNode = sslNode.get(domain);
         if (domainNode.isObject()) {
           try {
-            SslContext domainContext = sslContextDeserializer.deserialize(domainNode.traverse(jp.getCodec()), ctxt);
-            builder.add(domain, domainContext);
+            SslContext domainContext = toValue(codec, domainNode, SslContext.class);
+            builder.add(normalizeDomainName(domain), domainContext);
           } catch (IllegalStateException e) {
             throw new IllegalStateException("error with " + domain + " ssl context: " + e.getMessage(), e);
+          } catch (IllegalArgumentException e) {
+            throw new IllegalArgumentException("error with " + domain + " ssl context: " + e.getMessage(), e);
           } catch (IOException e) {
             throw new IOException("error with " + domain + " ssl context: " + e.getMessage(), e);
           }
@@ -67,5 +75,22 @@ public class SniSslContextDeserializer extends JsonDeserializer<Mapping<String, 
       }
     }
     return builder.build();
+  }
+
+  protected String normalizeDomainName(String domain) {
+    boolean prependWildcard = domain.startsWith("_");
+    String normalizedDomain = CaseFormat.LOWER_CAMEL.converterTo(CaseFormat.LOWER_UNDERSCORE).convert(domain);
+    normalizedDomain = normalizedDomain.replaceAll("_", ".");
+    return prependWildcard ? "*" + normalizedDomain : normalizedDomain;
+  }
+
+  private static <T> T toValue(ObjectCodec codec, JsonNode node, Class<T> valueType) throws JsonProcessingException {
+    if (node.isPojo()) {
+      Object pojo = ((POJONode) node).getPojo();
+      if (valueType.isInstance(pojo)) {
+        return valueType.cast(pojo);
+      }
+    }
+    return codec.treeToValue(node, valueType);
   }
 }

@@ -116,6 +116,22 @@ As of v2.0, Ratpack also supports selecting SSL configurations based on the requ
 The [ssl(SslContext, Action)](api/ratpack/core/server/ServerConfigBuilder.html#ssl%28io.netty.handler.ssl.SslContext,ratpack.func.Action%29) is used to specify the default SSL configuration and any additional domain mappings with alternative SSL configuration.
 The domains specified in the mapping support [DNS Wildcard](https://tools.ietf.org/search/rfc6125#section-6.4) and will match at most one level deep in the domain hierarchy (e.g. `*.ratpack.io` will match `api.ratpack.io` but not `docs.api.ratpack.io`).
 
+Configuring SSL settings via system properties or environment variables requires special handling to specify the domain names.
+The following table shows how to specify the default SSl configuration and the configuration for subdomains.
+
+| System Property                                | Environment Variable                             | Description                                                                     |
+|------------------------------------------------|--------------------------------------------------|---------------------------------------------------------------------------------|
+| `ratpack.server.ssl.keystoreFile`              | `RATPACK_SERVER__SSL__KEYSTORE_FILE`             | Specifies the path to the JKS containing the server certificate and private key |
+| `ratpack.server.ssl.keystorePassword`          | `RATPACK_SERVER__SSL__KEYSTORE_PASSWORD`         | Specifies the password for the keystore JKS                                     |
+| `ratpack.server.ssl.truststoreFile`            | `RATPACK_SERVER__SSL__TRUSTSTORE_FILE`           | Specifies the path to the JKS containing the trusted certificates               |
+| `ratpack.server.ssl.truststorePassword`        | `RATPACK_SERVER__SSL__TRUSTSTORE_PASSWORD`       | Specifies the password for the truststore JKS                                   |
+| `ratpack.server.ssl.ratpack_io.keystoreFile`   | `RATPACK_SERVER__SSL__RATPACK_IO__KEYSTORE_FILE` | Specifies the path to the keystore for the domain `ratpack.io`                  |
+| `ratpack.server.ssl.*_ratpack_io.kyestoreFile` | `RATPACK_SERVER__SSL___RATPACK_IO_KEYSTORE_FILE` | Specifies the path to the keystore for the domain `*.ratpack.io`                |
+
+Note the following special rules:
+1. In both system properties and environment variables, domain name separators (`.`) are converted into underscores (`_`)
+2. In environment variables, the domain wildcard character (`*`) is specified using an underscore (`_`). This results in 3 underscores preceding the domain name (`___RATPACK_IO`).
+
 ### Registry
 
 A [`registry`](api/ratpack/exec/registry/Registry.html) is a store of objects stored by type.
