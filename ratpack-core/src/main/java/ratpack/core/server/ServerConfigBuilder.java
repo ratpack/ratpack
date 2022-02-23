@@ -598,4 +598,14 @@ public interface ServerConfigBuilder extends ConfigDataBuilder {
    */
   @Override
   ServerConfig build();
+
+  /**
+   * Configures how to emit messages associated with errors when decoding incoming requests.
+   *
+   * @param log the logging setting for failed decodings
+   * @return {@code this}
+   * @see ServerConfig#getDecodingErrorLevel() ()
+   * @since 2.0
+   */
+  ServerConfigBuilder decodingErrorLevel(DecodingErrorLevel log);
 }

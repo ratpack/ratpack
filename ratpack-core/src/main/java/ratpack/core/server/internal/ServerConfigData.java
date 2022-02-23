@@ -18,6 +18,7 @@ package ratpack.core.server.internal;
 
 import io.netty.handler.ssl.SslContext;
 import ratpack.config.FileSystemBinding;
+import ratpack.core.server.DecodingErrorLevel;
 import ratpack.core.server.ServerConfig;
 
 import java.net.InetAddress;
@@ -48,6 +49,7 @@ public class ServerConfigData {
   private int maxChunkSize = ServerConfig.DEFAULT_MAX_CHUNK_SIZE;
   private int maxInitialLineLength = ServerConfig.DEFAULT_MAX_INITIAL_LINE_LENGTH;
   private int maxHeaderSize = ServerConfig.DEFAULT_MAX_HEADER_SIZE;
+  private DecodingErrorLevel decodingErrorLevel = DecodingErrorLevel.WARN;
 
   private Duration idleTimeout = Duration.ZERO;
   private boolean registerShutdownHook = true;
@@ -228,5 +230,13 @@ public class ServerConfigData {
 
   public void setRegisterShutdownHook(boolean registerShutdownHook) {
     this.registerShutdownHook = registerShutdownHook;
+  }
+
+  public DecodingErrorLevel getDecodingErrorLevel() {
+    return decodingErrorLevel;
+  }
+
+  public void setDecodingErrorLevel(DecodingErrorLevel decoderErrorLog) {
+    this.decodingErrorLevel = decoderErrorLog;
   }
 }

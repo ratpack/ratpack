@@ -36,6 +36,7 @@ import ratpack.core.impose.ForceDevelopmentImposition;
 import ratpack.core.impose.ForceServerListenPortImposition;
 import ratpack.core.impose.Impositions;
 import ratpack.core.impose.ServerConfigImposition;
+import ratpack.core.server.DecodingErrorLevel;
 import ratpack.core.server.ServerConfig;
 import ratpack.core.server.ServerConfigBuilder;
 import ratpack.func.Action;
@@ -374,6 +375,11 @@ public class DefaultServerConfigBuilder implements ServerConfigBuilder {
   @Override
   public ImmutableList<ConfigSource> getConfigSources() {
     return configDataBuilder.getConfigSources();
+  }
+
+  @Override
+  public ServerConfigBuilder decodingErrorLevel(DecodingErrorLevel errorLog) {
+    return addToServer(n -> n.put("decodingErrorLevel", errorLog.name()));
   }
 
   @Override

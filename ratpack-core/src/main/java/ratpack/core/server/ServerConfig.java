@@ -375,4 +375,16 @@ public interface ServerConfig extends ConfigData {
    */
   FileSystemBinding getBaseDir() throws NoBaseDirException;
 
+  /**
+   * Specifies how to log messages associated with request decode failures.
+   * <p>
+   * This is useful when using Ratpack as an HTTPS server and misbehaving clients are sending HTTP requests.
+   * <p>
+   * The default value for this setting is {@code WARN} which emits a single line message for each non SSL/TLS record.
+   *
+   * @return the configured log setting
+   * @since 2.0
+   */
+  DecodingErrorLevel getDecodingErrorLevel();
+
 }

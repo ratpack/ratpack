@@ -17,10 +17,15 @@
 package ratpack.core.ssl
 
 import com.google.common.base.Throwables
+import io.netty.handler.codec.PrematureChannelClosureException
 import io.netty.handler.ssl.ClientAuth
 import io.netty.handler.ssl.SslContext
 import io.netty.handler.ssl.SslContextBuilder
 import io.netty.handler.ssl.util.SelfSignedCertificate
+import org.apache.logging.log4j.LogManager
+import org.apache.logging.log4j.core.Logger
+import org.apache.logging.log4j.core.appender.WriterAppender
+import ratpack.core.server.internal.NettyHandlerAdapter
 import ratpack.test.internal.RatpackGroovyDslSpec
 import spock.lang.Shared
 import sun.security.provider.certpath.SunCertPathBuilderException
@@ -134,5 +139,51 @@ class HttpsSpec extends RatpackGroovyDslSpec {
 
     then:
     requestSpec { it.sslContext(clientContext) }.text == nonLocalHostCert.cert().subjectDN.name
+  }
+
+  def "suppresses exceptions from non-HTTPS request"() {
+    given:
+    // Look up and modifying the underlying log4j configuration
+    // so we can capture the log output in this test
+    Logger logs = (Logger) LogManager.getLogger(NettyHandlerAdapter)
+    def sw = new StringWriter()
+
+    def builder = WriterAppender.newBuilder()
+    builder.setTarget(sw)
+    builder.setName("testCapture")
+    def testAppender = builder.build()
+    testAppender.start()
+
+    logs.setAdditive(true)
+    logs.addAppender(testAppender)
+
+    SslContext localhostContext = SslContextBuilder.forServer(localHostCert.certificate(), localHostCert.privateKey()).build()
+    serverConfig {
+      ssl(localhostContext)
+    }
+
+    when:
+    handlers {
+      get {
+        render "ok"
+      }
+    }
+
+    then:
+    try {
+      getText("http://localhost:${applicationUnderTest.address.port}")
+    } catch(PrematureChannelClosureException e) {
+      assert e.getMessage().contains("closed the connection prematurely")
+    }
+
+    and:
+    def lines = sw.toString().trim().split("\n")
+    lines.size() == 1
+    lines[0].startsWith("not an SSL/TLS record")
+
+    cleanup:
+    testAppender.stop()
+    logs.removeAppender(testAppender)
+    logs.setAdditive(false)
   }
 }

@@ -20,6 +20,7 @@ import io.netty.buffer.ByteBuf;
 import io.netty.buffer.ByteBufUtil;
 import io.netty.buffer.Unpooled;
 import io.netty.channel.*;
+import io.netty.handler.codec.DecoderException;
 import io.netty.handler.codec.http.*;
 import io.netty.handler.ssl.SslHandler;
 import io.netty.handler.ssl.SslHandshakeCompletionEvent;
@@ -40,6 +41,7 @@ import ratpack.core.http.MutableHeaders;
 import ratpack.core.http.Response;
 import ratpack.core.http.internal.*;
 import ratpack.core.render.internal.DefaultRenderController;
+import ratpack.core.server.DecodingErrorLevel;
 import ratpack.core.server.ServerConfig;
 import ratpack.exec.ExecController;
 import ratpack.func.Action;
@@ -73,6 +75,7 @@ public class NettyHandlerAdapter extends ChannelInboundHandlerAdapter {
 
   private final Registry serverRegistry;
   private final boolean development;
+  private final DecodingErrorLevel decodingErrorLevel;
   private final Clock clock;
 
   public NettyHandlerAdapter(Registry serverRegistry, Handler handler) throws Exception {
@@ -80,6 +83,7 @@ public class NettyHandlerAdapter extends ChannelInboundHandlerAdapter {
     this.serverRegistry = serverRegistry;
     this.applicationConstants = new DefaultContext.ApplicationConstants(this.serverRegistry, new DefaultRenderController(), serverRegistry.get(ExecController.class), Handlers.notFound());
     this.development = serverRegistry.get(ServerConfig.class).isDevelopment();
+    this.decodingErrorLevel = serverRegistry.get(ServerConfig.class).getDecodingErrorLevel();
     this.clock = serverRegistry.get(Clock.class);
   }
 
@@ -234,7 +238,23 @@ public class NettyHandlerAdapter extends ChannelInboundHandlerAdapter {
   @Override
   public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) {
     if (!isIgnorableException(cause)) {
-      LOGGER.error("", cause);
+      if (cause instanceof DecoderException && cause.getCause() != null && decodingErrorLevel != DecodingErrorLevel.FULL) {
+        String msg = cause.getCause().getMessage();
+        switch (decodingErrorLevel) {
+          case INFO:
+            LOGGER.info(msg);
+            break;
+          case WARN:
+            LOGGER.warn(msg);
+            break;
+          case ERROR:
+            LOGGER.error(msg);
+            break;
+          default:
+        }
+      } else {
+        LOGGER.error("", cause);
+      }
       if (ctx.channel().isActive()) {
         sendError(ctx, HttpResponseStatus.INTERNAL_SERVER_ERROR);
       }

@@ -22,6 +22,7 @@ import ratpack.config.ConfigData;
 import ratpack.config.ConfigObject;
 import ratpack.config.internal.DelegatingConfigData;
 import ratpack.config.FileSystemBinding;
+import ratpack.core.server.DecodingErrorLevel;
 import ratpack.core.server.NoBaseDirException;
 import ratpack.core.server.ServerConfig;
 import ratpack.func.Nullable;
@@ -149,5 +150,10 @@ public class DefaultServerConfig extends DelegatingConfigData implements ServerC
   @Override
   public Optional<Path> getPortFile() {
     return serverConfigData.getPortFile();
+  }
+
+  @Override
+  public DecodingErrorLevel getDecodingErrorLevel() {
+    return serverConfigData.getDecodingErrorLevel();
   }
 }
