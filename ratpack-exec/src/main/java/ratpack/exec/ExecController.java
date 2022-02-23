@@ -17,7 +17,9 @@
 package ratpack.exec;
 
 import io.netty.channel.EventLoopGroup;
+import ratpack.exec.internal.DefaultExecController;
 import ratpack.exec.internal.ExecThreadBinding;
+import ratpack.func.Action;
 
 import java.util.Optional;
 import java.util.concurrent.ExecutorService;
@@ -53,6 +55,10 @@ public interface ExecController extends AutoCloseable {
     return current().orElseThrow(UnmanagedThreadException::new);
   }
 
+  /**
+   * Create a new {@link Execution} from this controller that is bound to the computation threads.
+   * @return a builder for the execution
+   */
   ExecStarter fork();
 
   /**
@@ -67,6 +73,17 @@ public interface ExecController extends AutoCloseable {
    */
   ScheduledExecutorService getExecutor();
 
+  /**
+   * The blocking (i.e. I/O) executor service.
+   * <p>
+   * This executor service provides a thread pool which can be used to schedule work such that it does not block the
+   * computation threads.
+   * <p>
+   * The result of work executed on this thread should typically be returned to a continuation on a compute thread
+   *
+   * @see Blocking#get
+   * @return the default blocking executor service
+   */
   ExecutorService getBlockingExecutor();
 
   /**
@@ -79,23 +96,25 @@ public interface ExecController extends AutoCloseable {
   EventLoopGroup getEventLoopGroup();
 
   /**
-   * The number of threads that will be used for computation.
-   * <p>
-   * This is determined by the {@link ratpack.core.server.ServerConfig#getThreads()} value of the launch config that created this controller.
-   *
-   * @return the number of threads that will be used for computation
-   */
-  int getNumThreads();
-
-  /**
    * Shuts down this controller, terminating the event loop and blocking threads.
    * <p>
    * This method returns immediately, not waiting for the actual shutdown to occur.
    * <p>
    * Generally, the only time it is necessary to call this method is when using an exec controller directly during testing.
-   * Calling {@link ratpack.core.server.RatpackServer#stop()} will inherently call this method.
    */
   @Override
   void close();
+
+  /**
+   * Construct a new execution controller from the provided specification.
+   *
+   * @param definition the configuration of the execution controller.
+   * @return an execution controller
+   * @throws Exception if any exception is thrown when applying the configuration.
+   * @since 2.0
+   */
+  static ExecController of(Action<? super ExecControllerSpec> definition) throws Exception {
+    return DefaultExecController.of(definition);
+  }
 
 }

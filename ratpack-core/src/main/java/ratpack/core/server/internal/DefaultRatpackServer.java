@@ -159,7 +159,11 @@ public class DefaultRatpackServer implements RatpackServer {
     }
 
     ServerConfig serverConfig = applicationState.definitionBuild.definition.serverConfig;
-    ExecControllerInternal execController = new DefaultExecController(serverConfig.getThreads());
+    ExecControllerInternal execController = (DefaultExecController) ExecController.of(spec ->
+      spec.compute(c ->
+        c.threads(serverConfig.getThreads())
+      )
+    );
     try {
       ChannelHandler channelHandler = ExecThreadBinding.bindFor(true, execController, () ->
         buildHandler(
