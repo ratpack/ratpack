@@ -20,6 +20,7 @@ import io.netty.channel.EventLoopGroup;
 import ratpack.exec.internal.DefaultExecController;
 import ratpack.exec.internal.ExecThreadBinding;
 import ratpack.func.Action;
+import ratpack.func.Block;
 
 import java.util.Optional;
 import java.util.concurrent.ExecutorService;
@@ -116,5 +117,16 @@ public interface ExecController extends AutoCloseable {
   static ExecController of(Action<? super ExecControllerSpec> definition) throws Exception {
     return DefaultExecController.of(definition);
   }
+
+  /**
+   * Registers a block to be executed when this controller closes.
+   * <p>
+   * This method is additive.
+   *
+   * @param block the code block to execute on shutdown
+   * @return {@code false} if the controller is already closed and the block is not added, {@code true} otherwise.
+   * @since 2.0
+   */
+  boolean onClose(Block block);
 
 }

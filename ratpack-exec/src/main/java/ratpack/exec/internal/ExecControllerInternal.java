@@ -20,7 +20,6 @@ import com.google.common.collect.ImmutableList;
 import ratpack.exec.ExecController;
 import ratpack.exec.ExecInitializer;
 import ratpack.exec.ExecInterceptor;
-import ratpack.func.Block;
 
 public interface ExecControllerInternal extends ExecController {
 
@@ -31,8 +30,5 @@ public interface ExecControllerInternal extends ExecController {
   ImmutableList<? extends ExecInterceptor> getInterceptors();
 
   ImmutableList<? extends ExecInitializer> getInitializers();
-
-  // TODO: move to public API in 1.5
-  boolean onClose(Block block);
 
 }
