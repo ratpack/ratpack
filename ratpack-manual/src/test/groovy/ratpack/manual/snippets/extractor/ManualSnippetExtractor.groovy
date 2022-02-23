@@ -16,9 +16,9 @@
 
 package ratpack.manual.snippets.extractor
 
-import ratpack.test.internal.snippets.TestCodeSnippet
-import ratpack.test.internal.snippets.executer.ExceptionTransformer
-import ratpack.test.internal.snippets.executer.SnippetExecuter
+import ratpack.test.docs.TestCodeSnippet
+import ratpack.test.docs.executer.ExceptionTransformer
+import ratpack.test.docs.SnippetExecuter
 import ratpack.exec.util.RatpackVersion
 
 import java.util.regex.Pattern

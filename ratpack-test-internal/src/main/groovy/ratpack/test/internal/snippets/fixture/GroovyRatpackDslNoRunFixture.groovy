@@ -18,6 +18,7 @@ package ratpack.test.internal.snippets.fixture
 
 import ratpack.func.Block
 import ratpack.groovy.internal.capture.RatpackScriptBacking
+import ratpack.test.docs.fixture.GroovyScriptFixture
 
 class GroovyRatpackDslNoRunFixture extends GroovyScriptFixture {
 

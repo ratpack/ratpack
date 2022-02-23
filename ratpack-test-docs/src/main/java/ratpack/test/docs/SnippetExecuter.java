@@ -1,5 +1,5 @@
 /*
- * Copyright 2013 the original author or authors.
+ * Copyright 2022 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,30 +14,12 @@
  * limitations under the License.
  */
 
-package ratpack.test.internal.snippets.fixture;
+package ratpack.test.docs;
 
-import ratpack.func.Block;
+public interface SnippetExecuter {
 
-public class SnippetFixture {
+  SnippetFixture getFixture();
 
-  public void around(Block action) throws Exception {
-    action.execute();
-  }
-
-  public String transform(String text) {
-    return text;
-  }
-
-  public String pre() {
-    return "";
-  }
-
-  public String post() {
-    return "";
-  }
-
-  public Integer getOffset() {
-    return pre().split("\n").length;
-  }
+  void execute(TestCodeSnippet snippet) throws Exception;
 
 }

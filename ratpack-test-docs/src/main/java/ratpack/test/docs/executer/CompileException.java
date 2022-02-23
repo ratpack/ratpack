@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 the original author or authors.
+ * Copyright 2022 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,15 +14,21 @@
  * limitations under the License.
  */
 
-package ratpack.test.internal.snippets.executer;
+package ratpack.test.docs.executer;
 
-import ratpack.test.internal.snippets.TestCodeSnippet;
-import ratpack.test.internal.snippets.fixture.SnippetFixture;
+public class CompileException extends RuntimeException {
 
-public interface SnippetExecuter {
+  private static final long serialVersionUID = 0;
 
-  SnippetFixture getFixture();
+  private final int lineNo;
 
-  void execute(TestCodeSnippet snippet) throws Exception;
+  public CompileException(Throwable cause, int lineNo) {
+    super(cause);
+    this.lineNo = lineNo;
+  }
+
+  public int getLineNo() {
+    return lineNo;
+  }
 
 }

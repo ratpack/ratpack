@@ -18,13 +18,15 @@ package ratpack.manual
 
 import com.google.common.base.StandardSystemProperty
 import ratpack.rx2.RxRatpack
-import ratpack.test.internal.snippets.CodeSnippetTestCase
+import ratpack.test.docs.CodeSnippetTestCase
 import ratpack.manual.snippets.executer.GradleSnippetExecuter
-import ratpack.test.internal.snippets.TestCodeSnippet
-import ratpack.test.internal.snippets.executer.GroovySnippetExecuter
-import ratpack.test.internal.snippets.executer.JavaSnippetExecuter
-import ratpack.test.internal.snippets.executer.SnippetExecuter
+import ratpack.test.docs.SnippetFixture
+import ratpack.test.docs.TestCodeSnippet
+import ratpack.test.docs.executer.GroovySnippetExecuter
+import ratpack.test.docs.executer.JavaSnippetExecuter
+import ratpack.test.docs.SnippetExecuter
 import ratpack.manual.snippets.extractor.ManualSnippetExtractor
+import ratpack.test.docs.fixture.GroovyScriptFixture
 import ratpack.test.internal.snippets.fixture.*
 
 class ManualCodeSnippetTests extends CodeSnippetTestCase {

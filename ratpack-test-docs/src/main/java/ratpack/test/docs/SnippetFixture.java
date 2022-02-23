@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 the original author or authors.
+ * Copyright 2022 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,13 +14,30 @@
  * limitations under the License.
  */
 
-package ratpack.test.internal.snippets.fixture
+package ratpack.test.docs;
 
-class GroovyScriptFixture extends SnippetFixture {
+import ratpack.func.Block;
 
-  @Override
-  String post() {
-    "\n;0;"
+public class SnippetFixture {
+
+  public void around(Block action) throws Exception {
+    action.execute();
+  }
+
+  public String transform(String text) {
+    return text;
+  }
+
+  public String pre() {
+    return "";
+  }
+
+  public String post() {
+    return "";
+  }
+
+  public Integer getOffset() {
+    return pre().split("\n").length;
   }
 
 }

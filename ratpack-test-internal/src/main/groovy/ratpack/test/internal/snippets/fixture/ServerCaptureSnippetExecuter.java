@@ -18,8 +18,9 @@ package ratpack.test.internal.snippets.fixture;
 
 import ratpack.core.impose.ForceServerListenPortImposition;
 import ratpack.core.impose.Impositions;
-import ratpack.test.internal.snippets.TestCodeSnippet;
-import ratpack.test.internal.snippets.executer.SnippetExecuter;
+import ratpack.test.docs.SnippetFixture;
+import ratpack.test.docs.TestCodeSnippet;
+import ratpack.test.docs.SnippetExecuter;
 import ratpack.core.server.RatpackServer;
 import ratpack.core.server.internal.ServerCapturer;
 

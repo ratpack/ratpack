@@ -17,7 +17,7 @@ configurations.configureEach { Configuration configuration ->
   configuration.name != "codenarc" && !configuration.name.startsWith("test")
     && !(project.name in [
     "perf", "ratpack-groovy", "ratpack-groovy-test",
-    "ratpack-site", "ratpack-test-internal"
+    "ratpack-site", "ratpack-test-internal", "ratpack-test-docs"
   ])
 
   ) {

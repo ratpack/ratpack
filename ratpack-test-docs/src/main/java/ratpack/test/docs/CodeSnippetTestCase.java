@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 the original author or authors.
+ * Copyright 2022 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package ratpack.test.internal.snippets;
+package ratpack.test.docs;
 
 import org.junit.jupiter.api.DynamicTest;
 import org.junit.jupiter.api.TestFactory;
@@ -27,7 +27,7 @@ import static org.junit.jupiter.api.Assertions.assertTimeout;
 import static org.junit.jupiter.api.Assumptions.assumeTrue;
 import static ratpack.func.Exceptions.uncheck;
 
-abstract public class CodeSnippetTestCase {
+public abstract class CodeSnippetTestCase {
 
   protected abstract Collection<TestCodeSnippet> registerTests();
 

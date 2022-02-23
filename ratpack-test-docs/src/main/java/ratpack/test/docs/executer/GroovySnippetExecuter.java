@@ -1,5 +1,5 @@
 /*
- * Copyright 2013 the original author or authors.
+ * Copyright 2022 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package ratpack.test.internal.snippets.executer;
+package ratpack.test.docs.executer;
 
 import groovy.lang.Binding;
 import groovy.lang.GroovyShell;
@@ -27,8 +27,9 @@ import org.codehaus.groovy.control.*;
 import org.codehaus.groovy.control.customizers.CompilationCustomizer;
 import org.codehaus.groovy.control.messages.Message;
 import org.codehaus.groovy.control.messages.SyntaxErrorMessage;
-import ratpack.test.internal.snippets.TestCodeSnippet;
-import ratpack.test.internal.snippets.fixture.SnippetFixture;
+import ratpack.test.docs.SnippetExecuter;
+import ratpack.test.docs.TestCodeSnippet;
+import ratpack.test.docs.SnippetFixture;
 
 import java.net.URL;
 import java.net.URLClassLoader;

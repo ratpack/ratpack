@@ -16,6 +16,8 @@
 
 package ratpack.test.internal.snippets.fixture
 
+import ratpack.test.docs.SnippetFixture
+
 class JavaChainDslFixture extends SnippetFixture {
 
   @Override
