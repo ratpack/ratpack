@@ -31,6 +31,7 @@ import io.netty.handler.ssl.SslContext;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import ratpack.config.FileSystemBinding;
+import ratpack.core.server.DecodingErrorLevel;
 import ratpack.core.server.ServerConfig;
 import ratpack.core.server.internal.ServerConfigData;
 import ratpack.core.server.internal.ServerEnvironment;
@@ -127,6 +128,9 @@ public class ServerConfigDataDeserializer extends JsonDeserializer<ServerConfigD
     }
     if (serverNode.hasNonNull("portFile")) {
       data.setPortFile(toValue(codec, serverNode.get("portFile"), Path.class));
+    }
+    if (serverNode.hasNonNull("decodingErrorLevel")) {
+      data.setDecodingErrorLevel(DecodingErrorLevel.valueOf(serverNode.get("decodingErrorLevel").asText("WARN")));
     }
 
     return data;

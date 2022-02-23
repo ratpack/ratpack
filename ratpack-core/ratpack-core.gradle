@@ -63,6 +63,10 @@ dependencies {
 
   testImplementation commonDependencies.commonsLang3
 
+  // Used to do some testing of log output
+  testImplementation "org.apache.logging.log4j:log4j-api:${commonVersions.log4j}"
+  testImplementation "org.apache.logging.log4j:log4j-core:${commonVersions.log4j}"
+
   testImplementation('com.opencsv:opencsv:5.5.2') {
     exclude group: "org.apache.commons", module: "commons-lang3"
   }
