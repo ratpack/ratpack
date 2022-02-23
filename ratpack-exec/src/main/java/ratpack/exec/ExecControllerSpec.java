@@ -29,7 +29,7 @@ import java.util.concurrent.ThreadFactory;
  * An additive specification of an execution controller.
  *
  * @see ExecController#of(Action)
- * @since 2.0.0
+ * @since 2.0
  */
 public interface ExecControllerSpec {
   /**
@@ -43,7 +43,7 @@ public interface ExecControllerSpec {
   /**
    * Registers an initializer for executions created by this controller.
    *
-   * @param initializer the intializer to execut on new executions
+   * @param initializer the initializer to execute on new executions
    * @return {@code this}
    */
   ExecControllerSpec initializer(ExecInitializer initializer);

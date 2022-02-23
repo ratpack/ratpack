@@ -28,7 +28,6 @@ import ratpack.exec.ExecController;
 import ratpack.exec.Execution;
 import ratpack.exec.Promise;
 import ratpack.func.Action;
-import ratpack.exec.internal.ExecControllerInternal;
 import ratpack.exec.util.internal.TransportDetector;
 import ratpack.func.Nullable;
 
@@ -79,7 +78,7 @@ public class DefaultHttpClient implements HttpClientInternal {
         InstrumentedChannelPoolHandler channelPoolHandler = getPoolingHandler(key);
         hostStats.put(key.host, channelPoolHandler);
         CleanClosingFixedChannelPool channelPool = new CleanClosingFixedChannelPool(bootstrap, channelPoolHandler, getPoolSize(), getPoolQueueSize());
-        ((ExecControllerInternal) key.execution.getController()).onClose(() -> {
+        key.execution.getController().onClose(() -> {
           remove(key);
           channelPool.closeCleanly();
         });

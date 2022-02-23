@@ -25,11 +25,8 @@ import io.netty.util.internal.PlatformDependent;
 import org.reactivestreams.Publisher;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import ratpack.func.Nullable;
+import ratpack.func.*;
 import ratpack.exec.*;
-import ratpack.func.Action;
-import ratpack.func.Block;
-import ratpack.func.Factory;
 import ratpack.exec.registry.MutableRegistry;
 import ratpack.exec.registry.NotInRegistryException;
 import ratpack.exec.registry.Registry;
@@ -82,9 +79,11 @@ public class DefaultExecution implements Execution {
 
     this.execStream = new InitialExecStream(() -> action.execute(this));
 
+    // Do this to hide some type errors that IDEA sees, but aren't actually a compiler issue.
+    Iterable<ExecInterceptor> registryInterceptors = Types.cast(registry.getAll(ExecInterceptor.class));
     this.interceptors = Iterables.concat(
       controller.getInterceptors(),
-      ImmutableList.copyOf(registry.getAll(ExecInterceptor.class))
+      ImmutableList.copyOf(registryInterceptors)
     );
 
     for (ExecInitializer initializer : controller.getInitializers()) {
