@@ -18,10 +18,10 @@ package ratpack.manual
 
 import com.google.common.base.StandardSystemProperty
 import ratpack.rx2.RxRatpack
-import ratpack.test.docs.CodeSnippetTestCase
 import ratpack.manual.snippets.executer.GradleSnippetExecuter
+import ratpack.test.docs.CodeSnippetTestCase
+import ratpack.test.docs.SnippetExtractor
 import ratpack.test.docs.SnippetFixture
-import ratpack.test.docs.TestCodeSnippet
 import ratpack.test.docs.executer.GroovySnippetExecuter
 import ratpack.test.docs.executer.JavaSnippetExecuter
 import ratpack.test.docs.SnippetExecuter
@@ -53,7 +53,7 @@ class ManualCodeSnippetTests extends CodeSnippetTestCase {
   ]
 
   @Override
-  protected Collection<TestCodeSnippet> registerTests() {
+  File getSourceDirectory() {
     File cwd = new File(StandardSystemProperty.USER_DIR.value())
     File root
     if (new File(cwd, "ratpack-manual.gradle").exists()) {
@@ -62,11 +62,22 @@ class ManualCodeSnippetTests extends CodeSnippetTestCase {
       root = cwd
     }
 
-    def content = new File(root, "ratpack-manual/src/content/chapters")
+    return new File(root, "ratpack-manual/src/content/chapters")
+  }
 
-    FIXTURES.collectMany { selector, executer ->
-      ManualSnippetExtractor.extract(content, selector, executer)
-    }
+  @Override
+  String getIncludePath() {
+    return "**/*.md"
+  }
+
+  @Override
+  SnippetExtractor getExtractor() {
+    return new ManualSnippetExtractor()
+  }
+
+  @Override
+  Map<String, SnippetExecuter> getCssExecutorMapping() {
+    return FIXTURES
   }
 
 }

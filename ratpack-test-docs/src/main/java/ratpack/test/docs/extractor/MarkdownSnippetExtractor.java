@@ -14,38 +14,27 @@
  * limitations under the License.
  */
 
-package ratpack.test.docs;
+package ratpack.test.docs.extractor;
 
-import ratpack.func.Block;
-import ratpack.test.docs.executer.ExtractedSnippet;
 
-public class SnippetFixture {
+import java.io.File;
+import java.util.regex.Pattern;
 
-  public void around(Block action) throws Exception {
-    action.execute();
+public class MarkdownSnippetExtractor extends AbstractSnippetExtractor {
+
+  @Override
+  protected Pattern getExtractPattern(String cssClass) {
+    return Pattern.compile("(?ims)```" + cssClass + "\n(.*?)\n```");
   }
 
-  public String transform(String text) {
-    return text;
+  @Override
+  protected String generateTestName(File file, String source) {
+    return file.getName();
   }
 
-  public String pre() {
-    return "";
+  @Override
+  protected String extractSnippetFromBlock(String tag) {
+    return tag.substring(tag.indexOf("\n") + 1, tag.lastIndexOf("\n"));
   }
 
-  public String post() {
-    return "";
-  }
-
-  public Integer getOffset() {
-    return pre().split("\n").length;
-  }
-
-  public String build(ExtractedSnippet extractedSnippet) {
-    return
-      extractedSnippet.getPackageAndImports()
-      + pre()
-      + transform(extractedSnippet.getBody())
-      + post();
-  }
 }

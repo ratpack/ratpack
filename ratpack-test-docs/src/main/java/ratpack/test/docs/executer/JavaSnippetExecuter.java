@@ -72,7 +72,9 @@ public class JavaSnippetExecuter implements SnippetExecuter {
       }
     };
 
-    String fullSnippet = assembleFullSnippet(snippet);
+    ExtractedSnippet extractedSnippet = extractImports(snippet.getSnippet());
+    String fullSnippet = fixture.build(extractedSnippet);
+
     String className = detectClassName(fullSnippet);
     StringJavaSource source = new StringJavaSource(className, fullSnippet);
 
@@ -118,29 +120,14 @@ public class JavaSnippetExecuter implements SnippetExecuter {
 
   private static String detectClassName(String snippet) {
     Matcher match = CLASS_NAME_PATTERN.matcher(snippet);
-    String className = match.matches() ? match.group(1) : "Example";
+    String className = match.find() ? match.group(1) : "Example";
     String packageName = detectPackage(snippet);
     return packageName != null && !packageName.isEmpty() ? packageName + "." + className : className;
   }
 
   private static String detectPackage(String snippet) {
     Matcher match = PACKAGE_PATTERN.matcher(snippet);
-    return match.matches() ? match.group(1) : null;
-  }
-
-  private String assembleFullSnippet(TestCodeSnippet snippet) {
-    StringBuilder imports = new StringBuilder();
-    StringBuilder snippetMinusImports = new StringBuilder();
-    Arrays.stream(snippet.getSnippet().split("\n")).forEach(line -> {
-      String trimmedLine = line.trim();
-      if (trimmedLine.startsWith("package ") || trimmedLine.startsWith("import ")) {
-        imports.append(line).append("\n");
-      } else {
-        snippetMinusImports.append(line).append("\n");
-      }
-    });
-    String fullSnippet = imports + fixture.pre() + snippet.getExecuter().getFixture().transform(snippetMinusImports.toString()) + fixture.post();
-    return fullSnippet;
+    return match.find() ? match.group(1) : null;
   }
 
   public static class StringJavaSource extends SimpleJavaFileObject {

@@ -16,36 +16,10 @@
 
 package ratpack.test.docs;
 
-import ratpack.func.Block;
-import ratpack.test.docs.executer.ExtractedSnippet;
+import java.io.File;
+import java.util.List;
 
-public class SnippetFixture {
+public interface SnippetExtractor {
 
-  public void around(Block action) throws Exception {
-    action.execute();
-  }
-
-  public String transform(String text) {
-    return text;
-  }
-
-  public String pre() {
-    return "";
-  }
-
-  public String post() {
-    return "";
-  }
-
-  public Integer getOffset() {
-    return pre().split("\n").length;
-  }
-
-  public String build(ExtractedSnippet extractedSnippet) {
-    return
-      extractedSnippet.getPackageAndImports()
-      + pre()
-      + transform(extractedSnippet.getBody())
-      + post();
-  }
+  List<TestCodeSnippet> extract(File root, String include, String cssClass, SnippetExecuter executer);
 }

@@ -33,8 +33,6 @@ import ratpack.test.docs.SnippetFixture;
 
 import java.net.URL;
 import java.net.URLClassLoader;
-import java.util.Arrays;
-import java.util.List;
 
 public class GroovySnippetExecuter implements SnippetExecuter {
 
@@ -65,11 +63,8 @@ public class GroovySnippetExecuter implements SnippetExecuter {
 
     ClassLoader classLoader = new URLClassLoader(new URL[]{}, getClass().getClassLoader());
     GroovyShell groovyShell = new GroovyShell(classLoader, new Binding(), config);
-    List<String> importsAndSnippet = extractImports(snippet.getSnippet());
-
-    String imports = importsAndSnippet.get(0);
-    String snippetMinusImports = fixture.transform(importsAndSnippet.get(1));
-    String fullSnippet = imports + fixture.pre() + snippetMinusImports + fixture.post();
+    ExtractedSnippet extractedSnippet = extractImports(snippet.getSnippet());
+    String fullSnippet = fixture.build(extractedSnippet);
 
     Script script;
     try {
@@ -92,23 +87,5 @@ public class GroovySnippetExecuter implements SnippetExecuter {
     } finally {
       Thread.currentThread().setContextClassLoader(previousContextClassLoader);
     }
-  }
-
-  private List<String> extractImports(String snippet) {
-    StringBuilder imports = new StringBuilder();
-    StringBuilder scriptMinusImports = new StringBuilder();
-
-    for (String line : snippet.split("\\n")) {
-      StringBuilder target;
-      if (line.trim().startsWith("import ")) {
-        target = imports;
-      } else {
-        target = scriptMinusImports;
-      }
-
-      target.append(line).append("\n");
-    }
-
-    return Arrays.asList(imports.toString(), scriptMinusImports.toString());
   }
 }

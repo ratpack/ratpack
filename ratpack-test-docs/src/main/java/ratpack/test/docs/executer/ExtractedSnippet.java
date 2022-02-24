@@ -14,38 +14,23 @@
  * limitations under the License.
  */
 
-package ratpack.test.docs;
+package ratpack.test.docs.executer;
 
-import ratpack.func.Block;
-import ratpack.test.docs.executer.ExtractedSnippet;
+public class ExtractedSnippet {
 
-public class SnippetFixture {
+  private final String packageAndImports;
+  private final String body;
 
-  public void around(Block action) throws Exception {
-    action.execute();
+  public ExtractedSnippet(String packageAndImports, String body) {
+    this.packageAndImports = packageAndImports;
+    this.body = body;
   }
 
-  public String transform(String text) {
-    return text;
+  public String getPackageAndImports() {
+    return packageAndImports;
   }
 
-  public String pre() {
-    return "";
-  }
-
-  public String post() {
-    return "";
-  }
-
-  public Integer getOffset() {
-    return pre().split("\n").length;
-  }
-
-  public String build(ExtractedSnippet extractedSnippet) {
-    return
-      extractedSnippet.getPackageAndImports()
-      + pre()
-      + transform(extractedSnippet.getBody())
-      + post();
+  public String getBody() {
+    return body;
   }
 }

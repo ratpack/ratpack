@@ -14,38 +14,11 @@
  * limitations under the License.
  */
 
+/**
+ * Library that provides fixtures for extracting code snippets from documentation and executing them as part of
+ * automated tests.
+ * <p>
+ * For example, {@link ratpack.test.docs.CodeSnippetTestCase} can be used to extract code samples
+ * from the javadoc comments in source files and execute them as tests to verify their correctness.
+ */
 package ratpack.test.docs;
-
-import ratpack.func.Block;
-import ratpack.test.docs.executer.ExtractedSnippet;
-
-public class SnippetFixture {
-
-  public void around(Block action) throws Exception {
-    action.execute();
-  }
-
-  public String transform(String text) {
-    return text;
-  }
-
-  public String pre() {
-    return "";
-  }
-
-  public String post() {
-    return "";
-  }
-
-  public Integer getOffset() {
-    return pre().split("\n").length;
-  }
-
-  public String build(ExtractedSnippet extractedSnippet) {
-    return
-      extractedSnippet.getPackageAndImports()
-      + pre()
-      + transform(extractedSnippet.getBody())
-      + post();
-  }
-}

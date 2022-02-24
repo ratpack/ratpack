@@ -17,16 +17,19 @@
 package ratpack.test.internal.snippets
 
 import com.google.common.base.StandardSystemProperty
+import ratpack.test.docs.CodeSnippetTestCase
 import ratpack.test.docs.SnippetExecuter
+import ratpack.test.docs.SnippetExtractor
 import ratpack.test.docs.SnippetFixture
 import ratpack.test.docs.executer.GroovySnippetExecuter
 import ratpack.test.docs.executer.JavaSnippetExecuter
+import ratpack.test.docs.extractor.JavadocSnippetExtractor
 import ratpack.test.internal.snippets.fixture.GroovyChainDslFixture
 import ratpack.test.internal.snippets.fixture.GroovyRatpackDslNoRunFixture
 import ratpack.test.docs.fixture.GroovyScriptFixture
 import ratpack.test.internal.snippets.fixture.JavaChainDslFixture
 
-abstract class AbstractJavadocCodeSnippetTests extends ratpack.test.docs.AbstractJavadocCodeSnippetTests {
+abstract class AbstractJavadocCodeSnippetTests extends CodeSnippetTestCase {
 
   public static final LinkedHashMap<String, SnippetExecuter> FIXTURES = [
     "tested"            : new GroovySnippetExecuter(true, new GroovyScriptFixture()),
@@ -39,6 +42,16 @@ abstract class AbstractJavadocCodeSnippetTests extends ratpack.test.docs.Abstrac
   ]
 
   abstract String getProjectName()
+
+  @Override
+  SnippetExtractor getExtractor() {
+    return new JavadocSnippetExtractor()
+  }
+
+  @Override
+  String getIncludePath() {
+    return "**/*.java"
+  }
 
   @Override
   File getSourceDirectory() {

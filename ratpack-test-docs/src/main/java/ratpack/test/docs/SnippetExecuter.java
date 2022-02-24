@@ -16,10 +16,28 @@
 
 package ratpack.test.docs;
 
+import ratpack.test.docs.executer.ExtractedSnippet;
+
 public interface SnippetExecuter {
 
   SnippetFixture getFixture();
 
   void execute(TestCodeSnippet snippet) throws Exception;
+
+  default ExtractedSnippet extractImports(String snippet) {
+    StringBuilder imports = new StringBuilder();
+    StringBuilder scriptMinusImports = new StringBuilder();
+
+    for (String line : snippet.split("\\n")) {
+      String trimmedLine = line.trim();
+      if (trimmedLine.startsWith("package ") || trimmedLine.startsWith("import ")) {
+        imports.append(line).append("\n");
+      } else {
+        scriptMinusImports.append(line).append("\n");
+      }
+    }
+
+    return new ExtractedSnippet(imports.toString(), scriptMinusImports.toString());
+  }
 
 }
