@@ -48,7 +48,7 @@ import ratpack.func.Action;
 import ratpack.exec.registry.Registry;
 
 import javax.net.ssl.SSLEngine;
-import javax.net.ssl.SSLPeerUnverifiedException;
+import javax.net.ssl.SSLSession;
 import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.nio.CharBuffer;
@@ -64,8 +64,7 @@ public class NettyHandlerAdapter extends ChannelInboundHandlerAdapter {
   private static final AttributeKey<ResponseTransmitter> RESPONSE_TRANSMITTER_KEY = AttributeKey.valueOf(NettyHandlerAdapter.class, "responseTransmitter");
   private static final AttributeKey<RequestBodyAccumulator> BODY_ACCUMULATOR_KEY = AttributeKey.valueOf(NettyHandlerAdapter.class, "requestBody");
 
-  @SuppressWarnings("deprecation")
-  private static final AttributeKey<javax.security.cert.X509Certificate> CLIENT_CERT_KEY = AttributeKey.valueOf(NettyHandlerAdapter.class, "principal");
+  private static final AttributeKey<SSLSession> CLIENT_SSL_KEY = AttributeKey.valueOf(NettyHandlerAdapter.class, "sslSession");
 
   private final static Logger LOGGER = LoggerFactory.getLogger(NettyHandlerAdapter.class);
 
@@ -165,7 +164,7 @@ public class NettyHandlerAdapter extends ChannelInboundHandlerAdapter {
       serverRegistry.get(ServerConfig.class),
       requestBody,
       connectionIdleTimeout,
-      channel.attr(CLIENT_CERT_KEY).get()
+      channel.attr(CLIENT_SSL_KEY).get()
     );
 
     HttpHeaders nettyHeaders = new DefaultHttpHeaders();
@@ -270,12 +269,8 @@ public class NettyHandlerAdapter extends ChannelInboundHandlerAdapter {
     if (evt instanceof SslHandshakeCompletionEvent && ((SslHandshakeCompletionEvent) evt).isSuccess()) {
       SSLEngine engine = ctx.pipeline().get(SslHandler.class).engine();
       if (engine.getWantClientAuth() || engine.getNeedClientAuth()) {
-        try {
-          @SuppressWarnings("deprecation") javax.security.cert.X509Certificate clientCert = engine.getSession().getPeerCertificateChain()[0];
-          ctx.channel().attr(CLIENT_CERT_KEY).set(clientCert);
-        } catch (SSLPeerUnverifiedException ignore) {
-          // ignore - there is no way to avoid this exception that I can determine
-        }
+        SSLSession sslSession = engine.getSession();
+        ctx.channel().attr(CLIENT_SSL_KEY).set(sslSession);
       }
     }
 

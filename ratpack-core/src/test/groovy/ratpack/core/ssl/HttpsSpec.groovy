@@ -32,6 +32,7 @@ import sun.security.provider.certpath.SunCertPathBuilderException
 
 import javax.net.ssl.SNIHostName
 import java.security.cert.CertificateException
+import java.security.cert.X509Certificate
 
 class HttpsSpec extends RatpackGroovyDslSpec {
 
@@ -135,7 +136,8 @@ class HttpsSpec extends RatpackGroovyDslSpec {
     when:
     handlers {
       get {
-        render request.clientCertificate.get().subjectDN.name
+        X509Certificate cert = request.sslSession.get().peerCertificates[0]
+        render cert.subjectDN.name
       }
     }
 
@@ -188,7 +190,7 @@ class HttpsSpec extends RatpackGroovyDslSpec {
     logs.removeAppender(testAppender)
     logs.setAdditive(false)
   }
-  
+
   def "can serve multiple certificates using sni"() {
     given:
     def ratpackCert = new SelfSignedCertificate("*.ratpack.io")

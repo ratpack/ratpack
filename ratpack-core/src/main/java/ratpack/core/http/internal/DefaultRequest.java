@@ -42,6 +42,7 @@ import ratpack.exec.stream.TransformablePublisher;
 import ratpack.func.MultiValueMap;
 import ratpack.func.internal.ImmutableDelegatingMultiValueMap;
 
+import javax.net.ssl.SSLSession;
 import java.net.InetSocketAddress;
 import java.net.URI;
 import java.time.Duration;
@@ -70,8 +71,7 @@ public class DefaultRequest implements Request {
 
   private long maxContentLength;
   private final RequestIdleTimeout idleTimeout;
-  @SuppressWarnings("deprecation")
-  private final javax.security.cert.X509Certificate clientCertificate;
+  private final SSLSession sslSession;
 
   public DefaultRequest(
     Instant timestamp,
@@ -84,7 +84,7 @@ public class DefaultRequest implements Request {
     ServerConfig serverConfig,
     @Nullable RequestBodyReader bodyReader,
     RequestIdleTimeout idleTimeout,
-    @SuppressWarnings("deprecation") @Nullable javax.security.cert.X509Certificate clientCertificate
+    @Nullable SSLSession sslSession
   ) {
     this.headers = headers;
     this.bodyReader = bodyReader;
@@ -96,7 +96,7 @@ public class DefaultRequest implements Request {
     this.timestamp = timestamp;
     this.maxContentLength = serverConfig.getMaxContentLength();
     this.idleTimeout = idleTimeout;
-    this.clientCertificate = clientCertificate;
+    this.sslSession = sslSession;
     if (bodyReader != null) {
       bodyReader.setMaxContentLength(serverConfig.getMaxContentLength());
     }
@@ -141,9 +141,8 @@ public class DefaultRequest implements Request {
   }
 
   @Override
-  @SuppressWarnings("deprecation")
-  public Optional<javax.security.cert.X509Certificate> getClientCertificate() {
-    return Optional.ofNullable(clientCertificate);
+  public Optional<SSLSession> getSslSession() {
+    return Optional.ofNullable(sslSession);
   }
 
   public String getRawUri() {
