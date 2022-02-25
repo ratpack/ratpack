@@ -33,6 +33,7 @@ import ratpack.exec.stream.TransformablePublisher;
 import ratpack.func.MultiValueMap;
 import ratpack.func.Types;
 
+import javax.net.ssl.SSLSession;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.Optional;
@@ -445,14 +446,15 @@ public interface Request extends MutableRegistry {
   long getMaxContentLength();
 
   /**
-   * The client's verified certificate if the connection was made with HTTPS
-   * and client authentication is enabled.
+   * The client SSL session if the connection was made with HTTPS.
+   * <p>
+   * If client authentication is enabled, the client's certificate can
+   * be obtained via {@link SSLSession#getPeerCertificates()}
    *
-   * @return the client's certificate
-   * @since 1.5
+   * @return the client's SSL session
+   * @since 2.0
    */
-  @SuppressWarnings("deprecation")
-  Optional<javax.security.cert.X509Certificate> getClientCertificate();
+  Optional<SSLSession> getSslSession();
 
   /**
    * {@inheritDoc}
