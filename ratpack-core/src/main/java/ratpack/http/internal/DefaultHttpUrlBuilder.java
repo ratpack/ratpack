@@ -39,6 +39,7 @@ public class DefaultHttpUrlBuilder implements HttpUrlBuilder {
     .or(CharMatcher.inRange('A', 'Z'))
     .or(CharMatcher.inRange('0', '9'))
     .or(CharMatcher.anyOf(".-"))
+    .or(CharMatcher.anyOf("[]:")) // Support for IPv6 literal addresses per RFC 2732
     .negate()
     .precomputed();
 
