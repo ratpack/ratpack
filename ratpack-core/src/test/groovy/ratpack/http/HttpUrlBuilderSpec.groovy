@@ -149,7 +149,15 @@ class HttpUrlBuilderSpec extends BaseRatpackSpec {
       "http://foo.bar/a/",
       "http://foo.com#a1",
       "http://foo.bar/a?a%3F1=b%3F1&a%3F1=c#a1",
-      "http://foo.bar/a+b#a1"
+      "http://foo.bar/a+b#a1",
+      // RFC 2732 Section 2 examples - https://www.ietf.org/rfc/rfc2732.txt
+      "http://[FEDC:BA98:7654:3210:FEDC:BA98:7654:3210]:80/index.html",
+      "http://[1080:0:0:0:8:800:200C:417A]/index.html",
+      "http://[3ffe:2a00:100:7031::1]",
+      "http://[1080::8:800:200C:417A]/foo",
+      "http://[::192.9.5.5]/ipng",
+      "http://[::FFFF:129.144.52.38]:80/index.html",
+      "http://[2010:836B:4179::836B:4179]"
 
     ]
   }
