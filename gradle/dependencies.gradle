@@ -39,7 +39,8 @@ ext {
     snakeyaml        : "1.30",
     prometheusClient : "0.15.0",
     shadow           : "5.2.0",
-    commonsLang3     : "3.12.0"
+    commonsLang3     : "3.12.0",
+    blockHound       : "1.0.6.RELEASE"
   ]
 
   if (System.getenv('CI_GROOVY_VERSION')) {

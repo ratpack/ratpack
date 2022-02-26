@@ -28,39 +28,57 @@ class PromiseTimingSpec extends BaseRatpackSpec {
   ExecHarness execHarness = ExecHarness.harness()
 
   def "can time success promise"() {
-    expect:
+    given:
     Duration time
+
+    when:
     execHarness.yield {
       Promise.sync { sleep(500); 1 }.next { sleep(500) }.time { time = it }
-    }
+    }.valueOrThrow
+
+    then:
+    noExceptionThrown()
     time.seconds >= 1
   }
 
   def "can time failed promise"() {
-    expect:
+    given:
     Duration time
+
+    when:
     execHarness.yield {
       Promise.sync { sleep(500); throw new NullPointerException() }.next { sleep(500) }.time { time = it }
-    }
+    }.valueOrThrow
+
+    then:
+    thrown(NullPointerException)
     time.toMillis() >= 500
   }
 
   def "can time complete promise"() {
-    expect:
+    given:
     Duration time
+
+    when:
     execHarness.yield {
       Execution.sleep(Duration.ofMillis(500)).next(Execution.sleep(Duration.ofMillis(500))).promise().time { time = it }
-    }
+    }.valueOrThrow
 
+    then:
+    noExceptionThrown()
     time.toMillis() >= 500
   }
 
   def "time includes yield time"() {
-    expect:
+    given:
     Duration time
+
+    when:
     execHarness.yield {
       Promise.sync { sleep(500); 1 }.next { sleep(500) }.onYield { sleep(500) }.time { time = it }
-    }
+    }.valueOrThrow
+
+    then:
     time.toMillis() >= 1500
   }
 

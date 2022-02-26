@@ -24,6 +24,7 @@ apply from: 'gradle/buildScan.gradle'
 
 include \
     "ratpack-benchmark",
+    "ratpack-blockhound-tests",
     "ratpack-config",
     "ratpack-consul",
     "ratpack-core",
