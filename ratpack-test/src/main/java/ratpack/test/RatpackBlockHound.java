@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package ratpack.exec.internal;
+package ratpack.test;
 
 import ratpack.exec.Execution;
 import reactor.blockhound.BlockHound;

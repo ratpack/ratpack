@@ -27,8 +27,6 @@ dependencies {
   api "org.reactivestreams:reactive-streams:${commonVersions.reactiveStreams}"
   api commonDependencies.slf4j
 
-  compileOnly "io.projectreactor.tools:blockhound:${commonVersions.blockHound}"
-
   testImplementation("org.reactivestreams:reactive-streams-tck:${commonVersions.reactiveStreams}") {
     exclude group: "junit", module: "junit"
     exclude group: "org.yaml", module: "snakeyaml"

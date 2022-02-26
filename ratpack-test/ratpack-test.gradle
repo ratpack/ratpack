@@ -20,4 +20,7 @@ apply from: "$rootDir/gradle/javaModule.gradle"
 
 dependencies {
   api project(":ratpack-core")
+
+  compileOnly "io.projectreactor.tools:blockhound:${commonVersions.blockHound}"
+
 }

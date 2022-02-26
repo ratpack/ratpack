@@ -18,7 +18,7 @@ package ratpack.blockhound.tests
 
 import ratpack.exec.Operation
 import ratpack.exec.Promise
-import ratpack.exec.internal.RatpackBlockHound
+import ratpack.test.RatpackBlockHound
 import ratpack.test.exec.ExecHarness
 import reactor.blockhound.BlockingOperationError
 import spock.lang.AutoCleanup
@@ -108,7 +108,7 @@ class BlockHoundSpec extends Specification {
   def "allows blocking calls in Operation methods"() {
     given:
     CountDownLatch latch = new CountDownLatch(1)
-    BlockingVariable<String> value = new BlockingVariable<>();
+    BlockingVariable<String> value = new BlockingVariable<>()
 
     when:
     harness.execute { e ->
