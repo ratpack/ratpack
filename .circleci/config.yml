@@ -19,10 +19,10 @@ jobs:
 
       - restore_cache:
           keys:
-            - v3-gradle-{{ .Branch }}-{{ .Revision }}
-            - v3-gradle-{{ .Branch }}
-            - v3-gradle-master
-            - v3-gradle
+            - v4-gradle-{{ .Branch }}-{{ .Revision }}
+            - v4-gradle-{{ .Branch }}
+            - v4-gradle-master
+            - v4-gradle
             -
       - run:
           name: Run
@@ -31,7 +31,7 @@ jobs:
       - save_cache:
           paths:
             - ~/.gradle
-          key: v3-gradle-{{ .Branch }}-{{ .Revision }}
+          key: v4-gradle-{{ .Branch }}-{{ .Revision }}
           when: always
 
       - persist_to_workspace:
