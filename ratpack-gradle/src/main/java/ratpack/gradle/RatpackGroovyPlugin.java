@@ -27,7 +27,6 @@ import java.util.Optional;
 
 public class RatpackGroovyPlugin implements Plugin<Project> {
 
-  private static final GradleVersion V6_0 = GradleVersion.version("6.0");
   private static final String MAIN_CLASS_NAME = "ratpack.groovy.GroovyRatpackMain";
 
   @Override
@@ -35,12 +34,7 @@ public class RatpackGroovyPlugin implements Plugin<Project> {
     project.getPlugins().apply(RatpackPlugin.class);
     project.getPlugins().apply(GroovyPlugin.class);
 
-    GradleVersion gradleVersion = GradleVersion.version(project.getGradle().getGradleVersion());
-    if (gradleVersion.compareTo(V6_0) < 0) {
-      project.setProperty("mainClassName", MAIN_CLASS_NAME);
-    } else {
-      project.getExtensions().getByType(JavaApplication.class).setMainClassName(MAIN_CLASS_NAME);
-    }
+    project.getExtensions().getByType(JavaApplication.class).getMainClass().convention(MAIN_CLASS_NAME);
 
     RatpackExtension ratpackExtension = project.getExtensions().getByType(RatpackExtension.class);
 

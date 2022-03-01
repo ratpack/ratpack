@@ -20,13 +20,13 @@ ext {
     netty            : "4.1.73.Final",
     nettyTCNative    : "2.0.48.Final",
     guava            : "31.0.1-jre",
-    groovy           : "2.5.4",
+    groovy           : "3.0.9",
     rxjava2          : "2.2.21",
     reactor          : "3.4.14",
     jackson          : "2.13.1",
     dropwizardMetrics: "4.2.8",
     pegdown          : "1.6.0",
-    spock            : "2.0-groovy-2.5",
+    spock            : "2.1-groovy-3.0",
     log4j            : "2.17.1",
     newrelic         : "5.13.0",
     reactiveStreams  : "1.0.3",
@@ -67,7 +67,7 @@ ext {
 
   commonDependencies = [
     spock      : dependencies.create("org.spockframework:spock-core:${commonVersions.spock}", {
-      exclude group: "org.codehaus.groovy", module: "groovy-all"
+      exclude group: "org.codehaus.groovy", module: "groovy"
     }),
     groovy     : [
       dependencies.create("org.codehaus.groovy:groovy:${commonVersions.groovy}"),
