@@ -222,7 +222,7 @@ public class RatpackContinuousRunAction implements Action<Task> {
     List<String> args = task.getArgs();
     return new RatpackSpec(nonChanging.toArray(new URL[0]),
       changing.toArray(new URL[0]),
-      task.getMain(),
+      task.getMainClass().get(),
       args.toArray(new String[0])
     );
   }

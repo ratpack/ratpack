@@ -16,8 +16,7 @@
 
 plugins {
   id "java"
-//  id "me.champeau.jmh" version "0.6.6" //TODO-Gradle7
-  id 'me.champeau.gradle.jmh' version '0.5.3'
+  id "me.champeau.jmh" version "0.6.6"
 }
 
 dependencies {

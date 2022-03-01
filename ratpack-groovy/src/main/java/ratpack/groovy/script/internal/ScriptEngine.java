@@ -25,7 +25,6 @@ import org.codehaus.groovy.ast.ClassHelper;
 import org.codehaus.groovy.ast.ClassNode;
 import org.codehaus.groovy.ast.expr.ConstantExpression;
 import org.codehaus.groovy.classgen.GeneratorContext;
-import org.codehaus.groovy.classgen.Verifier;
 import org.codehaus.groovy.control.*;
 import org.codehaus.groovy.control.customizers.CompilationCustomizer;
 import org.codehaus.groovy.runtime.DefaultGroovyMethods;
@@ -85,22 +84,15 @@ public class ScriptEngine<T extends Script> {
     return new GroovyClassLoader(parentLoader, compilerConfiguration) {
       @Override
       protected CompilationUnit createCompilationUnit(CompilerConfiguration config, CodeSource source) {
-        return new CompilationUnit(config, source, this) {
-          {
-            verifier = new Verifier() {
-              @Override
-              public void visitClass(ClassNode node) {
-                if (node.implementsInterface(ClassHelper.GENERATED_CLOSURE_Type)) {
-                  AnnotationNode lineNumberAnnotation = new AnnotationNode(LINE_NUMBER_CLASS_NODE);
-                  lineNumberAnnotation.addMember("value", new ConstantExpression(node.getLineNumber(), true));
-                  node.addAnnotation(lineNumberAnnotation);
-                }
-
-                super.visitClass(node);
-              }
-            };
+        CompilationUnit cu = new CompilationUnit(config, source, this);
+        cu.addPhaseOperation((src, context, node) -> {
+          if (node.implementsInterface(ClassHelper.GENERATED_CLOSURE_Type)) {
+            AnnotationNode lineNumberAnnotation = new AnnotationNode(LINE_NUMBER_CLASS_NODE);
+            lineNumberAnnotation.addMember("value", new ConstantExpression(node.getLineNumber(), true));
+            node.addAnnotation(lineNumberAnnotation);
           }
-        };
+        }, Phases.CLASS_GENERATION);
+        return cu;
       }
     };
 

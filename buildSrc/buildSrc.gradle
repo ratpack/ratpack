@@ -40,3 +40,7 @@ sourceSets {
     resources.srcDir("../ratpack-gradle/src/main/resources")
   }
 }
+
+processResources {
+  duplicatesStrategy(DuplicatesStrategy.EXCLUDE)
+}
