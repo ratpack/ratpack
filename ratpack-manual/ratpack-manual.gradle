@@ -33,7 +33,7 @@ buildscript {
     // Use the master version of gradle-js-plugin since it fixes a Gradle 6 deprecation (from JitPack.io)
     classpath "com.github.eriwen:gradle-js-plugin:d15f4ae"
     classpath "com.google.javascript:closure-compiler:v20150315"
-    classpath "io.freefair.gradle:jsass-plugin:6.4.0"
+    classpath commonDependencies.jsass
   }
 }
 

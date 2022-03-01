@@ -99,6 +99,12 @@ ext {
         }
       })
     ],
-    commonsLang3: "org.apache.commons:commons-lang3:${commonVersions.commonsLang3}"
+    commonsLang3: "org.apache.commons:commons-lang3:${commonVersions.commonsLang3}",
+    jsass : [
+      dependencies.create("io.freefair.gradle:jsass-plugin:6.4.1") {
+        exclude group: "io.bit3", module: "jsass"
+      },
+      dependencies.create("io.bit3:jsass:5.7.0")
+    ]
   ]
 }
