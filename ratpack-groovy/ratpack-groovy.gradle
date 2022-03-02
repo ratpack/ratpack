@@ -27,7 +27,7 @@ dependencies {
   api project(":ratpack-core")
   api project(":ratpack-guice")
 
-  implementation 'org.javassist:javassist:3.28.0-GA'
+  implementation "org.javassist:javassist:${commonVersions.javassist}"
   testImplementation project(":ratpack-test")
 }
 

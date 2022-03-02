@@ -27,7 +27,7 @@ buildscript {
     maven { url 'https://jitpack.io' }
   }
   dependencies {
-    classpath 'com.github.jengelman.gradle.plugins:shadow:5.1.0'
+    classpath 'gradle.plugin.com.github.johnrengelman:shadow:7.1.2'
     classpath 'org.codehaus.groovy.modules.http-builder:http-builder:0.7.2'
     classpath commonDependencies.jsass
     // Use the master version of gradle-js-plugin since it fixes a Gradle 6 deprecation (from JitPack.io)
@@ -78,7 +78,6 @@ repositories {
     }
   }
   mavenCentral()
-  jcenter()
 
 }
 
