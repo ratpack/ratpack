@@ -53,7 +53,7 @@ Note that the `'io.ratpack.ratpack-groovy'` plugin implicitly applies the `'io.r
 
 ## Ratpack dependencies
 
-To depend on a Ratpack extension library, simply add it as a regular compile dependency…
+To depend on a Ratpack extension library, simply add it as a regular implementation dependency…
 
 ```language-groovy gradle
 buildscript {
@@ -72,7 +72,7 @@ repositories {
 }
 
 dependencies {
-  compile ratpack.dependency("dropwizard-metrics")
+  implementation ratpack.dependency("dropwizard-metrics")
 }
 ```
 
@@ -81,13 +81,13 @@ This is the recommended way to add dependencies that are part of the core distri
 
 The `'io.ratpack.ratpack-java'` plugin adds the following implicit dependencies:
 
-* `ratpack-core` - _compile_
-* `ratpack-test` - _testCompile_
+* `ratpack-core` - _implementation_
+* `ratpack-test` - _testImplementation_
 
 The `'io.ratpack.ratpack-groovy'` plugin adds the following implicit dependencies:
 
-* `ratpack-groovy` - _compile_ (depends on `ratpack-core`)
-* `ratpack-groovy-test` - _testCompile_ (depends on `ratpack-test`)
+* `ratpack-groovy` - _implementation_ (depends on `ratpack-core`)
+* `ratpack-groovy-test` - _testImplementation_ (depends on `ratpack-test`)
 
 The available libraries can be [browsed via search.maven.org](https://search.maven.org/search?q=g:io.ratpack).
 All Ratpack jars are published to [Maven Central](http://search.maven.org).

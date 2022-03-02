@@ -82,7 +82,7 @@ class ManualSnippetExtractor {
   private static String performSubstitutions(String snippet) {
     return snippet
       .replaceAll("@ratpack-version@", RatpackVersion.version)
-      .replaceAll("@shadow-version@", "4.0.3")
+      .replaceAll("@shadow-version@", "7.1.2")
   }
 
   private static TestCodeSnippet createSnippet(String sourceClassName, File sourceFile, int lineNumber, String snippet, SnippetExecuter executer) {
