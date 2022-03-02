@@ -23,7 +23,7 @@ import spock.util.concurrent.BlockingVariable
 class ConfigCachingSpec extends FunctionalSpec {
 
   public static final ArrayList<String> TESTED_VERSIONS = [
-    "6.8"
+    "7.4"
   ]
   int port
 

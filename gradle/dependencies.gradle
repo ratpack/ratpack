@@ -38,8 +38,9 @@ ext {
     commonsCodec     : "1.14",
     snakeyaml        : "1.30",
     prometheusClient : "0.15.0",
-    shadow           : "5.2.0",
-    commonsLang3     : "3.12.0"
+    shadow           : "7.1.2",
+    commonsLang3     : "3.12.0",
+    javassist        : "3.28.0-GA"
   ]
 
   if (System.getenv('CI_GROOVY_VERSION')) {

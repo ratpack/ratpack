@@ -117,11 +117,11 @@ To use the `'shadow'` integration, you will need to include the dependency in yo
 buildscript {
   repositories {
     mavenCentral()
-    jcenter()
+    gradlePluginPortal()
   }
   dependencies {
     classpath "io.ratpack:ratpack-gradle:@ratpack-version@"
-    classpath 'com.github.jengelman.gradle.plugins:shadow:@shadow-version@'
+    classpath 'gradle.plugin.com.github.johnrengelman:shadow:@shadow-version@'
   }
 }
 
@@ -233,11 +233,11 @@ Extra system properties or JVM options can be configured on this task…
 buildscript {
   repositories {
     mavenCentral()
-    jcenter()
+    gradlePluginPortal()
   }
   dependencies {
     classpath "io.ratpack:ratpack-gradle:@ratpack-version@"
-    classpath "com.github.jengelman.gradle.plugins:shadow:@shadow-version@"
+    classpath "gradle.plugin.com.github.johnrengelman:shadow:@shadow-version@"
   }
 }
 

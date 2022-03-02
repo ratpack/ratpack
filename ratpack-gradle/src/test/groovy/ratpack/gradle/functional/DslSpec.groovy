@@ -25,11 +25,11 @@ class DslSpec extends FunctionalSpec {
         transitive = false // we don't need jackson itself for this test
       }
       dependencies {
-        compile ratpack.dependency("jackson-guice")
+        implementation ratpack.dependency("jackson-guice")
       }
 
       task showDeps {
-        doLast { file("deps.txt") << configurations.compile.dependencies*.toString().join('\\n') }
+        doLast { file("deps.txt") << configurations.implementation.dependencies*.toString().join('\\n') }
       }
     """
 

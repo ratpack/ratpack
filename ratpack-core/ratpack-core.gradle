@@ -45,7 +45,7 @@ dependencies {
   api("com.github.ben-manes.caffeine:caffeine:${commonVersions.caffeine}") {
     exclude group: "com.google.errorprone", module: "error_prone_annotations"
   }
-  implementation 'org.javassist:javassist:3.28.0-GA'
+  implementation "org.javassist:javassist:${commonVersions.javassist}"
 
   implementation("com.fasterxml.jackson.dataformat:jackson-dataformat-yaml:${commonVersions.jackson}") {
     exclude group: "org.yaml", module: "snakeyaml"

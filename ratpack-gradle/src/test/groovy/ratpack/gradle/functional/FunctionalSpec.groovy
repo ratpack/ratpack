@@ -103,10 +103,10 @@ abstract class FunctionalSpec extends Specification {
         repositories {
           maven { url "${localRepo.toURI()}" }
           mavenCentral()
-          jcenter()
+          gradlePluginPortal()
         }
         dependencies {
-          classpath 'com.github.jengelman.gradle.plugins:shadow:4.0.3'
+          classpath 'gradle.plugin.com.github.johnrengelman:shadow:7.1.2'
           classpath 'io.ratpack:ratpack-gradle:${RATPACK_VERSION}'
         }
       }
@@ -117,19 +117,9 @@ abstract class FunctionalSpec extends Specification {
       repositories {
         maven { url "${localRepo.toURI()}" }
         mavenCentral()
-        jcenter()
       }
       dependencies {
-        if (configurations.findByName("runtimeOnly")) {
-          runtimeOnly 'org.slf4j:slf4j-simple:1.7.25'
-        } else {
-          runtime 'org.slf4j:slf4j-simple:1.7.25'
-        }
-      }
-      shadowJar {
-        // Needed in Gradle 5.1 due to breaking change in convention mapping
-        // Can be removed once Shadow 5.0.0 is available
-        classifier = 'all'
+        runtimeOnly 'org.slf4j:slf4j-simple:1.7.25'
       }
     """
 

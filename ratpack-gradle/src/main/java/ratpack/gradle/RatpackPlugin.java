@@ -96,7 +96,12 @@ public class RatpackPlugin implements Plugin<Project> {
     SourceSetOutput mainSourceSetOutput = mainSourceSet.getOutput();
     Supplier<String> jarNameSupplier;
     Property<String> archiveFileName = jarTask.getArchiveFileName();
-    jarNameSupplier = archiveFileName::get;
+    jarNameSupplier = new Supplier<String>() {
+      @Override
+      public String get() {
+        return archiveFileName.get();
+      }
+    };
 
     //noinspection Convert2Lambda
     mainDistribution.contents(new Action<CopySpec>() {

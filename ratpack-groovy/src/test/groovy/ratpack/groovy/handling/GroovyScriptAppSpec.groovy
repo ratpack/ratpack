@@ -27,7 +27,6 @@ import ratpack.test.internal.RatpackGroovyScriptAppSpec
 class GroovyScriptAppSpec extends RatpackGroovyScriptAppSpec {
 
   boolean compileStatic = false
-  boolean development = false
 
   String[] args = [] as String[]
 
