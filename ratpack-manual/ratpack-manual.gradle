@@ -367,6 +367,7 @@ task stylizeManual(type: Sync) {
 task packageManual(type: Sync) {
   group "manual"
   description "Brings together the compiled manual and API reference"
+  dependsOn api
 
   into "$buildDir/manual"
   from stylizeManual

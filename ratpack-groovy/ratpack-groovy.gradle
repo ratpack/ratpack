@@ -51,3 +51,8 @@ sourceSets {
     }
   }
 }
+
+// Add implicit dependency due to https://github.com/gradle/gradle/issues/18563
+tasks.named("sourcesJar").configure {
+  it.from(tasks.named("processResources"))
+}

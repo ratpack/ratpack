@@ -117,8 +117,8 @@ tasks.named("jacocoTestReport", JacocoReport) {
   it.sourceDirectories.from(files(sourceSets.main.allSource.srcDirs))
   it.classDirectories.from(files(sourceSets.main.output))
   it.reports {
-    html.enabled = true
-    xml.enabled = true
-    csv.enabled = false
+    html.required.set true
+    xml.required.set true
+    csv.required.set false
   }
 }

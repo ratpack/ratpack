@@ -41,3 +41,10 @@ sourceSets {
     }
   }
 }
+
+// Add implicit dependency due to https://github.com/gradle/gradle/issues/18563
+//tasks.withType(Jar) { Jar task ->
+//  if (task.name == "sourcesJar") {
+//    task.from(tasks.named("writeVersionNumberFile"))
+//  }
+//}
