@@ -90,9 +90,9 @@ task streamTckTest(type: Test) {
 
   classpath = sourceSets.test.runtimeClasspath
 
-  binResultsDir = file("$buildDir/$name-results/binary")
+  binaryResultsDirectory.set file("$buildDir/$name-results/binary")
   reports {
-    html.destination = file("$buildDir/reports/$name")
-    junitXml.destination = binResultsDir.parentFile
+    html.outputLocation.set file("$buildDir/reports/$name")
+    junitXml.outputLocation.set binaryResultsDirectory.get().getAsFile().parentFile
   }
 }

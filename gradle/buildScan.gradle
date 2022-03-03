@@ -44,7 +44,7 @@ gradleEnterprise.buildScan {
     // Capture individual issues for some reports
     gradle.taskGraph.afterTask { Task task, TaskState state ->
       if (task instanceof Checkstyle) {
-        if (state.failure && task.reports.xml.destination.exists()) {
+        if (state.failure && task.reports.xml.outputLocation.get().asFile.exists()) {
           def checkstyle = new XmlSlurper().parse(task.reports.xml.destination)
           def errors = checkstyle.file.collect {
             String filePath = task.project.rootProject.relativePath(it.@name.text())
@@ -53,9 +53,9 @@ gradleEnterprise.buildScan {
           errors.each { task.project.buildScan.value 'Checkstyle Issue', it }
         }
       }
-      if (task instanceof CodeNarc && task.reports.xml.destination.exists()) {
+      if (task instanceof CodeNarc && task.reports.xml.outputLocation.get().asFile.exists()) {
         if (state.failure) {
-          def codenarc = new XmlSlurper().parse(task.reports.xml.destination)
+          def codenarc = new XmlSlurper().parse(task.reports.xml.outputLocation.get().asFile.exists())
           def errors = codenarc.Package.collect {
             it.File.collect {
               String filePath = task.project.rootProject.relativePath(it.@name.text())
