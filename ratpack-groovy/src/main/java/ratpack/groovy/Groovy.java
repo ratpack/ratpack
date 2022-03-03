@@ -55,6 +55,7 @@ import ratpack.func.Paths2;
 
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.ClosedFileSystemException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Arrays;
@@ -322,17 +323,31 @@ public abstract class Groovy {
       return b -> {
         ClassLoader classLoader = Thread.currentThread().getContextClassLoader();
 
-        BaseDirFinder.Result baseDirResult = Arrays.stream(scriptPaths)
-          .map(scriptPath -> BaseDirFinder.find(classLoader, scriptPath))
-          .filter(Optional::isPresent)
-          .map(Optional::get)
-          .findFirst()
-          .orElseThrow(() -> new ScriptNotFoundException(scriptPaths));
+        BaseDirFinder.Result baseDirResult = findBaseDir(classLoader, scriptPaths);
 
         Path baseDir = baseDirResult.getBaseDir();
         Path scriptFile = baseDirResult.getResource();
-        doApp(b, compileStatic, baseDir, scriptFile, args);
+        try {
+          doApp(b, compileStatic, baseDir, scriptFile, args);
+        } catch (ClosedFileSystemException e) {
+          // Re-detect BaseDir and try again in the underlying FileSystem was closed
+          // This is due to https://issues.apache.org/jira/browse/GROOVY-10519
+          // where Groovy class loading in closing existing ZipFileSystems.
+          baseDirResult = findBaseDir(classLoader, scriptPaths);
+          baseDir = baseDirResult.getBaseDir();
+          scriptFile = baseDirResult.getResource();
+          doApp(b, compileStatic, baseDir, scriptFile, args);
+        }
       };
+    }
+
+    private static BaseDirFinder.Result findBaseDir(ClassLoader classLoader, String[] scriptPaths) {
+      return Arrays.stream(scriptPaths)
+        .map(scriptPath -> BaseDirFinder.find(classLoader, scriptPath))
+        .filter(Optional::isPresent)
+        .map(Optional::get)
+        .findFirst()
+        .orElseThrow(() -> new ScriptNotFoundException(scriptPaths));
     }
 
     private static void doApp(RatpackServerSpec definition, boolean compileStatic, Path baseDir, Path scriptFile, String... args) throws Exception {

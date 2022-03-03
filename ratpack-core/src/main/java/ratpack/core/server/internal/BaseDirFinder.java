@@ -85,7 +85,7 @@ public abstract class BaseDirFinder {
     return Optional.of(new Result(determineBaseDir(resourcePath), resourcePath));
   }
 
-  private static Path toPath(URL resource) {
+  public static Path toPath(URL resource) {
     URI uri = uncheck(resource::toURI);
 
     String scheme = uri.getScheme();
