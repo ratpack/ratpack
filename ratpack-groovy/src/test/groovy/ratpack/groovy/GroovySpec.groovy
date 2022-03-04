@@ -80,7 +80,8 @@ class GroovySpec extends RatpackGroovyDslSpec {
     }
 
     then:
-    text == "No response sent for GET request to / (last handler: closure at line 60 of GroovySpec.groovy)"
+    // Due to https://issues.apache.org/jira/browse/GROOVY-10520, the closure line number has moved to the closing }
+    text == "No response sent for GET request to / (last handler: closure at line 62 of GroovySpec.groovy)"
   }
 
 }

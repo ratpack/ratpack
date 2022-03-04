@@ -37,7 +37,7 @@ class NoResponseSentDetectionSpec extends RatpackGroovyDslSpec {
     }
 
     then:
-    getText() == "No response sent for GET request to / (last handler: closure at line 34 of NoResponseSentDetectionSpec.groovy)"
+    getText() == "No response sent for GET request to / (last handler: closure at line 36 of NoResponseSentDetectionSpec.groovy)" // Due to https://issues.apache.org/jira/browse/GROOVY-10520, the closure line number has moved to the closing }
     response.statusCode == 500
   }
 
@@ -102,7 +102,7 @@ class NoResponseSentDetectionSpec extends RatpackGroovyDslSpec {
       it.post().body.text("1" * 10000)
     }
 
-    r.body.text == "No response sent for POST request to / (last handler: closure at line 95 of NoResponseSentDetectionSpec.groovy)"
+    r.body.text == "No response sent for POST request to / (last handler: closure at line 97 of NoResponseSentDetectionSpec.groovy)" // Due to https://issues.apache.org/jira/browse/GROOVY-10520, the closure line number has moved to the closing }
     response.statusCode == 500
   }
 
