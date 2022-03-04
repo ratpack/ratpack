@@ -106,7 +106,7 @@ task configureApi() {
             packages << ((it.absolutePath - root.absolutePath) - "/").replaceAll("/", ".")
           }
         }
-        options.group it.name, packages
+        options.group it.name, packages.sort()
       }
     }
   }
