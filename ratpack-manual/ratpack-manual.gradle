@@ -169,15 +169,43 @@ task api(type: Javadoc) {
   }
 }
 
+class TestEnvironmentProvider implements CommandLineArgumentProvider {
+  @Internal
+  def gradleHome
+  @Internal
+  def gradleUserHome
+  @Internal
+  def localRepo
+
+  TestEnvironmentProvider(gradleHome, gradleUserHome, localRepo){
+    this.gradleHome = gradleHome
+    this.gradleUserHome = gradleUserHome
+    this.localRepo = localRepo
+  }
+
+  @Override
+  Iterable<String> asArguments() {
+    ["-DlocalRepo=" + localRepo, "-DgradleUserHome" + gradleUserHome, "-DgradleHome" + gradleHome]
+  }
+}
+
 test {
   dependsOn ":ratpack-gradle:publishAllPublicationsToProjectLocalRepository" // used in gradle snippets
   apiModules.each {
-    inputs.files apiModules.sourceSets.main.allSource
-    inputs.files project(":ratpack-gradle").sourceSets.main.allSource
+    inputs.files(apiModules.sourceSets.main.allSource)
+      .withPropertyName('apiModulesSource' + it.path)
+      .withPathSensitivity(PathSensitivity.RELATIVE)
+    inputs.files( project(":ratpack-gradle").sourceSets.main.allSource)
+      .withPropertyName('projectSource' + it.path)
+      .withPathSensitivity(PathSensitivity.RELATIVE)
   }
-  systemProperty "localRepo", rootProject.file("build/localrepo").absolutePath
-  systemProperty "gradleUserHome", gradle.gradleUserHomeDir.absolutePath
-  systemProperty "gradleHome", gradle.gradleHomeDir.absolutePath
+  jvmArgumentProviders.add(
+    new TestEnvironmentProvider(
+      gradle.gradleHomeDir.absolutePath,
+      gradle.gradleUserHomeDir.absolutePath,
+      rootProject.file("build/localrepo")
+    )
+  )
 }
 
 task checkApi(type: Checkstyle) {
