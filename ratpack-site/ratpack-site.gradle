@@ -235,8 +235,12 @@ task configureWriteTestConfig {
   dependsOn unzipChromeDriver
   doLast {
     if (!isSnapCi) {
+      // use relative path to allow Gradle cache relocatability
+      def webDriverFile = fileTree(unzipChromeDriver.outputs.files.singleFile).singleFile
+      def webDriverRelativeFile = projectDir.toPath().relativize(webDriverFile.toPath())
+
       writeTestConfig.testProperties.putAll(
-        "chromedriver.path": fileTree(unzipChromeDriver.outputs.files.singleFile).singleFile.absolutePath
+        "chromedriver.path": webDriverRelativeFile.toString()
       )
     }
   }
