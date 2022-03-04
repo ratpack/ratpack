@@ -321,6 +321,7 @@ distributions.main.contents {
 distTar {
   compression = Compression.GZIP
   archiveVersion.set(null)
+  duplicatesStrategy(DuplicatesStrategy.EXCLUDE)
 }
 
 run.ext.set("ratpack.flattenClassloaders", true)
