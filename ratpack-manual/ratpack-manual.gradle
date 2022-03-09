@@ -136,7 +136,7 @@ task api(type: Javadoc) {
   configure(options) {
     splitIndex true
     use = true
-    links "http://docs.oracle.com/javase/8/docs/api/"
+    links "https://docs.oracle.com/javase/8/docs/api/"
     windowTitle "Ratpack API ($project.version)"
     docTitle "Ratpack API ($project.version)"
     header = ext.additionalAssets
@@ -361,7 +361,6 @@ task stylizeManual(type: Sync) {
       from(source)
     }
   }
-  duplicatesStrategy(DuplicatesStrategy.EXCLUDE)
 }
 
 task packageManual(type: Sync) {

@@ -71,7 +71,7 @@ public class SiteMain {
               //noinspection ConstantConditions
               String host = ctx.getRequest().getHeaders().get("host");
               if (host != null && (host.endsWith("ratpack-framework.org") || host.equals("www.ratpack.io"))) {
-                ctx.redirect(301, "http://ratpack.io" + ctx.getRequest().getRawUri());
+                ctx.redirect(301, "https://ratpack.io" + ctx.getRequest().getRawUri());
                 return;
               }
 
