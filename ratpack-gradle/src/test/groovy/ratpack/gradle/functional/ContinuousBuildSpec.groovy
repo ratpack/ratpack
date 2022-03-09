@@ -66,9 +66,9 @@ class ContinuousBuildSpec extends FunctionalSpec {
         resultHolder.set(null)
       }
     }
-    determinePort()
 
     then:
+    determinePort()
     urlText("foo.txt") == "original"
 
     when:
@@ -94,7 +94,7 @@ class ContinuousBuildSpec extends FunctionalSpec {
 
   void determinePort() {
     def portFile = file("port")
-    new PollingConditions().within(30) {
+    new PollingConditions().within(45) {
       assert portFile.isFile() && portFile.text
     }
     port = portFile.text.toInteger()
