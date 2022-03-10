@@ -17,7 +17,7 @@
 task writeVersionNumberFile {
   def versionFile = file("$buildDir/ratpack-version/ratpack/ratpack-version.txt")
   inputs.property "version", project.version
-  outputs.dir versionFile.parentFile
+  outputs.dir versionFile.parentFile.parentFile
 
   doFirst {
     assert versionFile.parentFile.mkdirs() || versionFile.parentFile.directory
