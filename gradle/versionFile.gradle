@@ -17,15 +17,13 @@
 task writeVersionNumberFile {
   def versionFile = file("$buildDir/ratpack-version/ratpack/ratpack-version.txt")
   inputs.property "version", project.version
-  outputs.file versionFile
+  outputs.dir versionFile.parentFile
 
   doFirst {
     assert versionFile.parentFile.mkdirs() || versionFile.parentFile.directory
     versionFile.text = project.version
   }
 }
-
-processResources.dependsOn writeVersionNumberFile
 
 plugins.withType(EclipsePlugin) {
   eclipseProject.dependsOn writeVersionNumberFile
@@ -38,7 +36,7 @@ sourceSets {
   main {
     resources {
       srcDirs += [
-        "$buildDir/ratpack-version"
+        tasks.named("writeVersionNumberFile")
       ]
     }
   }
