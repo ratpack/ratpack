@@ -45,7 +45,10 @@ class ContinuousBuildSpec extends FunctionalSpec {
       import java.nio.file.Paths
 
       ratpack {
-        serverConfig { portFile(Paths.get("port")) }
+        serverConfig {
+          port 0
+          portFile(Paths.get("port"))
+        }
         handlers {
           files { dir "public" }
           get {
@@ -63,6 +66,7 @@ class ContinuousBuildSpec extends FunctionalSpec {
       try {
         resultHolder.set(run("run", "-t", "-S"))
       } catch (ignore) {
+        ignore.printStackTrace()
         resultHolder.set(null)
       }
     }
