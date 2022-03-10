@@ -31,13 +31,23 @@ dependencies {
   testImplementation project(":ratpack-test")
 }
 
-processResources {
-  inputs.property("groovyVersion", commonVersions.groovy)
-  def minimumGroovyVersionFile = file("src/main/resources/ratpack/minimum-groovy-version.txt")
-  outputs.file minimumGroovyVersionFile
+task writeGroovyVersionFile {
+  def versionFile = file("$buildDir/ratpack-groovy-version/ratpack/minimum-groovy-version.txt")
+  inputs.property "groovyVersion", commonVersions.groovy
+  outputs.dir versionFile.parentFile.parentFile
 
   doFirst {
-    minimumGroovyVersionFile.parentFile.mkdirs()
-    minimumGroovyVersionFile.text = commonVersions.groovy
+    assert versionFile.parentFile.mkdirs() || versionFile.parentFile.directory
+    versionFile.text = commonVersions.groovy
+  }
+}
+
+sourceSets {
+  main {
+    resources {
+      srcDirs += [
+        tasks.named("writeGroovyVersionFile")
+      ]
+    }
   }
 }
