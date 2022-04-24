@@ -77,4 +77,10 @@ public interface ExecStarter extends ExecSpec {
   @Override
   ExecStarter eventLoop(EventLoop eventLoop);
 
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  ExecStarter label(CharSequence label);
+
 }

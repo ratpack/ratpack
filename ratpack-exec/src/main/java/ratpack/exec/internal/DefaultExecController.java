@@ -29,9 +29,11 @@ import ratpack.exec.registry.RegistrySpec;
 import ratpack.exec.util.internal.InternalRatpackError;
 import ratpack.exec.util.internal.TransportDetector;
 
+import java.util.Optional;
 import java.util.Queue;
 import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import static ratpack.func.Action.noop;
 
@@ -46,6 +48,7 @@ public class DefaultExecController implements ExecControllerInternal {
   private final int numThreads;
   private final ClassLoader contextClassLoader = Thread.currentThread().getContextClassLoader();
   private final AtomicBoolean closed = new AtomicBoolean();
+  private final AtomicInteger topLevelExecutionCounter = new AtomicInteger();
 
   private ImmutableList<? extends ExecInterceptor> interceptors = ImmutableList.of();
   private ImmutableList<? extends ExecInitializer> initializers = ImmutableList.of();
@@ -152,6 +155,7 @@ public class DefaultExecController implements ExecControllerInternal {
       private Action<? super Execution> onStart = noop();
       private Action<? super RegistrySpec> registry = noop();
       private EventLoop eventLoop = getEventLoopGroup().next();
+      private Optional<CharSequence> maybeLabel = Optional.empty();
 
       @Override
       public ExecStarter eventLoop(EventLoop eventLoop) {
@@ -184,6 +188,12 @@ public class DefaultExecController implements ExecControllerInternal {
       }
 
       @Override
+      public ExecStarter label(CharSequence label) {
+        this.maybeLabel = Optional.ofNullable(label);
+        return this;
+      }
+
+      @Override
       public void start(Action<? super Execution> initialExecutionSegment) {
         DefaultExecution current = DefaultExecution.get();
         DefaultExecution execution = createExecution(initialExecutionSegment, current == null ? null : current.getRef());
@@ -194,11 +204,12 @@ public class DefaultExecController implements ExecControllerInternal {
         }
       }
 
-      private DefaultExecution createExecution(Action<? super Execution> initialExecutionSegment, ExecutionRef parentRef) {
+      private DefaultExecution createExecution(Action<? super Execution> initialExecutionSegment, DefaultExecution.Ref parentRef) {
         try {
           return new DefaultExecution(
             DefaultExecController.this,
             parentRef,
+            getLabel(parentRef),
             eventLoop,
             registry,
             initialExecutionSegment,
@@ -209,6 +220,18 @@ public class DefaultExecController implements ExecControllerInternal {
         } catch (Throwable e) {
           throw new InternalRatpackError("could not start execution", e);
         }
+      }
+
+      private CharSequence getLabel(DefaultExecution.Ref parentRef) {
+        // always call these as we want to increment the counters regardless of whether
+        // an explicit label has been set
+        int forkedExecutionNumber;
+        if (parentRef != null) {
+          forkedExecutionNumber = parentRef.execution.nextChild();
+        } else {
+          forkedExecutionNumber = topLevelExecutionCounter.getAndIncrement();
+        }
+        return maybeLabel.orElse(String.valueOf(forkedExecutionNumber));
       }
     };
   }

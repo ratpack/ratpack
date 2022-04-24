@@ -31,6 +31,7 @@ import java.util.concurrent.CountDownLatch
 import java.util.concurrent.atomic.AtomicBoolean
 import java.util.concurrent.atomic.AtomicInteger
 import java.util.concurrent.atomic.AtomicLong
+import java.util.concurrent.atomic.AtomicReference
 
 class ExecutionSpec extends BaseRatpackSpec {
 
@@ -415,4 +416,84 @@ class ExecutionSpec extends BaseRatpackSpec {
     l.await()
     i.get() == 0
   }
+
+  def "execution can be explicitly labeled"() {
+    given:
+    def labels = []
+    def latch = new CountDownLatch(1)
+
+    when:
+    harness.controller.fork().label('foo').start {
+      labels << it.label
+      it.label('bar')
+      labels << it.label
+      latch.countDown()
+    }
+    latch.await()
+
+    then:
+    labels == ['foo', 'bar']
+  }
+
+  def "top-level execution gets default label from counter on controller"() {
+    given:
+    def labels = Collections.synchronizedList([])
+    def latch = new CountDownLatch(3)
+    def code = {
+      labels << it.label
+      latch.countDown()
+    }
+
+    when:
+    with(harness.controller) {
+      fork().start(code)
+      fork().label('foo').start(code)
+      fork().start(code)
+    }
+    latch.await()
+
+    then:
+    labels as Set == ['0', 'foo', '2'] as Set
+  }
+
+  def "execution label can be reset to default before start"() {
+    given:
+    def labels = []
+    def latch = new CountDownLatch(1)
+
+    when:
+    harness.controller.fork().label('foo').label(null).start {
+      labels << it.label
+      it.label('bar')
+      labels << it.label
+      latch.countDown()
+    }
+    latch.await()
+
+    then:
+    labels == ['0', 'bar']
+  }
+
+  def "cannot set execution label to null after start"() {
+    given:
+    def exRef = new AtomicReference<Exception>()
+    def latch = new CountDownLatch(1)
+
+    when:
+    harness.controller.fork().start {
+      try {
+        it.label(null)
+      } catch (e) {
+        exRef.set(e)
+      }
+      latch.countDown()
+    }
+    latch.await()
+
+    then:
+    def ex = exRef.get()
+    ex instanceof NullPointerException
+    ex.message == 'label may not be null'
+  }
+
 }

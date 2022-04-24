@@ -197,6 +197,27 @@ public interface Execution extends MutableRegistry {
     return getRef().maybeParent();
   }
 
+
+  /**
+   * The label of this execution.
+   * <p>
+   * This is a human-readable label describing the execution.
+   * It can be set using {@link #label(CharSequence)} or {@link ExecSpec#label(CharSequence)}.
+   * If neither is called, the execution will have a generated default.
+   *
+   * @return the current label of the execution
+   * @since 1.6
+   */
+
+  CharSequence getLabel();
+
+  /**
+   * Set the label of this execution.
+   *
+   * @param label the label
+   */
+  void label(CharSequence label);
+
   /**
    * Registers a closeable that will be closed when the execution completes.
    * <p>

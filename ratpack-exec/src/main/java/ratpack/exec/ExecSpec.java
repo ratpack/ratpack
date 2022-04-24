@@ -127,4 +127,14 @@ public interface ExecSpec {
    */
   ExecSpec eventLoop(EventLoop eventLoop);
 
+  /**
+   * Specifies the initial {@link Execution#getLabel() label} for the execution.
+   * <p>
+   * If neither this method or {@link Execution#label(CharSequence)} are called,
+   * the execution will start with a generated default.
+   *
+   * @param label The label to use for the execution.
+   * @return {@code this}
+   */
+  ExecSpec label(CharSequence label);
 }

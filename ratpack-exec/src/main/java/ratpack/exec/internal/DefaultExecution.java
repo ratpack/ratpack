@@ -38,6 +38,7 @@ import ratpack.exec.registry.internal.DefaultMutableRegistry;
 import ratpack.exec.stream.TransformablePublisher;
 
 import java.util.*;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Supplier;
 
@@ -48,6 +49,8 @@ public class DefaultExecution implements Execution {
   private ExecStream execStream;
 
   private final Ref ref;
+  private CharSequence label;
+  private AtomicInteger childCounter = new AtomicInteger();
   private final ExecControllerInternal controller;
   private final EventLoop eventLoop;
   private final Action<? super Throwable> onError;
@@ -63,7 +66,9 @@ public class DefaultExecution implements Execution {
   private Thread thread;
 
   public DefaultExecution(
-    ExecControllerInternal controller, @Nullable ExecutionRef parent,
+    ExecControllerInternal controller,
+    @Nullable ExecutionRef parent,
+    CharSequence label,
     EventLoop eventLoop,
     Action<? super RegistrySpec> registryInit,
     Action<? super Execution> action,
@@ -72,6 +77,7 @@ public class DefaultExecution implements Execution {
     Action<? super Execution> onComplete
   ) throws Exception {
     this.ref = new Ref(this, parent);
+    this.label = label;
     this.controller = controller;
     this.eventLoop = eventLoop;
     this.onError = onError;
@@ -135,8 +141,18 @@ public class DefaultExecution implements Execution {
   }
 
   @Override
-  public ExecutionRef getRef() {
+  public Ref getRef() {
     return ref;
+  }
+
+  @Override
+  public CharSequence getLabel() {
+    return label;
+  }
+
+  @Override
+  public void label(CharSequence label) {
+    this.label = Objects.requireNonNull(label, "label may not be null");
   }
 
   @Override
@@ -467,6 +483,10 @@ public class DefaultExecution implements Execution {
     }
   }
 
+  int nextChild() {
+    return childCounter.getAndIncrement();
+  }
+
   private class SingleEventExecStream extends BaseExecStream implements Continuation {
 
     final ExecStream parent;
@@ -666,12 +686,12 @@ public class DefaultExecution implements Execution {
     }
   }
 
-  private static final class Ref implements ExecutionRef {
+  static final class Ref implements ExecutionRef {
 
-    private Execution execution;
+    DefaultExecution execution;
     private final ExecutionRef parent;
 
-    private Ref(Execution execution, ExecutionRef parent) {
+    private Ref(DefaultExecution execution, ExecutionRef parent) {
       this.execution = execution;
       this.parent = parent;
     }
