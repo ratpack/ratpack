@@ -36,6 +36,15 @@ class ExecHarnessSpec extends BaseRatpackSpec {
     }
   }
 
+  static interface Record {
+
+    String getMessage()
+  }
+
+  static class RecordSub implements Record {
+    String message
+  }
+
   static class AsyncService {
 
     private final AsyncApi api
@@ -126,6 +135,30 @@ class ExecHarnessSpec extends BaseRatpackSpec {
     harness.yield { service.promise("foo").route({ it == "foo" }) {} }.complete
     !harness.yield { service.promise("foo").route({ it == "bar" }) {} }.complete
     harness.yield { service.fail().onError {}.map {} }.complete
+  }
+
+  def "run with registry setups up the registry"() {
+    given:
+    RecordSub r = new RecordSub(message: "yes")
+    String x = "no"
+
+    when:
+    harness.run(
+      { registrySpec ->
+        registrySpec.add(Record, r)
+
+      },
+      { e ->
+        Record rec = e.get(Record)
+        x = rec.message
+        assert rec.message == "yes"
+      }
+    )
+
+    then:
+    x == "yes"
+
+
   }
 
 }

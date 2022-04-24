@@ -29,6 +29,7 @@ import ratpack.exec.registry.RegistrySpec;
 import ratpack.exec.util.internal.InternalRatpackError;
 import ratpack.exec.util.internal.TransportDetector;
 
+
 import java.util.Queue;
 import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -36,8 +37,6 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import static ratpack.func.Action.noop;
 
 public class DefaultExecController implements ExecControllerInternal {
-
-  private static final Action<Throwable> LOG_UNCAUGHT = t -> DefaultExecution.LOGGER.error("Uncaught execution exception", t);
 
   private static final Logger LOGGER = LoggerFactory.getLogger(ExecController.class);
 
@@ -147,7 +146,7 @@ public class DefaultExecController implements ExecControllerInternal {
   @Override
   public ExecStarter fork() {
     return new ExecStarter() {
-      private Action<? super Throwable> onError = LOG_UNCAUGHT;
+      ExecutionErrorListener errorListener;
       private Action<? super Execution> onComplete = noop();
       private Action<? super Execution> onStart = noop();
       private Action<? super RegistrySpec> registry = noop();
@@ -161,7 +160,7 @@ public class DefaultExecController implements ExecControllerInternal {
 
       @Override
       public ExecStarter onError(Action<? super Throwable> onError) {
-        this.onError = onError;
+        this.errorListener = (e, t) -> onError.execute(t);
         return this;
       }
 
@@ -202,9 +201,9 @@ public class DefaultExecController implements ExecControllerInternal {
             eventLoop,
             registry,
             initialExecutionSegment,
-            onError,
             onStart,
-            onComplete
+            onComplete,
+            errorListener
           );
         } catch (Throwable e) {
           throw new InternalRatpackError("could not start execution", e);
