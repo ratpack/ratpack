@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 the original author or authors.
+ * Copyright 2022 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,10 +14,9 @@
  * limitations under the License.
  */
 
-package ratpack.test.internal.snippets;
+package ratpack.test.docs;
 
-import ratpack.test.internal.snippets.executer.ExceptionTransformer;
-import ratpack.test.internal.snippets.executer.SnippetExecuter;
+import ratpack.test.docs.executer.ExceptionTransformer;
 
 public class TestCodeSnippet {
 

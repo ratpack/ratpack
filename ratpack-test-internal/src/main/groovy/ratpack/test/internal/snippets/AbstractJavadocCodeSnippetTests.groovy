@@ -17,15 +17,17 @@
 package ratpack.test.internal.snippets
 
 import com.google.common.base.StandardSystemProperty
-import ratpack.test.internal.snippets.executer.GroovySnippetExecuter
-import ratpack.test.internal.snippets.executer.JavaSnippetExecuter
-import ratpack.test.internal.snippets.executer.SnippetExecuter
-import ratpack.test.internal.snippets.extractor.JavadocSnippetExtractor
+import ratpack.test.docs.CodeSnippetTestCase
+import ratpack.test.docs.SnippetExecuter
+import ratpack.test.docs.SnippetExtractor
+import ratpack.test.docs.SnippetFixture
+import ratpack.test.docs.executer.GroovySnippetExecuter
+import ratpack.test.docs.executer.JavaSnippetExecuter
+import ratpack.test.docs.extractor.JavadocSnippetExtractor
 import ratpack.test.internal.snippets.fixture.GroovyChainDslFixture
 import ratpack.test.internal.snippets.fixture.GroovyRatpackDslNoRunFixture
-import ratpack.test.internal.snippets.fixture.GroovyScriptFixture
+import ratpack.test.docs.fixture.GroovyScriptFixture
 import ratpack.test.internal.snippets.fixture.JavaChainDslFixture
-import ratpack.test.internal.snippets.fixture.SnippetFixture
 
 abstract class AbstractJavadocCodeSnippetTests extends CodeSnippetTestCase {
 
@@ -42,7 +44,17 @@ abstract class AbstractJavadocCodeSnippetTests extends CodeSnippetTestCase {
   abstract String getProjectName()
 
   @Override
-  protected Collection<TestCodeSnippet> registerTests() {
+  SnippetExtractor getExtractor() {
+    return new JavadocSnippetExtractor()
+  }
+
+  @Override
+  String getIncludePath() {
+    return "**/*.java"
+  }
+
+  @Override
+  File getSourceDirectory() {
     File cwd = new File(StandardSystemProperty.USER_DIR.value())
     File root
     if (new File(cwd, "${projectName}.gradle").exists()) {
@@ -51,11 +63,11 @@ abstract class AbstractJavadocCodeSnippetTests extends CodeSnippetTestCase {
       root = new File(cwd, projectName)
     }
 
-    def mainSrc = new File(root, "src/main")
-    if (mainSrc.exists()) {
-      FIXTURES.collectMany { selector, executer ->
-        JavadocSnippetExtractor.extract(mainSrc, "**/*.java", selector, executer)
-      }
-    }
+    return  new File(root, "src/main")
+  }
+
+  @Override
+  Map<String, SnippetExecuter> getCssExecutorMapping() {
+    return FIXTURES
   }
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 the original author or authors.
+ * Copyright 2022 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,22 +14,65 @@
  * limitations under the License.
  */
 
-package ratpack.test.internal.snippets;
+package ratpack.test.docs;
 
 import org.junit.jupiter.api.DynamicTest;
 import org.junit.jupiter.api.TestFactory;
 
+import java.io.File;
 import java.time.Duration;
 import java.util.Collection;
+import java.util.Collections;
+import java.util.Map;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import static org.junit.jupiter.api.Assertions.assertTimeout;
 import static org.junit.jupiter.api.Assumptions.assumeTrue;
 import static ratpack.func.Exceptions.uncheck;
 
-abstract public class CodeSnippetTestCase {
+/**
+ * A base class for generating tests from documentation samples.
+ * <p>
+ * Utilizes JUnit 5's {@link DynamicTest} and {@link TestFactory} to generate tests at runtime.
+ */
+public abstract class CodeSnippetTestCase {
 
-  protected abstract Collection<TestCodeSnippet> registerTests();
+  public abstract SnippetExtractor getExtractor();
+
+  public abstract String getIncludePath();
+
+  /**
+   * Specifies the root directory on the filesystem containing the Java source files.
+   *
+   * @return the source root directory.
+   */
+  public abstract File getSourceDirectory();
+
+  /**
+   * Specifies a mapping of CSS classes contained in the javadoc snippet to executor.
+   * <p>
+   * This allows for optimizing code samples by supplying static fixtures around their execution
+   * without having to specify the full contents in the sample.
+   * <p>
+   * For example, different classes can specify the test entry point and import statements.
+   * @return
+   */
+  public abstract Map<String, SnippetExecuter> getCssExecutorMapping();
+
+  protected Collection<TestCodeSnippet> registerTests() {
+    final File mainSrc = getSourceDirectory();
+    if (mainSrc.exists()) {
+      return getCssExecutorMapping().entrySet().stream()
+        .map(e ->
+          getExtractor().extract(mainSrc, getIncludePath(), e.getKey(), e.getValue())
+        )
+        .flatMap(Collection::stream)
+        .collect(Collectors.toList());
+    } else {
+      return Collections.emptyList();
+    }
+  }
 
   @TestFactory
   public Stream<DynamicTest> getTests() {

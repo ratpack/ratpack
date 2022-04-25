@@ -16,6 +16,8 @@
 
 package ratpack.test.internal.snippets.fixture
 
+import ratpack.test.docs.fixture.GroovyScriptFixture
+
 class GroovyChainDslFixture extends GroovyScriptFixture {
 
   @Override

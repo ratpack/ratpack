@@ -1,5 +1,5 @@
 /*
- * Copyright 2013 the original author or authors.
+ * Copyright 2022 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,30 +14,11 @@
  * limitations under the License.
  */
 
-package ratpack.test.internal.snippets.fixture;
-
-import ratpack.func.Block;
-
-public class SnippetFixture {
-
-  public void around(Block action) throws Exception {
-    action.execute();
-  }
-
-  public String transform(String text) {
-    return text;
-  }
-
-  public String pre() {
-    return "";
-  }
-
-  public String post() {
-    return "";
-  }
-
-  public Integer getOffset() {
-    return pre().split("\n").length;
-  }
-
-}
+/**
+ * Library that provides fixtures for extracting code snippets from documentation and executing them as part of
+ * automated tests.
+ * <p>
+ * For example, {@link ratpack.test.docs.CodeSnippetTestCase} can be used to extract code samples
+ * from the javadoc comments in source files and execute them as tests to verify their correctness.
+ */
+package ratpack.test.docs;

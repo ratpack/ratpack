@@ -1,5 +1,5 @@
 /*
- * Copyright 2013 the original author or authors.
+ * Copyright 2022 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package ratpack.test.internal.snippets.executer;
+package ratpack.test.docs.executer;
 
 import groovy.lang.Binding;
 import groovy.lang.GroovyShell;
@@ -27,13 +27,12 @@ import org.codehaus.groovy.control.*;
 import org.codehaus.groovy.control.customizers.CompilationCustomizer;
 import org.codehaus.groovy.control.messages.Message;
 import org.codehaus.groovy.control.messages.SyntaxErrorMessage;
-import ratpack.test.internal.snippets.TestCodeSnippet;
-import ratpack.test.internal.snippets.fixture.SnippetFixture;
+import ratpack.test.docs.SnippetExecuter;
+import ratpack.test.docs.TestCodeSnippet;
+import ratpack.test.docs.SnippetFixture;
 
 import java.net.URL;
 import java.net.URLClassLoader;
-import java.util.Arrays;
-import java.util.List;
 
 public class GroovySnippetExecuter implements SnippetExecuter {
 
@@ -64,11 +63,8 @@ public class GroovySnippetExecuter implements SnippetExecuter {
 
     ClassLoader classLoader = new URLClassLoader(new URL[]{}, getClass().getClassLoader());
     GroovyShell groovyShell = new GroovyShell(classLoader, new Binding(), config);
-    List<String> importsAndSnippet = extractImports(snippet.getSnippet());
-
-    String imports = importsAndSnippet.get(0);
-    String snippetMinusImports = fixture.transform(importsAndSnippet.get(1));
-    String fullSnippet = imports + fixture.pre() + snippetMinusImports + fixture.post();
+    ExtractedSnippet extractedSnippet = extractImports(snippet.getSnippet());
+    String fullSnippet = fixture.build(extractedSnippet);
 
     Script script;
     try {
@@ -91,23 +87,5 @@ public class GroovySnippetExecuter implements SnippetExecuter {
     } finally {
       Thread.currentThread().setContextClassLoader(previousContextClassLoader);
     }
-  }
-
-  private List<String> extractImports(String snippet) {
-    StringBuilder imports = new StringBuilder();
-    StringBuilder scriptMinusImports = new StringBuilder();
-
-    for (String line : snippet.split("\\n")) {
-      StringBuilder target;
-      if (line.trim().startsWith("import ")) {
-        target = imports;
-      } else {
-        target = scriptMinusImports;
-      }
-
-      target.append(line).append("\n");
-    }
-
-    return Arrays.asList(imports.toString(), scriptMinusImports.toString());
   }
 }

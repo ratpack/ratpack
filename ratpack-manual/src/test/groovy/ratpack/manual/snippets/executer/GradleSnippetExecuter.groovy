@@ -18,9 +18,9 @@ package ratpack.manual.snippets.executer
 
 import groovy.transform.CompileStatic
 import org.gradle.testkit.runner.GradleRunner
-import ratpack.test.internal.snippets.TestCodeSnippet
-import ratpack.test.internal.snippets.executer.SnippetExecuter
-import ratpack.test.internal.snippets.fixture.SnippetFixture
+import ratpack.test.docs.TestCodeSnippet
+import ratpack.test.docs.SnippetExecuter
+import ratpack.test.docs.SnippetFixture
 
 import java.util.concurrent.locks.Condition
 import java.util.concurrent.locks.Lock

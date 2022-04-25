@@ -16,7 +16,7 @@
 
 package ratpack.test.internal.snippets.fixture;
 
-import ratpack.test.internal.snippets.executer.SnippetExecuter;
+import ratpack.test.docs.SnippetExecuter;
 import ratpack.core.server.RatpackServer;
 import ratpack.test.ServerBackedApplicationUnderTest;
 import ratpack.test.http.TestHttpClient;

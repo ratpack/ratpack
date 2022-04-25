@@ -47,6 +47,7 @@ ext {
     "ratpack-spring-boot",
     "ratpack-spring-boot-starter",
     "ratpack-test",
+    "ratpack-test-docs",
     "ratpack-thymeleaf3",
   ].collect { project(it) }
 

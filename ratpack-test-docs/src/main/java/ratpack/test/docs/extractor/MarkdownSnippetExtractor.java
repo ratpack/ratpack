@@ -1,5 +1,5 @@
 /*
- * Copyright 2013 the original author or authors.
+ * Copyright 2022 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,21 +14,27 @@
  * limitations under the License.
  */
 
-package ratpack.test.internal.snippets.fixture
+package ratpack.test.docs.extractor;
 
-import ratpack.test.docs.fixture.GroovyScriptFixture
 
-class GroovyHandlersFixture extends GroovyScriptFixture {
+import java.io.File;
+import java.util.regex.Pattern;
+
+public class MarkdownSnippetExtractor extends AbstractSnippetExtractor {
 
   @Override
-  String pre() {
-"""
-def handlers(@DelegatesTo(value = ratpack.groovy.handling.GroovyChain, strategy = Closure.DELEGATE_FIRST) Closure closure) { }
-"""
+  protected Pattern getExtractPattern(String cssClass) {
+    return Pattern.compile("(?ims)```" + cssClass + "\n(.*?)\n```");
   }
 
   @Override
-  String post() {
-    ""
+  protected String generateTestName(File file, String source) {
+    return file.getName();
   }
+
+  @Override
+  protected String extractSnippetFromBlock(String tag) {
+    return tag.substring(tag.indexOf("\n") + 1, tag.lastIndexOf("\n"));
+  }
+
 }

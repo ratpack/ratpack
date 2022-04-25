@@ -1,5 +1,5 @@
 /*
- * Copyright 2013 the original author or authors.
+ * Copyright 2022 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,21 +14,15 @@
  * limitations under the License.
  */
 
-package ratpack.test.internal.snippets.fixture
+package ratpack.test.docs.fixture;
 
-import ratpack.test.docs.fixture.GroovyScriptFixture
+import ratpack.test.docs.SnippetFixture;
 
-class GroovyHandlersFixture extends GroovyScriptFixture {
-
-  @Override
-  String pre() {
-"""
-def handlers(@DelegatesTo(value = ratpack.groovy.handling.GroovyChain, strategy = Closure.DELEGATE_FIRST) Closure closure) { }
-"""
-  }
+public class GroovyScriptFixture extends SnippetFixture {
 
   @Override
-  String post() {
-    ""
+  public String post() {
+    return "\n;0;";
   }
+
 }
