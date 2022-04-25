@@ -75,6 +75,7 @@ class StreamForkSpec extends BaseRatpackSpec {
     }.valueOrThrow
 
     then:
+    noExceptionThrown()
     v == 10
   }
 
@@ -129,6 +130,7 @@ class StreamForkSpec extends BaseRatpackSpec {
     }.valueOrThrow
 
     then:
+    noExceptionThrown()
     latch.await()
     v == 10
   }

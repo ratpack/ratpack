@@ -36,7 +36,7 @@ class PromiseCachingSpec extends BaseRatpackSpec {
   Queue<Object> events = new ConcurrentLinkedQueue<>()
   def latch = new CountDownLatch(1)
 
-  def exec(Action<? super Execution> action, Action<? super Throwable> onError = Action.noop()) {
+  def exec(Action<? super Execution> action, Action<? super Throwable> onError = { t -> throw t}) {
     execHarness.controller.fork()
       .onError(onError)
       .onComplete({

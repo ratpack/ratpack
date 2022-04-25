@@ -1,5 +1,5 @@
 /*
- * Copyright 2013 the original author or authors.
+ * Copyright 2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,13 +14,9 @@
  * limitations under the License.
  */
 
-description = "Test time support for developing Ratpack applications and extensions"
-
 apply from: "$rootDir/gradle/javaModule.gradle"
 
 dependencies {
-  api project(":ratpack-core")
-
-  compileOnly "io.projectreactor.tools:blockhound:${commonVersions.blockHound}"
-
+  testImplementation project(":ratpack-exec")
+  testImplementation "io.projectreactor.tools:blockhound:${commonVersions.blockHound}"
 }
