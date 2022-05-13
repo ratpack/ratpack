@@ -129,6 +129,7 @@ The following table shows how to specify the default SSl configuration and the c
 | `ratpack.server.ssl.*_ratpack_io.kyestoreFile` | `RATPACK_SERVER__SSL___RATPACK_IO_KEYSTORE_FILE` | Specifies the path to the keystore for the domain `*.ratpack.io`                |
 
 Note the following special rules:
+
 1. In both system properties and environment variables, domain name separators (`.`) are converted into underscores (`_`)
 2. In environment variables, the domain wildcard character (`*`) is specified using an underscore (`_`). This results in 3 underscores preceding the domain name (`___RATPACK_IO`).
 
