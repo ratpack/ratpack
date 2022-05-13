@@ -279,7 +279,7 @@ task compileManual {
   ext.encoding = "UTF-8"
   inputs.property("encoding", encoding)
 
-  ext.options = SMARTYPANTS | FENCED_CODE_BLOCKS
+  ext.options = SMARTYPANTS | FENCED_CODE_BLOCKS | TABLES
   inputs.property("options", options)
 
   doLast {
