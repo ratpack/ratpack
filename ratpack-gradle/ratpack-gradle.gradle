@@ -89,6 +89,16 @@ tasks.named("publishPlugins") {
   }
 }
 
+tasks.named("generateMetadataFileForMainPublication").configure {
+  dependsOn("publishPluginJavaDocsJar")
+  dependsOn("publishPluginJar")
+}
+
+tasks.named("publishMainPublicationToProjectLocalRepository").configure {
+  dependsOn("publishPluginJavaDocsJar")
+  dependsOn("publishPluginJar")
+}
+
 test.doFirst {
   maxParallelForks 1
 }
