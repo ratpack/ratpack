@@ -16,31 +16,31 @@
 
 ext {
   commonVersions = [
-    slf4j            : "1.7.36",
+    caffeine         : "2.9.3", // 3.x requires Java 11
+    commonsCodec     : "1.14",
+    commonsLang3     : "3.12.0",
+    commonsLogging   : "1.2",
+    dropwizardMetrics: "4.2.8",
+    groovy           : "3.0.9",
+    guava            : "31.0.1-jre",
+    guice            : "5.1.0",
+    jackson          : "2.13.1",
+    javassist        : "3.28.0-GA"
+    log4j            : "2.17.1",
     netty            : "4.1.73.Final",
     nettyTCNative    : "2.0.48.Final",
-    guava            : "31.0.1-jre",
-    groovy           : "3.0.9",
-    rxjava2          : "2.2.21",
-    reactor          : "3.4.14",
-    jackson          : "2.13.1",
-    dropwizardMetrics: "4.2.8",
-    pegdown          : "1.6.0",
-    spock            : "2.1-groovy-3.0",
-    log4j            : "2.17.1",
     newrelic         : "5.13.0",
-    reactiveStreams  : "1.0.3",
-    guice            : "5.1.0",
-    springBoot       : "2.6.3",
-    caffeine         : "2.9.3", // 3.x requires Java 11
-    retrofit         : "2.9.0",
-    commonsLogging   : "1.2",
-    commonsCodec     : "1.14",
-    snakeyaml        : "1.30",
+    pegdown          : "1.6.0",
     prometheusClient : "0.15.0",
+    reactiveStreams  : "1.0.3",
+    reactor          : "3.4.14",
+    retrofit         : "2.9.0",
+    rxjava2          : "2.2.21",
     shadow           : "7.1.2",
-    commonsLang3     : "3.12.0",
-    javassist        : "3.28.0-GA"
+    slf4j            : "1.7.36",
+    snakeyaml        : "1.30",
+    spock            : "2.1-groovy-3.0",
+    springBoot       : "2.6.3",
   ]
 
   if (System.getenv('CI_GROOVY_VERSION')) {

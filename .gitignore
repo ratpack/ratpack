@@ -27,3 +27,4 @@ ratpack-version.txt
 deploy
 .jruby-container
 .idea
+.vscode
