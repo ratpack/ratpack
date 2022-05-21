@@ -26,7 +26,7 @@ repositories {
 dependencies {
   implementation localGroovy()
   implementation gradleApi()
-  implementation('com.google.javascript:closure-compiler:v20190415') {
+  implementation('com.google.javascript:closure-compiler:v20220502') {
     exclude module: 'junit'
   }
   implementation "com.github.ben-manes:gradle-versions-plugin:0.38.0"

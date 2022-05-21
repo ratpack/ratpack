@@ -23,7 +23,7 @@ dependencies {
   api project(":ratpack-func")
   api "io.netty:netty-buffer:$commonVersions.netty"
   api "io.netty:netty-transport-native-epoll:${commonVersions.netty}:linux-x86_64"
-  api "io.netty:netty-tcnative:${commonVersions.nettyTCNative}:linux-x86_64"
+  api "io.netty:netty-tcnative-boringssl-static:${commonVersions.nettyTCNative}:linux-x86_64"
   api "org.reactivestreams:reactive-streams:${commonVersions.reactiveStreams}"
   api commonDependencies.slf4j
 
@@ -32,8 +32,8 @@ dependencies {
     exclude group: "org.yaml", module: "snakeyaml"
     exclude group: "org.testng", module: "testng"
   }
-  testImplementation('org.testng:testng:7.5')
-  testImplementation('org.mockito:mockito-core:4.3.1') {
+  testImplementation('org.testng:testng:7.5') //7.6.0 requires Java 11
+  testImplementation('org.mockito:mockito-core:4.5.1') {
     exclude group: "org.hamcrest", module: "hamcrest-core"
   }
 

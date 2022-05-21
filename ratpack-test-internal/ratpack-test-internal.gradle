@@ -19,7 +19,7 @@ apply from: "$rootDir/gradle/groovyModule.gradle"
 dependencies {
   api project(":ratpack-groovy-test")
   api commonDependencies.spock
-  api 'org.java-websocket:Java-WebSocket:1.5.2'
+  api 'org.java-websocket:Java-WebSocket:1.5.3'
   api "org.junit.jupiter:junit-jupiter-api:5.8.2"
   api("org.apiguardian:apiguardian-api:1.1.2") {
     because "Needed after upgrading to junit-jupiter-api:5.8.2, otherwise javadoc snippet tests fail. Somehow related to https://github.com/junit-team/junit5/issues/1104"

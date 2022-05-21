@@ -67,7 +67,7 @@ dependencies {
   testImplementation "org.apache.logging.log4j:log4j-api:${commonVersions.log4j}"
   testImplementation "org.apache.logging.log4j:log4j-core:${commonVersions.log4j}"
 
-  testImplementation('com.opencsv:opencsv:5.5.2') {
+  testImplementation('com.opencsv:opencsv:5.6') {
     exclude group: "org.apache.commons", module: "commons-lang3"
   }
   testImplementation('com.github.tomakehurst:wiremock:2.27.2') {
