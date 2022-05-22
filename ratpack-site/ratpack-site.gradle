@@ -165,7 +165,7 @@ dependencies {
     exclude group: "org.codehaus.groovy", module: "groovy-all"
     exclude group: "junit", module: "junit"
   }
-  browserTestImplementation "org.seleniumhq.selenium:selenium-chrome-driver:4.1.2", {
+  browserTestImplementation "org.seleniumhq.selenium:selenium-chrome-driver:4.1.4", {
     exclude module: 'guava'
     exclude group: "cglib", module: "cglib-nodep"
   }
