@@ -183,7 +183,8 @@ class HttpsSpec extends RatpackGroovyDslSpec {
     and:
     def lines = sw.toString().trim().split("\n")
     lines.size() == 1
-    lines[0].startsWith("not an SSL/TLS record")
+    lines[0].startsWith("not an SSL/TLS record") || // This is the error message if using dynamic linking to OpenSSL
+      lines[0].startsWith("error:1000009c:SSL routines:OPENSSL_internal:HTTP_REQUEST") // This is th error message if using static linking to BoringSSL
 
     cleanup:
     testAppender.stop()
