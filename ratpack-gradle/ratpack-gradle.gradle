@@ -21,7 +21,7 @@ buildscript {
     }
   }
   dependencies {
-    classpath "com.gradle.publish:plugin-publish-plugin:0.18.0"
+    classpath "com.gradle.publish:plugin-publish-plugin:0.21.0"
   }
 }
 
