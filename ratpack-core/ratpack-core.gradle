@@ -44,6 +44,7 @@ dependencies {
   //TODO-Gradle7 This isn't used in public API, but ratpack-site:testClasses fails with groovy not finding Caffeine's LoadingCache
   api("com.github.ben-manes.caffeine:caffeine:${commonVersions.caffeine}") {
     exclude group: "com.google.errorprone", module: "error_prone_annotations"
+    because "3.x requires Java 11"
   }
   implementation "org.javassist:javassist:${commonVersions.javassist}"
 

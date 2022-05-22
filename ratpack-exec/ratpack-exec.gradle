@@ -32,7 +32,9 @@ dependencies {
     exclude group: "org.yaml", module: "snakeyaml"
     exclude group: "org.testng", module: "testng"
   }
-  testImplementation('org.testng:testng:7.5') //7.6.0 requires Java 11
+  testImplementation('org.testng:testng:7.5') {
+    because "7.6.0 requires Java 11"
+  }
   testImplementation('org.mockito:mockito-core:4.5.1') {
     exclude group: "org.hamcrest", module: "hamcrest-core"
   }

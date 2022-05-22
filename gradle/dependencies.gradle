@@ -105,7 +105,25 @@ ext {
       dependencies.create("io.freefair.gradle:jsass-plugin:6.4.3") {
         exclude group: "io.bit3", module: "jsass"
       },
-      dependencies.create("io.bit3:jsass:5.7.0") //Force jsass version to 5.7.0 due to https://gitlab.com/jsass/jsass/-/issues/92
+      dependencies.create("io.bit3:jsass:5.7.0") {
+        because "Force jsass version to 5.7.0 due to https://gitlab.com/jsass/jsass/-/issues/92"
+      }
     ]
   ]
+
+  isNonStable = { String version ->
+    def stableKeyword = ['RELEASE', 'FINAL', 'GA'].any { k -> version.toUpperCase().contains(k) }
+    def regex = /^[0-9,.v-]+(-r)?$/
+    def milestoneRegex = /(?i)^.*[-.](m|alpha|beta|rc)\d?(-.*)?$/ // filter out things that have things like -M1-, .M1, .Alpha7, -rc1
+    return !stableKeyword && !(version ==~ regex) && (version ==~ milestoneRegex)
+  }
+
+  dependencyUpdateConfig = {
+    revision = "release"
+    gradleReleaseChannel = "current"
+    rejectVersionIf {
+      (isNonStable(it.candidate.version) && !isNonStable(it.currentVersion)) || // Don't upgrade stable to non-stable unless we are already using a non-stable
+      it.candidate.group == "org.codehaus.groovy" // Don't upgrade groovy because it's tied to Gradle's version
+    }
+  }
 }

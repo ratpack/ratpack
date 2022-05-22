@@ -122,3 +122,5 @@ tasks.named("jacocoTestReport", JacocoReport) {
     csv.required.set false
   }
 }
+
+tasks.named("dependencyUpdates").configure(dependencyUpdateConfig)

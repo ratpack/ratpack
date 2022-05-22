@@ -100,3 +100,5 @@ apply from: "gradle/idea.gradle"
 apply from: "gradle/publish-root.gradle"
 apply from: "gradle/dependencies.gradle"
 apply from: "gradle/coveralls.gradle"
+
+tasks.named("dependencyUpdates").configure(dependencyUpdateConfig)
