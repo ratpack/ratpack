@@ -27,7 +27,6 @@ import ratpack.stream.internal.CollectingSubscriber
 import ratpack.test.exec.ExecHarness
 import ratpack.test.internal.RatpackGroovyDslSpec
 import spock.lang.AutoCleanup
-import spock.lang.Ignore
 
 import java.time.Duration
 import java.util.concurrent.TimeUnit
@@ -316,7 +315,6 @@ class StreamExecutionSpec extends RatpackGroovyDslSpec {
     max == 1
   }
 
-  @Ignore("LD")
   def "items are serialized even when dispatched on event loop"() {
     when:
     def max = 0
