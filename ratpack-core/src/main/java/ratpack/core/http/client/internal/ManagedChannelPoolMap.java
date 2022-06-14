@@ -14,11 +14,10 @@
  * limitations under the License.
  */
 
-package ratpack.http.client.internal;
+package ratpack.core.http.client.internal;
 
 import io.netty.channel.pool.ChannelPool;
 import io.netty.channel.pool.ChannelPoolMap;
-import ratpack.core.http.client.internal.HttpChannelKey;
 
 import java.io.Closeable;
 
