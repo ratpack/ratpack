@@ -64,7 +64,7 @@ public class HystrixModule extends ConfigurableModule<HystrixModule.Config> {
     private long streamInterval = DEFAULT_INTERVAL;
 
     /**
-     * The configured stream interval in seconds;
+     * The configured stream interval in seconds.
      *
      * @return the configured stream interval in seconds;
      */

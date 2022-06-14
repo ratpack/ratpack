@@ -18,13 +18,16 @@ package ratpack.groovy.template
 
 import ratpack.test.embed.internal.JarFileEphemeralBaseDir
 import ratpack.test.internal.RatpackGroovyDslSpec
+import spock.lang.AutoCleanup
 
 import static io.netty.handler.codec.http.HttpHeaders.Names.CONTENT_TYPE
 import static ratpack.groovy.Groovy.groovyMarkupTemplate
 
 class MarkupTemplatingSpec extends RatpackGroovyDslSpec {
 
+  @AutoCleanup
   def contextClassLoader = new GroovyClassLoader()
+
   def originalContextClassLoader
 
   def setup() {

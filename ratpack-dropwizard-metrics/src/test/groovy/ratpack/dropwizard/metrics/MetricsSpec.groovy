@@ -843,7 +843,7 @@ class MetricsSpec extends RatpackGroovyDslSpec {
 
   }
 
-  def "it should report http client metrics"() {
+  def "it should report http client metrics with pooling client"() {
     given:
     MetricRegistry registry
     String ok = 'ok'
@@ -851,7 +851,7 @@ class MetricsSpec extends RatpackGroovyDslSpec {
 
     bindings {
       bindInstance(HttpClient, HttpClient.of {
-        it.poolSize(0)
+        it.poolSize(2)
         it.enableMetricsCollection(true)
       })
       module new DropwizardMetricsModule(), { spec ->
@@ -892,11 +892,11 @@ class MetricsSpec extends RatpackGroovyDslSpec {
     then:
     polling.within(2) {
       assert registry.getGauges().get('httpclient.total.active.connections').value == 1
-      assert registry.getGauges().get('httpclient.total.idle.connections').value == 0
-      assert registry.getGauges().get('httpclient.total.connections').value == 1
+      assert registry.getGauges().get('httpclient.total.idle.connections').value == 1
+      assert registry.getGauges().get('httpclient.total.connections').value == 2
       assert registry.getGauges().get("httpclient.${otherAppUrl().host}.total.active.connections").value == 1
-      assert registry.getGauges().get("httpclient.${otherAppUrl().host}.total.idle.connections").value == 0
-      assert registry.getGauges().get("httpclient.${otherAppUrl().host}.total.connections").value == 1
+      assert registry.getGauges().get("httpclient.${otherAppUrl().host}.total.idle.connections").value == 1
+      assert registry.getGauges().get("httpclient.${otherAppUrl().host}.total.connections").value == 2
 
 
     }
@@ -907,11 +907,11 @@ class MetricsSpec extends RatpackGroovyDslSpec {
     then:
     polling.within(2) {
       assert registry.getGauges().get('httpclient.total.active.connections').value == 0
-      assert registry.getGauges().get('httpclient.total.idle.connections').value == 0
-      assert registry.getGauges().get('httpclient.total.connections').value == 0
+      assert registry.getGauges().get('httpclient.total.idle.connections').value == 2
+      assert registry.getGauges().get('httpclient.total.connections').value == 2
       assert registry.getGauges().get("httpclient.${otherAppUrl().host}.total.active.connections").value == 0
-      assert registry.getGauges().get("httpclient.${otherAppUrl().host}.total.idle.connections").value == 0
-      assert registry.getGauges().get("httpclient.${otherAppUrl().host}.total.connections").value == 0
+      assert registry.getGauges().get("httpclient.${otherAppUrl().host}.total.idle.connections").value == 2
+      assert registry.getGauges().get("httpclient.${otherAppUrl().host}.total.connections").value == 2
     }
   }
 }

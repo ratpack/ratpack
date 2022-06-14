@@ -1,5 +1,5 @@
 /*
- * Copyright 2019 the original author or authors.
+ * Copyright 2022 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,10 +14,15 @@
  * limitations under the License.
  */
 
-/**
- * Test fixtures for executing and evaluating {@link ratpack.exec.Promise} and {@link ratpack.exec.Operation}
- * outside of a server instance.
- *
- * @see ratpack.test.exec.ExecHarness
- */
-package ratpack.test.exec;
+package ratpack.http.client.internal;
+
+import io.netty.channel.pool.ChannelPool;
+import io.netty.channel.pool.ChannelPoolMap;
+
+import java.io.Closeable;
+
+public interface ManagedChannelPoolMap extends ChannelPoolMap<HttpChannelKey, ChannelPool>, Closeable {
+
+  void close();
+
+}

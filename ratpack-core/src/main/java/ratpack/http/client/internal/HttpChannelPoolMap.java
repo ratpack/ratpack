@@ -19,6 +19,6 @@ package ratpack.http.client.internal;
 import io.netty.channel.pool.AbstractChannelPoolMap;
 import io.netty.channel.pool.ChannelPool;
 
-abstract class HttpChannelPoolMap extends AbstractChannelPoolMap<HttpChannelKey, ChannelPool> {
+abstract class HttpChannelPoolMap extends AbstractChannelPoolMap<HttpChannelKey, ChannelPool> implements ManagedChannelPoolMap {
 
 }

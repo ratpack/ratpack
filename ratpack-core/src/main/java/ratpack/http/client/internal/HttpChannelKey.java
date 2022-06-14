@@ -16,6 +16,8 @@
 
 package ratpack.http.client.internal;
 
+import io.netty.channel.EventLoop;
+import ratpack.exec.ExecController;
 import ratpack.exec.Execution;
 
 import java.net.URI;
@@ -27,7 +29,8 @@ final class HttpChannelKey {
   final int port;
   final String host;
 
-  final Execution execution;
+  final ExecController execController;
+  final EventLoop eventLoop;
 
   final Duration connectTimeout;
 
@@ -45,7 +48,8 @@ final class HttpChannelKey {
 
     this.port = uri.getPort() < 0 ? ssl ? 443 : 80 : uri.getPort();
     this.host = uri.getHost();
-    this.execution = execution;
+    this.execController = execution.getController();
+    this.eventLoop = execution.getEventLoop();
     this.connectTimeout = connectTimeout;
   }
 
@@ -60,7 +64,7 @@ final class HttpChannelKey {
 
     HttpChannelKey that = (HttpChannelKey) o;
 
-    return execution.getController() == that.execution.getController()
+    return execController == that.execController
       && ssl == that.ssl
       && port == that.port
       && host.equals(that.host);
@@ -71,7 +75,7 @@ final class HttpChannelKey {
     int result = ssl ? 1 : 0;
     result = 31 * result + port;
     result = 31 * result + host.hashCode();
-    result = 31 * result + execution.getController().hashCode();
+    result = 31 * result + execController.hashCode();
     return result;
   }
 

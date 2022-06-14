@@ -48,7 +48,7 @@ class HierarchicalExecutionSpec extends BaseExecutionSpec {
     }
 
     then:
-    events == ["child-on-start", "foo", "complete", "child-start", "foo-bar", "child-complete"]
+    events.asList() == ["child-on-start", "foo", "complete", "child-start", "foo-bar", "child-complete"]
   }
 
   def "ref registry is empty when execution completes"() {

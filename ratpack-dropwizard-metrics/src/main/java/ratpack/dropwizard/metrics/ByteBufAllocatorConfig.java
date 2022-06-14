@@ -28,7 +28,7 @@ public class ByteBufAllocatorConfig {
   private boolean detailed = true;
 
   /**
-   * The state of the ByteBufAllocator metric collector
+   * The state of the ByteBufAllocator metric collector.
    *
    * @return the state of the {@link ByteBufAllocator} metric collector.
    */

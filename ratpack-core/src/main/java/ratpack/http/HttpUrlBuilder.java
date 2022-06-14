@@ -251,7 +251,8 @@ public interface HttpUrlBuilder {
   HttpUrlBuilder params(MultiValueMap<String, ?> params);
 
   /**
-   * Add a fragment to the URL
+   * Add a fragment to the URL.
+   *
    * @param fragment string of the fragment
    * @return {@code this}
    * @since 1.6

@@ -16,6 +16,8 @@
 
 package ratpack.http.client.internal;
 
+import io.netty.channel.pool.ChannelPool;
+import io.netty.channel.pool.ChannelPoolMap;
 import ratpack.func.Action;
 import ratpack.http.client.HttpClient;
 import ratpack.http.client.HttpResponse;
@@ -23,7 +25,7 @@ import ratpack.http.client.RequestSpec;
 
 interface HttpClientInternal extends HttpClient {
 
-  HttpChannelPoolMap getChannelPoolMap();
+  ChannelPoolMap<HttpChannelKey, ChannelPool> getChannelPoolMap();
 
   Action<? super RequestSpec> getRequestInterceptor();
 
