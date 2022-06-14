@@ -39,6 +39,8 @@ dependencies {
   api "io.netty:netty-handler:$commonVersions.netty"
   api "io.netty:netty-handler-proxy:$commonVersions.netty"
   api "io.netty:netty-resolver-dns:$commonVersions.netty"
+  implementation "io.netty:netty-resolver-dns-native-macos:$commonVersions.netty:osx-x86_64"
+  implementation "io.netty:netty-resolver-dns-native-macos:$commonVersions.netty:osx-aarch_64"
   api 'com.sun.activation:javax.activation:1.2.0'
 
   //TODO-Gradle7 This isn't used in public API, but ratpack-site:testClasses fails with groovy not finding Caffeine's LoadingCache

@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 the original author or authors.
+ * Copyright 2022 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,11 +14,16 @@
  * limitations under the License.
  */
 
-package ratpack.core.http.client.internal;
+package ratpack.http.client.internal;
 
-import io.netty.channel.pool.AbstractChannelPoolMap;
 import io.netty.channel.pool.ChannelPool;
+import io.netty.channel.pool.ChannelPoolMap;
+import ratpack.core.http.client.internal.HttpChannelKey;
 
-abstract class HttpChannelPoolMap extends AbstractChannelPoolMap<HttpChannelKey, ChannelPool> implements ManagedChannelPoolMap {
+import java.io.Closeable;
+
+public interface ManagedChannelPoolMap extends ChannelPoolMap<HttpChannelKey, ChannelPool>, Closeable {
+
+  void close();
 
 }

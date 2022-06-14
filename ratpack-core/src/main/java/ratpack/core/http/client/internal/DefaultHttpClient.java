@@ -16,11 +16,14 @@
 
 package ratpack.core.http.client.internal;
 
+import com.github.benmanes.caffeine.cache.Cache;
+import com.github.benmanes.caffeine.cache.Caffeine;
 import io.netty.bootstrap.Bootstrap;
 import io.netty.buffer.ByteBufAllocator;
 import io.netty.channel.ChannelOption;
 import io.netty.channel.pool.ChannelHealthChecker;
 import io.netty.channel.pool.ChannelPool;
+import io.netty.channel.pool.ChannelPoolMap;
 import io.netty.channel.pool.SimpleChannelPool;
 import ratpack.core.http.client.*;
 import io.netty.resolver.AddressResolverGroup;
@@ -34,7 +37,6 @@ import ratpack.func.Nullable;
 import java.net.URI;
 import java.time.Duration;
 import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
 
 public class DefaultHttpClient implements HttpClientInternal {
@@ -59,37 +61,11 @@ public class DefaultHttpClient implements HttpClientInternal {
   @Nullable
   final ProxyInternal proxy;
 
-  private final Map<String, ChannelPoolStats> hostStats = new ConcurrentHashMap<>();
+  private final Cache<String, ChannelPoolStats> hostStats = Caffeine.newBuilder()
+    .maximumSize(1024)
+    .build();
 
-  private final HttpChannelPoolMap channelPoolMap = new HttpChannelPoolMap() {
-    @Override
-    protected ChannelPool newPool(HttpChannelKey key) {
-      Bootstrap bootstrap = new Bootstrap()
-        .remoteAddress(key.host, key.port)
-        .group(key.execution.getEventLoop())
-        .resolver(resolver)
-        .channel(TransportDetector.getSocketChannelImpl())
-        .option(ChannelOption.CONNECT_TIMEOUT_MILLIS, (int) key.connectTimeout.toMillis())
-        .option(ChannelOption.ALLOCATOR, byteBufAllocator)
-        .option(ChannelOption.AUTO_READ, false)
-        .option(ChannelOption.SO_KEEPALIVE, isPooling());
-
-      if (isPooling()) {
-        InstrumentedChannelPoolHandler channelPoolHandler = getPoolingHandler(key);
-        hostStats.put(key.host, channelPoolHandler);
-        CleanClosingFixedChannelPool channelPool = new CleanClosingFixedChannelPool(bootstrap, channelPoolHandler, getPoolSize(), getPoolQueueSize());
-        key.execution.getController().onClose(() -> {
-          remove(key);
-          channelPool.closeCleanly();
-        });
-        return channelPool;
-      } else {
-        InstrumentedChannelPoolHandler channelPoolHandler = getSimpleHandler(key);
-        hostStats.put(key.host, channelPoolHandler);
-        return new SimpleChannelPool(bootstrap, channelPoolHandler, ALWAYS_UNHEALTHY);
-      }
-    }
-  };
+  private final ManagedChannelPoolMap channelPoolMap;
 
   public DefaultHttpClient(
     ByteBufAllocator byteBufAllocator,
@@ -121,6 +97,64 @@ public class DefaultHttpClient implements HttpClientInternal {
     this.enableMetricsCollection = enableMetricsCollection;
     this.resolver = resolver;
     this.proxy = proxy;
+
+    this.channelPoolMap = isPooling() ? getPoolingChannelManager() : getSimpleChannelManager();
+  }
+
+  private ManagedChannelPoolMap getPoolingChannelManager() {
+    final HttpChannelPoolMap channelPoolMap = new HttpChannelPoolMap() {
+      @Override
+      protected ChannelPool newPool(HttpChannelKey key) {
+        Bootstrap bootstrap = createBootstrap(key, true);
+
+          InstrumentedChannelPoolHandler channelPoolHandler = getPoolingHandler(key);
+          if (enableMetricsCollection) {
+            hostStats.put(key.host, channelPoolHandler);
+          }
+          CleanClosingFixedChannelPool channelPool = new CleanClosingFixedChannelPool(bootstrap, channelPoolHandler, getPoolSize(), getPoolQueueSize());
+          ((ExecControllerInternal) key.execController).onClose(() -> {
+            remove(key);
+            channelPool.closeCleanly();
+          });
+          return channelPool;
+      }
+    };
+
+    return channelPoolMap;
+  }
+
+  private ManagedChannelPoolMap getSimpleChannelManager() {
+    return new ManagedChannelPoolMap() {
+
+      @Override
+      public void close() {
+
+      }
+
+      @Override
+      public ChannelPool get(HttpChannelKey key) {
+        Bootstrap bootstrap = createBootstrap(key, true);
+        return new SimpleChannelPool(bootstrap, getSimpleHandler(key), ALWAYS_UNHEALTHY);
+      }
+
+      @Override
+      public boolean contains(HttpChannelKey key) {
+        return false;
+      }
+    };
+  }
+
+  private Bootstrap createBootstrap(HttpChannelKey key, boolean pooling) {
+    Bootstrap bootstrap = new Bootstrap()
+      .remoteAddress(key.host, key.port)
+      .group(key.eventLoop)
+      .resolver(resolver)
+      .channel(TransportDetector.getSocketChannelImpl())
+      .option(ChannelOption.CONNECT_TIMEOUT_MILLIS, (int) key.connectTimeout.toMillis())
+      .option(ChannelOption.ALLOCATOR, byteBufAllocator)
+      .option(ChannelOption.AUTO_READ, false)
+      .option(ChannelOption.SO_KEEPALIVE, pooling);
+    return bootstrap;
   }
 
   private InstrumentedChannelPoolHandler getPoolingHandler(HttpChannelKey key) {
@@ -159,7 +193,7 @@ public class DefaultHttpClient implements HttpClientInternal {
   }
 
   @Override
-  public HttpChannelPoolMap getChannelPoolMap() {
+  public ChannelPoolMap<HttpChannelKey, ChannelPool> getChannelPoolMap() {
     return channelPoolMap;
   }
 
@@ -262,7 +296,7 @@ public class DefaultHttpClient implements HttpClientInternal {
 
   public HttpClientStats getHttpClientStats() {
     return new HttpClientStats(
-      hostStats.entrySet().stream().collect(Collectors.toMap(
+      hostStats.asMap().entrySet().stream().collect(Collectors.toMap(
         Map.Entry::getKey,
         e -> e.getValue().getHostStats()
       ))

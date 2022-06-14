@@ -25,6 +25,7 @@ class BaseDirFinderSpec extends BaseRatpackSpec {
   @AutoCleanup
   EphemeralBaseDir b1 = EphemeralBaseDir.tmpDir()
 
+  @AutoCleanup
   def classLoader = new GroovyClassLoader()
 
   def "returns empty when not found"() {

@@ -52,7 +52,7 @@ public class SnippetRunner extends Runner {
 
     try {
       notifier.fireTestStarted(description);
-      new TimeoutInterceptor(Duration.ofSeconds(30))
+      new TimeoutInterceptor(Duration.ofSeconds(45))
         .intercept(() -> snippet.getExecuter().execute(snippet), description);
     } catch (Throwable t) {
       Throwable transform;
