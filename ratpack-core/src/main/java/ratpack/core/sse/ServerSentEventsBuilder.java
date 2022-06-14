@@ -39,8 +39,8 @@ public interface ServerSentEventsBuilder {
    * <p>
    * Use {@link #buffered()} to use sensible defaults.
    *
-   * @param numEvents the number of events to buffer (must be > 0)
-   * @param numBytes the number of bytes to buffer (must be > 0)
+   * @param numEvents the number of events to buffer (must be &gt; 0)
+   * @param numBytes the number of bytes to buffer (must be &gt; 0)
    * @param duration the amount of time to buffer events (use 0 to disable)
    * @return {@code this}
    * @see #buffered(int, int, Duration)
