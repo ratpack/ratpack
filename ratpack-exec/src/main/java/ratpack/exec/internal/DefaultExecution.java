@@ -38,7 +38,6 @@ import ratpack.registry.internal.DefaultMutableRegistry;
 import ratpack.stream.TransformablePublisher;
 
 import java.util.*;
-import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.Supplier;
 
 @SuppressWarnings("UnstableApiUsage")
@@ -638,33 +637,24 @@ public class DefaultExecution implements Execution {
 
   private class MultiEventExecStream extends NonUserCodeExecStream {
     final Queue<ExecStream> events = PlatformDependent.newMpscQueue();
-    final AtomicBoolean complete = new AtomicBoolean();
 
     final ExecStream nextEvent = new NonUserCodeExecStream(this);
-    final ExecStream completeEvent = new NonUserCodeExecStream(parent);
 
     MultiEventExecStream(ExecStream parent, Action<? super Throwable> onError, Action<? super ContinuationStream> initial) {
       super(parent);
       events.add(new SingleEventExecStream(nextEvent, onError, continuation -> continuation.resume(() ->
         initial.execute(new ContinuationStream() {
-          public boolean event(Block action) {
-            if (complete.get()) {
-              return false;
-            } else {
-              events.add(new SingleEventExecStream(nextEvent, onError, continuation -> continuation.resume(action)));
-              drain();
-              return true;
-            }
+          public void event(Block action) {
+            addEvent(nextEvent, action);
           }
 
-          public boolean complete(Block action) {
-            if (complete.compareAndSet(false, true)) {
-              events.add(new SingleEventExecStream(completeEvent, onError, continuation -> continuation.resume(action)));
-              drain();
-              return true;
-            } else {
-              return false;
-            }
+          public void complete(Block action) {
+            addEvent(new NonUserCodeExecStream(parent), action);
+          }
+
+          private void addEvent(ExecStream parent, Block action) {
+            events.add(new SingleEventExecStream(parent, onError, continuation -> continuation.resume(action)));
+            drain();
           }
         })
       )));

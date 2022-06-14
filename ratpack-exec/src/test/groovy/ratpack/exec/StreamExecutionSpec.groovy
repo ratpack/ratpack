@@ -336,26 +336,25 @@ class StreamExecutionSpec extends RatpackGroovyDslSpec {
   }
 
   def "stream reliably completes when producer and consumer race"() {
-    when:
-    def n = 3
-    def l = harness.yield {
-      Streams.bindExec { subscriber ->
-        harness.fork().start {
-          periodically(
-            harness.controller.eventLoopGroup.next(),
-            Duration.ofNanos(2),
-            { i -> i < n ? i : null }
-          )
-            .subscribe(subscriber)
-        }
-      }.toList()
-    }.valueOrThrow
+    expect:
+    def t = 5000
+    def n = 10
 
-    then:
-    l == (0..<n).toList()
-
-    where:
-    i << (1..100)
+    t.times {
+      def l = harness.yield {
+        Streams.bindExec { subscriber ->
+          harness.fork().start {
+            periodically(
+              harness.controller.eventLoopGroup.next(),
+              Duration.ofNanos(2),
+              { i -> i < n ? i : null }
+            )
+              .subscribe(subscriber)
+          }
+        }.toList()
+      }.valueOrThrow
+      assert l == (0..<n).toList()
+    }
   }
 
 }
