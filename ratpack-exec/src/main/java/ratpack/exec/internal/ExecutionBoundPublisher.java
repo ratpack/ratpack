@@ -47,18 +47,15 @@ public class ExecutionBoundPublisher<T> implements TransformablePublisher<T> {
         private final AtomicBoolean cancelled = new AtomicBoolean();
         private final AtomicBoolean pendingCancelSignal = new AtomicBoolean(true);
 
-        private boolean dispatch(Block block) {
-          if (cancelled.get()) {
-            return false;
-          } else if (execution.isBound()) {
+        private void dispatch(Block block) {
+          if (execution.isBound()) {
             try {
               block.execute();
-              return true;
             } catch (Exception e) {
               throw Exceptions.uncheck(e); // really should not happen
             }
           } else {
-            return continuation.event(block);
+            continuation.event(block);
           }
         }
 
@@ -94,20 +91,18 @@ public class ExecutionBoundPublisher<T> implements TransformablePublisher<T> {
 
         @Override
         public void onNext(final T element) {
-          boolean added = dispatch(() -> {
+          dispatch(() -> {
             if (cancelled.get()) {
               dispose(element);
             } else {
               subscriber.onNext(element);
             }
           });
-          if (!added) {
+          if (cancelled.get()) {
             dispose(element);
-            if (cancelled.get()) {
-              if (execution.isBound() && pendingCancelSignal.compareAndSet(true, false)) {
-                subscription.cancel();
-                continuation.complete(Block.noop());
-              }
+            if (execution.isBound() && pendingCancelSignal.compareAndSet(true, false)) {
+              subscription.cancel();
+              continuation.complete(Block.noop());
             }
           }
         }

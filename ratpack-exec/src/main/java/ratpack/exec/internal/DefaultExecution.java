@@ -38,9 +38,9 @@ import ratpack.registry.internal.DefaultMutableRegistry;
 import ratpack.stream.TransformablePublisher;
 
 import java.util.*;
-import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Supplier;
 
+@SuppressWarnings("UnstableApiUsage")
 public class DefaultExecution implements Execution {
 
   public final static Logger LOGGER = LoggerFactory.getLogger(Execution.class);
@@ -370,6 +370,46 @@ public class DefaultExecution implements Execution {
 
   }
 
+  private class NonUserCodeExecStream extends ExecStream {
+
+    protected final ExecStream parent;
+
+    NonUserCodeExecStream(ExecStream parent) {
+      this.parent = parent;
+    }
+
+    @Override
+    boolean exec() throws Exception {
+      execStream = parent;
+      return true;
+    }
+
+    @Override
+    void delimit(Action<? super Throwable> onError, Action<? super Continuation> segment) {
+      throw new UnsupportedOperationException();
+    }
+
+    @Override
+    void delimitStream(Action<? super Throwable> onError, Action<? super ContinuationStream> segment) {
+      throw new UnsupportedOperationException();
+    }
+
+    @Override
+    void enqueue(Block segment) {
+      throw new UnsupportedOperationException();
+    }
+
+    @Override
+    void error(Throwable throwable) {
+      parent.error(throwable);
+    }
+
+    @Override
+    ExecStream asParent() {
+      return this;
+    }
+  }
+
   private static class TerminalExecStream extends ExecStream {
 
     private static final ExecStream INSTANCE = new TerminalExecStream();
@@ -595,75 +635,42 @@ public class DefaultExecution implements Execution {
     }
   }
 
-  private class MultiEventExecStream extends BaseExecStream implements ContinuationStream {
-    final ExecStream parent;
-    private final Action<? super Throwable> onError;
-    final Queue<Queue<Block>> events = PlatformDependent.newMpscQueue();
-    private final AtomicReference<Block> complete = new AtomicReference<>();
+  private class MultiEventExecStream extends NonUserCodeExecStream {
+    final Queue<ExecStream> events = PlatformDependent.newMpscQueue();
+
+    final ExecStream nextEvent = new NonUserCodeExecStream(this);
 
     MultiEventExecStream(ExecStream parent, Action<? super Throwable> onError, Action<? super ContinuationStream> initial) {
-      this.parent = parent;
-      this.onError = onError;
-      event(() -> initial.execute(this));
-    }
+      super(parent);
+      events.add(new SingleEventExecStream(nextEvent, onError, continuation -> continuation.resume(() ->
+        initial.execute(new ContinuationStream() {
+          public void event(Block action) {
+            addEvent(nextEvent, action);
+          }
 
-    public boolean event(Block action) {
-      if (complete.get() == null) {
-        Queue<Block> event = new ArrayDeque<>();
-        event.add(action);
-        events.add(event);
-        drain();
-        return true;
-      } else {
-        return false;
-      }
-    }
+          public void complete(Block action) {
+            addEvent(new NonUserCodeExecStream(parent), action);
+          }
 
-    public boolean complete(Block action) {
-      if (complete.compareAndSet(null, action)) {
-        drain();
-        return true;
-      } else {
-        return false;
-      }
+          private void addEvent(ExecStream parent, Block action) {
+            events.add(new SingleEventExecStream(parent, onError, continuation -> continuation.resume(action)));
+            drain();
+          }
+        })
+      )));
     }
 
     @Override
     boolean exec() throws Exception {
-      Block nextSegment = events.peek().poll();
-      if (nextSegment == null) {
-        if (events.size() == 1) {
-          if (complete.get() == null) {
-            return false;
-          } else {
-            execStream = parent;
-            complete.get().execute();
-            return true;
-          }
-        } else {
-          events.poll();
-          return true;
-        }
+      ExecStream next = events.poll();
+      if (next == null) {
+        return false;
       } else {
-        nextSegment.execute();
+        execStream = next;
         return true;
       }
     }
 
-    @Override
-    void enqueue(Block segment) {
-      events.peek().add(segment);
-    }
-
-    @Override
-    void error(Throwable throwable) {
-      execStream = parent;
-      try {
-        onError.execute(throwable);
-      } catch (Exception e) {
-        execStream.error(e);
-      }
-    }
   }
 
   private static final class Ref implements ExecutionRef {

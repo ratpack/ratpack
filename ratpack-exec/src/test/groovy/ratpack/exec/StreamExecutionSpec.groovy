@@ -27,7 +27,7 @@ import ratpack.stream.internal.CollectingSubscriber
 import ratpack.test.exec.ExecHarness
 import ratpack.test.internal.RatpackGroovyDslSpec
 import spock.lang.AutoCleanup
-import spock.lang.Ignore
+import spock.lang.Shared
 
 import java.time.Duration
 import java.util.concurrent.TimeUnit
@@ -37,6 +37,7 @@ import static ratpack.stream.Streams.periodically
 class StreamExecutionSpec extends RatpackGroovyDslSpec {
 
   @AutoCleanup
+  @Shared
   def harness = ExecHarness.harness()
 
   def "stream can use promises"() {
@@ -46,13 +47,13 @@ class StreamExecutionSpec extends RatpackGroovyDslSpec {
       get { ctx ->
         def s = Streams.bindExec(periodically(ctx, Duration.ofMillis(100)) { it < 10 ? it : null })
           .flatMap { n ->
-          Promise.async { f ->
-            ctx.get(ExecController).executor.schedule({ f.success(n) } as Runnable, 10, TimeUnit.MILLISECONDS)
+            Promise.async { f ->
+              ctx.get(ExecController).executor.schedule({ f.success(n) } as Runnable, 10, TimeUnit.MILLISECONDS)
+            }
           }
-        }
-        .map {
-          it.toString()
-        }
+          .map {
+            it.toString()
+          }
 
         render(ResponseChunks.stringChunks(s))
       }
@@ -69,16 +70,16 @@ class StreamExecutionSpec extends RatpackGroovyDslSpec {
       get { ctx ->
         def s = Streams.bindExec(periodically(ctx, Duration.ofMillis(100)) { it < 10 ? it : null })
           .flatMap { n ->
-          Promise.async { f ->
-            def c = new CollectingSubscriber({
-              f.success(it.value.get(0))
-            }, { it.request(10) })
+            Promise.async { f ->
+              def c = new CollectingSubscriber({
+                f.success(it.value.get(0))
+              }, { it.request(10) })
 
-            Streams.bindExec(periodically(ctx, Duration.ofMillis(100)) {
-              it < 1 ? n : null
-            }).subscribe(c)
-          }
-        }.map { it.toString() }
+              Streams.bindExec(periodically(ctx, Duration.ofMillis(100)) {
+                it < 1 ? n : null
+              }).subscribe(c)
+            }
+          }.map { it.toString() }
 
         render(ResponseChunks.stringChunks(s))
       }
@@ -316,7 +317,6 @@ class StreamExecutionSpec extends RatpackGroovyDslSpec {
     max == 1
   }
 
-  @Ignore("LD")
   def "items are serialized even when dispatched on event loop"() {
     when:
     def max = 0
@@ -334,4 +334,27 @@ class StreamExecutionSpec extends RatpackGroovyDslSpec {
     l == (1..100).toList()
     max == 1
   }
+
+  def "stream reliably completes when producer and consumer race"() {
+    expect:
+    def t = 5000
+    def n = 10
+
+    t.times {
+      def l = harness.yield {
+        Streams.bindExec { subscriber ->
+          harness.fork().start {
+            periodically(
+              harness.controller.eventLoopGroup.next(),
+              Duration.ofNanos(2),
+              { i -> i < n ? i : null }
+            )
+              .subscribe(subscriber)
+          }
+        }.toList()
+      }.valueOrThrow
+      assert l == (0..<n).toList()
+    }
+  }
+
 }
