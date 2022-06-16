@@ -1001,6 +1001,7 @@ public interface Promise<T> {
         @Override
         public void success(T value) {
           Operation.of(() -> action.execute(value))
+            .onError(downstream::error)
             .then(() -> downstream.success(null));
         }
 
@@ -1030,7 +1031,9 @@ public interface Promise<T> {
         @Override
         public void success(T value) {
           try {
-            function.apply(value).then(() -> downstream.success(null));
+            function.apply(value)
+              .onError(downstream::error)
+              .then(() -> downstream.success(null));
           } catch (Exception e) {
             downstream.error(e);
           }
