@@ -19,6 +19,7 @@ package ratpack.exec;
 import ratpack.api.NonBlocking;
 import ratpack.exec.internal.CachingUpstream;
 import ratpack.exec.internal.DefaultExecution;
+import ratpack.exec.internal.DefaultOperation;
 import ratpack.exec.internal.DefaultPromise;
 import ratpack.exec.util.Promised;
 import ratpack.exec.util.retry.RetryPolicy;
@@ -377,9 +378,9 @@ public interface Promise<T> {
       Promise.async(up).connect(down.onError(throwable -> {
         if (predicate.apply(throwable)) {
           Promise.<Void>sync(() -> {
-            errorHandler.execute(throwable);
-            return null;
-          })
+              errorHandler.execute(throwable);
+              return null;
+            })
             .connect(new Downstream<Void>() {
               @Override
               public void success(Void value) {
@@ -527,14 +528,14 @@ public interface Promise<T> {
    */
   default <O> Promise<O> map(Function<? super T, ? extends O> transformer) {
     return transform(up -> down -> up.connect(
-      down.<T>onSuccess(value -> {
-        try {
-          O apply = transformer.apply(value);
-          down.success(apply);
-        } catch (Throwable e) {
-          down.error(e);
-        }
-      })
+        down.<T>onSuccess(value -> {
+          try {
+            O apply = transformer.apply(value);
+            down.success(apply);
+          } catch (Throwable e) {
+            down.error(e);
+          }
+        })
       )
     );
   }
@@ -809,15 +810,15 @@ public interface Promise<T> {
    */
   default Promise<T> nextOpIf(Predicate<? super T> predicate, Function<? super T, ? extends Operation> function) {
     return transform(up -> down -> up.connect(
-      down.<T>onSuccess(value -> {
-        if (predicate.apply(value)) {
-          function.apply(value)
-            .onError(down::error)
-            .then(() -> down.success(value));
-        } else {
-          down.success(value);
-        }
-      })
+        down.<T>onSuccess(value -> {
+          if (predicate.apply(value)) {
+            function.apply(value)
+              .onError(down::error)
+              .then(() -> down.success(value));
+          } else {
+            down.success(value);
+          }
+        })
       )
     );
   }
@@ -968,7 +969,24 @@ public interface Promise<T> {
    * @return an operation
    */
   default Operation operation() {
-    return operation(Action.noop());
+    return new DefaultOperation(downstream ->
+      Promise.this.connect(new Downstream<T>() {
+        @Override
+        public void success(T value) {
+          downstream.success(null);
+        }
+
+        @Override
+        public void error(Throwable throwable) {
+          downstream.error(throwable);
+        }
+
+        @Override
+        public void complete() {
+          downstream.complete();
+        }
+      })
+    );
   }
 
   /**
@@ -978,7 +996,26 @@ public interface Promise<T> {
    * @return an operation representing {@code action}
    */
   default Operation operation(@NonBlocking Action<? super T> action) {
-    return Operation.of(() -> then(action));
+    return new DefaultOperation(downstream ->
+      Promise.this.connect(new Downstream<T>() {
+        @Override
+        public void success(T value) {
+          Operation.of(() -> action.execute(value))
+            .onError(downstream::error)
+            .then(() -> downstream.success(null));
+        }
+
+        @Override
+        public void error(Throwable throwable) {
+          downstream.error(throwable);
+        }
+
+        @Override
+        public void complete() {
+          downstream.complete();
+        }
+      })
+    );
   }
 
   /**
@@ -989,7 +1026,30 @@ public interface Promise<T> {
    * @since 1.6
    */
   default Operation flatOp(Function<? super T, ? extends Operation> function) {
-    return operation(t -> function.apply(t).then());
+    return new DefaultOperation(downstream ->
+      Promise.this.connect(new Downstream<T>() {
+        @Override
+        public void success(T value) {
+          try {
+            function.apply(value)
+              .onError(downstream::error)
+              .then(() -> downstream.success(null));
+          } catch (Exception e) {
+            downstream.error(e);
+          }
+        }
+
+        @Override
+        public void error(Throwable throwable) {
+          downstream.error(throwable);
+        }
+
+        @Override
+        public void complete() {
+          downstream.complete();
+        }
+      })
+    );
   }
 
   /**
@@ -2362,8 +2422,8 @@ public interface Promise<T> {
     Promise<Duration> delayPromise = Promise.value(delay);
     return retry(maxAttempts, (i, error) ->
       Operation.of(() ->
-        onError.execute(i, error)
-      )
+          onError.execute(i, error)
+        )
         .flatMap(delayPromise)
     );
   }
