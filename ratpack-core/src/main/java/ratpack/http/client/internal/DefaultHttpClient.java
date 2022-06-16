@@ -108,16 +108,16 @@ public class DefaultHttpClient implements HttpClientInternal {
       protected ChannelPool newPool(HttpChannelKey key) {
         Bootstrap bootstrap = createBootstrap(key, true);
 
-          InstrumentedChannelPoolHandler channelPoolHandler = getPoolingHandler(key);
-          if (enableMetricsCollection) {
-            hostStats.put(key.host, channelPoolHandler);
-          }
-          CleanClosingFixedChannelPool channelPool = new CleanClosingFixedChannelPool(bootstrap, channelPoolHandler, getPoolSize(), getPoolQueueSize());
-          ((ExecControllerInternal) key.execController).onClose(() -> {
-            remove(key);
-            channelPool.closeCleanly();
-          });
-          return channelPool;
+        InstrumentedChannelPoolHandler channelPoolHandler = getPoolingHandler(key);
+        if (enableMetricsCollection) {
+          hostStats.put(key.host, channelPoolHandler);
+        }
+        CleanClosingFixedChannelPool channelPool = new CleanClosingFixedChannelPool(bootstrap, channelPoolHandler, getPoolSize(), getPoolQueueSize());
+        ((ExecControllerInternal) key.execController).onClose(() -> {
+          remove(key);
+          channelPool.closeCleanly();
+        });
+        return channelPool;
       }
     };
 
@@ -275,17 +275,21 @@ public class DefaultHttpClient implements HttpClientInternal {
   }
 
   private <T extends HttpResponse> Promise<T> intercept(Promise<T> promise, Action<? super HttpResponse> action, Action<? super Throwable> errorAction) {
-    return promise.wiretap(r -> {
-      if (r.isError()) {
-        ExecController.require()
-          .fork()
-          .eventLoop(Execution.current().getEventLoop())
-          .start(e ->
-            errorAction.execute(r.getThrowable())
-          );
-      }
-    })
-      .next(r ->
+    Promise<T> returnPromise = promise;
+    if (errorAction != Action.noop()) {
+      returnPromise = promise.wiretap(r -> {
+        if (r.isError()) {
+          ExecController.require()
+            .fork()
+            .eventLoop(Execution.current().getEventLoop())
+            .start(e ->
+              errorAction.execute(r.getThrowable())
+            );
+        }
+      });
+    }
+    if (action != Action.noop()) {
+      returnPromise = returnPromise.next(r ->
         ExecController.require()
           .fork()
           .eventLoop(Execution.current().getEventLoop())
@@ -293,6 +297,9 @@ public class DefaultHttpClient implements HttpClientInternal {
             action.execute(r)
           )
       );
+    }
+
+    return returnPromise;
   }
 
   public HttpClientStats getHttpClientStats() {
