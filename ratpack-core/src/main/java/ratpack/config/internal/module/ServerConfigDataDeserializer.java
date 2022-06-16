@@ -29,6 +29,7 @@ import io.netty.handler.ssl.JdkSslContext;
 import io.netty.handler.ssl.SslContext;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import ratpack.exec.ExecController;
 import ratpack.file.FileSystemBinding;
 import ratpack.server.ServerConfig;
 import ratpack.server.internal.ServerConfigData;
@@ -65,6 +66,14 @@ public class ServerConfigDataDeserializer extends JsonDeserializer<ServerConfigD
     ObjectCodec codec = jp.getCodec();
     ObjectNode serverNode = jp.readValueAsTree();
     ServerConfigData data = new ServerConfigData(baseDirSupplier.get(), address, port, development, publicAddress);
+
+    if (serverNode.hasNonNull("execController")) {
+      data.setExecController(toValue(codec, serverNode.get("execController"), ExecController.class));
+    } else {
+      if (serverNode.hasNonNull("inheritExecController")) {
+        data.setExecController(ExecController.current().orElseThrow(() -> new IllegalStateException("inheritExecController = false, but there is no current exec controller")));
+      }
+    }
     if (serverNode.hasNonNull("port")) {
       data.setPort(parsePort(serverNode.get("port")));
     }

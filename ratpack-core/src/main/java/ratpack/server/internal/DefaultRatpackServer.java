@@ -16,6 +16,7 @@
 
 package ratpack.server.internal;
 
+import com.google.common.collect.ImmutableList;
 import com.google.common.reflect.TypeToken;
 import io.netty.bootstrap.ServerBootstrap;
 import io.netty.buffer.ByteBufAllocator;
@@ -33,10 +34,7 @@ import io.netty.util.ResourceLeakDetector;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import ratpack.api.Nullable;
-import ratpack.exec.Blocking;
-import ratpack.exec.ExecController;
-import ratpack.exec.Promise;
-import ratpack.exec.Throttle;
+import ratpack.exec.*;
 import ratpack.exec.internal.DefaultExecController;
 import ratpack.exec.internal.ExecControllerInternal;
 import ratpack.exec.internal.ExecThreadBinding;
@@ -95,16 +93,20 @@ public class DefaultRatpackServer implements RatpackServer {
     private final DefaultRatpackServer.ApplicationState applicationState;
     private final CountDownLatch stopLatch = new CountDownLatch(1);
 
+    private final boolean inheritedExecController;
+
     RunningState(
       InetSocketAddress boundAddress,
       Channel channel,
       ExecControllerInternal execController,
+      boolean inheritedExecController,
       boolean useSsl,
       DefaultRatpackServer.ApplicationState applicationState
     ) {
       this.boundAddress = boundAddress;
       this.channel = channel;
       this.execController = execController;
+      this.inheritedExecController = inheritedExecController;
       this.useSsl = useSsl;
       this.applicationState = applicationState;
     }
@@ -150,16 +152,25 @@ public class DefaultRatpackServer implements RatpackServer {
     LOGGER.info("Starting server...");
 
     applicationState.definitionBuild = buildUserDefinition();
+    RatpackServerDefinition definition = applicationState.definitionBuild.definition;
     if (applicationState.definitionBuild.error != null) {
-      if (applicationState.definitionBuild.definition.serverConfig.isDevelopment()) {
+      if (definition.serverConfig.isDevelopment()) {
         LOGGER.warn("Exception raised getting server config (will use default config until reload):", applicationState.definitionBuild.error);
       } else {
         throw Exceptions.toException(applicationState.definitionBuild.error);
       }
     }
 
-    ServerConfig serverConfig = applicationState.definitionBuild.definition.serverConfig;
-    ExecControllerInternal execController = new DefaultExecController(serverConfig.getThreads());
+    ServerConfig serverConfig = definition.serverConfig;
+    boolean inheritedExecController = serverConfig.getInheritedExecController().isPresent();
+    ExecControllerInternal execController = serverConfig.getInheritedExecController()
+      .map(inherited -> {
+        if (!(inherited instanceof ExecControllerInternal)) {
+          throw new IllegalStateException("Inherited exec controller must be of type " + ExecControllerInternal.class.getName());
+        }
+        return (ExecControllerInternal) inherited;
+      })
+      .orElseGet(() -> new DefaultExecController(serverConfig.getThreads()));
     try {
       ChannelHandler channelHandler = ExecThreadBinding.bindFor(true, execController, () ->
         buildHandler(
@@ -168,6 +179,7 @@ public class DefaultRatpackServer implements RatpackServer {
           impositions,
           reloadingState,
           execController,
+          inheritedExecController,
           this::buildUserDefinition
         )
       );
@@ -179,6 +191,7 @@ public class DefaultRatpackServer implements RatpackServer {
         boundAddress,
         channel,
         execController,
+        inheritedExecController,
         serverConfig.getNettySslContext() != null,
         applicationState
       );
@@ -266,12 +279,13 @@ public class DefaultRatpackServer implements RatpackServer {
     Impositions impositions,
     ReloadingState reloadingState,
     ExecControllerInternal execController,
+    boolean inheritedExecController,
     Factory<DefinitionBuild> definitionBuilder
   ) throws Exception {
     if (applicationState.definitionBuild.definition.serverConfig.isDevelopment()) {
-      return new ReloadHandler(server, applicationState, reloadingState, impositions, execController, definitionBuilder);
+      return new ReloadHandler(server, applicationState, reloadingState, impositions, execController, inheritedExecController, definitionBuilder);
     } else {
-      return buildAdapter(server, applicationState, reloadingState, impositions, execController);
+      return buildAdapter(server, applicationState, reloadingState, impositions, execController, inheritedExecController);
     }
   }
 
@@ -343,13 +357,19 @@ public class DefaultRatpackServer implements RatpackServer {
     ApplicationState applicationState,
     ReloadingState reloadingState,
     Impositions impositions,
-    ExecControllerInternal execController
+    ExecControllerInternal execController,
+    boolean inheritedExecController
   ) throws Exception {
     LOGGER.info("Building registry...");
     applicationState.serverRegistry = buildServerRegistry(
       applicationState.definitionBuild.definition.serverConfig,
       applicationState.definitionBuild.userRegistryFactory, server, impositions, execController
     );
+
+    if (!inheritedExecController) {
+      execController.setInterceptors(ImmutableList.copyOf(applicationState.serverRegistry.getAll(ExecInterceptor.class)));
+      execController.setInitializers(ImmutableList.copyOf(applicationState.serverRegistry.getAll(ExecInitializer.class)));
+    }
 
     Handler ratpackHandler = buildRatpackHandler(
       applicationState.serverRegistry,
@@ -408,10 +428,10 @@ public class DefaultRatpackServer implements RatpackServer {
         runningState.channel.close().sync();
       }
 
-      if (runningState.execController != null) {
-        try {
-          shutdownServices(runningState.applicationState, reloadingState);
-        } finally {
+      try {
+        shutdownServices(runningState.applicationState, reloadingState);
+      } finally {
+        if (!runningState.inheritedExecController) {
           runningState.execController.close();
         }
       }
@@ -501,6 +521,7 @@ public class DefaultRatpackServer implements RatpackServer {
     private final Impositions impositions;
     private final ExecControllerInternal execController;
     private final Throttle reloadThrottle = Throttle.ofSize(1);
+    private final boolean inheritedExecController;
     private final Factory<DefinitionBuild> definitionBuilder;
 
     private ChannelInboundHandlerAdapter inner;
@@ -511,6 +532,7 @@ public class DefaultRatpackServer implements RatpackServer {
       ReloadingState reloadingState,
       Impositions impositions,
       ExecControllerInternal execController,
+      boolean inheritedExecController,
       Factory<DefinitionBuild> definitionBuilder
     ) {
       this.server = server;
@@ -518,10 +540,11 @@ public class DefaultRatpackServer implements RatpackServer {
       this.reloadingState = reloadingState;
       this.impositions = impositions;
       this.execController = execController;
+      this.inheritedExecController = inheritedExecController;
       this.definitionBuilder = definitionBuilder;
       this.lastServerConfig = applicationState.definitionBuild.definition.serverConfig;
       try {
-        this.inner = buildAdapter(server, applicationState, reloadingState, impositions, execController);
+        this.inner = buildAdapter(server, applicationState, reloadingState, impositions, execController, inheritedExecController);
       } catch (Exception e) {
         LOGGER.warn("An error occurred during startup. This will be ignored due to being in development mode.", e);
         this.inner = null;
@@ -573,7 +596,7 @@ public class DefaultRatpackServer implements RatpackServer {
               Blocking.get(() -> {
                   applicationState.definitionBuild = definitionBuilder.create();
                   lastServerConfig = applicationState.definitionBuild.definition.serverConfig;
-                  return buildAdapter(server, applicationState, reloadingState, impositions, execController);
+                  return buildAdapter(server, applicationState, reloadingState, impositions, execController, inheritedExecController);
                 })
                 .wiretap(r -> {
                   if (r.isSuccess()) {

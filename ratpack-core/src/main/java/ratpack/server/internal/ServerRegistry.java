@@ -18,7 +18,6 @@ package ratpack.server.internal;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.base.Throwables;
-import com.google.common.collect.ImmutableList;
 import io.netty.buffer.ByteBufAllocator;
 import ratpack.config.ConfigObject;
 import ratpack.error.ClientErrorHandler;
@@ -27,8 +26,6 @@ import ratpack.error.internal.DefaultDevelopmentErrorHandler;
 import ratpack.error.internal.DefaultProductionErrorHandler;
 import ratpack.error.internal.ErrorHandler;
 import ratpack.exec.ExecController;
-import ratpack.exec.ExecInitializer;
-import ratpack.exec.ExecInterceptor;
 import ratpack.exec.internal.ExecControllerInternal;
 import ratpack.file.FileSystemBinding;
 import ratpack.file.MimeTypes;
@@ -61,9 +58,6 @@ public abstract class ServerRegistry {
   public static Registry serverRegistry(RatpackServer ratpackServer, Impositions impositions, ExecControllerInternal execController, ServerConfig serverConfig, Function<? super Registry, ? extends Registry> userRegistryFactory) {
     Registry baseRegistry = buildBaseRegistry(ratpackServer, impositions, execController, serverConfig);
     Registry userRegistry = buildUserRegistry(userRegistryFactory, baseRegistry);
-
-    execController.setInterceptors(ImmutableList.copyOf(userRegistry.getAll(ExecInterceptor.class)));
-    execController.setInitializers(ImmutableList.copyOf(userRegistry.getAll(ExecInitializer.class)));
 
     return baseRegistry.join(userRegistry);
   }

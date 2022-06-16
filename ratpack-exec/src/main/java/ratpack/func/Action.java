@@ -20,6 +20,7 @@ import com.google.common.collect.ImmutableList;
 import ratpack.api.Nullable;
 import ratpack.exec.Promise;
 import ratpack.func.internal.ConditionalAction;
+import ratpack.func.internal.NoopAction;
 import ratpack.util.Exceptions;
 
 import java.util.function.Consumer;
@@ -48,9 +49,9 @@ public interface Action<T> {
    *
    * @return an action that does precisely nothing
    */
+  @SuppressWarnings("unchecked")
   static <T> Action<T> noop() {
-    return thing -> {
-    };
+    return (Action<T>) NoopAction.INSTANCE;
   }
 
   /**

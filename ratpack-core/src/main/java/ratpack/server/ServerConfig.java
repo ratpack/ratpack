@@ -22,6 +22,7 @@ import io.netty.handler.ssl.SslContext;
 import ratpack.api.Nullable;
 import ratpack.config.ConfigData;
 import ratpack.config.ConfigObject;
+import ratpack.exec.ExecController;
 import ratpack.file.FileSystemBinding;
 import ratpack.func.Action;
 import ratpack.http.ConnectionClosedException;
@@ -69,7 +70,7 @@ public interface ServerConfig extends ConfigData {
 
   /**
    * The default number of threads an application should use.
-   *
+   * <p>
    * Calculated as {@code Runtime.getRuntime().availableProcessors() * 2}.
    */
   int DEFAULT_THREADS = Runtime.getRuntime().availableProcessors() * 2;
@@ -130,6 +131,16 @@ public interface ServerConfig extends ConfigData {
   int getPort();
 
   /**
+   * The exec controller to inherit if supplied.
+   *
+   * @return The exec controller to inherit if supplied.
+   * @see ServerConfigBuilder#inheritExecController(boolean)
+   * @see ServerConfigBuilder#execController(ExecController)
+   * @since 1.10
+   */
+  Optional<ExecController> getInheritedExecController();
+
+  /**
    * The path to write the port that the application is listening on.
    * <p>
    * Defaults to empty
@@ -155,7 +166,6 @@ public interface ServerConfig extends ConfigData {
    * Required config is declared via the {@link ServerConfigBuilder#require(String, Class)} when building.
    * All required config is made part of the base registry (which the server registry joins with),
    * which automatically makes the config objects available to the server registry.
-   *
    *
    * @return the declared required config
    * @see ServerConfigBuilder#require(String, Class)
@@ -190,11 +200,11 @@ public interface ServerConfig extends ConfigData {
    * <p>
    * When {@code true}, the application will be {@link RatpackServer#stop() stopped} when the JVM starts shutting down.
    * This allows graceful shutdown of the application when the process is terminated.
-   *
+   * <p>
    * Defaults to {@code true}.
    *
-   * @since 1.6
    * @return whether the shutdown hook was registered
+   * @since 1.6
    */
   boolean isRegisterShutdownHook();
 

@@ -23,6 +23,7 @@ import ratpack.api.Nullable;
 import ratpack.config.ConfigData;
 import ratpack.config.ConfigObject;
 import ratpack.config.internal.DelegatingConfigData;
+import ratpack.exec.ExecController;
 import ratpack.file.FileSystemBinding;
 import ratpack.server.NoBaseDirException;
 import ratpack.server.ServerConfig;
@@ -50,6 +51,11 @@ public class DefaultServerConfig extends DelegatingConfigData implements ServerC
   @Override
   public int getPort() {
     return serverConfigData.getPort();
+  }
+
+  @Override
+  public Optional<ExecController> getInheritedExecController() {
+    return Optional.ofNullable(serverConfigData.getExecController());
   }
 
   @Nullable

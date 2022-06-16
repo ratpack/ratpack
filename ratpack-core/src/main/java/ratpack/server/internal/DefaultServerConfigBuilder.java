@@ -32,6 +32,7 @@ import ratpack.config.internal.DefaultConfigDataBuilder;
 import ratpack.config.internal.module.JdkSslContextDeserializer;
 import ratpack.config.internal.module.NettySslContextDeserializer;
 import ratpack.config.internal.module.ServerConfigDataDeserializer;
+import ratpack.exec.ExecController;
 import ratpack.file.FileSystemBinding;
 import ratpack.func.Action;
 import ratpack.impose.ForceDevelopmentImposition;
@@ -88,6 +89,16 @@ public class DefaultServerConfigBuilder implements ServerConfigBuilder {
   public ServerConfigBuilder baseDir(Path baseDir) {
     this.baseDirSupplier.baseDir = FileSystemBinding.of(baseDir);
     return this;
+  }
+
+  @Override
+  public ServerConfigBuilder inheritExecController(boolean inheritExecController) {
+    return addToServer(n -> n.put("inheritExecController", inheritExecController));
+  }
+
+  @Override
+  public ServerConfigBuilder execController(ExecController execController) {
+    return addToServer(n -> n.putPOJO("execController", execController));
   }
 
   private ServerConfigBuilder addToServer(Consumer<? super ObjectNode> action) {

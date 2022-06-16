@@ -17,9 +17,11 @@
 package ratpack.server.internal;
 
 import io.netty.handler.ssl.SslContext;
+import ratpack.exec.ExecController;
 import ratpack.file.FileSystemBinding;
 import ratpack.server.ServerConfig;
 
+import javax.annotation.Nullable;
 import java.net.InetAddress;
 import java.net.URI;
 import java.net.URISyntaxException;
@@ -31,6 +33,8 @@ import java.util.Optional;
 public class ServerConfigData {
 
   private final FileSystemBinding baseDir;
+
+  private ExecController execController;
   private int port;
   private InetAddress address;
   private boolean development;
@@ -38,6 +42,7 @@ public class ServerConfigData {
   private URI publicAddress;
   private SslContext sslContext;
   private boolean requireClientSslAuth;
+
   private int maxContentLength = ServerConfig.DEFAULT_MAX_CONTENT_LENGTH;
   private Optional<Integer> connectTimeoutMillis = Optional.empty();
   private Optional<Integer> maxMessagesPerRead = Optional.empty();
@@ -58,6 +63,15 @@ public class ServerConfigData {
     this.port = port;
     this.development = development;
     this.publicAddress = publicAddress;
+  }
+
+  @Nullable
+  public ExecController getExecController() {
+    return execController;
+  }
+
+  public void setExecController(ExecController execController) {
+    this.execController = execController;
   }
 
   public int getPort() {
