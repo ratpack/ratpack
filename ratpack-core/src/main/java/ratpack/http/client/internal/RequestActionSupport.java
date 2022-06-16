@@ -313,6 +313,7 @@ abstract class RequestActionSupport<T> implements Upstream<T> {
                 if (done.compareAndSet(false, true)) {
                   if (pending > 0) {
                     reset();
+                    channel.flush();
                     forceDispose(channel.pipeline())
                       .addListener(future -> {
                         Throwable t = new IllegalStateException("Publisher completed before sending advertised number of bytes");
