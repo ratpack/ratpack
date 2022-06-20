@@ -132,6 +132,7 @@ abstract class RequestActionSupport<T> implements Upstream<T> {
     String requestUri = getFullPath(requestConfig.uri);
     HttpMessage request;
     if (requestConfig.content.getContentLength() == 0) {
+      requestConfig.content.discard();
       request = new DefaultFullHttpRequest(
         HttpVersion.HTTP_1_1,
         requestConfig.method.getNettyMethod(),
