@@ -30,7 +30,7 @@ public interface ResponseTransmitter {
 
   void transmit(HttpResponseStatus status, Path file);
 
-  void transmit(HttpResponseStatus status, Publisher<? extends ByteBuf> publisher);
+  void transmit(HttpResponseStatus status, Publisher<? extends ByteBuf> publisher, boolean drainRequestBodyBeforeResponse);
 
   void onWritabilityChanged();
 

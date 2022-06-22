@@ -32,12 +32,12 @@ import io.netty.util.CharsetUtil;
 import org.reactivestreams.Publisher;
 import ratpack.api.Nullable;
 import ratpack.exec.Operation;
-import ratpack.server.internal.ResponseTransmitter;
 import ratpack.func.Action;
 import ratpack.http.Headers;
 import ratpack.http.MutableHeaders;
 import ratpack.http.Response;
 import ratpack.http.Status;
+import ratpack.server.internal.ResponseTransmitter;
 import ratpack.util.Exceptions;
 import ratpack.util.MultiValueMap;
 
@@ -284,9 +284,14 @@ public class DefaultResponse implements Response {
 
   @Override
   public void sendStream(Publisher<? extends ByteBuf> stream) {
+    sendStream(stream, true);
+  }
+
+  // Note: some form of this method with drainRequestBodyBeforeResponse = false will be promoted to public API
+  public void sendStream(Publisher<? extends ByteBuf> stream, boolean drainRequestBodyBeforeResponse) {
     finalizeResponse(() -> {
       setCookieHeader();
-      responseTransmitter.transmit(status.getNettyStatus(), stream);
+      responseTransmitter.transmit(status.getNettyStatus(), stream, drainRequestBodyBeforeResponse);
     }, t -> {
       throw t;
     });
@@ -372,14 +377,7 @@ public class DefaultResponse implements Response {
 
   private void finalizeResponse(Iterator<Action<? super Response>> finalizers, Runnable then, Consumer<? super RuntimeException> onError) {
     if (finalizers.hasNext()) {
-      finalizers
-        .next()
-        .curry(this)
-        .map(Operation::of)
-        .onError(t -> onError.accept(Exceptions.uncheck(t)))
-        .then(() ->
-          finalizeResponse(finalizers, then, onError)
-        );
+      finalizers.next().curry(this).map(Operation::of).onError(t -> onError.accept(Exceptions.uncheck(t))).then(() -> finalizeResponse(finalizers, then, onError));
     } else {
       finalizeResponse(then, onError);
     }
