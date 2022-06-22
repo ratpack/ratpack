@@ -25,12 +25,14 @@ import org.reactivestreams.Subscriber
 import org.reactivestreams.Subscription
 import ratpack.exec.Execution
 import ratpack.http.client.HttpClient
+import ratpack.http.internal.DefaultResponse
 import ratpack.stream.StreamEvent
 import ratpack.stream.Streams
 import ratpack.test.internal.RatpackGroovyDslSpec
 import spock.util.concurrent.BlockingVariable
 import spock.util.concurrent.PollingConditions
 
+import java.nio.charset.StandardCharsets
 import java.time.Duration
 import java.time.Instant
 import java.util.concurrent.ConcurrentLinkedQueue
@@ -271,4 +273,52 @@ class ResponseStreamingSpec extends RatpackGroovyDslSpec {
     then:
     thrown PrematureChannelClosureException
   }
+
+  def "can stream response concurrently with sending body"() {
+    when:
+    serverConfig {
+      maxChunkSize(1)
+    }
+    handlers {
+      all { ctx ->
+        (response as DefaultResponse)
+          .sendStream(request.bodyStream.map {
+            Unpooled.compositeBuffer(2)
+              .addComponent(true, it)
+              .addComponent(true, Unpooled.wrappedBuffer("\n".bytes))
+          }, false)
+      }
+    }
+
+    and:
+    def socket = socket()
+    def input = new BufferedReader(new InputStreamReader(socket.inputStream, StandardCharsets.UTF_8))
+    def output = new OutputStreamWriter(socket.outputStream, StandardCharsets.UTF_8)
+    def pieces = 100
+    output.with {
+      write("POST / HTTP/1.1\r\n")
+      write("Content-Length: ${pieces}\r\n")
+      write("\r\n")
+      flush()
+    }
+
+    then:
+    input.readLine() == "HTTP/1.1 200 OK"
+    input.readLine() == "transfer-encoding: chunked"
+    input.readLine() == ""
+
+    and:
+    pieces.times {
+      output.with { write("a"); flush() }
+      assert input.readLine() == "2"
+      assert input.readLine() == "a"
+      assert input.readLine() == ""
+    }
+    input.readLine() == "0"
+
+    cleanup:
+    output?.close()
+    input?.close()
+  }
+
 }

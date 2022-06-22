@@ -26,7 +26,6 @@ import org.reactivestreams.Publisher;
 import org.slf4j.LoggerFactory;
 import ratpack.api.Nullable;
 import ratpack.exec.ExecController;
-import ratpack.server.internal.ResponseTransmitter;
 import ratpack.func.Action;
 import ratpack.handling.Context;
 import ratpack.handling.Handler;
@@ -42,6 +41,7 @@ import ratpack.http.internal.*;
 import ratpack.registry.Registry;
 import ratpack.render.internal.RenderController;
 import ratpack.server.Stopper;
+import ratpack.server.internal.ResponseTransmitter;
 import ratpack.test.handling.HandlerExceptionNotThrownException;
 import ratpack.test.handling.HandlerTimeoutException;
 import ratpack.test.handling.HandlingResult;
@@ -116,7 +116,7 @@ public class DefaultHandlingResult implements HandlingResult {
       }
 
       @Override
-      public void transmit(HttpResponseStatus status, Publisher<? extends ByteBuf> publisher) {
+      public void transmit(HttpResponseStatus status, Publisher<? extends ByteBuf> publisher, boolean drainRequestAfterResponse) {
         throw new UnsupportedOperationException("streaming not supported while unit testing");
       }
 

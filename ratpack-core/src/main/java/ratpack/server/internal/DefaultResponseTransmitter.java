@@ -89,13 +89,13 @@ public class DefaultResponseTransmitter implements ResponseTransmitter {
     this.isSsl = channel.pipeline().get(SslHandler.class) != null;
   }
 
-  private void sendResponse(HttpResponseStatus responseStatus, ResponseBodyWriter responseBodyWriter) {
+  private void preSendResponse(HttpResponseStatus responseStatus, ResponseBodyWriter responseBodyWriter, boolean drainRequestBeforeResponse) {
     if (transmitted.compareAndSet(false, true)) {
       this.responseBodyWriter = responseBodyWriter;
       stopTime = clock.instant();
       if (requestBody == null) {
-        sendResponseAfterRequestBodyDrain(responseStatus, responseBodyWriter);
-      } else {
+        sendResponse(responseStatus, responseBodyWriter, true);
+      } else if (drainRequestBeforeResponse) {
         requestBody.drain()
           .onError(e -> {
             LOGGER.warn("An error occurred draining the unread request body. The connection will be closed", e);
@@ -109,15 +109,17 @@ public class DefaultResponseTransmitter implements ResponseTransmitter {
                 break;
               case DISCARDED:
                 addConnectionCloseResponseHeader();
-                sendResponseAfterRequestBodyDrain(responseStatus, responseBodyWriter);
+                sendResponse(responseStatus, responseBodyWriter, false);
                 break;
               case DRAINED:
-                sendResponseAfterRequestBodyDrain(responseStatus, responseBodyWriter);
+                sendResponse(responseStatus, responseBodyWriter, false);
                 break;
               default:
                 throw new IllegalStateException("unhandled drain outcome: " + outcome);
             }
           });
+      } else {
+        sendResponse(responseStatus, responseBodyWriter, true);
       }
     } else {
       responseBodyWriter.dispose();
@@ -134,7 +136,7 @@ public class DefaultResponseTransmitter implements ResponseTransmitter {
     }
   }
 
-  private void sendResponseAfterRequestBodyDrain(HttpResponseStatus responseStatus, ResponseBodyWriter bodyWriter) {
+  private void sendResponse(HttpResponseStatus responseStatus, ResponseBodyWriter bodyWriter, boolean drainRequestBeforeResponse) {
     try {
       boolean responseRequestedConnectionClose = responseHeaders.contains(HttpHeaderNames.CONNECTION, HttpHeaderValues.CLOSE, true);
       boolean requestRequestedConnectionClose = !HttpUtil.isKeepAlive(this.nettyRequest);
@@ -155,7 +157,7 @@ public class DefaultResponseTransmitter implements ResponseTransmitter {
         HttpUtil.setTransferEncodingChunked(headersResponse, true);
       }
 
-      sendResponseHeadersAndBody(responseStatus, bodyWriter, keepAlive, headersResponse);
+      sendResponseHeadersAndBody(responseStatus, bodyWriter, keepAlive, headersResponse, drainRequestBeforeResponse);
     } catch (Exception e) {
       bodyWriter.dispose();
       LOGGER.warn("Error finalizing response", e);
@@ -163,10 +165,10 @@ public class DefaultResponseTransmitter implements ResponseTransmitter {
     }
   }
 
-  private void sendResponseHeadersAndBody(HttpResponseStatus responseStatus, ResponseBodyWriter bodyWriter, boolean keepAlive, HttpResponse headersResponse) {
+  private void sendResponseHeadersAndBody(HttpResponseStatus responseStatus, ResponseBodyWriter bodyWriter, boolean keepAlive, HttpResponse headersResponse, boolean drainRequestBeforeResponse) {
     Promise.<Future<? super Void>>async(down ->
-      channel.writeAndFlush(headersResponse).addListener(down::success)
-    )
+        channel.writeAndFlush(headersResponse).addListener(down::success)
+      )
       .then(result -> {
         if (result.isSuccess()) {
           sendResponseBody(responseStatus, bodyWriter, keepAlive);
@@ -177,7 +179,30 @@ public class DefaultResponseTransmitter implements ResponseTransmitter {
           }
 
           bodyWriter.dispose();
-          notifyListeners(responseStatus);
+          if (requestBody != null && drainRequestBeforeResponse) {
+            requestBody.drain()
+              .onError(e -> {
+                LOGGER.warn("An error occurred draining the unread request body after sending the response. The connection will be closed", e);
+                channel.close();
+                notifyListeners(responseStatus);
+              })
+              .then(outcome -> {
+                switch (outcome) {
+                  case TOO_LARGE:
+                  case DISCARDED:
+                    channel.close();
+                    notifyListeners(responseStatus);
+                    break;
+                  case DRAINED:
+                    notifyListeners(responseStatus);
+                    break;
+                  default:
+                    throw new IllegalStateException("unhandled drain outcome: " + outcome);
+                }
+              });
+          } else {
+            notifyListeners(responseStatus);
+          }
         }
       });
   }
@@ -203,15 +228,15 @@ public class DefaultResponseTransmitter implements ResponseTransmitter {
 
   private void forceCloseWithResponse(HttpResponseStatus status) {
     Promise.async(down ->
-      channel.writeAndFlush(new DefaultFullHttpResponse(
-        HttpVersion.HTTP_1_1,
-        status,
-        Unpooled.EMPTY_BUFFER,
-        ERROR_RESPONSE_HEADERS,
-        EmptyHttpHeaders.INSTANCE
-      ))
-        .addListener(future -> down.success(future.isSuccess()))
-    )
+        channel.writeAndFlush(new DefaultFullHttpResponse(
+            HttpVersion.HTTP_1_1,
+            status,
+            Unpooled.EMPTY_BUFFER,
+            ERROR_RESPONSE_HEADERS,
+            EmptyHttpHeaders.INSTANCE
+          ))
+          .addListener(future -> down.success(future.isSuccess()))
+      )
       .onError(__ -> {
         channel.close();
         notifyListeners(status);
@@ -231,9 +256,9 @@ public class DefaultResponseTransmitter implements ResponseTransmitter {
   public void transmit(HttpResponseStatus responseStatus, ByteBuf body) {
     if (body.readableBytes() == 0) {
       body.release();
-      sendResponse(responseStatus, EMPTY_BODY);
+      preSendResponse(responseStatus, EMPTY_BODY, true);
     } else {
-      sendResponse(responseStatus, new LastHttpContentResponseBodyWriter(new DefaultLastHttpContent(body.touch())));
+      preSendResponse(responseStatus, new LastHttpContentResponseBodyWriter(new DefaultLastHttpContent(body.touch())), true);
     }
   }
 
@@ -245,7 +270,7 @@ public class DefaultResponseTransmitter implements ResponseTransmitter {
   @Override
   public void transmit(HttpResponseStatus status, Path file) {
     if (isHead()) {
-      sendResponse(status, EMPTY_BODY);
+      preSendResponse(status, EMPTY_BODY, true);
     } else {
       String sizeString = responseHeaders.getAsString(HttpHeaderConstants.CONTENT_LENGTH);
       long size = sizeString == null ? 0 : Long.parseLong(sizeString);
@@ -257,13 +282,13 @@ public class DefaultResponseTransmitter implements ResponseTransmitter {
         ? new ZeroCopyFileResponseBodyWriter(file, size)
         : new ChunkedFileResponseBodyWriter(file);
 
-      sendResponse(status, responseBodyWriter);
+      preSendResponse(status, responseBodyWriter, true);
     }
   }
 
   @Override
-  public void transmit(HttpResponseStatus status, Publisher<? extends ByteBuf> publisher) {
-    sendResponse(status, new StreamingResponseBodyWriter(publisher));
+  public void transmit(HttpResponseStatus status, Publisher<? extends ByteBuf> publisher, boolean drainRequestBeforeResponse) {
+    preSendResponse(status, new StreamingResponseBodyWriter(publisher), drainRequestBeforeResponse);
   }
 
   private void notifyListeners(final HttpResponseStatus responseStatus) {
