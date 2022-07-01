@@ -27,10 +27,16 @@ public class DefaultProxy implements ProxyInternal {
   private final int port;
   private final Collection<String> nonProxyHosts;
 
-  public DefaultProxy(String host, int port, Collection<String> nonProxyHosts) {
+  private final String username;
+
+  private final String password;
+
+  public DefaultProxy(String host, int port, Collection<String> nonProxyHosts, String username, String password) {
     this.host = host;
     this.port = port;
     this.nonProxyHosts = nonProxyHosts;
+    this.username = username;
+    this.password = password;
   }
 
   @Override
@@ -46,6 +52,16 @@ public class DefaultProxy implements ProxyInternal {
   @Override
   public Collection<String> getNonProxyHosts() {
     return nonProxyHosts;
+  }
+
+  @Override
+  public String getUsername() {
+    return username;
+  }
+
+  @Override
+  public String getPassword() {
+    return password;
   }
 
   @Override
@@ -102,6 +118,10 @@ public class DefaultProxy implements ProxyInternal {
     private int port;
     private Collection<String> nonProxyHosts = Collections.emptyList();
 
+    private String username;
+
+    private String password;
+
     @Override
     public ProxySpec host(String host) {
       this.host = host;
@@ -120,8 +140,20 @@ public class DefaultProxy implements ProxyInternal {
       return this;
     }
 
+    @Override
+    public ProxySpec username(String username) {
+      this.username = username;
+      return this;
+    }
+
+    @Override
+    public ProxySpec password(String password) {
+      this.password = password;
+      return this;
+    }
+
     ProxyInternal build() {
-      return new DefaultProxy(host, port, nonProxyHosts);
+      return new DefaultProxy(host, port, nonProxyHosts, username, password);
     }
   }
 }

@@ -38,6 +38,7 @@ public abstract class HttpHeaderConstants {
   public static final CharSequence CHUNKED = HttpHeaderValues.CHUNKED;
   public static final CharSequence CACHE_CONTROL = HttpHeaderNames.CACHE_CONTROL;
   public static final CharSequence PRAGMA = HttpHeaderNames.PRAGMA;
+  public static final CharSequence PROXY_AUTHORIZATION = HttpHeaderNames.PROXY_AUTHORIZATION;
   public static final CharSequence NO_CACHE = HttpHeaderValues.NO_CACHE;
   public static final CharSequence NO_STORE = HttpHeaderValues.NO_STORE;
   public static final CharSequence MAX_AGE = HttpHeaderValues.MAX_AGE;

@@ -16,6 +16,8 @@
 
 package ratpack.http.client;
 
+import ratpack.api.Nullable;
+
 import java.util.Collection;
 
 /**
@@ -38,6 +40,22 @@ public interface ProxySpec {
    * @return {@code this}
    */
   ProxySpec port(int port);
+
+  /**
+   * Configure the username to use when connecting to the proxy.
+   *
+   * @param username the username to use when connecting to the HTTP proxy
+   * @return {@code this}
+   */
+  ProxySpec username(@Nullable String username);
+
+  /**
+   * Configure the password to use when connecting to the proxy.
+   *
+   * @param password the password to use when connecting to the HTTP proxy
+   * @return {@code this}
+   */
+  ProxySpec password(@Nullable String password);
 
   /**
    * Configure a collection of patterns for which if any are matched, the outbound request will bypass the HTTP proxy.
