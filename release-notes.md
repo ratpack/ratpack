@@ -2,7 +2,7 @@
 This file contains the in progress release notes during the cycle.
 It should not be considered the final announcement for any release at any time.
 -->
-
+* Add support for basic HTTP proxy authentication
 
 This release contains an important change to [`HttpClient`](https://ratpack.io/manual/current/api/ratpack/http/client/HttpClient.html), that is potentially breaking for some non standard usages.
 Netty's DNS resolver is now used by instead of the JDK's resolver.
