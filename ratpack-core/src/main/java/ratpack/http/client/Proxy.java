@@ -44,7 +44,7 @@ public interface Proxy {
   /**
    * The username to use when connecting to the proxy.
    *
-   * @return The username to use when connecting to the HTTP proxy, or null if a username should not be used when connecting to the HTTP proxy.
+   * @return The username to use when connecting to the HTTP proxy, or null if authentication should not be used when connecting to the HTTP proxy.
    */
   @Nullable
   String getUsername();
@@ -52,7 +52,7 @@ public interface Proxy {
   /**
    * The password to use when connecting to the proxy.
    *
-   * @return Either the password to use when connecting to the HTTP proxy, or null if a password should not be used when connecting to the HTTP proxy.
+   * @return Either the password to use when connecting to the HTTP proxy, or null if authentication should not be used when connecting to the HTTP proxy.
    */
   @Nullable
   String getPassword();
