@@ -140,8 +140,7 @@ class HttpForwardProxySpec extends BaseHttpClientSpec {
         .proxy { p -> p
           .host(proxyApp.address.host)
           .port(proxyApp.address.port)
-          .username(username)
-          .password(password)
+          .credentials(username, password)
         }
       })
     }

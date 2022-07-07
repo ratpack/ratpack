@@ -42,20 +42,12 @@ public interface Proxy {
   int getPort();
 
   /**
-   * The username to use when connecting to the proxy.
+   * The credentials to use when connecting to the proxy.
    *
-   * @return The username to use when connecting to the HTTP proxy, or null if authentication should not be used when connecting to the HTTP proxy.
+   * @return The credentials to use when connecting to the HTTP proxy, or null if authentication should not be used when connecting to the HTTP proxy.
    */
   @Nullable
-  String getUsername();
-
-  /**
-   * The password to use when connecting to the proxy.
-   *
-   * @return Either the password to use when connecting to the HTTP proxy, or null if authentication should not be used when connecting to the HTTP proxy.
-   */
-  @Nullable
-  String getPassword();
+  ProxyCredentials getCredentials();
 
   /**
    * A collection of patterns which if any or matched, the outgoing request will bypass the HTTP proxy.

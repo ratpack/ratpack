@@ -16,6 +16,7 @@
 
 package ratpack.http.client.internal;
 
+import ratpack.http.client.ProxyCredentials;
 import ratpack.http.client.ProxySpec;
 
 import java.util.Collection;
@@ -27,16 +28,13 @@ public class DefaultProxy implements ProxyInternal {
   private final int port;
   private final Collection<String> nonProxyHosts;
 
-  private final String username;
+  private final ProxyCredentials credentials;
 
-  private final String password;
-
-  public DefaultProxy(String host, int port, Collection<String> nonProxyHosts, String username, String password) {
+  public DefaultProxy(String host, int port, Collection<String> nonProxyHosts, ProxyCredentials credentials) {
     this.host = host;
     this.port = port;
     this.nonProxyHosts = nonProxyHosts;
-    this.username = username;
-    this.password = password;
+    this.credentials = credentials;
   }
 
   @Override
@@ -55,13 +53,8 @@ public class DefaultProxy implements ProxyInternal {
   }
 
   @Override
-  public String getUsername() {
-    return username;
-  }
-
-  @Override
-  public String getPassword() {
-    return password;
+  public ProxyCredentials getCredentials() {
+    return credentials;
   }
 
   @Override
@@ -118,9 +111,7 @@ public class DefaultProxy implements ProxyInternal {
     private int port;
     private Collection<String> nonProxyHosts = Collections.emptyList();
 
-    private String username;
-
-    private String password;
+    private DefaultProxyCredentials credentials;
 
     @Override
     public ProxySpec host(String host) {
@@ -141,19 +132,13 @@ public class DefaultProxy implements ProxyInternal {
     }
 
     @Override
-    public ProxySpec username(String username) {
-      this.username = username;
-      return this;
-    }
-
-    @Override
-    public ProxySpec password(String password) {
-      this.password = password;
+    public ProxySpec credentials(String username, String password) {
+      this.credentials = new DefaultProxyCredentials(username, password);
       return this;
     }
 
     ProxyInternal build() {
-      return new DefaultProxy(host, port, nonProxyHosts, username, password);
+      return new DefaultProxy(host, port, nonProxyHosts, credentials);
     }
   }
 }

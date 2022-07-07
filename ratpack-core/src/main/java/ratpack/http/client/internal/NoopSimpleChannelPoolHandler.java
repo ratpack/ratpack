@@ -40,9 +40,9 @@ public class NoopSimpleChannelPoolHandler extends AbstractChannelPoolHandler imp
   public void channelCreated(Channel ch) {
     if (proxy != null && proxy.shouldProxy(host)) {
       SocketAddress proxyAddress = new InetSocketAddress(proxy.getHost(), proxy.getPort());
-      if (proxy.getUsername() != null && proxy.getPassword() != null) {
-        // HttpProxyHandler throws a NPE if you poss it a null username or a null password.
-        ch.pipeline().addLast(new HttpProxyHandler(proxyAddress, proxy.getUsername(), proxy.getPassword()));
+      if (proxy.getCredentials() != null) {
+        // HttpProxyHandler throws a NPE if passed a null username or a null password.
+        ch.pipeline().addLast(new HttpProxyHandler(proxyAddress, proxy.getCredentials().getUsername(), proxy.getCredentials().getPassword()));
       } else {
         ch.pipeline().addLast(new HttpProxyHandler(proxyAddress));
       }
