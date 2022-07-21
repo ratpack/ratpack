@@ -46,8 +46,12 @@ public class DefaultProxyCredentials implements ProxyCredentials {
 
   @Override
   public boolean equals(Object o) {
-    if (this == o) return true;
-    if (o == null || getClass() != o.getClass()) return false;
+    if (this == o) {
+      return true;
+    }
+    if (o == null || getClass() != o.getClass()) {
+      return false;
+    }
     DefaultProxyCredentials that = (DefaultProxyCredentials) o;
 
     return username.equals(that.username)

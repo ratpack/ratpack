@@ -133,8 +133,12 @@ public class DefaultProxy implements ProxyInternal {
 
   @Override
   public boolean equals(Object o) {
-    if (this == o) return true;
-    if (o == null || getClass() != o.getClass()) return false;
+    if (this == o) {
+      return true;
+    }
+    if (o == null || getClass() != o.getClass()) {
+      return false;
+    }
     DefaultProxy that = (DefaultProxy) o;
 
     return protocol.equals(that.protocol)

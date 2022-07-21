@@ -207,7 +207,7 @@ class HttpForwardProxySpec extends BaseHttpClientSpec {
     proxyServer.start(true)
     SslContext clientContext = SslContextBuilder.forClient()
       .trustManager(proxyServer.sslCertificate)
-      .build();
+      .build()
 
     when:
     bindings {
