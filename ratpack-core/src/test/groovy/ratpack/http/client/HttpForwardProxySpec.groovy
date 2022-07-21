@@ -22,14 +22,17 @@ import ratpack.error.internal.DefaultDevelopmentErrorHandler
 import ratpack.groovy.handling.GroovyChain
 import ratpack.groovy.test.embed.GroovyEmbeddedApp
 import ratpack.test.embed.EmbeddedApp
+import ratpack.test.http.proxy.TestHttpProxyServer
 import spock.lang.AutoCleanup
+import spock.lang.Shared
 
-import java.util.concurrent.atomic.AtomicBoolean
-
-import static ratpack.http.Status.*
-import static ratpack.http.internal.HttpHeaderConstants.PROXY_AUTHORIZATION
+import static ratpack.http.Status.INTERNAL_SERVER_ERROR
 
 class HttpForwardProxySpec extends BaseHttpClientSpec {
+
+  @Shared
+  @AutoCleanup
+  TestHttpProxyServer proxyServer = new TestHttpProxyServer()
 
   @AutoCleanup
   EmbeddedApp proxyApp
@@ -53,26 +56,21 @@ class HttpForwardProxySpec extends BaseHttpClientSpec {
     }
   }
 
+  def cleanup() {
+    proxyServer.stop()
+  }
+
   def "can make simple proxy request using the global HttpClient proxy settings (pooled: #pooled)"() {
     given:
-    AtomicBoolean proxied = new AtomicBoolean(false)
-    proxyApp {
-      all { HttpClient httpClient ->
-        proxied.set(true)
-        httpClient.get(otherAppUrl("foo")) {
-        } then { ReceivedResponse response ->
-          render response.body.text
-        }
-      }
-    }
+    proxyServer.start()
 
     when:
     bindings {
       bindInstance(HttpClient, HttpClient.of { config -> config
         .poolSize(pooled ? 8 : 0)
         .proxy { p -> p
-          .host(proxyApp.address.host)
-          .port(proxyApp.address.port)
+          .host(proxyServer.address.hostName)
+          .port(proxyServer.address.port)
         }
       })
     }
@@ -87,7 +85,7 @@ class HttpForwardProxySpec extends BaseHttpClientSpec {
 
     then:
     text == "bar"
-    proxied.get()
+    proxyServer.proxied(otherApp.address)
 
     where:
     pooled << [true, false]
@@ -95,51 +93,17 @@ class HttpForwardProxySpec extends BaseHttpClientSpec {
 
   def "can make simple proxy request with proxy authentication using the global HttpClient proxy settings (pooled: #pooled)"() {
     given:
-    AtomicBoolean authenticated = new AtomicBoolean(false)
-    AtomicBoolean proxied = new AtomicBoolean(false)
     def username = "testUser"
     def password = "testPassword"
-
-    proxyApp {
-      all {
-        def authHeader = request.headers.get(PROXY_AUTHORIZATION)
-        if (authHeader == null) {
-          if (authenticated.get()) {
-            // The client was already authenticated. In real life, we would have validated the client's session.
-            next()
-          } else {
-            response.status(PROXY_AUTH_REQUIRED).send()
-          }
-        } else {
-          def encodedValue = authHeader.split(" ")[1]
-          def decodedValue = new String(encodedValue.decodeBase64())
-          def decodedParts = decodedValue.split(":")
-          def decodedUsername = decodedParts[0]
-          def decodedPassword = decodedParts[1]
-          if (decodedUsername != username || decodedPassword != password) {
-            context.response.status(PROXY_AUTH_REQUIRED).send()
-            return
-          }
-          authenticated.set(true)
-          context.response.status(OK).send()
-        }
-      }
-      all { HttpClient httpClient ->
-        proxied.set(true)
-        httpClient.get(otherAppUrl("foo")) {
-        } then { ReceivedResponse response ->
-          render response.body.text
-        }
-      }
-    }
+    proxyServer.start(username, password)
 
     when:
     bindings {
       bindInstance(HttpClient, HttpClient.of { config -> config
         .poolSize(pooled ? 8 : 0)
         .proxy { p -> p
-          .host(proxyApp.address.host)
-          .port(proxyApp.address.port)
+          .host(proxyServer.address.hostName)
+          .port(proxyServer.address.port)
           .credentials(username, password)
         }
       })
@@ -160,7 +124,7 @@ class HttpForwardProxySpec extends BaseHttpClientSpec {
     def response = client.get()
     response.statusCode == 200
     response.body.text == "bar"
-    proxied.get()
+    proxyServer.proxied(otherApp.address)
 
     where:
     pooled << [true, false]
@@ -168,16 +132,7 @@ class HttpForwardProxySpec extends BaseHttpClientSpec {
 
   def "can make simple proxy request using request-level proxy settings (pooled: #pooled)"() {
     given:
-    AtomicBoolean proxied = new AtomicBoolean(false)
-    proxyApp {
-      all { HttpClient httpClient ->
-        proxied.set(true)
-        httpClient.get(otherAppUrl("foo")) {
-        } then { ReceivedResponse response ->
-          render response.body.text
-        }
-      }
-    }
+    proxyServer.start()
 
     when:
     bindings {
@@ -189,8 +144,8 @@ class HttpForwardProxySpec extends BaseHttpClientSpec {
       get { HttpClient httpClient ->
         httpClient.get(otherAppUrl("foo")) { requestSpec ->
           requestSpec.proxy { p -> p
-            .host(proxyApp.address.host)
-            .port(proxyApp.address.port)
+            .host(proxyServer.address.hostName)
+            .port(proxyServer.address.port)
           }
         } then { ReceivedResponse response ->
           render response.body.text
@@ -200,7 +155,7 @@ class HttpForwardProxySpec extends BaseHttpClientSpec {
 
     then:
     text == "bar"
-    proxied.get()
+    proxyServer.proxied(otherApp.address)
 
     where:
     pooled << [true, false]
@@ -208,43 +163,9 @@ class HttpForwardProxySpec extends BaseHttpClientSpec {
 
   def "can make simple proxy request with proxy authentication using request-level proxy settings (pooled: #pooled)"() {
     given:
-    AtomicBoolean authenticated = new AtomicBoolean(false)
-    AtomicBoolean proxied = new AtomicBoolean(false)
     def username = "testUser"
     def password = "testPassword"
-
-    proxyApp {
-      all {
-        def authHeader = request.headers.get(PROXY_AUTHORIZATION)
-        if (authHeader == null) {
-          if (authenticated.get()) {
-            // The client was already authenticated. In real life, we would have validated the client's session.
-            next()
-          } else {
-            response.status(PROXY_AUTH_REQUIRED).send()
-          }
-        } else {
-          def encodedValue = authHeader.split(" ")[1]
-          def decodedValue = new String(encodedValue.decodeBase64())
-          def decodedParts = decodedValue.split(":")
-          def decodedUsername = decodedParts[0]
-          def decodedPassword = decodedParts[1]
-          if (decodedUsername != username || decodedPassword != password) {
-            context.response.status(PROXY_AUTH_REQUIRED).send()
-            return
-          }
-          authenticated.set(true)
-          context.response.status(OK).send()
-        }
-      }
-      all { HttpClient httpClient ->
-        proxied.set(true)
-        httpClient.get(otherAppUrl("foo")) {
-        } then { ReceivedResponse response ->
-          render response.body.text
-        }
-      }
-    }
+    proxyServer.start(username, password)
 
     when:
     bindings {
@@ -256,8 +177,8 @@ class HttpForwardProxySpec extends BaseHttpClientSpec {
       get { HttpClient httpClient ->
         httpClient.get(otherAppUrl("foo")) { requestSpec ->
           requestSpec.proxy { p -> p
-            .host(proxyApp.address.host)
-            .port(proxyApp.address.port)
+            .host(proxyServer.address.hostName)
+            .port(proxyServer.address.port)
             .credentials(username, password)
           }
         } onError(HttpProxyHandler.HttpProxyConnectException) {
@@ -273,7 +194,7 @@ class HttpForwardProxySpec extends BaseHttpClientSpec {
     def response = client.get()
     response.statusCode == 200
     response.body.text == "bar"
-    proxied.get()
+    proxyServer.proxied(otherApp.address)
 
     where:
     pooled << [true, false]
