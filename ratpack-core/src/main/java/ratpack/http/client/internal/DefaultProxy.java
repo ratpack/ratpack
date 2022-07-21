@@ -206,7 +206,7 @@ public class DefaultProxy implements ProxyInternal {
     }
 
     ProxyInternal build() {
-      return new DefaultProxy(protocol, host, port, nonProxyHosts, credentials, sslContext);
+      return new DefaultProxy(protocol, host, port, nonProxyHosts, credentials, protocol == Protocol.HTTPS ? sslContext : null);
     }
   }
 }
