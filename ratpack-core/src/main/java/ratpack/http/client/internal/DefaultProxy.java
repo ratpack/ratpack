@@ -17,6 +17,7 @@
 package ratpack.http.client.internal;
 
 import ratpack.api.Nullable;
+import ratpack.http.client.Proxy;
 import ratpack.http.client.ProxyCredentials;
 import ratpack.http.client.ProxySpec;
 
@@ -26,17 +27,24 @@ import java.util.Objects;
 
 public class DefaultProxy implements ProxyInternal {
 
+  private final Protocol protocol;
   private final String host;
   private final int port;
   private final Collection<String> nonProxyHosts;
 
   private final ProxyCredentials credentials;
 
-  public DefaultProxy(String host, int port, Collection<String> nonProxyHosts, @Nullable ProxyCredentials credentials) {
+  public DefaultProxy(Protocol protocol, String host, int port, Collection<String> nonProxyHosts, @Nullable ProxyCredentials credentials) {
+    this.protocol = protocol;
     this.host = host;
     this.port = port;
     this.nonProxyHosts = nonProxyHosts;
     this.credentials = credentials;
+  }
+
+  @Override
+  public Protocol getProtocol() {
+    return protocol;
   }
 
   @Override
@@ -108,12 +116,18 @@ public class DefaultProxy implements ProxyInternal {
   }
 
   @Override
+  public boolean useSsl() {
+    return this.protocol == Protocol.HTTPS;
+  }
+
+  @Override
   public boolean equals(Object o) {
     if (this == o) return true;
     if (o == null || getClass() != o.getClass()) return false;
     DefaultProxy that = (DefaultProxy) o;
 
-    return host.equals(that.host)
+    return protocol.equals(that.protocol)
+      && host.equals(that.host)
       && port == that.port
       && nonProxyHosts.equals(that.nonProxyHosts)
       && Objects.equals(credentials, that.credentials);
@@ -121,17 +135,22 @@ public class DefaultProxy implements ProxyInternal {
 
   @Override
   public int hashCode() {
-    return Objects.hash(host, port, nonProxyHosts, credentials);
+    return Objects.hash(protocol, host, port, nonProxyHosts, credentials);
   }
 
   public static class Builder implements ProxySpec {
 
+    private Proxy.Protocol protocol = Protocol.HTTP;
     private String host;
     private int port;
     private Collection<String> nonProxyHosts = Collections.emptyList();
-
     private DefaultProxyCredentials credentials;
 
+    @Override
+    public ProxySpec protocol(Protocol protocol) {
+      this.protocol = protocol;
+      return this;
+    }
     @Override
     public ProxySpec host(String host) {
       this.host = host;
@@ -157,7 +176,7 @@ public class DefaultProxy implements ProxyInternal {
     }
 
     ProxyInternal build() {
-      return new DefaultProxy(host, port, nonProxyHosts, credentials);
+      return new DefaultProxy(protocol, host, port, nonProxyHosts, credentials);
     }
   }
 }

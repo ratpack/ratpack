@@ -21,4 +21,7 @@ import ratpack.http.client.Proxy;
 public interface ProxyInternal extends Proxy {
 
   boolean shouldProxy(String host);
+
+  boolean useSsl();
+
 }

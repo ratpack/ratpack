@@ -25,6 +25,13 @@ import java.util.Collection;
  */
 public interface ProxySpec {
 
+  /** The protocol to use when connecting to the proxy. Defaults to HTTP.
+   *
+   * @param protocol the protocol to use when connecting to the proxy
+   * @return {@code this}
+   */
+  ProxySpec protocol(Proxy.Protocol protocol);
+
   /**
    * Configure the host that will proxy outbound HTTP requests.
    * @param host the host name for the HTTP proxy
