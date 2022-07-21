@@ -17,51 +17,14 @@
 package ratpack.http.client.internal;
 
 import io.netty.channel.Channel;
-import io.netty.channel.pool.AbstractChannelPoolHandler;
-import io.netty.handler.proxy.HttpProxyHandler;
-import io.netty.handler.ssl.SslContext;
-import io.netty.handler.ssl.SslContextBuilder;
-import ratpack.api.Nullable;
 
-import java.net.InetSocketAddress;
-import java.net.SocketAddress;
-
-public class NoopSimpleChannelPoolHandler extends AbstractChannelPoolHandler implements InstrumentedChannelPoolHandler {
+public class NoopSimpleChannelPoolHandler extends ProxyChannelPoolHandler implements InstrumentedChannelPoolHandler {
 
   private final String host;
 
-  @Nullable
-  private final ProxyInternal proxy;
-
-  @Nullable
-  private final SslContext sslContext;
-
   public NoopSimpleChannelPoolHandler(HttpChannelKey channelKey) {
+    super(channelKey);
     this.host = channelKey.host;
-    this.proxy = channelKey.proxy;
-    this.sslContext = channelKey.sslContext;
-  }
-
-  @Override
-  public void channelCreated(Channel ch) throws Exception {
-    if (proxy != null && proxy.shouldProxy(host))  {
-      SocketAddress proxyAddress = new InetSocketAddress(proxy.getHost(), proxy.getPort());
-
-      if (proxy.useSsl()) {
-        SslContext sslCtx = sslContext;
-        if (sslContext == null) {
-          sslCtx = SslContextBuilder.forClient().build();
-        }
-        ch.pipeline().addLast(sslCtx.newHandler(ch.alloc(), proxy.getHost(), proxy.getPort()));
-      }
-
-      if (proxy.getCredentials() != null) {
-        // HttpProxyHandler throws a NPE if passed a null username or a null password.
-        ch.pipeline().addLast(new HttpProxyHandler(proxyAddress, proxy.getCredentials().getUsername(), proxy.getCredentials().getPassword()));
-      } else {
-        ch.pipeline().addLast(new HttpProxyHandler(proxyAddress));
-      }
-    }
   }
 
   @Override
