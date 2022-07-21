@@ -16,6 +16,7 @@
 
 package ratpack.http.client.internal;
 
+import io.netty.handler.ssl.SslContext;
 import ratpack.api.Nullable;
 import ratpack.http.client.Proxy;
 import ratpack.http.client.ProxyCredentials;
@@ -34,12 +35,15 @@ public class DefaultProxy implements ProxyInternal {
 
   private final ProxyCredentials credentials;
 
-  public DefaultProxy(Protocol protocol, String host, int port, Collection<String> nonProxyHosts, @Nullable ProxyCredentials credentials) {
+  private final SslContext sslContext;
+
+  public DefaultProxy(Protocol protocol, String host, int port, Collection<String> nonProxyHosts, @Nullable ProxyCredentials credentials, SslContext sslContext) {
     this.protocol = protocol;
     this.host = host;
     this.port = port;
     this.nonProxyHosts = nonProxyHosts;
     this.credentials = credentials;
+    this.sslContext = sslContext;
   }
 
   @Override
@@ -62,6 +66,7 @@ public class DefaultProxy implements ProxyInternal {
     return nonProxyHosts;
   }
 
+  @Nullable
   @Override
   public ProxyCredentials getCredentials() {
     return credentials;
@@ -70,6 +75,12 @@ public class DefaultProxy implements ProxyInternal {
   @Override
   public boolean shouldProxy(String host) {
     return !isIgnoredForHost(host);
+  }
+
+  @Nullable
+  @Override
+  public SslContext getSslContext() {
+    return sslContext;
   }
 
   // Captured from https://github.com/AsyncHttpClient/async-http-client/blob/758dcf214bf0ec08142ba234a3967d98a3dc60ef/client/src/main/java/org/asynchttpclient/proxy/ProxyServer.java
@@ -144,39 +155,58 @@ public class DefaultProxy implements ProxyInternal {
     private String host;
     private int port;
     private Collection<String> nonProxyHosts = Collections.emptyList();
-    private DefaultProxyCredentials credentials;
+    private ProxyCredentials credentials;
+
+    private SslContext sslContext;
+
+    public Builder() {
+    }
+
+    public Builder(ProxyInternal proxy) {
+      this.protocol = proxy.getProtocol();
+      this.host = proxy.getHost();
+      this.port = proxy.getPort();
+      this.nonProxyHosts = proxy.getNonProxyHosts();
+      this.credentials = proxy.getCredentials();
+      this.sslContext = proxy.getSslContext();
+    }
 
     @Override
-    public ProxySpec protocol(Protocol protocol) {
+    public Builder protocol(Protocol protocol) {
       this.protocol = protocol;
       return this;
     }
     @Override
-    public ProxySpec host(String host) {
+    public Builder host(String host) {
       this.host = host;
       return this;
     }
 
     @Override
-    public ProxySpec port(int port) {
+    public Builder port(int port) {
       this.port = port;
       return this;
     }
 
     @Override
-    public ProxySpec nonProxyHosts(Collection<String> nonProxyHosts) {
+    public Builder nonProxyHosts(Collection<String> nonProxyHosts) {
       this.nonProxyHosts = nonProxyHosts;
       return this;
     }
 
     @Override
-    public ProxySpec credentials(String username, String password) {
+    public Builder credentials(String username, String password) {
       this.credentials = new DefaultProxyCredentials(username, password);
       return this;
     }
 
+    public Builder sslContext(SslContext sslContext) {
+      this.sslContext = sslContext;
+      return this;
+    }
+
     ProxyInternal build() {
-      return new DefaultProxy(protocol, host, port, nonProxyHosts, credentials);
+      return new DefaultProxy(protocol, host, port, nonProxyHosts, credentials, sslContext);
     }
   }
 }

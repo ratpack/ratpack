@@ -17,7 +17,6 @@
 package ratpack.http.client.internal;
 
 import io.netty.channel.EventLoop;
-import io.netty.handler.ssl.SslContext;
 import ratpack.api.Nullable;
 import ratpack.exec.ExecController;
 import ratpack.exec.Execution;
@@ -39,14 +38,11 @@ final class HttpChannelKey {
 
   final Duration connectTimeout;
 
-  final SslContext sslContext;
-
   HttpChannelKey(URI uri, Duration connectTimeout, Execution execution) {
-    this(uri, null, connectTimeout, execution, null);
+    this(uri, null, connectTimeout, execution);
   }
 
-    HttpChannelKey(URI uri, @Nullable ProxyInternal proxy, Duration connectTimeout, Execution execution, SslContext sslContext) {
-      this.sslContext = sslContext;
+    HttpChannelKey(URI uri, @Nullable ProxyInternal proxy, Duration connectTimeout, Execution execution) {
       switch (uri.getScheme()) {
       case "https":
         this.ssl = true;

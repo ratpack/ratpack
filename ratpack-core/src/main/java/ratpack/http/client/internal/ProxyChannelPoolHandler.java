@@ -22,7 +22,6 @@ import io.netty.handler.proxy.HttpProxyHandler;
 import io.netty.handler.ssl.SslContext;
 import io.netty.handler.ssl.SslContextBuilder;
 import io.netty.handler.ssl.SslHandler;
-import ratpack.api.Nullable;
 
 import javax.net.ssl.SSLException;
 import java.net.InetSocketAddress;
@@ -33,13 +32,9 @@ public class ProxyChannelPoolHandler extends AbstractChannelPoolHandler {
   private final String host;
   private final ProxyInternal proxy;
 
-  @Nullable
-  private final SslContext sslContext;
-
   public ProxyChannelPoolHandler(HttpChannelKey channelKey) {
     this.host = channelKey.host;
     this.proxy = channelKey.proxy;
-    this.sslContext = channelKey.sslContext;
   }
 
   @Override
@@ -61,8 +56,8 @@ public class ProxyChannelPoolHandler extends AbstractChannelPoolHandler {
   }
 
   private SslHandler createSslHandler(Channel ch) throws SSLException {
-    SslContext sslCtx = sslContext;
-    if (sslContext == null) {
+    SslContext sslCtx = proxy.getSslContext();
+    if (sslCtx == null) {
       sslCtx = SslContextBuilder.forClient().build();
     }
 

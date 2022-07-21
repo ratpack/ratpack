@@ -31,7 +31,9 @@ import ratpack.func.Action;
 import ratpack.func.Function;
 import ratpack.http.HttpMethod;
 import ratpack.http.MutableHeaders;
-import ratpack.http.client.*;
+import ratpack.http.client.ProxySpec;
+import ratpack.http.client.ReceivedResponse;
+import ratpack.http.client.RequestSpec;
 import ratpack.http.internal.HttpHeaderConstants;
 import ratpack.http.internal.NettyHeadersBackedMutableHeaders;
 import ratpack.util.Exceptions;
@@ -66,7 +68,9 @@ class RequestConfig {
     spec.connectTimeout = httpClient.getConnectTimeout();
     spec.maxContentLength = httpClient.getMaxContentLength();
     spec.responseMaxChunkSize = httpClient.getMaxResponseChunkSize();
-    spec.proxy = httpClient.getProxyInternal();
+    if (httpClient.getProxyInternal() != null) {
+      spec.proxyBuilder = new DefaultProxy.Builder(httpClient.getProxyInternal());
+    }
 
     try {
       action.execute(spec);
@@ -86,7 +90,7 @@ class RequestConfig {
       spec.responseMaxChunkSize,
       spec.connectTimeout,
       spec.readTimeout,
-      spec.proxy,
+      spec.getProxy(),
       spec.decompressResponse,
       spec.maxRedirects,
       spec.sslContext,
@@ -121,8 +125,7 @@ class RequestConfig {
     private boolean decompressResponse = true;
     private Duration connectTimeout = Duration.ofSeconds(30);
     private Duration readTimeout = Duration.ofSeconds(30);
-
-    private ProxyInternal proxy;
+    private DefaultProxy.Builder proxyBuilder;
     private int maxContentLength = -1;
     private Content content = EMPTY_CONTENT;
     private HttpMethod method = HttpMethod.GET;
@@ -264,13 +267,16 @@ class RequestConfig {
     public RequestSpec proxy(Action<? super ProxySpec> proxy) {
       DefaultProxy.Builder builder = new DefaultProxy.Builder();
       Exceptions.uncheck(() -> proxy.execute(builder));
-      this.proxy = builder.build();
+      this.proxyBuilder = builder;
       return this;
     }
 
     @Override
-    public Proxy getProxy() {
-      return proxy;
+    public ProxyInternal getProxy() {
+      if (proxyBuilder != null) {
+        return proxyBuilder.sslContext(sslContext).build();
+      }
+      return null;
     }
 
     private class BodyImpl implements Body {

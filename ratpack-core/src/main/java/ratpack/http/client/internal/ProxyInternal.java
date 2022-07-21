@@ -16,6 +16,8 @@
 
 package ratpack.http.client.internal;
 
+import io.netty.handler.ssl.SslContext;
+import ratpack.api.Nullable;
 import ratpack.http.client.Proxy;
 
 public interface ProxyInternal extends Proxy {
@@ -23,5 +25,8 @@ public interface ProxyInternal extends Proxy {
   boolean shouldProxy(String host);
 
   boolean useSsl();
+
+  @Nullable
+  SslContext getSslContext();
 
 }
