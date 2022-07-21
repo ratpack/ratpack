@@ -31,4 +31,6 @@ interface HttpClientInternal extends HttpClient {
 
   Action<? super HttpResponse> getResponseInterceptor();
 
+  ProxyInternal getProxyInternal();
+
 }

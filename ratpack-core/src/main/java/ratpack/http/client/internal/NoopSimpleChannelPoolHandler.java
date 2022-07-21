@@ -31,9 +31,9 @@ public class NoopSimpleChannelPoolHandler extends AbstractChannelPoolHandler imp
   @Nullable
   private final ProxyInternal proxy;
 
-  public NoopSimpleChannelPoolHandler(HttpChannelKey channelKey, @Nullable ProxyInternal proxy) {
+  public NoopSimpleChannelPoolHandler(HttpChannelKey channelKey) {
     this.host = channelKey.host;
-    this.proxy = proxy;
+    this.proxy = channelKey.proxy;
   }
 
   @Override

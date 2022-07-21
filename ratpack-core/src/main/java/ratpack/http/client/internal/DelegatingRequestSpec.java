@@ -22,6 +22,8 @@ import ratpack.func.Factory;
 import ratpack.func.Function;
 import ratpack.http.HttpMethod;
 import ratpack.http.MutableHeaders;
+import ratpack.http.client.Proxy;
+import ratpack.http.client.ProxySpec;
 import ratpack.http.client.ReceivedResponse;
 import ratpack.http.client.RequestSpec;
 
@@ -141,6 +143,17 @@ public class DelegatingRequestSpec implements RequestSpec {
   @Override
   public Duration getReadTimeout() {
     return delegate.getReadTimeout();
+  }
+
+  @Override
+  public RequestSpec proxy(Action<? super ProxySpec> proxy) {
+    delegate.proxy(proxy);
+    return this;
+  }
+
+  @Override
+  public Proxy getProxy() {
+    return delegate.getProxy();
   }
 
   @Override

@@ -34,10 +34,10 @@ public class NoopFixedChannelPoolHandler extends AbstractChannelPoolHandler impl
   private final Duration idleTimeout;
   private final ProxyInternal proxy;
 
-  public NoopFixedChannelPoolHandler(HttpChannelKey channelKey, Duration idleTimeout, ProxyInternal proxy) {
+  public NoopFixedChannelPoolHandler(HttpChannelKey channelKey, Duration idleTimeout) {
     this.host = channelKey.host;
     this.idleTimeout = idleTimeout;
-    this.proxy = proxy;
+    this.proxy = channelKey.proxy;
   }
 
   @Override

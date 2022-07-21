@@ -89,7 +89,7 @@ abstract class RequestActionSupport<T> implements Upstream<T> {
     this.execution = execution;
     this.redirectCount = redirectCount;
     this.expectContinue = expectContinue;
-    this.channelKey = new HttpChannelKey(requestConfig.uri, requestConfig.connectTimeout, execution);
+    this.channelKey = new HttpChannelKey(requestConfig.uri, requestConfig.proxy == null ? client.getProxyInternal() : requestConfig.proxy, requestConfig.connectTimeout, execution);
     this.channelPool = client.getChannelPoolMap().get(channelKey);
 
     finalizeHeaders();

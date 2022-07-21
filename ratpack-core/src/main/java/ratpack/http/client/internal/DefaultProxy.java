@@ -16,11 +16,13 @@
 
 package ratpack.http.client.internal;
 
+import ratpack.api.Nullable;
 import ratpack.http.client.ProxyCredentials;
 import ratpack.http.client.ProxySpec;
 
 import java.util.Collection;
 import java.util.Collections;
+import java.util.Objects;
 
 public class DefaultProxy implements ProxyInternal {
 
@@ -30,7 +32,7 @@ public class DefaultProxy implements ProxyInternal {
 
   private final ProxyCredentials credentials;
 
-  public DefaultProxy(String host, int port, Collection<String> nonProxyHosts, ProxyCredentials credentials) {
+  public DefaultProxy(String host, int port, Collection<String> nonProxyHosts, @Nullable ProxyCredentials credentials) {
     this.host = host;
     this.port = port;
     this.nonProxyHosts = nonProxyHosts;
@@ -103,6 +105,23 @@ public class DefaultProxy implements ProxyInternal {
     }
 
     return nonProxyHost.equalsIgnoreCase(targetHost);
+  }
+
+  @Override
+  public boolean equals(Object o) {
+    if (this == o) return true;
+    if (o == null || getClass() != o.getClass()) return false;
+    DefaultProxy that = (DefaultProxy) o;
+
+    return host.equals(that.host)
+      && port == that.port
+      && nonProxyHosts.equals(that.nonProxyHosts)
+      && Objects.equals(credentials, that.credentials);
+  }
+
+  @Override
+  public int hashCode() {
+    return Objects.hash(host, port, nonProxyHosts, credentials);
   }
 
   public static class Builder implements ProxySpec {

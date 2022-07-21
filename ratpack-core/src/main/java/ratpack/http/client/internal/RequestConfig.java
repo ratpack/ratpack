@@ -31,11 +31,10 @@ import ratpack.func.Action;
 import ratpack.func.Function;
 import ratpack.http.HttpMethod;
 import ratpack.http.MutableHeaders;
-import ratpack.http.client.HttpClient;
-import ratpack.http.client.ReceivedResponse;
-import ratpack.http.client.RequestSpec;
+import ratpack.http.client.*;
 import ratpack.http.internal.HttpHeaderConstants;
 import ratpack.http.internal.NettyHeadersBackedMutableHeaders;
+import ratpack.util.Exceptions;
 
 import javax.net.ssl.SSLContext;
 import java.io.OutputStream;
@@ -52,19 +51,22 @@ class RequestConfig {
   final int maxContentLength;
   final Duration connectTimeout;
   final Duration readTimeout;
+
+  final ProxyInternal proxy;
   final boolean decompressResponse;
   final int maxRedirects;
   final SslContext sslContext;
   final Function<? super ReceivedResponse, Action<? super RequestSpec>> onRedirect;
   final int responseMaxChunkSize;
 
-  static RequestConfig of(URI uri, HttpClient httpClient, Action<? super RequestSpec> action) throws Exception {
+  static RequestConfig of(URI uri, HttpClientInternal httpClient, Action<? super RequestSpec> action) throws Exception {
     Spec spec = new Spec(uri, httpClient.getByteBufAllocator());
 
     spec.readTimeout = httpClient.getReadTimeout();
     spec.connectTimeout = httpClient.getConnectTimeout();
     spec.maxContentLength = httpClient.getMaxContentLength();
     spec.responseMaxChunkSize = httpClient.getMaxResponseChunkSize();
+    spec.proxy = httpClient.getProxyInternal();
 
     try {
       action.execute(spec);
@@ -84,6 +86,7 @@ class RequestConfig {
       spec.responseMaxChunkSize,
       spec.connectTimeout,
       spec.readTimeout,
+      spec.proxy,
       spec.decompressResponse,
       spec.maxRedirects,
       spec.sslContext,
@@ -91,7 +94,7 @@ class RequestConfig {
     );
   }
 
-  private RequestConfig(URI uri, HttpMethod method, MutableHeaders headers, Content content, int maxContentLength, int responseMaxChunkSize, Duration connectTimeout, Duration readTimeout, boolean decompressResponse, int maxRedirects, SslContext sslContext, Function<? super ReceivedResponse, Action<? super RequestSpec>> onRedirect) {
+  private RequestConfig(URI uri, HttpMethod method, MutableHeaders headers, Content content, int maxContentLength, int responseMaxChunkSize, Duration connectTimeout, Duration readTimeout, ProxyInternal proxy, boolean decompressResponse, int maxRedirects, SslContext sslContext, Function<? super ReceivedResponse, Action<? super RequestSpec>> onRedirect) {
     this.uri = uri;
     this.method = method;
     this.headers = headers;
@@ -100,6 +103,7 @@ class RequestConfig {
     this.responseMaxChunkSize = responseMaxChunkSize;
     this.connectTimeout = connectTimeout;
     this.readTimeout = readTimeout;
+    this.proxy = proxy;
     this.decompressResponse = decompressResponse;
     this.maxRedirects = maxRedirects;
     this.sslContext = sslContext;
@@ -117,6 +121,8 @@ class RequestConfig {
     private boolean decompressResponse = true;
     private Duration connectTimeout = Duration.ofSeconds(30);
     private Duration readTimeout = Duration.ofSeconds(30);
+
+    private ProxyInternal proxy;
     private int maxContentLength = -1;
     private Content content = EMPTY_CONTENT;
     private HttpMethod method = HttpMethod.GET;
@@ -254,6 +260,18 @@ class RequestConfig {
       this.content = content;
     }
 
+    @Override
+    public RequestSpec proxy(Action<? super ProxySpec> proxy) {
+      DefaultProxy.Builder builder = new DefaultProxy.Builder();
+      Exceptions.uncheck(() -> proxy.execute(builder));
+      this.proxy = builder.build();
+      return this;
+    }
+
+    @Override
+    public Proxy getProxy() {
+      return proxy;
+    }
 
     private class BodyImpl implements Body {
       @Override
