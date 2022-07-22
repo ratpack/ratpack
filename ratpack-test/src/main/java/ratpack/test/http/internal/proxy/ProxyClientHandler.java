@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package ratpack.test.http.proxy.internal;
+package ratpack.test.http.internal.proxy;
 
 import io.netty.bootstrap.Bootstrap;
 import io.netty.buffer.Unpooled;
@@ -24,9 +24,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.concurrent.ConcurrentMap;
-
-import static ratpack.test.http.proxy.internal.ProxyHandlerNames.HTTP_CODEC_HANDLER;
-import static ratpack.test.http.proxy.internal.ProxyHandlerNames.PROXY_AUTH_HANDLER;
 
 public class ProxyClientHandler extends SimpleChannelInboundHandler<HttpRequest> {
   public static final Logger LOGGER = LoggerFactory.getLogger(ProxyClientHandler.class);
@@ -96,11 +93,11 @@ public class ProxyClientHandler extends SimpleChannelInboundHandler<HttpRequest>
   }
 
   private static void stopProcessingAsHttp(Channel clientChannel) {
-    if (clientChannel.pipeline().get(HTTP_CODEC_HANDLER) != null) {
-      clientChannel.pipeline().remove(HTTP_CODEC_HANDLER);
+    if (clientChannel.pipeline().get(ProxyHandlerNames.HTTP_CODEC_HANDLER) != null) {
+      clientChannel.pipeline().remove(ProxyHandlerNames.HTTP_CODEC_HANDLER);
     }
-    if (clientChannel.pipeline().get(PROXY_AUTH_HANDLER) != null) {
-      clientChannel.pipeline().remove(PROXY_AUTH_HANDLER);
+    if (clientChannel.pipeline().get(ProxyHandlerNames.PROXY_AUTH_HANDLER) != null) {
+      clientChannel.pipeline().remove(ProxyHandlerNames.PROXY_AUTH_HANDLER);
     }
   }
 

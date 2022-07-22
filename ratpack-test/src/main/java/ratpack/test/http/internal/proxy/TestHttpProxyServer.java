@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 the original author or authors.
+ * Copyright 2022 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package ratpack.test.http.proxy;
+package ratpack.test.http.internal.proxy;
 
 import io.netty.bootstrap.ServerBootstrap;
 import io.netty.channel.Channel;
@@ -33,9 +33,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import ratpack.http.client.ProxyCredentials;
 import ratpack.http.client.internal.DefaultProxyCredentials;
-import ratpack.test.http.proxy.internal.Authority;
-import ratpack.test.http.proxy.internal.ProxyAuthenticationHandler;
-import ratpack.test.http.proxy.internal.ProxyClientHandler;
 import ratpack.util.Exceptions;
 
 import javax.net.ssl.SSLException;
@@ -46,7 +43,7 @@ import java.security.cert.X509Certificate;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 
-import static ratpack.test.http.proxy.internal.ProxyHandlerNames.HTTP_CODEC_HANDLER;
+import static ratpack.test.http.internal.proxy.ProxyHandlerNames.HTTP_CODEC_HANDLER;
 
 // TODO Add class-level and method-level Javadoc
 public class TestHttpProxyServer implements AutoCloseable {

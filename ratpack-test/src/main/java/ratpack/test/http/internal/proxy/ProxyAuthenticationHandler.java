@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package ratpack.test.http.proxy.internal;
+package ratpack.test.http.internal.proxy;
 
 import com.google.common.net.HttpHeaders;
 import io.netty.channel.ChannelFutureListener;
@@ -25,7 +25,6 @@ import io.netty.util.ReferenceCountUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import ratpack.http.client.ProxyCredentials;
-import ratpack.test.http.proxy.TestHttpProxyServer;
 
 import java.util.Base64;
 

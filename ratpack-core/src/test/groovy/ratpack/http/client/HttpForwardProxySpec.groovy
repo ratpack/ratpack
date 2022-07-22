@@ -24,7 +24,7 @@ import ratpack.error.internal.DefaultDevelopmentErrorHandler
 import ratpack.groovy.handling.GroovyChain
 import ratpack.groovy.test.embed.GroovyEmbeddedApp
 import ratpack.test.embed.EmbeddedApp
-import ratpack.test.http.proxy.TestHttpProxyServer
+import ratpack.test.http.internal.proxy.TestHttpProxyServer
 import spock.lang.AutoCleanup
 import spock.lang.Shared
 

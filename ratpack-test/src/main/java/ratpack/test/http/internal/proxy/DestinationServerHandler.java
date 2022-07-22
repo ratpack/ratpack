@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package ratpack.test.http.proxy.internal;
+package ratpack.test.http.internal.proxy;
 
 import io.netty.buffer.Unpooled;
 import io.netty.channel.Channel;

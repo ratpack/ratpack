@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package ratpack.test.http.proxy.internal;
+package ratpack.test.http.internal.proxy;
 
 public class ProxyHandlerNames {
 
