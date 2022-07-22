@@ -88,7 +88,8 @@ public class TestHttpProxyServer implements AutoCloseable {
     this.start(new DefaultProxyCredentials(username, password), requireSsl);
   }
 
-  /** Starts the HTTP proxy server. If credentials are not null, then basic proxy authentication is required.
+  /**
+   * Starts the HTTP proxy server. If credentials are not null, then basic proxy authentication is required.
    *
    * @param credentials the username/password to require for proxy authentication, or null if no authentication is required
    */

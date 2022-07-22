@@ -31,7 +31,8 @@ public interface Proxy {
     HTTP, HTTPS
   }
 
-  /** The protocol that should be used when connecting to the proxy server itself.
+  /**
+   * The protocol that should be used when connecting to the proxy server itself.
    *
    * @return the protocol to use to connect to the proxy server
    */

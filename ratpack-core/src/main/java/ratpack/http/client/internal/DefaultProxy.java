@@ -180,6 +180,7 @@ public class DefaultProxy implements ProxyInternal {
       this.protocol = protocol;
       return this;
     }
+
     @Override
     public Builder host(String host) {
       this.host = host;
