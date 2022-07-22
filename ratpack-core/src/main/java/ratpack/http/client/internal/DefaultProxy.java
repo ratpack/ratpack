@@ -18,7 +18,6 @@ package ratpack.http.client.internal;
 
 import io.netty.handler.ssl.SslContext;
 import ratpack.api.Nullable;
-import ratpack.http.client.Proxy;
 import ratpack.http.client.ProxyCredentials;
 import ratpack.http.client.ProxySpec;
 
@@ -28,7 +27,7 @@ import java.util.Objects;
 
 public class DefaultProxy implements ProxyInternal {
 
-  private final Protocol protocol;
+  private final ProxyProtocol protocol;
   private final String host;
   private final int port;
   private final Collection<String> nonProxyHosts;
@@ -37,7 +36,7 @@ public class DefaultProxy implements ProxyInternal {
 
   private final SslContext sslContext;
 
-  public DefaultProxy(Protocol protocol, String host, int port, Collection<String> nonProxyHosts, @Nullable ProxyCredentials credentials, SslContext sslContext) {
+  public DefaultProxy(ProxyProtocol protocol, String host, int port, Collection<String> nonProxyHosts, @Nullable ProxyCredentials credentials, SslContext sslContext) {
     this.protocol = protocol;
     this.host = host;
     this.port = port;
@@ -47,7 +46,7 @@ public class DefaultProxy implements ProxyInternal {
   }
 
   @Override
-  public Protocol getProtocol() {
+  public ProxyProtocol getProtocol() {
     return protocol;
   }
 
@@ -128,7 +127,7 @@ public class DefaultProxy implements ProxyInternal {
 
   @Override
   public boolean useSsl() {
-    return this.protocol == Protocol.HTTPS;
+    return this.protocol == ProxyProtocol.HTTPS;
   }
 
   @Override
@@ -155,7 +154,7 @@ public class DefaultProxy implements ProxyInternal {
 
   public static class Builder implements ProxySpec {
 
-    private Proxy.Protocol protocol = Protocol.HTTP;
+    private ProxyProtocol protocol = ProxyProtocol.HTTP;
     private String host;
     private int port;
     private Collection<String> nonProxyHosts = Collections.emptyList();
@@ -176,7 +175,7 @@ public class DefaultProxy implements ProxyInternal {
     }
 
     @Override
-    public Builder protocol(Protocol protocol) {
+    public Builder protocol(ProxyProtocol protocol) {
       this.protocol = protocol;
       return this;
     }
@@ -211,7 +210,7 @@ public class DefaultProxy implements ProxyInternal {
     }
 
     ProxyInternal build() {
-      return new DefaultProxy(protocol, host, port, nonProxyHosts, credentials, protocol == Protocol.HTTPS ? sslContext : null);
+      return new DefaultProxy(protocol, host, port, nonProxyHosts, credentials, protocol == ProxyProtocol.HTTPS ? sslContext : null);
     }
   }
 }

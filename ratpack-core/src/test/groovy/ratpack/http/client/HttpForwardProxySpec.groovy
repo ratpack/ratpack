@@ -214,7 +214,7 @@ class HttpForwardProxySpec extends BaseHttpClientSpec {
       bindInstance(HttpClient, HttpClient.of { config -> config
         .poolSize(pooled ? 8 : 0)
         .proxy { p -> p
-          .protocol(Proxy.Protocol.HTTPS)
+          .protocol(Proxy.ProxyProtocol.HTTPS)
           .host(proxyServer.address.hostName)
           .port(proxyServer.address.port)
         }

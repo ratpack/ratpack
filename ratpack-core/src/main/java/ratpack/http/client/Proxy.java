@@ -27,7 +27,7 @@ import java.util.Collection;
  */
 public interface Proxy {
 
-  enum Protocol {
+  enum ProxyProtocol {
     HTTP, HTTPS
   }
 
@@ -36,7 +36,7 @@ public interface Proxy {
    *
    * @return the protocol to use to connect to the proxy server
    */
-  Protocol getProtocol();
+  ProxyProtocol getProtocol();
 
   /**
    * The host that proxied requests will be sent.

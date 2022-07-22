@@ -31,7 +31,7 @@ public interface ProxySpec {
    * @param protocol the protocol to use when connecting to the proxy
    * @return {@code this}
    */
-  ProxySpec protocol(Proxy.Protocol protocol);
+  ProxySpec protocol(Proxy.ProxyProtocol protocol);
 
   /**
    * Configure the host that will proxy outbound HTTP requests.
