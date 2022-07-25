@@ -72,7 +72,8 @@ public class TestHttpProxyServer implements AutoCloseable {
     this.start(null, requireSsl);
   }
 
-  /** Starts the HTTP proxy server with proxy authentication enabled.
+  /**
+   * Starts the HTTP proxy server with proxy authentication enabled.
    *
    * @param username the username clients must provide to authenticate
    * @param password the password clients must provide to authenticate
