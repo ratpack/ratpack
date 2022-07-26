@@ -360,14 +360,14 @@ public interface RequestSpec {
    *
    * @param proxy the proxy configuration
    * @return {@code this}
-   * @since 1.10.0
+   * @since 1.10
    */
   RequestSpec proxy(Action<? super ProxySpec> proxy);
 
   /**
    * The configured proxy instance for this request.
    * @return The configure proxy instance for the request
-   * @since 1.10.0
+   * @since 1.10
    */
   Proxy getProxy();
 

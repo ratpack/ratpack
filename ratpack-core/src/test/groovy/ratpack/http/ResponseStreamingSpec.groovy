@@ -277,6 +277,7 @@ class ResponseStreamingSpec extends RatpackGroovyDslSpec {
   def "can stream response concurrently with sending body"() {
     when:
     serverConfig {
+      threads(1)
       maxChunkSize(1)
     }
     handlers {
