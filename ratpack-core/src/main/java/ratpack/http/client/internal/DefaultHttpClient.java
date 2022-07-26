@@ -160,17 +160,17 @@ public class DefaultHttpClient implements HttpClientInternal {
 
   private InstrumentedChannelPoolHandler getPoolingHandler(HttpChannelKey key) {
     if (enableMetricsCollection) {
-      return new InstrumentedFixedChannelPoolHandler(key, getPoolSize(), getIdleTimeout(), proxy);
+      return new InstrumentedFixedChannelPoolHandler(key, getPoolSize(), getIdleTimeout());
     } else {
-      return new NoopFixedChannelPoolHandler(key, getIdleTimeout(), proxy);
+      return new NoopFixedChannelPoolHandler(key, getIdleTimeout());
     }
   }
 
   private InstrumentedChannelPoolHandler getSimpleHandler(HttpChannelKey key) {
     if (enableMetricsCollection) {
-      return new InstrumentedSimpleChannelPoolHandler(key, proxy);
+      return new InstrumentedSimpleChannelPoolHandler(key);
     } else {
-      return new NoopSimpleChannelPoolHandler(key, proxy);
+      return new NoopSimpleChannelPoolHandler(key);
     }
   }
 
@@ -231,6 +231,11 @@ public class DefaultHttpClient implements HttpClientInternal {
 
   @Override
   public Proxy getProxy() {
+    return proxy;
+  }
+
+  @Override
+  public ProxyInternal getProxyInternal() {
     return proxy;
   }
 

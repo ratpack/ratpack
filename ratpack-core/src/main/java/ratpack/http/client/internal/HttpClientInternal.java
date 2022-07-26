@@ -18,6 +18,7 @@ package ratpack.http.client.internal;
 
 import io.netty.channel.pool.ChannelPool;
 import io.netty.channel.pool.ChannelPoolMap;
+import ratpack.api.Nullable;
 import ratpack.func.Action;
 import ratpack.http.client.HttpClient;
 import ratpack.http.client.HttpResponse;
@@ -30,5 +31,8 @@ interface HttpClientInternal extends HttpClient {
   Action<? super RequestSpec> getRequestInterceptor();
 
   Action<? super HttpResponse> getResponseInterceptor();
+
+  @Nullable
+  ProxyInternal getProxyInternal();
 
 }

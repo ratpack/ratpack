@@ -16,16 +16,25 @@
 
 package ratpack.http.client
 
+import io.netty.handler.proxy.HttpProxyHandler
+import io.netty.handler.ssl.SslContext
+import io.netty.handler.ssl.SslContextBuilder
 import ratpack.error.ServerErrorHandler
 import ratpack.error.internal.DefaultDevelopmentErrorHandler
 import ratpack.groovy.handling.GroovyChain
 import ratpack.groovy.test.embed.GroovyEmbeddedApp
 import ratpack.test.embed.EmbeddedApp
+import ratpack.test.http.internal.proxy.TestHttpProxyServer
 import spock.lang.AutoCleanup
+import spock.lang.Shared
 
-import java.util.concurrent.atomic.AtomicBoolean
+import static ratpack.http.Status.INTERNAL_SERVER_ERROR
 
 class HttpForwardProxySpec extends BaseHttpClientSpec {
+
+  @Shared
+  @AutoCleanup
+  TestHttpProxyServer proxyServer = new TestHttpProxyServer()
 
   @AutoCleanup
   EmbeddedApp proxyApp
@@ -41,31 +50,29 @@ class HttpForwardProxySpec extends BaseHttpClientSpec {
     new URI("$proxyApp.address$path")
   }
 
-  def "can make simple proxy request"() {
-    given:
-    AtomicBoolean proxied = new AtomicBoolean(false)
+  def setup() {
     otherApp {
       get("foo") {
         render "bar"
       }
     }
-    proxyApp {
-      all { HttpClient httpClient ->
-        proxied.set(true)
-        httpClient.get(otherAppUrl("foo")) {
-        } then { ReceivedResponse response ->
-          render response.body.text
-        }
-      }
-    }
+  }
+
+  def cleanup() {
+    proxyServer.stop()
+  }
+
+  def "can make simple proxy request using the global HttpClient proxy settings (pooled: #pooled)"() {
+    given:
+    proxyServer.start()
 
     when:
     bindings {
       bindInstance(HttpClient, HttpClient.of { config -> config
         .poolSize(pooled ? 8 : 0)
         .proxy { p -> p
-          .host(proxyApp.address.host)
-          .port(proxyApp.address.port)
+          .host(proxyServer.address.hostName)
+          .port(proxyServer.address.port)
         }
       })
     }
@@ -80,7 +87,152 @@ class HttpForwardProxySpec extends BaseHttpClientSpec {
 
     then:
     text == "bar"
-    proxied.get()
+    proxyServer.proxied(otherApp.address)
+
+    where:
+    pooled << [true, false]
+  }
+
+  def "can make proxy request with proxy authentication using the global HttpClient proxy settings (pooled: #pooled)"() {
+    given:
+    def username = "testUser"
+    def password = "testPassword"
+    proxyServer.start(username, password)
+
+    when:
+    bindings {
+      bindInstance(HttpClient, HttpClient.of { config -> config
+        .poolSize(pooled ? 8 : 0)
+        .proxy { p -> p
+          .host(proxyServer.address.hostName)
+          .port(proxyServer.address.port)
+          .credentials(username, password)
+        }
+      })
+    }
+    handlers {
+      get { HttpClient httpClient ->
+        httpClient.get(otherAppUrl("foo")) {
+        } onError(HttpProxyHandler.HttpProxyConnectException) {
+          context.response.status(INTERNAL_SERVER_ERROR).send()
+        } then { ReceivedResponse receivedResponse ->
+          response.status(receivedResponse.status)
+          response.send(receivedResponse.body.bytes)
+        }
+      }
+    }
+
+    then:
+    def response = client.get()
+    response.statusCode == 200
+    response.body.text == "bar"
+    proxyServer.proxied(otherApp.address)
+
+    where:
+    pooled << [true, false]
+  }
+
+  def "can make simple proxy request using request-level proxy settings (pooled: #pooled)"() {
+    given:
+    proxyServer.start()
+
+    when:
+    bindings {
+      bindInstance(HttpClient, HttpClient.of { config -> config
+        .poolSize(pooled ? 8 : 0)
+      })
+    }
+    handlers {
+      get { HttpClient httpClient ->
+        httpClient.get(otherAppUrl("foo")) { requestSpec ->
+          requestSpec.proxy { p -> p
+            .host(proxyServer.address.hostName)
+            .port(proxyServer.address.port)
+          }
+        } then { ReceivedResponse response ->
+          render response.body.text
+        }
+      }
+    }
+
+    then:
+    text == "bar"
+    proxyServer.proxied(otherApp.address)
+
+    where:
+    pooled << [true, false]
+  }
+
+  def "can make proxy request with proxy authentication using request-level proxy settings (pooled: #pooled)"() {
+    given:
+    def username = "testUser"
+    def password = "testPassword"
+    proxyServer.start(username, password)
+
+    when:
+    bindings {
+      bindInstance(HttpClient, HttpClient.of { config -> config
+        .poolSize(pooled ? 8 : 0)
+      })
+    }
+    handlers {
+      get { HttpClient httpClient ->
+        httpClient.get(otherAppUrl("foo")) { requestSpec ->
+          requestSpec.proxy { p -> p
+            .host(proxyServer.address.hostName)
+            .port(proxyServer.address.port)
+            .credentials(username, password)
+          }
+        } onError(HttpProxyHandler.HttpProxyConnectException) {
+          context.response.status(INTERNAL_SERVER_ERROR).send()
+        } then { ReceivedResponse receivedResponse ->
+          response.status(receivedResponse.status)
+          response.send(receivedResponse.body.bytes)
+        }
+      }
+    }
+
+    then:
+    def response = client.get()
+    response.statusCode == 200
+    response.body.text == "bar"
+    proxyServer.proxied(otherApp.address)
+
+    where:
+    pooled << [true, false]
+  }
+
+  def "can make simple proxy request when the proxy server requires SSL (pooled: #pooled)"() {
+    given:
+    proxyServer.start(true)
+    SslContext clientContext = SslContextBuilder.forClient()
+      .trustManager(proxyServer.sslCertificate)
+      .build()
+
+    when:
+    bindings {
+      bindInstance(HttpClient, HttpClient.of { config -> config
+        .poolSize(pooled ? 8 : 0)
+        .proxy { p -> p
+          .protocol(Proxy.ProxyProtocol.HTTPS)
+          .host(proxyServer.address.hostName)
+          .port(proxyServer.address.port)
+        }
+      })
+    }
+    handlers {
+      get { HttpClient httpClient ->
+        httpClient.get(otherAppUrl("foo")) {
+          it.sslContext(clientContext)
+        } then { ReceivedResponse response ->
+          render response.body.text
+        }
+      }
+    }
+
+    then:
+    text == "bar"
+    proxyServer.proxied(otherApp.address)
 
     where:
     pooled << [true, false]

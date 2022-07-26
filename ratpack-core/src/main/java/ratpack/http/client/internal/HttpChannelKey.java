@@ -17,11 +17,13 @@
 package ratpack.http.client.internal;
 
 import io.netty.channel.EventLoop;
+import ratpack.api.Nullable;
 import ratpack.exec.ExecController;
 import ratpack.exec.Execution;
 
 import java.net.URI;
 import java.time.Duration;
+import java.util.Objects;
 
 final class HttpChannelKey {
 
@@ -29,13 +31,19 @@ final class HttpChannelKey {
   final int port;
   final String host;
 
+  final ProxyInternal proxy;
+
   final ExecController execController;
   final EventLoop eventLoop;
 
   final Duration connectTimeout;
 
   HttpChannelKey(URI uri, Duration connectTimeout, Execution execution) {
-    switch (uri.getScheme()) {
+    this(uri, null, connectTimeout, execution);
+  }
+
+    HttpChannelKey(URI uri, @Nullable ProxyInternal proxy, Duration connectTimeout, Execution execution) {
+      switch (uri.getScheme()) {
       case "https":
         this.ssl = true;
         break;
@@ -48,6 +56,7 @@ final class HttpChannelKey {
 
     this.port = uri.getPort() < 0 ? ssl ? 443 : 80 : uri.getPort();
     this.host = uri.getHost();
+    this.proxy = proxy;
     this.execController = execution.getController();
     this.eventLoop = execution.getEventLoop();
     this.connectTimeout = connectTimeout;
@@ -67,7 +76,8 @@ final class HttpChannelKey {
     return execController == that.execController
       && ssl == that.ssl
       && port == that.port
-      && host.equals(that.host);
+      && host.equals(that.host)
+      && Objects.equals(proxy, that.proxy);
   }
 
   @Override
@@ -76,6 +86,9 @@ final class HttpChannelKey {
     result = 31 * result + port;
     result = 31 * result + host.hashCode();
     result = 31 * result + execController.hashCode();
+    if (proxy != null) {
+      result = 31 * result + proxy.hashCode();
+    }
     return result;
   }
 

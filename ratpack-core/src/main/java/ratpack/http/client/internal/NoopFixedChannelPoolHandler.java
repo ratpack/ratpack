@@ -17,35 +17,22 @@
 package ratpack.http.client.internal;
 
 import io.netty.channel.Channel;
-import io.netty.channel.pool.AbstractChannelPoolHandler;
-import io.netty.handler.proxy.HttpProxyHandler;
 import io.netty.handler.timeout.IdleStateHandler;
 
-import java.net.InetSocketAddress;
-import java.net.SocketAddress;
 import java.time.Duration;
 import java.util.concurrent.TimeUnit;
 
-public class NoopFixedChannelPoolHandler extends AbstractChannelPoolHandler implements InstrumentedChannelPoolHandler {
+public class NoopFixedChannelPoolHandler extends ProxyChannelPoolHandler implements InstrumentedChannelPoolHandler {
 
   private static final String IDLE_STATE_HANDLER_NAME = "idleState";
 
   private final String host;
   private final Duration idleTimeout;
-  private final ProxyInternal proxy;
 
-  public NoopFixedChannelPoolHandler(HttpChannelKey channelKey, Duration idleTimeout, ProxyInternal proxy) {
+  public NoopFixedChannelPoolHandler(HttpChannelKey channelKey, Duration idleTimeout) {
+    super(channelKey);
     this.host = channelKey.host;
     this.idleTimeout = idleTimeout;
-    this.proxy = proxy;
-  }
-
-  @Override
-  public void channelCreated(Channel ch) throws Exception {
-    if  (proxy != null && proxy.shouldProxy(host)) {
-      SocketAddress proxyAddress = new InetSocketAddress(proxy.getHost(), proxy.getPort());
-      ch.pipeline().addLast(new HttpProxyHandler(proxyAddress));
-    }
   }
 
   @Override

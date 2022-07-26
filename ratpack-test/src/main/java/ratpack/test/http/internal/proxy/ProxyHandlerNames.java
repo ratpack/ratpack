@@ -1,5 +1,5 @@
 /*
- * Copyright 2019 the original author or authors.
+ * Copyright 2022 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,19 +14,14 @@
  * limitations under the License.
  */
 
-package ratpack.http.client.internal;
+package ratpack.test.http.internal.proxy;
 
-import io.netty.handler.ssl.SslContext;
-import ratpack.api.Nullable;
-import ratpack.http.client.Proxy;
+public class ProxyHandlerNames {
 
-public interface ProxyInternal extends Proxy {
+  public static final String HTTP_CODEC_HANDLER = "httpCodec";
+  public static final String PROXY_AUTH_HANDLER = "proxyAuth";
 
-  boolean shouldProxy(String host);
+  private ProxyHandlerNames() {
 
-  boolean useSsl();
-
-  @Nullable
-  SslContext getSslContext();
-
+  }
 }

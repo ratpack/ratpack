@@ -16,6 +16,8 @@
 
 package ratpack.http.client;
 
+import ratpack.api.Nullable;
+
 import java.util.Collection;
 
 /**
@@ -24,6 +26,17 @@ import java.util.Collection;
  * @since 1.8.0
  */
 public interface Proxy {
+
+  enum ProxyProtocol {
+    HTTP, HTTPS
+  }
+
+  /**
+   * The protocol that should be used when connecting to the proxy server itself.
+   *
+   * @return the protocol to use to connect to the proxy server
+   */
+  ProxyProtocol getProtocol();
 
   /**
    * The host that proxied requests will be sent.
@@ -38,6 +51,14 @@ public interface Proxy {
    * @return The port on the proxy where proxied requests will be sent.
    */
   int getPort();
+
+  /**
+   * The credentials to use when connecting to the proxy.
+   *
+   * @return The credentials to use when connecting to the HTTP proxy, or null if authentication should not be used when connecting to the HTTP proxy.
+   */
+  @Nullable
+  ProxyCredentials getCredentials();
 
   /**
    * A collection of patterns which if any or matched, the outgoing request will bypass the HTTP proxy.
