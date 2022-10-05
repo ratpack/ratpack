@@ -340,25 +340,4 @@ class FormHandlingSpec extends RatpackGroovyDslSpec {
     postText("?a=b") == "[a:[b, c]]"
   }
 
-  def "exception thrown if form input is malformed"() {
-    given:
-    handlers {
-      post {
-        parse(form())
-          .onError { render it.toString() }
-          .then { render "ok" }
-      }
-    }
-
-    when:
-    requestSpec { RequestSpec requestSpec ->
-      def body = "project=ratpack&&project=ratpack"
-      requestSpec.headers.add("Content-Type", APPLICATION_FORM)
-      requestSpec.body.stream({ it << body })
-    }
-
-    then:
-    postText() == "io.netty.handler.codec.http.multipart.HttpPostRequestDecoder\$ErrorDataDecoderException: java.lang.IllegalArgumentException: Param 'name' must not be empty"
-  }
-
 }
