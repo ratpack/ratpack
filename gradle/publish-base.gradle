@@ -39,7 +39,7 @@ publishing.repositories {
 
 extensions.findByType(SigningExtension).with {
   it.required(!project.isSnapshot)
-  if (isCi) {
+  if (!isCi) {
     it.useGpgCmd()
   }
 }
