@@ -20,6 +20,7 @@ import io.netty.buffer.ByteBuf;
 import org.reactivestreams.Subscriber;
 import org.reactivestreams.Subscription;
 import ratpack.exec.Downstream;
+import ratpack.exec.Operation;
 import ratpack.exec.Promise;
 
 import java.nio.channels.AsynchronousFileChannel;
@@ -65,20 +66,20 @@ public class FileWritingSubscriber implements Subscriber<ByteBuf> {
     }
 
     Promise.<Integer>async(down ->
-      out.write(byteBuf.nioBuffer(), position, null, new CompletionHandler<Integer, Void>() {
-        @Override
-        public void completed(Integer result, Void attachment) {
-          byteBuf.release();
-          down.success(result);
-        }
+        out.write(byteBuf.nioBuffer(), position, null, new CompletionHandler<Integer, Void>() {
+          @Override
+          public void completed(Integer result, Void attachment) {
+            byteBuf.release();
+            down.success(result);
+          }
 
-        @Override
-        public void failed(Throwable exc, Void attachment) {
-          byteBuf.release();
-          down.error(exc);
-        }
-      })
-    )
+          @Override
+          public void failed(Throwable exc, Void attachment) {
+            byteBuf.release();
+            down.error(exc);
+          }
+        })
+      )
       .onError(e -> {
         cancelled = true;
         s.cancel();
@@ -93,12 +94,12 @@ public class FileWritingSubscriber implements Subscriber<ByteBuf> {
   @Override
   public void onError(Throwable t) {
     if (!cancelled) {
-      downstream.error(t);
+      Operation.of(() -> downstream.error(t)).then();
     }
   }
 
   @Override
   public void onComplete() {
-    downstream.success(position - startAt);
+    Operation.of(() -> downstream.success(position - startAt)).then();
   }
 }
