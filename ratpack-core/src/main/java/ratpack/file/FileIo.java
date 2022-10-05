@@ -120,7 +120,10 @@ public class FileIo {
       Promise.<Long>async(down ->
         publisher.subscribe(new FileWritingSubscriber(fileChannel, position, down))
       )
-        .close(Blocking.op(((AsynchronousFileChannel) fileChannel)::close))
+        .close(Blocking.op(() -> {
+          fileChannel.force(false);
+          fileChannel.close();
+        }))
     );
   }
 
@@ -166,7 +169,10 @@ public class FileIo {
         })
       )
         .close(bytes::release)
-        .close(Blocking.op(((AsynchronousFileChannel) channel)::close))
+        .close(Blocking.op(() -> {
+          channel.force(false);
+          channel.close();
+        }))
     ).operation();
   }
 
