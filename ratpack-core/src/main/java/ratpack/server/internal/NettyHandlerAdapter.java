@@ -235,9 +235,13 @@ public class NettyHandlerAdapter extends ChannelInboundHandlerAdapter {
   public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) {
     if (!isIgnorableException(cause)) {
       LOGGER.error("", cause);
-      if (ctx.channel().isActive()) {
-        sendError(ctx, HttpResponseStatus.INTERNAL_SERVER_ERROR);
-      }
+    }
+
+    Channel channel = ctx.channel();
+    if (channel.isActive()) {
+      sendError(ctx, HttpResponseStatus.INTERNAL_SERVER_ERROR);
+    } else {
+      channel.close();
     }
   }
 
