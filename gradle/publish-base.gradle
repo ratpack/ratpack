@@ -39,7 +39,9 @@ publishing.repositories {
 
 extensions.findByType(SigningExtension).with {
   it.required(!project.isSnapshot)
-  it.useGpgCmd()
+  if (isCi) {
+    it.useGpgCmd()
+  }
 }
 
 publishing.publications.withType(MavenPublication).configureEach {
