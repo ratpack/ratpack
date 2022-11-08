@@ -194,14 +194,6 @@ abstract class RequestActionSupport<T> implements Upstream<T> {
                 });
             }
           });
-      } else {
-        forceDispose(channel.pipeline())
-          .addListener(disposeFuture -> {
-            if (!disposeFuture.isSuccess()) {
-              firstFuture.cause().addSuppressed(disposeFuture.cause());
-            }
-            downstream.error(firstFuture.cause());
-          });
       }
     });
   }

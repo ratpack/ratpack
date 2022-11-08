@@ -17,6 +17,8 @@
 package ratpack.ssl
 
 import com.google.common.base.Throwables
+import io.netty.handler.codec.DecoderException
+import io.netty.handler.codec.PrematureChannelClosureException
 import io.netty.handler.ssl.ClientAuth
 import io.netty.handler.ssl.SslContext
 import io.netty.handler.ssl.SslContextBuilder
@@ -63,7 +65,7 @@ class HttpsSpec extends RatpackGroovyDslSpec {
       try {
         getText()
         throw new IllegalStateException("should have failed")
-      } catch (UncheckedIOException e) {
+      } catch (DecoderException e) {
         def root = Throwables.getRootCause(e)
         assert root instanceof CertificateException
         assert root.message == "No name matching localhost found"
@@ -97,16 +99,37 @@ class HttpsSpec extends RatpackGroovyDslSpec {
       }
     }
 
+    and:
+    getText()
+
     then:
-    try {
-      getText()
-      throw new IllegalStateException("should have failed")
-    } catch (UncheckedIOException e) {
-      def root = Throwables.getRootCause(e)
-      assert root instanceof SunCertPathBuilderException
-      assert root.message == "unable to find valid certification path to requested target"
+    def e = thrown(DecoderException)
+    def root = Throwables.getRootCause(e)
+    root instanceof SunCertPathBuilderException
+    root.message == "unable to find valid certification path to requested target"
+  }
+
+
+  def "handles early ssl terminate"() {
+    given:
+    def serverSocket = new ServerSocket(0, 1)
+    Thread.start {
+      serverSocket.accept().close()
     }
 
+    when:
+    handlers {
+      get {
+        render "ok"
+      }
+    }
+
+    and:
+    getText("https://localhost:$serverSocket.localPort")
+
+    then:
+    def e = thrown(Exception)
+    e instanceof PrematureChannelClosureException || Throwables.getRootCause(e) instanceof IOException
   }
 
   def "can obtain clients ID"() {
