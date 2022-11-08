@@ -18,6 +18,7 @@ package ratpack.ssl
 
 import com.google.common.base.Throwables
 import io.netty.handler.codec.DecoderException
+import io.netty.handler.codec.PrematureChannelClosureException
 import io.netty.handler.ssl.ClientAuth
 import io.netty.handler.ssl.SslContext
 import io.netty.handler.ssl.SslContextBuilder
@@ -127,10 +128,8 @@ class HttpsSpec extends RatpackGroovyDslSpec {
     getText("https://localhost:$serverSocket.localPort")
 
     then:
-    def e = thrown(UncheckedIOException)
-    def root = Throwables.getRootCause(e)
-    root instanceof IOException
-    root.message == "Connection reset by peer"
+    def e = thrown(Exception)
+    e instanceof PrematureChannelClosureException || Throwables.getRootCause(e) instanceof IOException
   }
 
   def "can obtain clients ID"() {
