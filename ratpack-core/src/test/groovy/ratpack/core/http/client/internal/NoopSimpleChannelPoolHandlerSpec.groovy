@@ -17,6 +17,11 @@
 package ratpack.core.http.client.internal
 
 import io.netty.channel.Channel
+import io.netty.channel.ChannelPipeline
+import io.netty.handler.proxy.HttpProxyHandler
+import io.netty.handler.proxy.Socks4ProxyHandler
+import io.netty.handler.proxy.Socks5ProxyHandler
+import ratpack.core.http.client.Proxy.Type
 import ratpack.exec.Execution
 import ratpack.test.internal.BaseRatpackSpec
 
@@ -26,8 +31,9 @@ class NoopSimpleChannelPoolHandlerSpec extends BaseRatpackSpec {
 
   Execution execution = Mock(Execution)
   URI uri = new URI('https://ratpack.io')
-    HttpChannelKey channelKey = new HttpChannelKey(uri, Duration.ofSeconds(30), execution)
+  HttpChannelKey channelKey = new HttpChannelKey(uri, Duration.ofSeconds(30), execution)
   Channel channel = Mock(Channel)
+  ChannelPipeline pipeline = Mock(ChannelPipeline)
 
   void 'it should handle construction and listening to ChannelPool changes'() {
     when:
@@ -60,4 +66,26 @@ class NoopSimpleChannelPoolHandlerSpec extends BaseRatpackSpec {
     assert handler.getIdleConnectionCount() == 0
   }
 
+  void '#handlerType.simpleName is used for #proxyType proxy type'() {
+    given:
+    DefaultProxy proxy = new DefaultProxy("localhost", 7777, Collections.emptySet(), proxyType)
+    NoopSimpleChannelPoolHandler handler = new NoopSimpleChannelPoolHandler(channelKey, proxy)
+
+    when:
+    handler.channelCreated(channel)
+
+    then:
+    channel.pipeline() >> pipeline
+    pipeline.addLast(_) >> { h ->
+      assert h.size() == 1
+      assert handlerType.isAssignableFrom(h[0][0].class)
+      pipeline
+    }
+
+    where:
+    proxyType   | handlerType
+    Type.HTTP   | HttpProxyHandler
+    Type.SOCKS4 | Socks4ProxyHandler
+    Type.SOCKS5 | Socks5ProxyHandler
+  }
 }

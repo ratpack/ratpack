@@ -33,7 +33,7 @@ public interface ProxySpec {
   ProxySpec host(String host);
 
   /**
-   * Configure the port on the proxy to will outbound HTTP requests will be sent.
+   * Configure the port on the proxy to which outbound HTTP requests will be sent.
    * @param port the port for the HTTP proxy
    * @return {@code this}
    */
@@ -49,4 +49,12 @@ public interface ProxySpec {
    * @return {@code this}
    */
   ProxySpec nonProxyHosts(Collection<String> nonProxyHosts);
+
+  /**
+   * Configure the type of the proxy that will proxy outbound HTTP requests.
+   *
+   * @param type the type of the proxy
+   * @return {@code this}
+   */
+  ProxySpec type(Proxy.Type type);
 }
