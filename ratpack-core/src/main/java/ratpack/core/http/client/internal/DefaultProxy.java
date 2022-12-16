@@ -35,14 +35,16 @@ public class DefaultProxy implements ProxyInternal {
   private final ProxyCredentials credentials;
 
   private final SslContext sslContext;
+  private final Type type;
 
-  public DefaultProxy(ProxyProtocol protocol, String host, int port, Collection<String> nonProxyHosts, @Nullable ProxyCredentials credentials, SslContext sslContext) {
+  public DefaultProxy(ProxyProtocol protocol, String host, int port, Collection<String> nonProxyHosts, @Nullable ProxyCredentials credentials, SslContext sslContext, Type type) {
     this.protocol = protocol;
     this.host = host;
     this.port = port;
     this.nonProxyHosts = nonProxyHosts;
     this.credentials = credentials;
     this.sslContext = sslContext;
+    this.type = type;
   }
 
   @Override
@@ -63,6 +65,11 @@ public class DefaultProxy implements ProxyInternal {
   @Override
   public Collection<String> getNonProxyHosts() {
     return nonProxyHosts;
+  }
+
+  @Override
+  public Type getType() {
+    return type;
   }
 
   @Nullable
@@ -159,6 +166,7 @@ public class DefaultProxy implements ProxyInternal {
     private int port;
     private Collection<String> nonProxyHosts = Collections.emptyList();
     private ProxyCredentials credentials;
+    private Type type = Type.HTTP;
 
     private SslContext sslContext;
 
@@ -172,6 +180,7 @@ public class DefaultProxy implements ProxyInternal {
       this.nonProxyHosts = proxy.getNonProxyHosts();
       this.credentials = proxy.getCredentials();
       this.sslContext = proxy.getSslContext();
+      this.type = proxy.getType();
     }
 
     @Override
@@ -209,8 +218,14 @@ public class DefaultProxy implements ProxyInternal {
       return this;
     }
 
+    @Override
+    public Builder type(Type type) {
+      this.type = type;
+      return this;
+    }
+
     ProxyInternal build() {
-      return new DefaultProxy(protocol, host, port, nonProxyHosts, credentials, protocol == ProxyProtocol.HTTPS ? sslContext : null);
+      return new DefaultProxy(protocol, host, port, nonProxyHosts, credentials, protocol == ProxyProtocol.HTTPS ? sslContext : null, type);
     }
   }
 }

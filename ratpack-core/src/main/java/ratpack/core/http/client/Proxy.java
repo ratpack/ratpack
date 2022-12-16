@@ -39,6 +39,24 @@ public interface Proxy {
   ProxyProtocol getProtocol();
 
   /**
+   * List of valid proxy types.
+   */
+  enum Type {
+    /**
+     * HTTP proxy
+     */
+    HTTP,
+    /**
+     * SOCKS4 proxy
+     */
+    SOCKS4,
+    /**
+     * SOCKS5 proxy
+     */
+    SOCKS5
+  }
+
+  /**
    * The host that proxied requests will be sent.
    *
    * @return The host that proxied requests will be sent.
@@ -69,4 +87,10 @@ public interface Proxy {
    * @return A collection of patterns which if any or matched, the outgoing request will bypass the HTTP proxy.
    */
   Collection<String> getNonProxyHosts();
+
+  /**
+   * The type of the proxy where proxied requests will be sent.
+   * @return The type of the proxy where proxied requests will be sent.
+   */
+  Type getType();
 }

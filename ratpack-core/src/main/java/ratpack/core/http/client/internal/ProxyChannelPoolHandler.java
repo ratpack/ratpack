@@ -17,11 +17,15 @@
 package ratpack.core.http.client.internal;
 
 import io.netty.channel.Channel;
+import io.netty.channel.ChannelPipeline;
 import io.netty.channel.pool.AbstractChannelPoolHandler;
 import io.netty.handler.proxy.HttpProxyHandler;
+import io.netty.handler.proxy.Socks4ProxyHandler;
+import io.netty.handler.proxy.Socks5ProxyHandler;
 import io.netty.handler.ssl.SslContext;
 import io.netty.handler.ssl.SslContextBuilder;
 import io.netty.handler.ssl.SslHandler;
+import ratpack.core.http.client.ProxyCredentials;
 
 import javax.net.ssl.SSLException;
 import java.net.InetSocketAddress;
@@ -40,17 +44,29 @@ public class ProxyChannelPoolHandler extends AbstractChannelPoolHandler {
   @Override
   public void channelCreated(Channel ch) throws Exception {
     if (proxy != null && proxy.shouldProxy(host)) {
-      SocketAddress proxyAddress = new InetSocketAddress(proxy.getHost(), proxy.getPort());
-
       if (proxy.useSsl()) {
         ch.pipeline().addLast(createSslHandler(ch));
       }
 
-      if (proxy.getCredentials() != null) {
-        // HttpProxyHandler throws a NPE passed a null username or a null password.
-        ch.pipeline().addLast(new HttpProxyHandler(proxyAddress, proxy.getCredentials().getUsername(), proxy.getCredentials().getPassword()));
-      } else {
-        ch.pipeline().addLast(new HttpProxyHandler(proxyAddress));
+      ChannelPipeline pipeline = ch.pipeline();
+      ProxyCredentials credentials = proxy.getCredentials();
+      switch (proxy.getType()) {
+        case SOCKS4:
+          SocketAddress socks4ProxyAddress = InetSocketAddress.createUnresolved(proxy.getHost(), proxy.getPort());
+          pipeline.addLast(new Socks4ProxyHandler(socks4ProxyAddress, credentials == null ? null : credentials.getUsername()));
+          break;
+        case SOCKS5:
+          SocketAddress socks5ProxyAddress = InetSocketAddress.createUnresolved(proxy.getHost(), proxy.getPort());
+          pipeline.addLast(new Socks5ProxyHandler(socks5ProxyAddress, credentials == null ? null : credentials.getUsername(), credentials == null ? null : credentials.getPassword()));
+          break;
+        default:
+          SocketAddress httpProxyAddress = new InetSocketAddress(proxy.getHost(), proxy.getPort());
+          if (credentials != null) {
+            // HttpProxyHandler throws a NPE passed a null username or a null password.
+            pipeline.addLast(new HttpProxyHandler(httpProxyAddress, credentials.getUsername(), credentials.getPassword()));
+          } else {
+            pipeline.addLast(new HttpProxyHandler(httpProxyAddress));
+          }
       }
     }
   }
