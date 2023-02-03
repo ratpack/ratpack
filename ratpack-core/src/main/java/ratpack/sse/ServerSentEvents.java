@@ -23,6 +23,8 @@ import org.reactivestreams.Publisher;
 import org.reactivestreams.Subscriber;
 import org.reactivestreams.Subscription;
 import ratpack.api.Nullable;
+import ratpack.exec.Execution;
+import ratpack.exec.internal.DefaultExecution;
 import ratpack.func.Action;
 import ratpack.handling.Context;
 import ratpack.http.Response;
@@ -166,58 +168,63 @@ public class ServerSentEvents implements Renderable {
 
   private void renderWithNoContentOnEmpty(Context context) {
     // Subscribe so we can listen for the first event
-    publisher.subscribe(new Subscriber<ServerSentEvent>() {
+    DefaultExecution execution = DefaultExecution.require();
+    execution.delimit(context::error, continuation -> {
+      Execution.fork()
+        .eventLoop(execution.getEventLoop())
+        .start(e -> publisher.subscribe(new Subscriber<ServerSentEvent>() {
 
-      private Subscription subscription;
-      private Subscriber<? super ServerSentEvent> subscriber;
+          private Subscription subscription;
+          private Subscriber<? super ServerSentEvent> subscriber;
 
-      @Override
-      public void onSubscribe(Subscription s) {
-        subscription = s;
-        subscription.request(1);
-      }
+          @Override
+          public void onSubscribe(Subscription s) {
+            subscription = s;
+            subscription.request(1);
+          }
 
-      @Override
-      public void onNext(ServerSentEvent event) {
-        if (subscriber == null) {
-          // This is the first event, we need to set up the forward to the response.
+          @Override
+          public void onNext(ServerSentEvent event) {
+            if (subscriber == null) {
+              // This is the first event, we need to set up the forward to the response.
 
-          // A publisher for the item we have consumed.
-          Publisher<ServerSentEvent> consumedPublisher = Streams.publish(Collections.singleton(event));
+              // A publisher for the item we have consumed.
+              Publisher<ServerSentEvent> consumedPublisher = Streams.publish(Collections.singleton(event));
 
-          // A publisher that will forward what we haven't consumed.
-          Publisher<ServerSentEvent> restPublisher = s -> {
-            // Upstream signals will flow through us, and we need to forward to this subscriber
-            subscriber = s;
+              // A publisher that will forward what we haven't consumed.
+              Publisher<ServerSentEvent> restPublisher = s -> {
+                // Upstream signals will flow through us, and we need to forward to this subscriber
+                subscriber = s;
 
-            // Pass through our subscription so that the new subscriber controls demand.
-            s.onSubscribe(requireNonNull(subscription));
-          };
+                // Pass through our subscription so that the new subscriber controls demand.
+                s.onSubscribe(requireNonNull(subscription));
+              };
 
-          // Join them together so that we send the whole thing.
-          renderStream(context, Streams.concat(Arrays.asList(consumedPublisher, restPublisher)));
-        } else {
-          subscriber.onNext(event);
-        }
-      }
+              // Join them together so that we send the whole thing.
+              continuation.resume(() -> renderStream(context, Streams.concat(Arrays.asList(consumedPublisher, restPublisher))));
+            } else {
+              subscriber.onNext(event);
+            }
+          }
 
-      @Override
-      public void onError(Throwable t) {
-        if (subscriber == null) {
-          context.error(t);
-        } else {
-          subscriber.onError(t);
-        }
-      }
+          @Override
+          public void onError(Throwable t) {
+            if (subscriber == null) {
+              continuation.resume(() -> context.error(t));
+            } else {
+              subscriber.onError(t);
+            }
+          }
 
-      @Override
-      public void onComplete() {
-        if (subscriber == null) {
-          emptyStream(context);
-        } else {
-          subscriber.onComplete();
-        }
-      }
+          @Override
+          public void onComplete() {
+            if (subscriber == null) {
+              continuation.resume(() -> emptyStream(context));
+            } else {
+              subscriber.onComplete();
+            }
+          }
+        }));
     });
   }
 
