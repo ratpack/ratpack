@@ -173,57 +173,68 @@ public class DefaultResponseTransmitter implements ResponseTransmitter {
         if (result.isSuccess()) {
           sendResponseBody(responseStatus, bodyWriter, keepAlive);
         } else {
-          if (channel.isOpen()) {
-            LOGGER.warn("Error writing response headers", result.cause());
-            channel.close();
-          }
-
-          bodyWriter.dispose();
-          if (requestBody != null && drainRequestBeforeResponse) {
-            requestBody.drain()
-              .onError(e -> {
-                LOGGER.warn("An error occurred draining the unread request body after sending the response. The connection will be closed", e);
-                channel.close();
-                notifyListeners(responseStatus);
-              })
-              .then(outcome -> {
-                switch (outcome) {
-                  case TOO_LARGE:
-                  case DISCARDED:
-                    channel.close();
-                    notifyListeners(responseStatus);
-                    break;
-                  case DRAINED:
-                    notifyListeners(responseStatus);
-                    break;
-                  default:
-                    throw new IllegalStateException("unhandled drain outcome: " + outcome);
-                }
-              });
-          } else {
-            notifyListeners(responseStatus);
-          }
+          closeAfterHeaderSendFailure(responseStatus, bodyWriter, drainRequestBeforeResponse, result);
         }
       });
   }
 
-  private void sendResponseBody(HttpResponseStatus responseStatus, ResponseBodyWriter bodyWriter, boolean keepAlive) {
-    bodyWriter.write(channel).addListener(result -> {
-      if (channel.isOpen()) {
-        if (!result.isSuccess()) {
-          LOGGER.warn("Error from response body writer", result.cause());
-        }
+  private void closeAfterHeaderSendFailure(HttpResponseStatus responseStatus, ResponseBodyWriter bodyWriter, boolean drainRequestBeforeResponse, Future<? super Void> result) {
+    if (channel.isOpen()) {
+      LOGGER.warn("Error writing response headers", result.cause());
+      channel.close();
+    }
 
-        if (result.isSuccess() && keepAlive) {
-          channel.read();
-          ConnectionIdleTimeout.of(channel).reset();
-        } else {
+    bodyWriter.dispose();
+    if (requestBody != null && drainRequestBeforeResponse) {
+      requestBody.drain()
+        .onError(e -> {
+          LOGGER.warn("An error occurred draining the unread request body after sending the response. The connection will be closed", e);
           channel.close();
-        }
-      }
-
+          notifyListeners(responseStatus);
+        })
+        .then(outcome -> {
+          switch (outcome) {
+            case TOO_LARGE:
+            case DISCARDED:
+              channel.close();
+              notifyListeners(responseStatus);
+              break;
+            case DRAINED:
+              notifyListeners(responseStatus);
+              break;
+            default:
+              throw new IllegalStateException("unhandled drain outcome: " + outcome);
+          }
+        });
+    } else {
       notifyListeners(responseStatus);
-    });
+    }
+  }
+
+  private void sendResponseBody(HttpResponseStatus responseStatus, ResponseBodyWriter bodyWriter, boolean keepAlive) {
+    Promise.<Future<? super Void>>async(down ->
+        bodyWriter.write(channel).addListener(down::success)
+      )
+      .then(result -> {
+        if (channel.isOpen()) {
+          closeChannelAfterSendingBody(keepAlive, result);
+        }
+
+        notifyListeners(responseStatus);
+      });
+  }
+
+  private void closeChannelAfterSendingBody(boolean keepAlive, Future<? super Void> result) {
+    if (!result.isSuccess()) {
+      LOGGER.warn("Error from response body writer", result.cause());
+    }
+
+    if (result.isSuccess() && keepAlive) {
+      channel.read();
+      ConnectionIdleTimeout.of(channel).reset();
+    } else {
+      channel.close();
+    }
   }
 
   private void forceCloseWithResponse(HttpResponseStatus status) {

@@ -23,7 +23,9 @@ import io.netty.handler.codec.PrematureChannelClosureException
 import org.reactivestreams.Publisher
 import org.reactivestreams.Subscriber
 import org.reactivestreams.Subscription
+import ratpack.exec.ExecInterceptor
 import ratpack.exec.Execution
+import ratpack.func.Block
 import ratpack.http.client.HttpClient
 import ratpack.http.internal.DefaultResponse
 import ratpack.stream.StreamEvent
@@ -36,6 +38,7 @@ import java.nio.charset.StandardCharsets
 import java.time.Duration
 import java.time.Instant
 import java.util.concurrent.ConcurrentLinkedQueue
+import java.util.concurrent.atomic.AtomicReference
 
 import static ratpack.http.ResponseChunks.stringChunks
 import static ratpack.stream.Streams.publish
@@ -318,6 +321,77 @@ class ResponseStreamingSpec extends RatpackGroovyDslSpec {
     input.readLine() == "0"
 
     cleanup:
+    output?.close()
+    input?.close()
+  }
+
+  def "stream response close listener is in context of execution"() {
+    when:
+    def array = new byte[1024 * 1024]
+    Arrays.fill(array, 1 as byte)
+    def data = Unpooled.wrappedBuffer(array)
+    def exec = new AtomicReference<Execution>()
+    def execSuspended = new BlockingVariable<Boolean>()
+    def execSet = new BlockingVariable<Boolean>()
+    serverConfig {
+      maxChunkSize(array.size())
+    }
+    bindings {
+      bindInstance(ExecInterceptor, new ExecInterceptor() {
+        @Override
+        void intercept(Execution execution, ExecInterceptor.ExecType execType, Block executionSegment) throws Exception {
+          try {
+            executionSegment.execute()
+          } finally {
+            if (execution == exec.get() && execType == ExecInterceptor.ExecType.COMPUTE) {
+              execSuspended.set(true)
+            }
+          }
+        }
+      })
+    }
+    handlers {
+      all { ctx ->
+        exec.set(Execution.current())
+
+        context.onClose {
+          execSet.set(Execution.current().is(exec.get()))
+        }
+
+        response.sendStream(Streams.yield { data.retainedSlice() })
+      }
+    }
+
+    and:
+    def socket = socket()
+    def input = new BufferedReader(new InputStreamReader(socket.inputStream, StandardCharsets.UTF_8))
+    def output = new OutputStreamWriter(socket.outputStream, StandardCharsets.UTF_8)
+    output.with {
+      write("POST / HTTP/1.1\r\n")
+      write("\r\n")
+      flush()
+    }
+
+    then:
+    input.readLine() == "HTTP/1.1 200 OK"
+    input.readLine() == "transfer-encoding: chunked"
+    input.readLine() == ""
+
+    and:
+    10.times {
+      input.readLine()
+      input.readLine()
+    }
+
+    when:
+    execSuspended.get()
+    input.close()
+
+    then:
+    execSet.get()
+
+    cleanup:
+    data?.release()
     output?.close()
     input?.close()
   }
