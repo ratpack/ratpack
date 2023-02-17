@@ -470,6 +470,7 @@ abstract class RequestActionSupport<T> implements Upstream<T> {
             if (redirectConfigurer != null) {
               Action<? super RequestSpec> redirectRequestConfig = s -> {
                 if (status == 301 || status == 302) {
+                  s.getBody().bytes(new byte[0]);
                   s.get();
                 }
               };
