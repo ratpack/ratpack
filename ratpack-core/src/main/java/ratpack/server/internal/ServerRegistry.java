@@ -57,15 +57,15 @@ public abstract class ServerRegistry {
 
   public static Registry serverRegistry(RatpackServer ratpackServer, Impositions impositions, ExecControllerInternal execController, ServerConfig serverConfig, Function<? super Registry, ? extends Registry> userRegistryFactory) {
     Registry baseRegistry = buildBaseRegistry(ratpackServer, impositions, execController, serverConfig);
-    Registry userRegistry = buildUserRegistry(userRegistryFactory, baseRegistry);
+    Registry userRegistry = buildUserRegistry(impositions, userRegistryFactory, baseRegistry);
 
     return baseRegistry.join(userRegistry);
   }
 
-  private static Registry buildUserRegistry(Function<? super Registry, ? extends Registry> userRegistryFactory, Registry baseRegistry) {
+  private static Registry buildUserRegistry(Impositions impositions, Function<? super Registry, ? extends Registry> userRegistryFactory, Registry baseRegistry) {
     Registry userRegistry;
     try {
-      userRegistry = userRegistryFactory.apply(baseRegistry);
+      userRegistry = impositions.imposeOver(() -> userRegistryFactory.apply(baseRegistry));
     } catch (Exception e) {
       Throwables.throwIfUnchecked(e);
       throw new StartupFailureException("Failed to build user registry", e);
