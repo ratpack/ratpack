@@ -36,6 +36,7 @@ import ratpack.impose.Impositions;
 import ratpack.registry.Registry;
 import ratpack.server.ServerConfig;
 
+import java.util.Collections;
 import java.util.List;
 
 import static com.google.inject.Guice.createInjector;
@@ -230,7 +231,11 @@ public abstract class Guice {
 
     modules.add(new AdHocModule(binderActions));
 
-    for (BindingsImposition imposition : Impositions.current().getAll(BindingsImposition.class)) {
+    Iterable<? extends BindingsImposition> bindingsImpositions = baseRegistry.maybeGet(Impositions.class)
+      .<Iterable<? extends BindingsImposition>>map(i -> i.getAll(BindingsImposition.class))
+      .orElseGet(Collections::emptyList);
+
+    for (BindingsImposition imposition : bindingsImpositions) {
       List<Action<? super Binder>> imposedBinderActions = Lists.newLinkedList();
       List<Module> imposedModules = Lists.newLinkedList();
 

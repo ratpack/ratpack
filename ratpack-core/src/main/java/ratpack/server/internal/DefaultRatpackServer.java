@@ -267,7 +267,7 @@ public class DefaultRatpackServer implements RatpackServer {
   }
 
   private DefinitionBuild buildUserDefinition() throws Exception {
-    return Impositions.impose(impositions, () -> {
+    return impositions.imposeOver(() -> {
       try {
         return new DefinitionBuild(impositions, RatpackServerDefinition.build(definitionFactory), null);
       } catch (Exception e) {
