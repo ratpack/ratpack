@@ -25,7 +25,6 @@ import ratpack.error.ClientErrorHandler
 import ratpack.error.ServerErrorHandler
 import ratpack.exec.ExecController
 import ratpack.exec.Promise
-import ratpack.exec.internal.DefaultExecController
 import ratpack.file.FileSystemBinding
 import ratpack.file.MimeTypes
 import ratpack.form.FormParseOpts
@@ -51,7 +50,7 @@ class RatpackBaseRegistryModuleSpec extends BaseRatpackSpec {
   def "injector contains bindings based on base registry"() {
     when:
     def ratpackServer = Mock(RatpackServer)
-    def execController = new DefaultExecController(4)
+    def execController = ExecController.builder().numThreads(4).build()
     def serverConfig = ServerConfig.builder().build()
     def baseRegistry = ServerRegistry.serverRegistry(ratpackServer, Impositions.none(), execController, serverConfig, Guice.registry {})
     def injector = baseRegistry.get(Injector)

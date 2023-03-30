@@ -17,8 +17,11 @@
 package ratpack.exec;
 
 import io.netty.channel.EventLoopGroup;
+import ratpack.exec.internal.DefaultExecControllerBuilder;
 import ratpack.exec.internal.ExecThreadBinding;
+import ratpack.func.Block;
 
+import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.ScheduledExecutorService;
@@ -53,6 +56,15 @@ public interface ExecController extends AutoCloseable {
     return current().orElseThrow(UnmanagedThreadException::new);
   }
 
+  /**
+   * Creates a new builder.
+   *
+   * @return a new builder
+   */
+  static ExecControllerBuilder builder() {
+    return new DefaultExecControllerBuilder();
+  }
+
   ExecStarter fork();
 
   /**
@@ -67,7 +79,24 @@ public interface ExecController extends AutoCloseable {
    */
   ScheduledExecutorService getExecutor();
 
-  ExecutorService getBlockingExecutor();
+  /**
+   * The executor for blocking work.
+   *
+   * @return the executor for blocking work.
+   * @deprecated since 1.10, use {@link #getScheduledBlockingExecutor()}
+   */
+  @Deprecated
+  default ExecutorService getBlockingExecutor() {
+    return getScheduledBlockingExecutor();
+  }
+
+  /**
+   * The executor for blocking work.
+   *
+   * @return the executor for blocking work.
+   * @since 1.10
+   */
+  ScheduledExecutorService getScheduledBlockingExecutor();
 
   /**
    * The event loop group used by Netty for this application.
@@ -88,6 +117,51 @@ public interface ExecController extends AutoCloseable {
   int getNumThreads();
 
   /**
+   * Adds a callback to run when stopping this exec controller.
+   *
+   * @param block the callback to execute when stopping this controller
+   * @return false if the controller is stopped or stopping and the block will not be executed, otherwise true
+   * @since 1.10
+   */
+  boolean onClose(Block block);
+
+  /**
+   * The registered interceptors for this controller.
+   * <p>
+   * The returned list is immutable and will not contain any future additions.
+   *
+   * @return the registered interceptors for this controller
+   * @since 1.10
+   */
+  List<? extends ExecInterceptor> getInterceptors();
+
+  /**
+   * The registered initializers for this controller.
+   * <p>
+   * The returned list is immutable and will not contain any future additions.
+   *
+   * @return the registered initializers for this controller
+   * @since 1.10
+   */
+  List<? extends ExecInitializer> getInitializers();
+
+  /**
+   * Adds the given interceptors to this controller.
+   *
+   * @param interceptors the given interceptors to this controller
+   * @since 1.10
+   */
+  void addInterceptors(Iterable<? extends ExecInterceptor> interceptors);
+
+  /**
+   * Adds the given initializers to this controller.
+   *
+   * @param initializers the given interceptors to this controller
+   * @since 1.10
+   */
+  void addInitializers(Iterable<? extends ExecInitializer> initializers);
+
+  /**
    * Shuts down this controller, terminating the event loop and blocking threads.
    * <p>
    * This method returns immediately, not waiting for the actual shutdown to occur.
@@ -97,5 +171,4 @@ public interface ExecController extends AutoCloseable {
    */
   @Override
   void close();
-
 }

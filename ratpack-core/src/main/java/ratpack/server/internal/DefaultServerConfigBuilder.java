@@ -139,6 +139,20 @@ public class DefaultServerConfigBuilder implements ServerConfigBuilder {
   }
 
   @Override
+  public ServerConfigBuilder numCoreBlockingThreads(int n) {
+    if (n < 1) {
+      throw new IllegalArgumentException("'numCoreBlockingThreads' must be > 0");
+    }
+    return addToServer(s -> s.put("numCoreBlockingThreads", n));
+
+  }
+
+  @Override
+  public ServerConfigBuilder blockingThreadIdleTimeout(Duration idleTimeout) {
+    return addToServer(s -> s.put("blockingThreadIdleTimeout", idleTimeout.toString()));
+  }
+
+  @Override
   public ServerConfigBuilder registerShutdownHook(boolean registerShutdownHook) {
     return addToServer(n -> n.put("registerShutdownHook", registerShutdownHook));
   }

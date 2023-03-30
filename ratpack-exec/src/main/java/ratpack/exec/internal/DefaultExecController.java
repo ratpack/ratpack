@@ -29,47 +29,66 @@ import ratpack.registry.RegistrySpec;
 import ratpack.util.internal.InternalRatpackError;
 import ratpack.util.internal.TransportDetector;
 
-import java.util.Queue;
-import java.util.concurrent.*;
-import java.util.concurrent.atomic.AtomicBoolean;
+import java.time.Duration;
+import java.util.List;
+import java.util.concurrent.CopyOnWriteArrayList;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.ScheduledThreadPoolExecutor;
+import java.util.concurrent.TimeUnit;
 
 import static ratpack.func.Action.noop;
 
-public class DefaultExecController implements ExecControllerInternal {
+public class DefaultExecController implements ExecController {
 
   private static final Action<Throwable> LOG_UNCAUGHT = t -> DefaultExecution.LOGGER.error("Uncaught execution exception", t);
 
   private static final Logger LOGGER = LoggerFactory.getLogger(ExecController.class);
 
-  private final ExecutorService blockingExecutor;
+  private final ScheduledExecutorService blockingExecutor;
   private final EventLoopGroup eventLoopGroup;
   private final int numThreads;
-  private final ClassLoader contextClassLoader = Thread.currentThread().getContextClassLoader();
-  private final AtomicBoolean closed = new AtomicBoolean();
+  private final ClassLoader contextClassLoader;
 
-  private ImmutableList<? extends ExecInterceptor> interceptors = ImmutableList.of();
-  private ImmutableList<? extends ExecInitializer> initializers = ImmutableList.of();
+  private volatile ImmutableList<? extends ExecInterceptor> interceptors;
+  private volatile ImmutableList<? extends ExecInitializer> initializers;
 
-  private Queue<Block> onClose = new ConcurrentLinkedQueue<>();
+  private final List<Block> onCloseQueue = new CopyOnWriteArrayList<>();
+  private boolean closed;
 
-  public DefaultExecController() {
-    this(Runtime.getRuntime().availableProcessors() * 2);
-  }
 
-  public DefaultExecController(int numThreads) {
-    this.numThreads = numThreads;
-    this.eventLoopGroup = TransportDetector.eventLoopGroup(numThreads, new ExecControllerBindingThreadFactory(true, "ratpack-compute", Thread.MAX_PRIORITY));
-    this.blockingExecutor = Executors.newCachedThreadPool(new ExecControllerBindingThreadFactory(false, "ratpack-blocking", Thread.NORM_PRIORITY));
+  public DefaultExecController(
+    int numComputeThreads,
+    int numCoreBlockingThreads,
+    Duration blockingThreadIdleTimeout,
+    ClassLoader contextClassLoader,
+    Iterable<ExecInitializer> execInitializers,
+    Iterable<ExecInterceptor> execInterceptors
+  ) {
+    this.numThreads = numComputeThreads;
+    this.eventLoopGroup = TransportDetector.eventLoopGroup(Runtime.getRuntime().availableProcessors() * 2, new ExecControllerBindingThreadFactory(true, "ratpack-compute", Thread.MAX_PRIORITY));
+    ScheduledThreadPoolExecutor blockingExecutor = new ScheduledThreadPoolExecutor(
+      numCoreBlockingThreads,
+      new ExecControllerBindingThreadFactory(false, "ratpack-blocking", Thread.NORM_PRIORITY)
+    );
+    blockingExecutor.setKeepAliveTime(blockingThreadIdleTimeout.toMillis(), TimeUnit.MILLISECONDS);
+    this.blockingExecutor = blockingExecutor;
+    this.contextClassLoader = contextClassLoader;
+    this.interceptors = ImmutableList.copyOf(execInterceptors);
+    this.initializers = ImmutableList.copyOf(execInitializers);
   }
 
   @Override
-  public void setInterceptors(ImmutableList<? extends ExecInterceptor> interceptors) {
-    this.interceptors = interceptors;
+  public void addInterceptors(Iterable<? extends ExecInterceptor> interceptors) {
+    synchronized (onCloseQueue) {
+      this.interceptors = ImmutableList.<ExecInterceptor>builder().addAll(this.interceptors).addAll(interceptors).build();
+    }
   }
 
   @Override
-  public void setInitializers(ImmutableList<? extends ExecInitializer> initializers) {
-    this.initializers = initializers;
+  public void addInitializers(Iterable<? extends ExecInitializer> initializers) {
+    synchronized (onCloseQueue) {
+      this.initializers = ImmutableList.<ExecInitializer>builder().addAll(this.initializers).addAll(initializers).build();
+    }
   }
 
   @Override
@@ -84,24 +103,34 @@ public class DefaultExecController implements ExecControllerInternal {
 
   @Override
   public boolean onClose(Block block) {
-    if (closed.get()) {
-      return false;
-    } else {
-      onClose.add(block);
-      return true;
+    synchronized (onCloseQueue) {
+      if (closed) {
+        return false;
+      } else {
+        onCloseQueue.add(block);
+        return true;
+      }
     }
   }
 
   public void close() {
-    Block onClose = this.onClose.poll();
-    while (onClose != null) {
+    synchronized (onCloseQueue) {
+      if (closed) {
+        return;
+      }
+
+      closed = true;
+    }
+
+    onCloseQueue.forEach(onClose -> {
       try {
         onClose.execute();
       } catch (Exception e) {
         LOGGER.warn("Exception thrown by exec controller onClose callback will be ignored - ", e);
       }
-      onClose = this.onClose.poll();
-    }
+    });
+
+
     blockingExecutor.shutdown();
     eventLoopGroup.shutdownGracefully(0, 0, TimeUnit.SECONDS);
   }
@@ -111,8 +140,9 @@ public class DefaultExecController implements ExecControllerInternal {
     return eventLoopGroup;
   }
 
+
   @Override
-  public ExecutorService getBlockingExecutor() {
+  public ScheduledExecutorService getScheduledBlockingExecutor() {
     return blockingExecutor;
   }
 

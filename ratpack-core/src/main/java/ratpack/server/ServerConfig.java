@@ -76,6 +76,20 @@ public interface ServerConfig extends ConfigData {
   int DEFAULT_THREADS = Runtime.getRuntime().availableProcessors() * 2;
 
   /**
+   * The default number of core blocking threads an application should use.
+   * <p>
+   * Calculated as {@code Runtime.getRuntime().availableProcessors() * 2}.
+   */
+  int DEFAULT_CORE_BLOCKING_THREADS = Runtime.getRuntime().availableProcessors() * 2;
+
+  /**
+   * The default blocking thread idle timeout an application should use.
+   * <p>
+   * Calculated as {@code Duration.ofSeconds(3)}.
+   */
+  Duration DEFAULT_BLOCKING_THREAD_IDLE_TIMEOUT = Duration.ofSeconds(3);
+
+  /**
    * The default maximum chunk size to use when reading request/response bodies.
    * <p>
    * Defaults to {@value}.
@@ -194,6 +208,25 @@ public interface ServerConfig extends ConfigData {
    * @return the number of threads for handling application requests.
    */
   int getThreads();
+
+  /**
+   * The number of persistent blocking threads.
+   * <p>
+   * Defaults to {@link #DEFAULT_CORE_BLOCKING_THREADS}.
+   *
+   * @return the number of persistent blocking threads.
+   * @since 1.10
+   */
+  int getCoreBlockingThreads();
+
+  /**
+   * The duration to allow a non-core blocking thread to remain in the pool before terminating it.
+   * <p>
+   * Defaults to {@link #DEFAULT_BLOCKING_THREAD_IDLE_TIMEOUT}.
+   *
+   * @return the duration to allow a non-core blocking thread to remain in the pool before terminating it
+   */
+  Duration getBlockingThreadIdleTimeout();
 
   /**
    * Whether a JVM shutdown hook was registered for the application in order to shut it down gracefully.

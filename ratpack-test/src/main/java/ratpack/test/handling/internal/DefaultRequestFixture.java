@@ -28,7 +28,6 @@ import ratpack.error.ClientErrorHandler;
 import ratpack.error.ServerErrorHandler;
 import ratpack.exec.ExecController;
 import ratpack.exec.Promise;
-import ratpack.exec.internal.DefaultExecController;
 import ratpack.func.Action;
 import ratpack.func.Block;
 import ratpack.handling.Chain;
@@ -55,8 +54,8 @@ import ratpack.test.handling.HandlerTimeoutException;
 import ratpack.test.handling.HandlingResult;
 import ratpack.test.handling.RequestFixture;
 import ratpack.test.http.MultipartFileSpec;
-import ratpack.test.http.internal.DefaultMultipartForm;
 import ratpack.test.http.MultipartFormSpec;
+import ratpack.test.http.internal.DefaultMultipartForm;
 import ratpack.util.Exceptions;
 
 import java.net.InetSocketAddress;
@@ -188,9 +187,9 @@ public class DefaultRequestFixture implements RequestFixture {
         @Override
         public Promise<? extends ByteBuf> read(Block onTooLarge) {
           return Promise.sync(() -> {
-            unread = false;
-            return requestBody;
-          })
+              unread = false;
+              return requestBody;
+            })
             .route(r -> r.readableBytes() > maxContentLength, onTooLarge.action());
         }
 
@@ -323,7 +322,7 @@ public class DefaultRequestFixture implements RequestFixture {
   }
 
   private void writeMultipartFormIfRequired() {
-    if(formBuilder.isPresent()) {
+    if (formBuilder.isPresent()) {
       DefaultMultipartForm form = formBuilder.get().build();
       method("POST");
       body(form.getBody(), form.getContentType());
@@ -331,7 +330,7 @@ public class DefaultRequestFixture implements RequestFixture {
   }
 
   private DefaultMultipartForm.Builder findOrCreateForm() {
-    if(!formBuilder.isPresent()) {
+    if (!formBuilder.isPresent()) {
       formBuilder = Optional.of(DefaultMultipartForm.builder());
     }
 
@@ -357,7 +356,7 @@ public class DefaultRequestFixture implements RequestFixture {
       build();
     return Exceptions.uncheck(() -> {
       ServerConfig serverConfig = serverConfigBuilder.build();
-      DefaultExecController execController = new DefaultExecController(serverConfig.getThreads());
+      ExecController execController = ExecController.builder().numThreads(serverConfig.getThreads()).build();
       return ServerRegistry.serverRegistry(new TestServer(), Impositions.none(), execController, serverConfig, r -> userRegistry.join(registryBuilder.build()));
     });
   }

@@ -48,7 +48,7 @@ public class DefaultExecution implements Execution {
   private ExecStream execStream;
 
   private final Ref ref;
-  private final ExecControllerInternal controller;
+  private final ExecController controller;
   private final EventLoop eventLoop;
   private final Action<? super Throwable> onError;
   private final Action<? super Execution> onComplete;
@@ -63,7 +63,8 @@ public class DefaultExecution implements Execution {
   private Thread thread;
 
   public DefaultExecution(
-    ExecControllerInternal controller, @Nullable ExecutionRef parent,
+    ExecController controller,
+    @Nullable ExecutionRef parent,
     EventLoop eventLoop,
     Action<? super RegistrySpec> registryInit,
     Action<? super Execution> action,
@@ -81,17 +82,21 @@ public class DefaultExecution implements Execution {
     onStart.execute(this);
 
     this.execStream = new InitialExecStream(() -> action.execute(this));
+    this.interceptors = copyInterceptors(controller, registry);
 
-    this.interceptors = Iterables.concat(
-      controller.getInterceptors(),
-      ImmutableList.copyOf(registry.getAll(ExecInterceptor.class))
-    );
+    controller.getInitializers().forEach(initializer -> initializer.init(this));
+    registry.getAll(ExecInitializer.class).forEach(initializer -> initializer.init(this));
+  }
 
-    for (ExecInitializer initializer : controller.getInitializers()) {
-      initializer.init(this);
-    }
-    for (ExecInitializer initializer : registry.getAll(ExecInitializer.class)) {
-      initializer.init(this);
+  private static Iterable<? extends ExecInterceptor> copyInterceptors(ExecController controller, Registry registry) {
+    ImmutableList<ExecInterceptor> registryInterceptors = ImmutableList.copyOf(registry.getAll(ExecInterceptor.class));
+    if (registryInterceptors.isEmpty()) {
+      return controller.getInterceptors();
+    } else {
+      return Iterables.concat(
+        controller.getInterceptors(),
+        registryInterceptors
+      );
     }
   }
 

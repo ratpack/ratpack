@@ -171,6 +171,30 @@ public interface ServerConfigBuilder extends ConfigDataBuilder {
   ServerConfigBuilder threads(int threads);
 
   /**
+   * Sets the number of persistent blocking threads to use.
+   * <p>
+   * This number of threads will be permanently reserved for blocking work.
+   * The thread pool will grow on demand before shrinking back to this size as threads idle out.
+   * <p>
+   * Defaults to {@code Runtime.getRuntime().availableProcessors() * 2}.
+   *
+   * @param n the number of persistent blocking threads to use
+   * @return {@code this}
+   * @see #blockingThreadIdleTimeout(Duration)
+   */
+  ServerConfigBuilder numCoreBlockingThreads(int n);
+
+  /**
+   * The duration to allow a non-core blocking thread to remain in the pool before terminating it.
+   * <p>
+   * Defaults to 3 seconds.
+   *
+   * @param idleTimeout the duration to allow a non-core blocking thread to remain in the pool before terminating it
+   * @return {@code this}
+   */
+  ServerConfigBuilder blockingThreadIdleTimeout(Duration idleTimeout);
+
+  /**
    * Whether or not to register a JVM shutdown hook to gracefully stop the server.
    * <p>
    * Default value is {@code true}.

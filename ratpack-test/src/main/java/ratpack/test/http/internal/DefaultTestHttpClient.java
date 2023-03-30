@@ -24,7 +24,6 @@ import io.netty.handler.codec.http.cookie.ClientCookieDecoder;
 import io.netty.handler.codec.http.cookie.ClientCookieEncoder;
 import io.netty.handler.codec.http.cookie.Cookie;
 import ratpack.exec.ExecController;
-import ratpack.exec.internal.DefaultExecController;
 import ratpack.func.Action;
 import ratpack.func.Function;
 import ratpack.http.HttpUrlBuilder;
@@ -232,7 +231,7 @@ public class DefaultTestHttpClient implements TestHttpClient {
 
   @Override
   public ReceivedResponse request(String path, Action<? super RequestSpec> requestAction) {
-    try (ExecController execController = new DefaultExecController(2)) {
+    try (ExecController execController = ExecController.builder().numThreads(2).build()) {
       URI uri = builder(path).params(params).build();
       try (HttpClient httpClient = httpClient(execController)) {
         response = client.request(httpClient, uri, execController, Duration.ofMinutes(60), requestSpec -> {

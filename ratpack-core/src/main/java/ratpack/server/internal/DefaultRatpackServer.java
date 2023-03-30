@@ -35,8 +35,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import ratpack.api.Nullable;
 import ratpack.exec.*;
-import ratpack.exec.internal.DefaultExecController;
-import ratpack.exec.internal.ExecControllerInternal;
 import ratpack.exec.internal.ExecThreadBinding;
 import ratpack.func.Action;
 import ratpack.func.Factory;
@@ -89,7 +87,7 @@ public class DefaultRatpackServer implements RatpackServer {
 
     private final InetSocketAddress boundAddress;
     private final Channel channel;
-    private final ExecControllerInternal execController;
+    private final ExecController execController;
     private final boolean useSsl;
     private final DefaultRatpackServer.ApplicationState applicationState;
     private final CountDownLatch stopLatch = new CountDownLatch(1);
@@ -99,7 +97,7 @@ public class DefaultRatpackServer implements RatpackServer {
     RunningState(
       InetSocketAddress boundAddress,
       Channel channel,
-      ExecControllerInternal execController,
+      ExecController execController,
       boolean inheritedExecController,
       boolean useSsl,
       DefaultRatpackServer.ApplicationState applicationState
@@ -166,14 +164,11 @@ public class DefaultRatpackServer implements RatpackServer {
 
     ServerConfig serverConfig = definition.serverConfig;
     boolean inheritedExecController = serverConfig.getInheritedExecController().isPresent();
-    ExecControllerInternal execController = serverConfig.getInheritedExecController()
-      .map(inherited -> {
-        if (!(inherited instanceof ExecControllerInternal)) {
-          throw new IllegalStateException("Inherited exec controller must be of type " + ExecControllerInternal.class.getName());
-        }
-        return (ExecControllerInternal) inherited;
-      })
-      .orElseGet(() -> new DefaultExecController(serverConfig.getThreads()));
+    ExecController execController = serverConfig.getInheritedExecController()
+      .orElseGet(() -> ExecController.builder()
+        .numThreads(serverConfig.getThreads())
+        .build()
+      );
     try {
       ChannelHandler channelHandler = ExecThreadBinding.bindFor(true, execController, () ->
         buildHandler(
@@ -281,7 +276,7 @@ public class DefaultRatpackServer implements RatpackServer {
     ApplicationState applicationState,
     Impositions impositions,
     ReloadingState reloadingState,
-    ExecControllerInternal execController,
+    ExecController execController,
     boolean inheritedExecController,
     Factory<DefinitionBuild> definitionBuilder
   ) throws Exception {
@@ -360,7 +355,7 @@ public class DefaultRatpackServer implements RatpackServer {
     ApplicationState applicationState,
     ReloadingState reloadingState,
     Impositions impositions,
-    ExecControllerInternal execController,
+    ExecController execController,
     boolean inheritedExecController
   ) throws Exception {
     LOGGER.info("Building registry...");
@@ -370,8 +365,8 @@ public class DefaultRatpackServer implements RatpackServer {
     );
 
     if (!inheritedExecController) {
-      execController.setInterceptors(ImmutableList.copyOf(applicationState.serverRegistry.getAll(ExecInterceptor.class)));
-      execController.setInitializers(ImmutableList.copyOf(applicationState.serverRegistry.getAll(ExecInitializer.class)));
+      execController.addInterceptors(ImmutableList.copyOf(applicationState.serverRegistry.getAll(ExecInterceptor.class)));
+      execController.addInitializers(ImmutableList.copyOf(applicationState.serverRegistry.getAll(ExecInitializer.class)));
     }
 
     Handler ratpackHandler = buildRatpackHandler(
@@ -391,7 +386,7 @@ public class DefaultRatpackServer implements RatpackServer {
     Function<? super Registry, ? extends Registry> userRegistryFactory,
     RatpackServer ratpackServer,
     Impositions impositions,
-    ExecControllerInternal execController
+    ExecController execController
   ) {
     return ServerRegistry.serverRegistry(ratpackServer, impositions, execController, serverConfig, userRegistryFactory);
   }
@@ -524,7 +519,7 @@ public class DefaultRatpackServer implements RatpackServer {
     private final ApplicationState applicationState;
     private final ReloadingState reloadingState;
     private final Impositions impositions;
-    private final ExecControllerInternal execController;
+    private final ExecController execController;
     private final Throttle reloadThrottle = Throttle.ofSize(1);
     private final boolean inheritedExecController;
     private final Factory<DefinitionBuild> definitionBuilder;
@@ -536,7 +531,7 @@ public class DefaultRatpackServer implements RatpackServer {
       ApplicationState applicationState,
       ReloadingState reloadingState,
       Impositions impositions,
-      ExecControllerInternal execController,
+      ExecController execController,
       boolean inheritedExecController,
       Factory<DefinitionBuild> definitionBuilder
     ) {
