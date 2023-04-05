@@ -17,7 +17,6 @@
 package ratpack.test.exec;
 
 import ratpack.exec.*;
-import ratpack.exec.internal.DefaultExecController;
 import ratpack.func.Action;
 import ratpack.func.Function;
 import ratpack.registry.RegistrySpec;
@@ -87,18 +86,18 @@ public interface ExecHarness extends AutoCloseable {
    *   }
    * }
    * }</pre>
-   *
+   * <p>
    * When using Ratpack's RxJava integration, ExecHarness can be used to test {@code rx.Observable} instances by first converting them to a promise.
    * See the {@code ratpack.rx2.RxRatpack.single(Observable)} documentation for an example of testing observables.
    *
    * @return a new execution harness
    */
   static ExecHarness harness() {
-    return new DefaultExecHarness(new DefaultExecController());
+    return new DefaultExecHarness(ExecController.builder().build());
   }
 
   static ExecHarness harness(int numThreads) {
-    return new DefaultExecHarness(new DefaultExecController(numThreads));
+    return new DefaultExecHarness(ExecController.builder().numThreads(numThreads).build());
   }
 
   default ExecStarter fork() {
@@ -167,7 +166,7 @@ public interface ExecHarness extends AutoCloseable {
 
   /**
    * Initiates an execution and blocks until it completes.
-   *
+   * <p>
    * If an uncaught exception is thrown during the execution, it will be thrown by this method.
    * <p>
    * This method is useful for testing an execution that has some detectable side effect, as this method does not return the “result” of the execution.
@@ -183,7 +182,7 @@ public interface ExecHarness extends AutoCloseable {
 
   /**
    * Initiates an execution and blocks until it completes.
-   *
+   * <p>
    * If an uncaught exception is thrown during the execution, it will be thrown by this method.
    * <p>
    * This method is useful for testing an execution that has some detectable side effect, as this method does not return the “result” of the execution.

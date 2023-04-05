@@ -2,7 +2,7 @@
 
 [Heroku][] is a scalable polyglot cloud application platform.
 It allows you to focus on writing applications in the language of your choice, and then easily deploy them to the cloud without having to manually manage servers, load balancing, log aggregation, etc.
-Heroku does not have, nor does it need, any special Ratpack support above its [generic support for JVM applications](http://java.heroku.com).
+Heroku does not have, nor does it need, any special Ratpack support above its [generic support for JVM applications](http://heroku.com/java).
 Heroku is a rich platform, with many [elements](https://elements.heroku.com/) such as Postgres, Redis, Memcache, RabbitMQ, New Relic, etc.
 It is a compelling option for serving Ratpack applications.
 

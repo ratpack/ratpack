@@ -26,7 +26,6 @@ import ratpack.error.internal.DefaultDevelopmentErrorHandler;
 import ratpack.error.internal.DefaultProductionErrorHandler;
 import ratpack.error.internal.ErrorHandler;
 import ratpack.exec.ExecController;
-import ratpack.exec.internal.ExecControllerInternal;
 import ratpack.file.FileSystemBinding;
 import ratpack.file.MimeTypes;
 import ratpack.file.internal.ActivationBackedMimeTypes;
@@ -55,7 +54,7 @@ import static ratpack.util.Exceptions.uncheck;
 @SuppressWarnings("deprecation")
 public abstract class ServerRegistry {
 
-  public static Registry serverRegistry(RatpackServer ratpackServer, Impositions impositions, ExecControllerInternal execController, ServerConfig serverConfig, Function<? super Registry, ? extends Registry> userRegistryFactory) {
+  public static Registry serverRegistry(RatpackServer ratpackServer, Impositions impositions, ExecController execController, ServerConfig serverConfig, Function<? super Registry, ? extends Registry> userRegistryFactory) {
     Registry baseRegistry = buildBaseRegistry(ratpackServer, impositions, execController, serverConfig);
     Registry userRegistry = buildUserRegistry(impositions, userRegistryFactory, baseRegistry);
 
