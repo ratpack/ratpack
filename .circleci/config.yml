@@ -6,6 +6,7 @@ defaults: &defaults
   working_directory: ~/ratpack
   docker:
     - image: cimg/openjdk:11.0
+  resource_class: large
   environment:
     TERM: dumb
     GRADLE_OPTS: -Dorg.gradle.jvmargs="-Xmx1g"
@@ -26,7 +27,7 @@ jobs:
             -
       - run:
           name: Run
-          command: ./gradlew sanityCheck --continue --max-workers=2 --build-cache
+          command: ./gradlew sanityCheck --continue --max-workers=3 --build-cache
 
       - save_cache:
           paths:
@@ -48,7 +49,7 @@ jobs:
 
       - run:
           name: Run
-          command: ./gradlew build jacocoReport -PjacocoReport --continue --max-workers=2 --build-cache -PpublishToSlack
+          command: ./gradlew build jacocoReport -PjacocoReport --continue --max-workers=3 --build-cache -PpublishToSlack
 
       - run:
           name: Save test results
