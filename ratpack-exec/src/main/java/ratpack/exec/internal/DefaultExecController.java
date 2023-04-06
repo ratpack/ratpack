@@ -58,7 +58,6 @@ public class DefaultExecController implements ExecController {
 
   public DefaultExecController(
     int numComputeThreads,
-    int numCoreBlockingThreads,
     Duration blockingThreadIdleTimeout,
     ClassLoader contextClassLoader,
     Iterable<ExecInitializer> execInitializers,
@@ -67,10 +66,11 @@ public class DefaultExecController implements ExecController {
     this.numThreads = numComputeThreads;
     this.eventLoopGroup = TransportDetector.eventLoopGroup(Runtime.getRuntime().availableProcessors() * 2, new ExecControllerBindingThreadFactory(true, "ratpack-compute", Thread.MAX_PRIORITY));
     ScheduledThreadPoolExecutor blockingExecutor = new ScheduledThreadPoolExecutor(
-      numCoreBlockingThreads,
+      Integer.MAX_VALUE,
       new ExecControllerBindingThreadFactory(false, "ratpack-blocking", Thread.NORM_PRIORITY)
     );
     blockingExecutor.setKeepAliveTime(blockingThreadIdleTimeout.toMillis(), TimeUnit.MILLISECONDS);
+    blockingExecutor.allowCoreThreadTimeOut(true);
     this.blockingExecutor = blockingExecutor;
     this.contextClassLoader = contextClassLoader;
     this.interceptors = ImmutableList.copyOf(execInterceptors);

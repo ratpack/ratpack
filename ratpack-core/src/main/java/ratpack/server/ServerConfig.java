@@ -85,9 +85,9 @@ public interface ServerConfig extends ConfigData {
   /**
    * The default blocking thread idle timeout an application should use.
    * <p>
-   * Calculated as {@code Duration.ofSeconds(3)}.
+   * Calculated as {@code Duration.ofSeconds(60)}.
    */
-  Duration DEFAULT_BLOCKING_THREAD_IDLE_TIMEOUT = Duration.ofSeconds(3);
+  Duration DEFAULT_BLOCKING_THREAD_IDLE_TIMEOUT = Duration.ofSeconds(60);
 
   /**
    * The default maximum chunk size to use when reading request/response bodies.

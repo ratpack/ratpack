@@ -37,23 +37,9 @@ public interface ExecControllerSpec {
   ExecControllerSpec numThreads(int n);
 
   /**
-   * Sets the number of persistent blocking threads to use.
-   * <p>
-   * This number of threads will be permanently reserved for blocking work.
-   * The thread pool will grow on demand before shrinking back to this size as threads idle out.
-   * <p>
-   * Defaults to {@code Runtime.getRuntime().availableProcessors() * 2}.
-   *
-   * @param n the number of persistent blocking threads to use
-   * @return {@code this}
-   * @see #blockingThreadIdleTimeout(Duration)
-   */
-  ExecControllerSpec numCoreBlockingThreads(int n);
-
-  /**
    * The duration to allow a non-core blocking thread to remain in the pool before terminating it.
    * <p>
-   * Defaults to 3 seconds.
+   * Defaults to 60 seconds.
    *
    * @param idleTimeout the duration to allow a non-core blocking thread to remain in the pool before terminating it
    * @return {@code this}
@@ -66,7 +52,7 @@ public interface ExecControllerSpec {
    * @param initializers the exec initializers to use for initializing executions
    * @return {@code this}
    */
-  ExecControllerSpec execInitializers(Iterable<ExecInitializer> initializers);
+  ExecControllerSpec execInitializers(Iterable<? extends ExecInitializer> initializers);
 
   /**
    * The exec interceptors to use for intercepting executions.
@@ -74,7 +60,7 @@ public interface ExecControllerSpec {
    * @param interceptors exec interceptors to use for intercepting executions
    * @return {@code this}
    */
-  ExecControllerSpec execInterceptors(Iterable<ExecInterceptor> interceptors);
+  ExecControllerSpec execInterceptors(Iterable<? extends ExecInterceptor> interceptors);
 
   /**
    * The context classloader to initialize threads with.

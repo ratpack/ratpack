@@ -28,8 +28,7 @@ import java.util.List;
 public class DefaultExecControllerBuilder implements ExecControllerBuilder {
 
   private int numThreads = Runtime.getRuntime().availableProcessors() * 2;
-  private int numCoreBlockingThreads = numThreads;
-  private Duration blockingThreadIdleTimeout = Duration.ofSeconds(3);
+  private Duration blockingThreadIdleTimeout = Duration.ofSeconds(60);
   private ClassLoader contextClassLoader = Thread.currentThread().getContextClassLoader();
   private final List<ExecInitializer> execInitializers = new ArrayList<>();
   private final List<ExecInterceptor> execInterceptors = new ArrayList<>();
@@ -47,12 +46,6 @@ public class DefaultExecControllerBuilder implements ExecControllerBuilder {
   }
 
   @Override
-  public ExecControllerBuilder numCoreBlockingThreads(int n) {
-    this.numCoreBlockingThreads = n;
-    return this;
-  }
-
-  @Override
   public ExecControllerBuilder blockingThreadIdleTimeout(Duration idleTimeout) {
     this.blockingThreadIdleTimeout = idleTimeout;
     return this;
@@ -60,13 +53,13 @@ public class DefaultExecControllerBuilder implements ExecControllerBuilder {
   }
 
   @Override
-  public ExecControllerBuilder execInitializers(Iterable<ExecInitializer> initializers) {
+  public ExecControllerBuilder execInitializers(Iterable<? extends ExecInitializer> initializers) {
     initializers.forEach(this.execInitializers::add);
     return this;
   }
 
   @Override
-  public ExecControllerBuilder execInterceptors(Iterable<ExecInterceptor> interceptors) {
+  public ExecControllerBuilder execInterceptors(Iterable<? extends ExecInterceptor> interceptors) {
     interceptors.forEach(this.execInterceptors::add);
     return this;
   }
@@ -75,7 +68,6 @@ public class DefaultExecControllerBuilder implements ExecControllerBuilder {
   public ExecController build() {
     return new DefaultExecController(
       numThreads,
-      numCoreBlockingThreads,
       blockingThreadIdleTimeout,
       contextClassLoader,
       execInitializers,
