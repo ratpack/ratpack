@@ -80,16 +80,6 @@ public class DefaultServerConfig extends DelegatingConfigData implements ServerC
   }
 
   @Override
-  public int getCoreBlockingThreads() {
-    return serverConfigData.getCoreBlockingThreads();
-  }
-
-  @Override
-  public Duration getBlockingThreadIdleTimeout() {
-    return serverConfigData.getBlockingThreadIdleTimeout();
-  }
-
-  @Override
   public boolean isRegisterShutdownHook() {
     return serverConfigData.isRegisterShutdownHook();
   }

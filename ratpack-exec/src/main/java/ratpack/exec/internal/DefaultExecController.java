@@ -29,12 +29,9 @@ import ratpack.registry.RegistrySpec;
 import ratpack.util.internal.InternalRatpackError;
 import ratpack.util.internal.TransportDetector;
 
-import java.time.Duration;
 import java.util.List;
-import java.util.concurrent.CopyOnWriteArrayList;
-import java.util.concurrent.ScheduledExecutorService;
-import java.util.concurrent.ScheduledThreadPoolExecutor;
-import java.util.concurrent.TimeUnit;
+import java.util.concurrent.*;
+import java.util.function.Function;
 
 import static ratpack.func.Action.noop;
 
@@ -44,7 +41,7 @@ public class DefaultExecController implements ExecController {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(ExecController.class);
 
-  private final ScheduledExecutorService blockingExecutor;
+  private final ExecutorService blockingExecutor;
   private final EventLoopGroup eventLoopGroup;
   private final int numThreads;
   private final ClassLoader contextClassLoader;
@@ -58,20 +55,16 @@ public class DefaultExecController implements ExecController {
 
   public DefaultExecController(
     int numComputeThreads,
-    Duration blockingThreadIdleTimeout,
+    Function<? super ThreadFactory, ? extends ExecutorService> blockingExecutorFactory,
     ClassLoader contextClassLoader,
     Iterable<ExecInitializer> execInitializers,
     Iterable<ExecInterceptor> execInterceptors
   ) {
     this.numThreads = numComputeThreads;
     this.eventLoopGroup = TransportDetector.eventLoopGroup(Runtime.getRuntime().availableProcessors() * 2, new ExecControllerBindingThreadFactory(true, "ratpack-compute", Thread.MAX_PRIORITY));
-    ScheduledThreadPoolExecutor blockingExecutor = new ScheduledThreadPoolExecutor(
-      Integer.MAX_VALUE,
+    this.blockingExecutor = blockingExecutorFactory.apply(
       new ExecControllerBindingThreadFactory(false, "ratpack-blocking", Thread.NORM_PRIORITY)
     );
-    blockingExecutor.setKeepAliveTime(blockingThreadIdleTimeout.toMillis(), TimeUnit.MILLISECONDS);
-    blockingExecutor.allowCoreThreadTimeOut(true);
-    this.blockingExecutor = blockingExecutor;
     this.contextClassLoader = contextClassLoader;
     this.interceptors = ImmutableList.copyOf(execInterceptors);
     this.initializers = ImmutableList.copyOf(execInitializers);
@@ -142,7 +135,7 @@ public class DefaultExecController implements ExecController {
 
 
   @Override
-  public ScheduledExecutorService getScheduledBlockingExecutor() {
+  public ExecutorService getBlockingExecutor() {
     return blockingExecutor;
   }
 

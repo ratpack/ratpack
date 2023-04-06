@@ -21,14 +21,18 @@ import ratpack.exec.ExecControllerBuilder;
 import ratpack.exec.ExecInitializer;
 import ratpack.exec.ExecInterceptor;
 
-import java.time.Duration;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ThreadFactory;
+import java.util.function.Function;
 
 public class DefaultExecControllerBuilder implements ExecControllerBuilder {
 
   private int numThreads = Runtime.getRuntime().availableProcessors() * 2;
-  private Duration blockingThreadIdleTimeout = Duration.ofSeconds(60);
+  private Function<? super ThreadFactory, ? extends ExecutorService> blockingExecutorFactory = Executors::newCachedThreadPool;
+
   private ClassLoader contextClassLoader = Thread.currentThread().getContextClassLoader();
   private final List<ExecInitializer> execInitializers = new ArrayList<>();
   private final List<ExecInterceptor> execInterceptors = new ArrayList<>();
@@ -46,8 +50,8 @@ public class DefaultExecControllerBuilder implements ExecControllerBuilder {
   }
 
   @Override
-  public ExecControllerBuilder blockingThreadIdleTimeout(Duration idleTimeout) {
-    this.blockingThreadIdleTimeout = idleTimeout;
+  public ExecControllerBuilder blockingExecutor(Function<? super ThreadFactory, ? extends ExecutorService> factory) {
+    this.blockingExecutorFactory = factory;
     return this;
 
   }
@@ -68,7 +72,7 @@ public class DefaultExecControllerBuilder implements ExecControllerBuilder {
   public ExecController build() {
     return new DefaultExecController(
       numThreads,
-      blockingThreadIdleTimeout,
+      blockingExecutorFactory,
       contextClassLoader,
       execInitializers,
       execInterceptors

@@ -210,25 +210,6 @@ public interface ServerConfig extends ConfigData {
   int getThreads();
 
   /**
-   * The number of persistent blocking threads.
-   * <p>
-   * Defaults to {@link #DEFAULT_CORE_BLOCKING_THREADS}.
-   *
-   * @return the number of persistent blocking threads.
-   * @since 1.10
-   */
-  int getCoreBlockingThreads();
-
-  /**
-   * The duration to allow a non-core blocking thread to remain in the pool before terminating it.
-   * <p>
-   * Defaults to {@link #DEFAULT_BLOCKING_THREAD_IDLE_TIMEOUT}.
-   *
-   * @return the duration to allow a non-core blocking thread to remain in the pool before terminating it
-   */
-  Duration getBlockingThreadIdleTimeout();
-
-  /**
    * Whether a JVM shutdown hook was registered for the application in order to shut it down gracefully.
    * <p>
    * When {@code true}, the application will be {@link RatpackServer#stop() stopped} when the JVM starts shutting down.

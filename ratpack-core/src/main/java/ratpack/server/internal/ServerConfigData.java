@@ -40,8 +40,6 @@ public class ServerConfigData {
   private boolean development;
   private int threads = ServerConfig.DEFAULT_THREADS;
 
-  private int coreBlockingThreads = ServerConfig.DEFAULT_CORE_BLOCKING_THREADS;
-  private Duration blockingThreadIdleTimeout = ServerConfig.DEFAULT_BLOCKING_THREAD_IDLE_TIMEOUT;
   private URI publicAddress;
   private SslContext sslContext;
   private boolean requireClientSslAuth;
@@ -91,22 +89,6 @@ public class ServerConfigData {
 
   public int getThreads() {
     return threads;
-  }
-
-  public int getCoreBlockingThreads() {
-    return coreBlockingThreads;
-  }
-
-  public Duration getBlockingThreadIdleTimeout() {
-    return blockingThreadIdleTimeout;
-  }
-
-  public void setCoreBlockingThreads(int coreBlockingThreads) {
-    this.coreBlockingThreads = coreBlockingThreads;
-  }
-
-  public void setBlockingThreadIdleTimeout(Duration blockingThreadIdleTimeout) {
-    this.blockingThreadIdleTimeout = blockingThreadIdleTimeout;
   }
 
   public URI getPublicAddress() {

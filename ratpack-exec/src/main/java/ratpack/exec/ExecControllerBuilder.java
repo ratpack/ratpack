@@ -16,7 +16,9 @@
 
 package ratpack.exec;
 
-import java.time.Duration;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.ThreadFactory;
+import java.util.function.Function;
 
 /**
  * A builder of an exec controller.
@@ -42,7 +44,7 @@ public interface ExecControllerBuilder extends ExecControllerSpec {
    * {@inheritDoc}
    */
   @Override
-  ExecControllerBuilder blockingThreadIdleTimeout(Duration idleTimeout);
+  ExecControllerBuilder blockingExecutor(Function<? super ThreadFactory, ? extends ExecutorService> factory);
 
   /**
    * {@inheritDoc}
