@@ -28,6 +28,6 @@ public class BlockingExecutorBackedScheduler extends ExecutorBackedScheduler {
 
   @Override
   ExecutorService getExecutor() {
-    return execController.getScheduledBlockingExecutor();
+    return execController.getBlockingExecutor();
   }
 }

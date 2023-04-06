@@ -89,12 +89,6 @@ public class ServerConfigDataDeserializer extends JsonDeserializer<ServerConfigD
     if (serverNode.hasNonNull("threads")) {
       data.setThreads(serverNode.get("threads").asInt(ServerConfig.DEFAULT_THREADS));
     }
-    if (serverNode.hasNonNull("coreBlockingThreads")) {
-      data.setCoreBlockingThreads(serverNode.get("coreBlockingThreads").asInt(ServerConfig.DEFAULT_CORE_BLOCKING_THREADS));
-    }
-    if (serverNode.hasNonNull("blockingThreadIdleTimeout")) {
-      data.setBlockingThreadIdleTimeout(Duration.parse(serverNode.get("blockingThreadIdleTimeout").asText(ServerConfig.DEFAULT_BLOCKING_THREAD_IDLE_TIMEOUT.toString())));
-    }
     if (serverNode.hasNonNull("registerShutdownHook")) {
       data.setRegisterShutdownHook(serverNode.get("registerShutdownHook").asBoolean(true));
     }

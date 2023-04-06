@@ -16,7 +16,10 @@
 
 package ratpack.exec;
 
-import java.time.Duration;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ThreadFactory;
+import java.util.function.Function;
 
 /**
  * A mutable specification of an exec controller.
@@ -37,14 +40,16 @@ public interface ExecControllerSpec {
   ExecControllerSpec numThreads(int n);
 
   /**
-   * The duration to allow a non-core blocking thread to remain in the pool before terminating it.
+   * A factory for creating the executor to use for blocking tasks.
    * <p>
-   * Defaults to 60 seconds.
+   * It is essential that the executor uses the provided thread factory.
+   * <p>
+   * By default, {@link Executors#newCachedThreadPool()} is used.
    *
-   * @param idleTimeout the duration to allow a non-core blocking thread to remain in the pool before terminating it
+   * @param factory the creator of the thread factory
    * @return {@code this}
    */
-  ExecControllerSpec blockingThreadIdleTimeout(Duration idleTimeout);
+  ExecControllerSpec blockingExecutor(Function<? super ThreadFactory, ? extends ExecutorService> factory);
 
   /**
    * The exec initializers to use for initializing executions.

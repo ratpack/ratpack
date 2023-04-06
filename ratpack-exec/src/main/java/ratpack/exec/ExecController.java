@@ -83,20 +83,8 @@ public interface ExecController extends AutoCloseable {
    * The executor for blocking work.
    *
    * @return the executor for blocking work.
-   * @deprecated since 1.10, use {@link #getScheduledBlockingExecutor()}
    */
-  @Deprecated
-  default ExecutorService getBlockingExecutor() {
-    return getScheduledBlockingExecutor();
-  }
-
-  /**
-   * The executor for blocking work.
-   *
-   * @return the executor for blocking work.
-   * @since 1.10
-   */
-  ScheduledExecutorService getScheduledBlockingExecutor();
+  ExecutorService getBlockingExecutor();
 
   /**
    * The event loop group used by Netty for this application.

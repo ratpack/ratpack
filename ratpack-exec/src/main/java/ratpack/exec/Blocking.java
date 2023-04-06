@@ -79,7 +79,7 @@ public abstract class Blocking {
                   execution.unbindFromThread();
                 }
               }
-            }, execution.getController().getScheduledBlockingExecutor()
+            }, execution.getController().getBlockingExecutor()
           ).thenAcceptAsync(v -> continuation.resume(() -> downstream.accept(v)), eventLoop)
         )
       );
