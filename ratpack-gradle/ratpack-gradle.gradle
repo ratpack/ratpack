@@ -67,6 +67,13 @@ pluginBundle {
   tags = ['application', 'web', 'http', 'ratpack']
 
   plugins {
+    ratpackBasePlugin {
+      id = 'io.ratpack.ratpack-base'
+      displayName = 'Ratpack Base Gradle Plugin'
+      description = 'This plugin provides the base DSL extension useful for declaring Ratpack dependencies.'
+      tags = ['java', 'application', 'web', 'http', 'ratpack']
+    }
+
     ratpackJavaPlugin {
       id = 'io.ratpack.ratpack-java'
       displayName = 'Ratpack Java Gradle Plugin'
