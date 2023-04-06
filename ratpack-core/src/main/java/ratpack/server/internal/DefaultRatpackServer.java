@@ -167,6 +167,7 @@ public class DefaultRatpackServer implements RatpackServer {
     ExecController execController = serverConfig.getInheritedExecController()
       .orElseGet(() -> ExecController.builder()
         .numThreads(serverConfig.getThreads())
+        .blockingThreadIdleTimeout(serverConfig.getBlockingThreadIdleTimeout())
         .build()
       );
     try {

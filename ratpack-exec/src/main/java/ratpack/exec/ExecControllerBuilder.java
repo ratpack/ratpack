@@ -42,25 +42,19 @@ public interface ExecControllerBuilder extends ExecControllerSpec {
    * {@inheritDoc}
    */
   @Override
-  ExecControllerBuilder numCoreBlockingThreads(int n);
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override
   ExecControllerBuilder blockingThreadIdleTimeout(Duration idleTimeout);
 
   /**
    * {@inheritDoc}
    */
   @Override
-  ExecControllerBuilder execInitializers(Iterable<ExecInitializer> initializers);
+  ExecControllerBuilder execInitializers(Iterable<? extends ExecInitializer> initializers);
 
   /**
    * {@inheritDoc}
    */
   @Override
-  ExecControllerBuilder execInterceptors(Iterable<ExecInterceptor> interceptors);
+  ExecControllerBuilder execInterceptors(Iterable<? extends ExecInterceptor> interceptors);
 
   /**
    * Creates a controller from the current state.
