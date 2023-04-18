@@ -21,6 +21,7 @@ import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelPipeline;
 import io.netty.channel.SimpleChannelInboundHandler;
 import io.netty.handler.codec.http.*;
+import io.netty.util.ReferenceCountUtil;
 import io.netty.util.ReferenceCounted;
 import io.netty.util.concurrent.Future;
 import org.reactivestreams.Subscription;
@@ -86,6 +87,19 @@ public class ContentStreamingRequestAction extends RequestActionSupport<Streamed
 
     @Override
     protected void channelRead0(ChannelHandlerContext ctx, HttpObject httpObject) throws Exception {
+      Throwable decoderFailure = httpObject.decoderResult().cause();
+      if (decoderFailure != null) {
+        ReferenceCountUtil.release(httpObject);
+        forceDispose(ctx.pipeline()).addListener(future -> {
+          Throwable disposeError = future.cause();
+          if (disposeError != null) {
+            decoderFailure.addSuppressed(disposeError);
+          }
+          downstream.error(decoderFailure);
+        });
+        return;
+      }
+
       if (httpObject instanceof HttpResponse) {
         this.response = (HttpResponse) httpObject;
 
