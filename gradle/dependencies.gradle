@@ -21,7 +21,7 @@ ext {
     netty            : "4.1.82.Final",
     nettyTCNative    : "2.0.54.Final",
     guava            : "28.2-jre",
-    groovy           : "2.5.4",
+    groovy           : "3.0.17",
     pac4j            : "1.8.8",
     rxjava           : "1.1.2",
     rxjava2          : "2.1.12",
