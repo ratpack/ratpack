@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 the original author or authors.
+ * Copyright 2023 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,11 +14,12 @@
  * limitations under the License.
  */
 
-package ratpack.test.internal.snippets.executer
+package ratpack.manual.snippets
 
 import groovy.transform.CompileStatic
 import org.gradle.testkit.runner.GradleRunner
 import ratpack.test.internal.snippets.TestCodeSnippet
+import ratpack.test.internal.snippets.executer.SnippetExecuter
 import ratpack.test.internal.snippets.fixture.SnippetFixture
 
 import java.util.concurrent.locks.Condition

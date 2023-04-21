@@ -30,7 +30,7 @@ ext {
     jackson          : "2.10.3",
     dropwizardMetrics: "4.1.6",
     pegdown          : "1.6.0",
-    spock            : "1.3-groovy-2.5",
+    spock            : "2.3-groovy-3.0",
     log4j            : "2.17.1",
     newrelic         : "5.13.0",
     reactiveStreams  : "1.0.3",

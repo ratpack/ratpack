@@ -48,6 +48,10 @@ repositories {
   mavenCentral()
 }
 
+configurations.testCompileClasspath {
+  resolutionStrategy.force("org.spockframework:spock-core:2.3-groovy-2.5")
+}
+
 dependencies {
   testCompile apiModules
   testCompile("org.pac4j:pac4j-oauth:${commonVersions.pac4j}") { // used by ratpack-pac4j's code snippets
