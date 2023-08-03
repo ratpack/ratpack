@@ -18,7 +18,6 @@ package ratpack.server
 
 import io.netty.channel.ChannelOption
 import ratpack.test.internal.RatpackGroovyDslSpec
-import spock.util.environment.RestoreSystemProperties
 
 class ServerChannelOptionsSpec extends RatpackGroovyDslSpec {
 
@@ -32,7 +31,7 @@ class ServerChannelOptionsSpec extends RatpackGroovyDslSpec {
 
     @Override
     void setChildOptions(OptionSetter setter) {
-      setter.set(ChannelOption.IP_TOS, val)
+      setter.set(ChannelOption.SO_KEEPALIVE, true)
     }
   }
 
@@ -47,10 +46,8 @@ class ServerChannelOptionsSpec extends RatpackGroovyDslSpec {
 
   }
 
-  @RestoreSystemProperties
   def "can configure server channel options"() {
     when:
-    System.setProperty("ratpack.nativeTransport.disable", "true")
     serverConfig {
       connectQueueSize 9
       props("c1.val": "2")
@@ -61,12 +58,12 @@ class ServerChannelOptionsSpec extends RatpackGroovyDslSpec {
     handlers {
       get {
         def parent = directChannelAccess.channel.parent().config().getOption(ChannelOption.SO_BACKLOG)
-        def child = directChannelAccess.channel.config().getOption(ChannelOption.IP_TOS)
+        def child = directChannelAccess.channel.config().getOption(ChannelOption.SO_KEEPALIVE)
         render "$parent:$child"
       }
     }
 
     then:
-    text == "8000000:2"
+    text == "8000000:true"
   }
 }
