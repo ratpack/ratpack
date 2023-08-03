@@ -391,17 +391,17 @@ public class DefaultExecution implements Execution {
 
     @Override
     void delimit(Action<? super Throwable> onError, Action<? super Continuation> segment) {
-      throw new UnsupportedOperationException();
+      parent.delimit(onError, segment);
     }
 
     @Override
     void delimitStream(Action<? super Throwable> onError, Action<? super ContinuationStream> segment) {
-      throw new UnsupportedOperationException();
+      parent.delimitStream(onError, segment);
     }
 
     @Override
     void enqueue(Block segment) {
-      throw new UnsupportedOperationException();
+      parent.enqueue(segment);
     }
 
     @Override
