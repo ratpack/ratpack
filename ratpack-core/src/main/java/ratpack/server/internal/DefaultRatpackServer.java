@@ -313,6 +313,7 @@ public class DefaultRatpackServer implements RatpackServer {
     serverConfig.getConnectQueueSize().ifPresent(i ->
       serverBootstrap.option(ChannelOption.SO_BACKLOG, i)
     );
+    serverBootstrap.childOption(ChannelOption.SO_KEEPALIVE, serverConfig.isTcpKeepAlive());
 
     return serverBootstrap
       .group(execController.getEventLoopGroup())
