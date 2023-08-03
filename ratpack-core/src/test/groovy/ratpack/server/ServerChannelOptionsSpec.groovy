@@ -50,8 +50,8 @@ class ServerChannelOptionsSpec extends RatpackGroovyDslSpec {
         when:
         serverConfig {
             connectQueueSize 9
-            props("c1.val": "400000")
-            props("c2.val": "800000")
+            props("c1.val": "4000000")
+            props("c2.val": "8000000")
             require("/c1", Conf1)
             require("/c2", Conf2)
         }
@@ -64,6 +64,6 @@ class ServerChannelOptionsSpec extends RatpackGroovyDslSpec {
         }
 
         then:
-        text == "800000:400000"
+        text == "8000000:4000000"
     }
 }
