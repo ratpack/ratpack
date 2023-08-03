@@ -31,7 +31,7 @@ class ServerChannelOptionsSpec extends RatpackGroovyDslSpec {
 
         @Override
         void setChildOptions(OptionSetter setter) {
-            setter.set(ChannelOption.SO_SNDBUF, val)
+            setter.set(ChannelOption.IP_TOS, val)
         }
     }
 
@@ -50,7 +50,7 @@ class ServerChannelOptionsSpec extends RatpackGroovyDslSpec {
         when:
         serverConfig {
             connectQueueSize 9
-            props("c1.val": "425980")
+            props("c1.val": "2")
             props("c2.val": "8000000")
             require("/c1", Conf1)
             require("/c2", Conf2)
@@ -58,12 +58,12 @@ class ServerChannelOptionsSpec extends RatpackGroovyDslSpec {
         handlers {
             get {
                 def parent = directChannelAccess.channel.parent().config().getOption(ChannelOption.SO_BACKLOG)
-                def child = directChannelAccess.channel.config().getOption(ChannelOption.SO_SNDBUF)
+                def child = directChannelAccess.channel.config().getOption(ChannelOption.IP_TOS)
                 render "$parent:$child"
             }
         }
 
         then:
-        text == "8000000:425980"
+        text == "8000000:2"
     }
 }
