@@ -249,6 +249,15 @@ public interface ServerConfigBuilder extends ConfigDataBuilder {
   ServerConfigBuilder connectTimeoutMillis(int connectTimeoutMillis);
 
   /**
+   * Whether to enable TCP keep-alive for connections.
+   *
+   * @param tcpKeepAlive whether to enable TCP keep-alive for connections
+   * @return {@code this}
+   * @see ServerConfig#isTcpKeepAlive()
+   */
+  ServerConfigBuilder tcpKeepAlive(boolean tcpKeepAlive);
+
+  /**
    * The default read timeout of the channel.
    *
    * @param idleTimeout the idleTimeout ({@link Duration#ZERO} = no timeout, must not be negative, must not be null)

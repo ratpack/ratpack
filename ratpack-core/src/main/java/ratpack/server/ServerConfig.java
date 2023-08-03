@@ -307,6 +307,16 @@ public interface ServerConfig extends ConfigData {
   Optional<Integer> getConnectQueueSize();
 
   /**
+   * Whether to enable TCP keep-alive for connections.
+   * <p>
+   * The default value is {@code false}.
+   *
+   * @return whether to enable TCP keep-alive for connections
+   * @since 1.10
+   */
+  boolean isTcpKeepAlive();
+
+  /**
    * The maximum loop count for a write operation until <a href="http://docs.oracle.com/javase/7/docs/api/java/nio/channels/WritableByteChannel.html?is-external=true#write(java.nio.ByteBuffer)" target="_blank">WritableByteChannel.write(ByteBuffer)</a> returns a non-zero value.
    * <p>
    * It is similar to what a spin lock is used for in concurrency programming. It improves memory utilization and write throughput depending on the platform that JVM runs on.

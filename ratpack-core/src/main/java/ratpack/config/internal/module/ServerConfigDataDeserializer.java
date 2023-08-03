@@ -133,6 +133,9 @@ public class ServerConfigDataDeserializer extends JsonDeserializer<ServerConfigD
     if (serverNode.hasNonNull("connectQueueSize")) {
       parseOptionalIntValue("connectQueueSize", serverNode.get("connectQueueSize")).ifPresent(data::setConnectQueueSize);
     }
+    if (serverNode.hasNonNull("tcpKeepAlive")) {
+      data.setTcpKeepAlive(serverNode.get("tcpKeepAlive").asBoolean(false));
+    }
     if (serverNode.hasNonNull("portFile")) {
       data.setPortFile(toValue(codec, serverNode.get("portFile"), Path.class));
     }
