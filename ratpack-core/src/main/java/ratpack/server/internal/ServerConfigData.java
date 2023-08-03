@@ -57,6 +57,7 @@ public class ServerConfigData {
 
   private Duration idleTimeout = Duration.ZERO;
   private boolean registerShutdownHook = true;
+  private boolean tcpKeepAlive;
 
   public ServerConfigData(FileSystemBinding baseDir, InetAddress address, int port, boolean development, URI publicAddress) {
     this.baseDir = baseDir;
@@ -243,5 +244,13 @@ public class ServerConfigData {
 
   public void setRegisterShutdownHook(boolean registerShutdownHook) {
     this.registerShutdownHook = registerShutdownHook;
+  }
+
+  public boolean isTcpKeepAlive() {
+    return tcpKeepAlive;
+  }
+
+  public void setTcpKeepAlive(boolean tcpKeepAlive) {
+    this.tcpKeepAlive = tcpKeepAlive;
   }
 }

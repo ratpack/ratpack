@@ -174,6 +174,11 @@ public class DefaultServerConfigBuilder implements ServerConfigBuilder {
   }
 
   @Override
+  public ServerConfigBuilder tcpKeepAlive(boolean tcpKeepAlive) {
+    return addToServer(n -> n.put("tcpKeepAlive", tcpKeepAlive));
+  }
+
+  @Override
   public ServerConfigBuilder idleTimeout(Duration readTimeout) {
     return addToServer(n -> n.putPOJO("idleTimeout", readTimeout));
   }
