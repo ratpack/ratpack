@@ -39,36 +39,39 @@ public abstract class TransportDetector {
   private static final Transport TRANSPORT = determineTransport();
 
   private static Transport determineTransport() {
-    Transport transport = new NativeTransport("io.netty.channel.epoll", "Epoll");
-    if (transport.isAvailable()) {
-      LOGGER.debug("Using epoll transport");
-      return transport;
-    }
-
-    transport = new NativeTransport("io.netty.channel.kqueue", "KQueue");
-    if (transport.isAvailable()) {
-      LOGGER.debug("Using kqueue transport");
-      return transport;
+    for (NativeTransport nativeTransport : NativeTransport.values()) {
+      if (nativeTransport.isAvailable()) {
+        LOGGER.debug("Using " + nativeTransport + " transport");
+        return nativeTransport;
+      }
     }
 
     LOGGER.debug("Using nio transport");
-    return new NioTransport();
+    return NioTransport.INSTANCE;
   }
 
   public static Class<? extends ServerSocketChannel> getServerSocketChannelImpl() {
-    return TRANSPORT.getServerSocketChannelImpl();
+    return transport().getServerSocketChannelImpl();
+  }
+
+  private static Transport transport() {
+    if (Boolean.getBoolean("ratpack.nativeTransport.disable")) {
+      return NioTransport.INSTANCE;
+    } else {
+      return TRANSPORT;
+    }
   }
 
   public static Class<? extends SocketChannel> getSocketChannelImpl() {
-    return TRANSPORT.getSocketChannelImpl();
+    return transport().getSocketChannelImpl();
   }
 
   public static Class<? extends DatagramChannel> getDatagramChannelImpl() {
-    return TRANSPORT.getDatagramChannelImpl();
+    return transport().getDatagramChannelImpl();
   }
 
   public static EventLoopGroup eventLoopGroup(int nThreads, ThreadFactory threadFactory) {
-    return TRANSPORT.eventLoopGroup(nThreads, threadFactory);
+    return transport().eventLoopGroup(nThreads, threadFactory);
   }
 
   private interface Transport {
@@ -85,6 +88,11 @@ public abstract class TransportDetector {
   }
 
   private static class NioTransport implements Transport {
+
+    private static final NioTransport INSTANCE = new NioTransport();
+
+    private NioTransport() {
+    }
 
     @Override
     public boolean isAvailable() {
@@ -112,12 +120,15 @@ public abstract class TransportDetector {
     }
   }
 
-  private static class NativeTransport implements Transport {
+  private enum NativeTransport implements Transport {
+
+    EPOLL("io.netty.channel.epoll", "Epoll"),
+    KQUEUE("io.netty.channel.kqueue", "KQueue");
 
     private final NativeTransportImpl impl;
 
     NativeTransport(String packageName, String classPrefix) {
-      String property = "ratpack." + classPrefix.toLowerCase() + ".disable";
+      String property = "ratpack." + name().toLowerCase() + ".disable";
       boolean disabled = Boolean.getBoolean(property);
       if (disabled || !isAvailable(packageName, classPrefix)) {
         this.impl = null;
@@ -233,10 +244,10 @@ public abstract class TransportDetector {
     private final Constructor<? extends EventLoopGroup> constructor;
 
     NativeTransportImpl(
-      Class<? extends ServerSocketChannel> serverSocketChannelClass,
-      Class<? extends SocketChannel> socketChannelClass,
-      Class<? extends DatagramChannel> datagramChannelClass,
-      Constructor<? extends EventLoopGroup> constructor
+        Class<? extends ServerSocketChannel> serverSocketChannelClass,
+        Class<? extends SocketChannel> socketChannelClass,
+        Class<? extends DatagramChannel> datagramChannelClass,
+        Constructor<? extends EventLoopGroup> constructor
     ) {
       this.serverSocketChannelClass = serverSocketChannelClass;
       this.socketChannelClass = socketChannelClass;

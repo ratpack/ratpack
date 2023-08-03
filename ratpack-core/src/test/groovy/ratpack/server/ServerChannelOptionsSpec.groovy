@@ -18,52 +18,55 @@ package ratpack.server
 
 import io.netty.channel.ChannelOption
 import ratpack.test.internal.RatpackGroovyDslSpec
+import spock.util.environment.RestoreSystemProperties
 
 class ServerChannelOptionsSpec extends RatpackGroovyDslSpec {
 
-    static class Conf1 implements ServerChannelOptions {
+  static class Conf1 implements ServerChannelOptions {
 
-        int val = 20
+    int val = 20
 
-        void setOptions(OptionSetter setter) {
-            setter.set(ChannelOption.SO_BACKLOG, val)
-        }
-
-        @Override
-        void setChildOptions(OptionSetter setter) {
-            setter.set(ChannelOption.IP_TOS, val)
-        }
+    void setOptions(OptionSetter setter) {
+      setter.set(ChannelOption.SO_BACKLOG, val)
     }
 
-    static class Conf2 implements ServerChannelOptions {
+    @Override
+    void setChildOptions(OptionSetter setter) {
+      setter.set(ChannelOption.IP_TOS, val)
+    }
+  }
 
-        int val = 20
+  static class Conf2 implements ServerChannelOptions {
 
-        @Override
-        void setOptions(OptionSetter setter) {
-            setter.set(ChannelOption.SO_BACKLOG, val)
-        }
+    int val = 20
 
+    @Override
+    void setOptions(OptionSetter setter) {
+      setter.set(ChannelOption.SO_BACKLOG, val)
     }
 
-    def "can configure server channel options"() {
-        when:
-        serverConfig {
-            connectQueueSize 9
-            props("c1.val": "2")
-            props("c2.val": "8000000")
-            require("/c1", Conf1)
-            require("/c2", Conf2)
-        }
-        handlers {
-            get {
-                def parent = directChannelAccess.channel.parent().config().getOption(ChannelOption.SO_BACKLOG)
-                def child = directChannelAccess.channel.config().getOption(ChannelOption.IP_TOS)
-                render "$parent:$child"
-            }
-        }
+  }
 
-        then:
-        text == "8000000:2"
+  @RestoreSystemProperties
+  def "can configure server channel options"() {
+    when:
+    System.setProperty("ratpack.nativeTransport.disable", "true")
+    serverConfig {
+      connectQueueSize 9
+      props("c1.val": "2")
+      props("c2.val": "8000000")
+      require("/c1", Conf1)
+      require("/c2", Conf2)
     }
+    handlers {
+      get {
+        def parent = directChannelAccess.channel.parent().config().getOption(ChannelOption.SO_BACKLOG)
+        def child = directChannelAccess.channel.config().getOption(ChannelOption.IP_TOS)
+        render "$parent:$child"
+      }
+    }
+
+    then:
+    text == "8000000:2"
+  }
 }
