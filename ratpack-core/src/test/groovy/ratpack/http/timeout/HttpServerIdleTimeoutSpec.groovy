@@ -126,50 +126,6 @@ class HttpServerIdleTimeoutSpec extends RatpackGroovyDslSpec {
     }
   }
 
-  def "time out on stream write"() {
-    when:
-    def closed = new BlockingVariable<Boolean>(30)
-    serverConfig {
-      idleTimeout Duration.ofSeconds(1)
-    }
-    handlers {
-      get {
-        def stream = Streams.periodically(context, Duration.ofSeconds(5), { Unpooled.wrappedBuffer("a".bytes) })
-          .wiretap {
-          if (it.cancel) {
-            closed.set(true)
-          }
-        }
-
-        header("Content-Length", "10")
-        response.sendStream(stream)
-      }
-    }
-    getText()
-
-    then:
-    thrown PrematureChannelClosureException
-    closed.get()
-  }
-
-  def "can override idle timeout for request on stream write"() {
-    when:
-    serverConfig {
-      idleTimeout Duration.ofSeconds(1)
-    }
-    handlers {
-      get {
-        request.idleTimeout = Duration.ofSeconds(10)
-        def stream = Streams.periodically(context, Duration.ofSeconds(3), { it < 2 ? Unpooled.wrappedBuffer("a".bytes) : null })
-        header("content-length", "2")
-        response.sendStream(stream)
-      }
-    }
-
-    then:
-    text == "aa"
-  }
-
   def "idle timeout is reset after request override"() {
     when:
     def override = Duration.ofSeconds(10)

@@ -150,8 +150,8 @@ public class DefaultHandlingResult implements HandlingResult {
     Registry effectiveRegistry = Registry.single(Stopper.class, stopper).join(registry);
     DefaultContext.ApplicationConstants applicationConstants = new DefaultContext.ApplicationConstants(effectiveRegistry, renderController, execController, next);
     requestConstants = new DefaultContext.RequestConstants(
-      applicationConstants, request, null, responseTransmitter, null);
-    Response response = new DefaultResponse(responseHeaders, registry.get(ByteBufAllocator.class), responseTransmitter);
+        applicationConstants, request, null, responseTransmitter, null);
+    Response response = new DefaultResponse(responseHeaders, registry.get(ByteBufAllocator.class), responseTransmitter, request::setIdleTimeout);
     requestConstants.response = response;
     DefaultContext.start(execController.getEventLoopGroup().next(), requestConstants, effectiveRegistry, ChainHandler.unpack(handler), Action.noop());
 
