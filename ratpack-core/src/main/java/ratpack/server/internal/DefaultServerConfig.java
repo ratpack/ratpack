@@ -168,6 +168,11 @@ public class DefaultServerConfig extends DelegatingConfigData implements ServerC
   }
 
   @Override
+  public boolean isTcpKeepAlive() {
+    return serverConfigData.isTcpKeepAlive();
+  }
+
+  @Override
   public Optional<Integer> getWriteSpinCount() {
     return serverConfigData.getWriteSpinCount();
   }
