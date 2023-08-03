@@ -236,6 +236,8 @@ public interface Response {
    * If your data source produces a small amount of data that is expensive to produce (i.e. there is a significant latency between a data request and the production of data)
    * you may want to consider an intermediate buffer to maximize throughput to the client.
    * However, this is rarely necessary.
+   * <p>
+   * Use of this method will disable any configured idle timeout for the particular request.
    *
    * @param stream a stream of byte bufs to be written to the response
    */

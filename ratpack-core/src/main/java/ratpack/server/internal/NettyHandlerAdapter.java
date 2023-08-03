@@ -185,7 +185,7 @@ public class NettyHandlerAdapter extends ChannelInboundHandlerAdapter {
       subscribeHandler
     );
 
-    Response response = new DefaultResponse(responseHeaders, ctx.alloc(), responseTransmitter);
+    Response response = new DefaultResponse(responseHeaders, ctx.alloc(), responseTransmitter, connectionIdleTimeout);
     requestConstants.response = response;
 
     DefaultContext.start(channel.eventLoop(), requestConstants, serverRegistry, handlers, execution -> {

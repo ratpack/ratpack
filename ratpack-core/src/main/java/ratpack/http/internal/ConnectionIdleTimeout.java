@@ -49,14 +49,18 @@ public class ConnectionIdleTimeout implements RequestIdleTimeout {
   }
 
   @Override
-  public void setRequestIdleTimeout(Duration duration) {
+  public void setRequestIdleTimeout(Duration idleTimeout) {
+    if (idleTimeout.isNegative()) {
+      throw new IllegalArgumentException("idleTimeout must not be negative");
+    }
+
     if (handlerRegistered) {
       channelPipeline.remove(HANDLER_NAME);
     }
-    if (duration.isZero()) {
+    if (idleTimeout.isZero()) {
       handlerRegistered = false;
     } else {
-      init(duration);
+      init(idleTimeout);
     }
   }
 

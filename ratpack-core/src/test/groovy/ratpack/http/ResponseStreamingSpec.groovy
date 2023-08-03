@@ -51,7 +51,7 @@ class ResponseStreamingSpec extends RatpackGroovyDslSpec {
       all {
         request.maxContentLength = 12
         render stringChunks(
-          publish(["abc"] * 3)
+            publish(["abc"] * 3)
         )
       }
     }
@@ -61,13 +61,35 @@ class ResponseStreamingSpec extends RatpackGroovyDslSpec {
     r.status == Status.PAYLOAD_TOO_LARGE
   }
 
+  def "idle timeout is disabled when streaming response"() {
+    when:
+    serverConfig {
+      idleTimeout(Duration.ofSeconds(1))
+    }
+    handlers {
+      all {
+        render stringChunks(
+            publish(["abc"] * 3).gate { resumer ->
+              Thread.start {
+                sleep(2000)
+                resumer.run()
+              }
+            }
+        )
+      }
+    }
+
+    then:
+    text == "abc" * 3
+  }
+
   def "unread request body is silently discarded when streaming a response"() {
     when:
     handlers {
       all {
         request.maxContentLength = 100_000
         render stringChunks(
-          publish(["abc"] * 3)
+            publish(["abc"] * 3)
         )
       }
     }
@@ -201,7 +223,7 @@ class ResponseStreamingSpec extends RatpackGroovyDslSpec {
         }
         request.maxContentLength = 100_000
         render stringChunks(
-          publish(["abc"] * 3)
+            publish(["abc"] * 3)
         )
       }
     }
@@ -286,11 +308,11 @@ class ResponseStreamingSpec extends RatpackGroovyDslSpec {
     handlers {
       all { ctx ->
         (response as DefaultResponse)
-          .sendStream(request.bodyStream.map {
-            Unpooled.compositeBuffer(2)
-              .addComponent(true, it)
-              .addComponent(true, Unpooled.wrappedBuffer("\n".bytes))
-          }, false)
+            .sendStream(request.bodyStream.map {
+              Unpooled.compositeBuffer(2)
+                  .addComponent(true, it)
+                  .addComponent(true, Unpooled.wrappedBuffer("\n".bytes))
+            }, false)
       }
     }
 

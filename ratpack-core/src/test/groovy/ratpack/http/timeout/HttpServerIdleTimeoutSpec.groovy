@@ -16,13 +16,11 @@
 
 package ratpack.http.timeout
 
-import io.netty.buffer.Unpooled
-import io.netty.handler.codec.PrematureChannelClosureException
+
 import io.netty.handler.timeout.IdleStateHandler
 import io.netty.util.concurrent.GenericFutureListener
 import ratpack.exec.Execution
 import ratpack.http.ConnectionClosedException
-import ratpack.stream.Streams
 import ratpack.test.internal.RatpackGroovyDslSpec
 import spock.util.concurrent.BlockingVariable
 
@@ -124,50 +122,6 @@ class HttpServerIdleTimeoutSpec extends RatpackGroovyDslSpec {
     } catch (IOException e) {
       assertBrokenSocket(e)
     }
-  }
-
-  def "time out on stream write"() {
-    when:
-    def closed = new BlockingVariable<Boolean>(30)
-    serverConfig {
-      idleTimeout Duration.ofSeconds(1)
-    }
-    handlers {
-      get {
-        def stream = Streams.periodically(context, Duration.ofSeconds(5), { Unpooled.wrappedBuffer("a".bytes) })
-          .wiretap {
-          if (it.cancel) {
-            closed.set(true)
-          }
-        }
-
-        header("Content-Length", "10")
-        response.sendStream(stream)
-      }
-    }
-    getText()
-
-    then:
-    thrown PrematureChannelClosureException
-    closed.get()
-  }
-
-  def "can override idle timeout for request on stream write"() {
-    when:
-    serverConfig {
-      idleTimeout Duration.ofSeconds(1)
-    }
-    handlers {
-      get {
-        request.idleTimeout = Duration.ofSeconds(10)
-        def stream = Streams.periodically(context, Duration.ofSeconds(3), { it < 2 ? Unpooled.wrappedBuffer("a".bytes) : null })
-        header("content-length", "2")
-        response.sendStream(stream)
-      }
-    }
-
-    then:
-    text == "aa"
   }
 
   def "idle timeout is reset after request override"() {
