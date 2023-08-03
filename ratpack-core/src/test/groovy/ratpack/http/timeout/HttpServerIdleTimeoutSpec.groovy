@@ -16,13 +16,11 @@
 
 package ratpack.http.timeout
 
-import io.netty.buffer.Unpooled
-import io.netty.handler.codec.PrematureChannelClosureException
+
 import io.netty.handler.timeout.IdleStateHandler
 import io.netty.util.concurrent.GenericFutureListener
 import ratpack.exec.Execution
 import ratpack.http.ConnectionClosedException
-import ratpack.stream.Streams
 import ratpack.test.internal.RatpackGroovyDslSpec
 import spock.util.concurrent.BlockingVariable
 
