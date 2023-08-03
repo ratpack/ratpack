@@ -31,7 +31,7 @@ class ServerChannelOptionsSpec extends RatpackGroovyDslSpec {
 
         @Override
         void setChildOptions(OptionSetter setter) {
-            setter.set(ChannelOption.SO_RCVBUF, val)
+            setter.set(ChannelOption.SO_SNDBUF, val)
         }
     }
 
@@ -58,7 +58,7 @@ class ServerChannelOptionsSpec extends RatpackGroovyDslSpec {
         handlers {
             get {
                 def parent = directChannelAccess.channel.parent().config().getOption(ChannelOption.SO_BACKLOG)
-                def child = directChannelAccess.channel.config().getOption(ChannelOption.SO_RCVBUF)
+                def child = directChannelAccess.channel.config().getOption(ChannelOption.SO_SNDBUF)
                 render "$parent:$child"
             }
         }
