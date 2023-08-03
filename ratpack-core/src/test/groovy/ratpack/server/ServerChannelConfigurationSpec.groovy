@@ -35,4 +35,32 @@ class ServerChannelConfigurationSpec extends RatpackGroovyDslSpec {
     then:
     text == "10"
   }
+
+  def "keep alive defaults to false"() {
+    when:
+    handlers {
+      get {
+        render directChannelAccess.channel.config().getOption(ChannelOption.SO_KEEPALIVE).toString()
+      }
+    }
+
+    then:
+    text == "false"
+  }
+
+  def "can configure keep alive"() {
+    when:
+    serverConfig {
+      tcpKeepAlive true
+    }
+    handlers {
+      get {
+        render directChannelAccess.channel.config().getOption(ChannelOption.SO_KEEPALIVE).toString()
+      }
+    }
+
+    then:
+    text == "true"
+  }
+
 }

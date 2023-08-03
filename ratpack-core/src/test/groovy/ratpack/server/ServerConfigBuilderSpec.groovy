@@ -220,4 +220,10 @@ class ServerConfigBuilderSpec extends BaseRatpackSpec {
     expect:
     builder.portFile(Paths.get("test_port_file.txt")).build().portFile.get().toString() == "test_port_file.txt"
   }
+
+  def "set keepalive"() {
+    expect:
+    !builder.build().tcpKeepAlive
+    builder.tcpKeepAlive(true).build().tcpKeepAlive
+  }
 }
