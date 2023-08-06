@@ -37,16 +37,7 @@ public class DefaultServerSentEventStreamClient implements ratpack.sse.ServerSen
   @Override
   public Promise<TransformablePublisher<ratpack.sse.Event<?>>> request(URI uri, Action<? super RequestSpec> action) {
     return ServerSentEventClient.of(httpClient).request(uri, action)
-      .map(response ->
-        response.getEvents()
-          .map(e ->
-            new DefaultEvent<>(null)
-              .id(e.getId())
-              .event(e.getEvent())
-              .data(e.getData())
-              .comment(e.getComment())
-          )
-      );
+        .map(response -> response.getEvents().map(DefaultEvent::fromServerSentEvent));
   }
 
 }

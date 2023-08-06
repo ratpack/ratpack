@@ -17,11 +17,10 @@
 package ratpack.sse.internal;
 
 import io.netty.buffer.ByteBuf;
-import io.netty.buffer.ByteBufAllocator;
 import io.netty.buffer.Unpooled;
 import ratpack.sse.ServerSentEvent;
 
-import java.nio.charset.StandardCharsets;
+import java.util.List;
 
 import static io.netty.util.CharsetUtil.UTF_8;
 
@@ -29,75 +28,55 @@ public class ServerSentEventEncoder {
 
   public static final ServerSentEventEncoder INSTANCE = new ServerSentEventEncoder();
 
-  private static final byte[] EVENT_TYPE_PREFIX = "event: ".getBytes(UTF_8);
-  private static final byte[] EVENT_DATA_PREFIX = "data: ".getBytes(UTF_8);
-  private static final byte[] EVENT_ID_PREFIX = "id: ".getBytes(UTF_8);
-  private static final byte[] COMMENT_PREFIX = ": ".getBytes(UTF_8);
+  private static final ByteBuf EVENT_PREFIX = constant("event: ".getBytes(UTF_8));
 
-  private static final byte NEWLINE = '\n';
+  private static final ByteBuf DATA_PREFIX = constant("data: ".getBytes(UTF_8));
+  private static final ByteBuf ID_PREFIX = constant("id: ".getBytes(UTF_8));
+  private static final ByteBuf COMMENT_PREFIX = constant(": ".getBytes(UTF_8));
 
-  public ByteBuf encode(ServerSentEvent event, ByteBufAllocator bufferAllocator) throws Exception {
-    String eventId = event.getId();
-    String eventType = event.getEvent();
-    String eventData = event.getData();
-    String comment = event.getComment();
+  private static final ByteBuf NEWLINE = DefaultServerSentEvent.NEWLINE_BYTE_BUF;
 
-    int initialCapacity = 0;
-    if (eventId != null) {
-      initialCapacity += EVENT_ID_PREFIX.length + eventId.length() + 1;
-    }
-    if (eventType != null) {
-      initialCapacity += EVENT_TYPE_PREFIX.length + eventType.length() + 1;
-    }
-    if (eventData != null) {
-      initialCapacity += EVENT_DATA_PREFIX.length + eventData.length() + 1;
-    }
-    if (comment != null) {
-      initialCapacity += COMMENT_PREFIX.length + comment.length() + 1;
-    }
-    if (initialCapacity == 0) {
+  public ByteBuf encode(ServerSentEvent event) throws Exception {
+    return Unpooled.wrappedBuffer(
+        component(COMMENT_PREFIX, event.getComment()),
+        component(ID_PREFIX, event.getId()),
+        component(EVENT_PREFIX, event.getEvent()),
+        component(DATA_PREFIX, event.getData()),
+        NEWLINE
+    );
+  }
+
+  private static ByteBuf component(ByteBuf linePrefix, List<ByteBuf> lines) {
+    if (lines.isEmpty()) {
       return Unpooled.EMPTY_BUFFER;
     }
-
-    ByteBuf buffer = bufferAllocator.buffer(initialCapacity + 4096);
-
-    writeMultiline(buffer, COMMENT_PREFIX, comment);
-
-    if (eventId != null) {
-      buffer.writeBytes(EVENT_ID_PREFIX);
-      buffer.writeCharSequence(eventId, StandardCharsets.UTF_8);
-      buffer.writeByte(NEWLINE);
+    int size = lines.size();
+    if (size == 1) {
+      return component(linePrefix, lines.get(0));
     }
 
-    if (eventType != null) {
-      buffer.writeBytes(EVENT_TYPE_PREFIX);
-      buffer.writeCharSequence(eventType, StandardCharsets.UTF_8);
-      buffer.writeByte(NEWLINE);
+    ByteBuf[] parts = new ByteBuf[size * 3];
+    for (int i = 0; i < size; ++i) {
+      int j = i * 3;
+      parts[j] = linePrefix.slice();
+      parts[++j] = lines.get(i);
+      parts[++j] = NEWLINE.slice();
     }
 
-    writeMultiline(buffer, EVENT_DATA_PREFIX, eventData);
-
-    return buffer.writeByte(NEWLINE);
+    return Unpooled.wrappedBuffer(parts);
   }
 
-  private void writeMultiline(ByteBuf buffer, byte[] prefix, String value) {
-    int from = 0;
-    if (value != null) {
-      int length = value.length();
-      buffer.writeBytes(prefix);
-      while (from < length) {
-        int to = value.indexOf('\n', from);
-        if (to == -1) {
-          buffer.writeCharSequence(value.substring(from), StandardCharsets.UTF_8);
-          break;
-        } else {
-          buffer.writeCharSequence(value.substring(from, to), StandardCharsets.UTF_8);
-          buffer.writeByte(NEWLINE);
-          buffer.writeBytes(prefix);
-          from = to + 1;
-        }
-      }
-      buffer.writeByte(NEWLINE);
+  private static ByteBuf component(ByteBuf prefix, ByteBuf byteBuf) {
+    if (byteBuf.readableBytes() == 0) {
+      return Unpooled.EMPTY_BUFFER;
+    } else {
+      return Unpooled.wrappedBuffer(prefix.slice(), byteBuf, NEWLINE.slice());
     }
   }
+
+
+  private static ByteBuf constant(byte[] bytes) {
+    return Unpooled.unreleasableBuffer(Unpooled.wrappedBuffer(bytes).asReadOnly());
+  }
+
 }

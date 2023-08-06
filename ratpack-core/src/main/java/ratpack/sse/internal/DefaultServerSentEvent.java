@@ -16,78 +16,182 @@
 
 package ratpack.sse.internal;
 
-import ratpack.api.Nullable;
+import io.netty.buffer.ByteBuf;
+import io.netty.buffer.ByteBufUtil;
+import io.netty.buffer.Unpooled;
+import io.netty.util.AbstractReferenceCounted;
+import io.netty.util.ReferenceCountUtil;
 import ratpack.sse.ServerSentEvent;
 import ratpack.sse.ServerSentEventBuilder;
 
-public class DefaultServerSentEvent implements ServerSentEvent, ServerSentEventBuilder {
+import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
 
-  @Nullable
-  private String id;
-  @Nullable
-  private String event;
-  @Nullable
-  private String data;
-  @Nullable
-  private String comment;
+public class DefaultServerSentEvent extends AbstractReferenceCounted implements ServerSentEvent, ServerSentEventBuilder {
 
-  @Nullable
+  private static final byte NEWLINE_BYTE = (byte) '\n';
+  public static final ByteBuf NEWLINE_BYTE_BUF = Unpooled.unreleasableBuffer(
+      Unpooled.wrappedBuffer(new byte[]{NEWLINE_BYTE}).asReadOnly()
+  );
+
+  private ByteBuf id = Unpooled.EMPTY_BUFFER;
+  private ByteBuf event = Unpooled.EMPTY_BUFFER;
+  private List<ByteBuf> data = Collections.emptyList();
+
+  private List<ByteBuf> comment = Collections.emptyList();
+
   @Override
-  public String getId() {
+  public ByteBuf getId() {
     return id;
   }
 
-  @Nullable
   @Override
-  public String getEvent() {
+  public ByteBuf getEvent() {
     return event;
   }
 
-  @Nullable
   @Override
-  public String getData() {
+  public List<ByteBuf> getData() {
     return data;
   }
 
-  @Nullable
   @Override
-  public String getComment() {
+  public List<ByteBuf> getComment() {
     return comment;
   }
 
   @Override
-  public ServerSentEventBuilder id(@Nullable String id) {
-    if (id != null && id.contains("\n")) {
+  public ServerSentEventBuilder id(ByteBuf id) {
+    if (containsNewline(id)) {
       throw new IllegalArgumentException("id must not contain \\n - '" + id + "'");
     }
+    ReferenceCountUtil.release(this.id);
     this.id = id;
     return this;
   }
 
   @Override
-  public ServerSentEventBuilder event(@Nullable String event) {
-    if (event != null && event.contains("\n")) {
+  public ServerSentEventBuilder event(ByteBuf event) {
+    if (containsNewline(event)) {
       throw new IllegalArgumentException("event must not contain \\n - '" + event + "'");
     }
-
+    ReferenceCountUtil.release(this.event);
     this.event = event;
     return this;
   }
 
   @Override
-  public ServerSentEventBuilder data(@Nullable String data) {
+  public ServerSentEventBuilder data(ByteBuf data) {
+    return unsafeDataLines(toLines(data));
+  }
+
+  @Override
+  public ServerSentEventBuilder unsafeDataLines(List<ByteBuf> data) {
+    this.data.forEach(ReferenceCountUtil::release);
     this.data = data;
     return this;
   }
 
   @Override
-  public ServerSentEventBuilder comment(@Nullable String comment) {
+  public ServerSentEventBuilder comment(ByteBuf comment) {
+    return unsafeCommentLines(toLines(comment));
+  }
+
+  @Override
+  public ServerSentEventBuilder unsafeCommentLines(List<ByteBuf> comment) {
+    this.comment.forEach(ReferenceCountUtil::release);
     this.comment = comment;
     return this;
+
   }
 
   @Override
   public ServerSentEvent build() {
+    return this;
+  }
+
+  private static boolean containsNewline(ByteBuf byteBuf) {
+    return ByteBufUtil.indexOf(byteBuf, 0, byteBuf.readableBytes(), NEWLINE_BYTE) != -1;
+  }
+
+  public static String asString(ByteBuf byteBuf) {
+    return byteBuf.toString(StandardCharsets.UTF_8);
+  }
+
+  public static String asMultilineString(List<ByteBuf> lines) {
+    ByteBuf joined = ServerSentEvent.join(lines);
+    String string = joined.toString(StandardCharsets.UTF_8);
+    joined.release();
+    return string;
+  }
+
+  public static List<ByteBuf> toLines(ByteBuf text) {
+    try {
+      int length = text.readableBytes();
+      if (length == 0) {
+        return Collections.emptyList();
+      }
+
+      int newlineIndex = ByteBufUtil.indexOf(text, 0, length, NEWLINE_BYTE);
+      if (newlineIndex == -1) {
+        return Collections.singletonList(text.retainedSlice());
+      }
+
+      List<ByteBuf> lines = new ArrayList<>();
+      lines.add(text.retainedSlice(0, newlineIndex));
+      int cursor = newlineIndex + 1;
+      while (cursor <= length) {
+        newlineIndex = ByteBufUtil.indexOf(text, cursor, length, NEWLINE_BYTE);
+        if (newlineIndex == -1) {
+          newlineIndex = length;
+        }
+        lines.add(text.retainedSlice(cursor, newlineIndex - cursor));
+        cursor = newlineIndex + 1;
+      }
+
+      return lines;
+    } finally {
+      text.release();
+    }
+  }
+
+  @Override
+  public ServerSentEvent retain() {
+    super.retain();
+    return this;
+  }
+
+  @Override
+  public ServerSentEvent retain(int increment) {
+    super.retain(increment);
+    return this;
+  }
+
+  @Override
+  protected void deallocate() {
+    ReferenceCountUtil.safeRelease(id);
+    ReferenceCountUtil.safeRelease(event);
+    data.forEach(ReferenceCountUtil::safeRelease);
+    comment.forEach(ReferenceCountUtil::safeRelease);
+  }
+
+  @Override
+  public ServerSentEvent touch(Object hint) {
+    id.touch(hint);
+    event.touch(hint);
+    data.forEach(d -> d.touch(hint));
+    comment.forEach(d -> d.touch(hint));
+    return this;
+  }
+
+  @Override
+  public ServerSentEvent touch() {
+    id.touch();
+    event.touch();
+    data.forEach(ByteBuf::touch);
+    comment.forEach(ByteBuf::touch);
     return this;
   }
 }

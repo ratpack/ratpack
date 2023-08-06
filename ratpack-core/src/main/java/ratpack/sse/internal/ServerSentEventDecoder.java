@@ -17,21 +17,18 @@ package ratpack.sse.internal;
 
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.ByteBufAllocator;
-import io.netty.buffer.CompositeByteBuf;
 import io.netty.buffer.Unpooled;
 import io.netty.util.ByteProcessor;
 import ratpack.func.Action;
 import ratpack.sse.ServerSentEvent;
 import ratpack.sse.ServerSentEventBuilder;
 
-import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
-import java.util.Iterator;
+import java.util.Collections;
 import java.util.List;
 
 public class ServerSentEventDecoder implements AutoCloseable {
 
-  private static final ByteBuf NEWLINE_BYTEBUF = Unpooled.unreleasableBuffer(Unpooled.wrappedBuffer(new byte[]{'\n'}));
   private static final char[] EVENT_ID_FIELD_NAME = "event".toCharArray();
   private static final char[] DATA_FIELD_NAME = "data".toCharArray();
   private static final char[] ID_FIELD_NAME = "id".toCharArray();
@@ -205,20 +202,20 @@ public class ServerSentEventDecoder implements AutoCloseable {
   private void emit() throws Exception {
     boolean any = false;
     ServerSentEventBuilder event = ServerSentEvent.builder();
-    String id = str(eventId);
-    if (id != null) {
+    ByteBuf id = single(eventId);
+    if (id.readableBytes() > 0) {
       any = true;
       event.id(id);
     }
-    String type = str(eventType);
-    if (type != null) {
+    ByteBuf type = single(eventType);
+    if (type.readableBytes() > 0) {
       any = true;
       event.event(type);
     }
-    String data = str(eventData);
-    if (data != null) {
+    List<ByteBuf> data = multi(eventData);
+    if (!data.isEmpty()) {
       any = true;
-      event.data(data);
+      event.unsafeDataLines(data);
     }
 
     if (any) {
@@ -228,34 +225,31 @@ public class ServerSentEventDecoder implements AutoCloseable {
     state = State.ReadFieldName;
   }
 
-  private String str(List<ByteBuf> bufs) {
-    if (bufs.isEmpty()) {
-      return null;
-    } else {
-      try {
-        String str;
-        if (bufs.size() == 1) {
-          ByteBuf buf = bufs.get(0);
-          str = buf.toString(StandardCharsets.UTF_8);
-          buf.release();
-        } else {
-          CompositeByteBuf composite = allocator.compositeBuffer(bufs.size() * 2 - 1);
-          try {
-            Iterator<ByteBuf> iterator = bufs.iterator();
-            composite.addComponent(true, iterator.next());
-            while (iterator.hasNext()) {
-              composite.addComponent(true, NEWLINE_BYTEBUF);
-              composite.addComponent(true, iterator.next());
-            }
-            str = composite.toString(StandardCharsets.UTF_8);
-          } finally {
-            composite.release();
-          }
-        }
-        return str;
-      } finally {
-        bufs.clear();
+  private List<ByteBuf> multi(List<ByteBuf> bufs) {
+    try {
+      if (bufs.isEmpty()) {
+        return Collections.emptyList();
+      } else if (bufs.size() == 1) {
+        return Collections.singletonList(bufs.get(0));
+      } else {
+        return Collections.unmodifiableList(new ArrayList<>(bufs));
       }
+    } finally {
+      bufs.clear();
+    }
+  }
+
+  private ByteBuf single(List<ByteBuf> bufs) {
+    try {
+      if (bufs.isEmpty()) {
+        return Unpooled.EMPTY_BUFFER;
+      } else if (bufs.size() == 1) {
+        return bufs.get(0);
+      } else {
+        throw new IllegalStateException("expected single line but got multi");
+      }
+    } finally {
+      bufs.clear();
     }
   }
 

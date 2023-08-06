@@ -16,7 +16,7 @@
 
 package ratpack.sse.internal
 
-import io.netty.buffer.ByteBufAllocator
+
 import io.netty.util.CharsetUtil
 import ratpack.sse.ServerSentEvent
 import ratpack.sse.ServerSentEventBuilder
@@ -28,7 +28,7 @@ class ServerSentEventStreamEncoderSpec extends RatpackGroovyDslSpec {
 
   def "can encode valid server sent events"() {
     expect:
-    def byteBuf = encoder.encode(sse, ByteBufAllocator.DEFAULT)
+    def byteBuf = encoder.encode(sse)
     def string = byteBuf.toString(CharsetUtil.UTF_8)
     byteBuf.release()
     string == expectedEncoding
