@@ -117,15 +117,15 @@ public class ServerSentEvents implements Renderable {
    */
   @Deprecated
   public static <T> ServerSentEvents serverSentEvents(Publisher<T> publisher, Action<? super Event<T>> action) {
-    Publisher<Event<T>> eventPublisher = DefaultEvent.toEvents(publisher, action);
+    Publisher<ServerSentEvent> eventPublisher = DefaultEvent.toEvents(publisher, action);
     return new ServerSentEvents(eventPublisher, false, null, null);
   }
 
   private ServerSentEvents(
-    Publisher<? extends ServerSentEvent> publisher,
-    boolean noContentOnEmpty,
-    @Nullable Duration heartbeatFrequency,
-    @Nullable ServerSentEventStreamBufferSettings bufferSettings
+      Publisher<? extends ServerSentEvent> publisher,
+      boolean noContentOnEmpty,
+      @Nullable Duration heartbeatFrequency,
+      @Nullable ServerSentEventStreamBufferSettings bufferSettings
   ) {
     this.publisher = publisher;
     this.noContentOnEmpty = noContentOnEmpty;
@@ -141,13 +141,7 @@ public class ServerSentEvents implements Renderable {
   @Deprecated
   @Nullable
   public Publisher<? extends Event<?>> getPublisher() {
-    return Streams.map(publisher, e ->
-      new DefaultEvent<>(null)
-        .id(e.getId())
-        .event(e.getEvent())
-        .data(e.getData())
-        .comment(e.getComment())
-    );
+    return Streams.map(publisher, DefaultEvent::fromServerSentEvent);
   }
 
   /**
@@ -171,60 +165,60 @@ public class ServerSentEvents implements Renderable {
     DefaultExecution execution = DefaultExecution.require();
     execution.delimit(context::error, continuation -> {
       Execution.fork()
-        .eventLoop(execution.getEventLoop())
-        .start(e -> publisher.subscribe(new Subscriber<ServerSentEvent>() {
+          .eventLoop(execution.getEventLoop())
+          .start(e -> publisher.subscribe(new Subscriber<ServerSentEvent>() {
 
-          private Subscription subscription;
-          private Subscriber<? super ServerSentEvent> subscriber;
+            private Subscription subscription;
+            private Subscriber<? super ServerSentEvent> subscriber;
 
-          @Override
-          public void onSubscribe(Subscription s) {
-            subscription = s;
-            subscription.request(1);
-          }
-
-          @Override
-          public void onNext(ServerSentEvent event) {
-            if (subscriber == null) {
-              // This is the first event, we need to set up the forward to the response.
-
-              // A publisher for the item we have consumed.
-              Publisher<ServerSentEvent> consumedPublisher = Streams.publish(Collections.singleton(event));
-
-              // A publisher that will forward what we haven't consumed.
-              Publisher<ServerSentEvent> restPublisher = s -> {
-                // Upstream signals will flow through us, and we need to forward to this subscriber
-                subscriber = s;
-
-                // Pass through our subscription so that the new subscriber controls demand.
-                s.onSubscribe(requireNonNull(subscription));
-              };
-
-              // Join them together so that we send the whole thing.
-              continuation.resume(() -> renderStream(context, Streams.concat(Arrays.asList(consumedPublisher, restPublisher))));
-            } else {
-              subscriber.onNext(event);
+            @Override
+            public void onSubscribe(Subscription s) {
+              subscription = s;
+              subscription.request(1);
             }
-          }
 
-          @Override
-          public void onError(Throwable t) {
-            if (subscriber == null) {
-              continuation.resume(() -> context.error(t));
-            } else {
-              subscriber.onError(t);
-            }
-          }
+            @Override
+            public void onNext(ServerSentEvent event) {
+              if (subscriber == null) {
+                // This is the first event, we need to set up the forward to the response.
 
-          @Override
-          public void onComplete() {
-            if (subscriber == null) {
-              continuation.resume(() -> emptyStream(context));
-            } else {
-              subscriber.onComplete();
+                // A publisher for the item we have consumed.
+                Publisher<ServerSentEvent> consumedPublisher = Streams.publish(Collections.singleton(event));
+
+                // A publisher that will forward what we haven't consumed.
+                Publisher<ServerSentEvent> restPublisher = s -> {
+                  // Upstream signals will flow through us, and we need to forward to this subscriber
+                  subscriber = s;
+
+                  // Pass through our subscription so that the new subscriber controls demand.
+                  s.onSubscribe(requireNonNull(subscription));
+                };
+
+                // Join them together so that we send the whole thing.
+                continuation.resume(() -> renderStream(context, Streams.concat(Arrays.asList(consumedPublisher, restPublisher))));
+              } else {
+                subscriber.onNext(event);
+              }
             }
-          }
-        }));
+
+            @Override
+            public void onError(Throwable t) {
+              if (subscriber == null) {
+                continuation.resume(() -> context.error(t));
+              } else {
+                subscriber.onError(t);
+              }
+            }
+
+            @Override
+            public void onComplete() {
+              if (subscriber == null) {
+                continuation.resume(() -> emptyStream(context));
+              } else {
+                subscriber.onComplete();
+              }
+            }
+          }));
     });
   }
 
@@ -234,7 +228,7 @@ public class ServerSentEvents implements Renderable {
     response.getHeaders().add(HttpHeaderConstants.TRANSFER_ENCODING, HttpHeaderConstants.CHUNKED);
 
     ByteBufAllocator byteBufAllocator = context.getDirectChannelAccess().getChannel().alloc();
-    Publisher<ByteBuf> buffers = Streams.map(events, i -> ServerSentEventEncoder.INSTANCE.encode(i, byteBufAllocator));
+    Publisher<ByteBuf> buffers = Streams.map(events, i -> ServerSentEventEncoder.INSTANCE.encode(i));
 
     EventLoop executor = context.getDirectChannelAccess().getChannel().eventLoop();
     Clock clock = System::nanoTime;

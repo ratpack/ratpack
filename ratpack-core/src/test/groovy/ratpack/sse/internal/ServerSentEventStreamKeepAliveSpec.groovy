@@ -16,7 +16,7 @@
 
 package ratpack.sse.internal
 
-import io.netty.buffer.UnpooledByteBufAllocator
+
 import org.reactivestreams.Publisher
 import org.reactivestreams.Subscriber
 import ratpack.sse.ServerSentEvent
@@ -64,7 +64,7 @@ class ServerSentEventStreamKeepAliveSpec extends Specification {
     }
 
     def keepAlive = new ServerSentEventStreamKeepAlive(
-      source.map { ServerSentEventEncoder.INSTANCE.encode(it, UnpooledByteBufAllocator.DEFAULT) },
+      source.map { ServerSentEventEncoder.INSTANCE.encode(it) },
       [schedule: { Runnable runnable, long delay, TimeUnit timeUnit ->
         scheduled = runnable
         [cancel: { boolean interrupt -> scheduledCancelled = true }] as ScheduledFuture

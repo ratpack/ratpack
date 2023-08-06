@@ -16,11 +16,16 @@
 
 package ratpack.sse.internal;
 
+import com.google.common.base.Strings;
+import io.netty.buffer.Unpooled;
 import org.reactivestreams.Publisher;
 import ratpack.func.Action;
 import ratpack.func.Function;
+import ratpack.sse.ServerSentEvent;
 import ratpack.stream.Streams;
 import ratpack.stream.TransformablePublisher;
+
+import java.nio.charset.StandardCharsets;
 
 @SuppressWarnings("deprecation")
 public class DefaultEvent<T> implements ratpack.sse.Event<T> {
@@ -36,14 +41,31 @@ public class DefaultEvent<T> implements ratpack.sse.Event<T> {
     this.item = item;
   }
 
-  public static <T> TransformablePublisher<ratpack.sse.Event<T>> toEvents(Publisher<? extends T> publisher, Action<? super ratpack.sse.Event<T>> action) {
+  public static <T> TransformablePublisher<ServerSentEvent> toEvents(Publisher<? extends T> publisher, Action<? super ratpack.sse.Event<T>> action) {
     return Streams.map(publisher, item -> {
       ratpack.sse.Event<T> event = action.with(new DefaultEvent<>(item));
       if (event.getData() == null && event.getId() == null && event.getEvent() == null && event.getComment() == null) {
         throw new IllegalArgumentException("You must supply at least one of data, event, id or comment");
       }
-      return event;
+      return ServerSentEvent.builder()
+          .id(event.getId() == null ? Unpooled.EMPTY_BUFFER : Unpooled.wrappedBuffer(event.getId().getBytes(StandardCharsets.UTF_8)))
+          .event(event.getEvent() == null ? Unpooled.EMPTY_BUFFER : Unpooled.wrappedBuffer(event.getEvent().getBytes(StandardCharsets.UTF_8)))
+          .comment(event.getComment() == null ? Unpooled.EMPTY_BUFFER : Unpooled.wrappedBuffer(event.getComment().getBytes(StandardCharsets.UTF_8)))
+          .data(event.getData() == null ? Unpooled.EMPTY_BUFFER : Unpooled.wrappedBuffer(event.getData().getBytes(StandardCharsets.UTF_8)))
+          .build();
     });
+  }
+
+  public static <T> ratpack.sse.Event<T> fromServerSentEvent(ServerSentEvent e) {
+    try {
+      return new DefaultEvent<T>(null)
+          .id(Strings.emptyToNull(e.getIdAsString()))
+          .event(Strings.emptyToNull(e.getEventAsString()))
+          .data(Strings.emptyToNull(e.getDataAsString()))
+          .comment(Strings.emptyToNull(e.getCommentAsString()));
+    } finally {
+      e.release();
+    }
   }
 
   @Override

@@ -21,6 +21,7 @@ import ratpack.http.client.BaseHttpClientSpec
 import ratpack.sse.ServerSentEvent
 import ratpack.sse.ServerSentEvents
 import ratpack.stream.Streams
+import ratpack.stream.TransformablePublisher
 
 import java.time.Duration
 import java.util.concurrent.TimeUnit
@@ -47,15 +48,21 @@ class ServerSentEventClientSpec extends BaseHttpClientSpec {
     handlers {
       get { ServerSentEventClient sseClient ->
         sseClient.request(otherAppUrl("foo")).then { eventStream ->
-          render stringChunks(
-            eventStream.events.map { it.data }
-          )
+          render stringChunks(data(eventStream))
         }
       }
     }
 
     expect:
     getText() == "Event 0Event 1Event 2Event 3Event 4Event 5Event 6Event 7Event 8Event 9"
+  }
+
+  static TransformablePublisher<String> data(ServerSentEventResponse eventStream) {
+    eventStream.events.map {
+      def s = it.dataAsString
+      it.release()
+      s
+    }
   }
 
   def "can consume empty stream"() {
@@ -70,9 +77,7 @@ class ServerSentEventClientSpec extends BaseHttpClientSpec {
     handlers {
       get { ServerSentEventClient sseClient ->
         sseClient.request(otherAppUrl()).then { eventStream ->
-          render stringChunks(
-            eventStream.events.map { it.data }
-          )
+          render stringChunks(data(eventStream))
         }
       }
     }
@@ -93,9 +98,7 @@ class ServerSentEventClientSpec extends BaseHttpClientSpec {
     handlers {
       get { ServerSentEventClient sseClient ->
         sseClient.request(otherAppUrl()).then { eventStream ->
-          render stringChunks(
-            eventStream.events.map { it.data }
-          )
+          render stringChunks(data(eventStream))
         }
       }
     }
@@ -114,10 +117,10 @@ class ServerSentEventClientSpec extends BaseHttpClientSpec {
           }
         }
         render ServerSentEvents.builder()
-          .keepAlive(Duration.ofMillis(10))
-          .build(stream.map {
-            ServerSentEvent.builder().id(it.toString()).data("Event ${it}".toString()).build()
-          })
+            .keepAlive(Duration.ofMillis(10))
+            .build(stream.map {
+              ServerSentEvent.builder().id(it.toString()).data("Event ${it}".toString()).build()
+            })
       }
     }
 
@@ -125,9 +128,7 @@ class ServerSentEventClientSpec extends BaseHttpClientSpec {
     handlers {
       get { ServerSentEventClient sseClient ->
         sseClient.request(otherAppUrl(), { it.readTimeout(Duration.ofMillis(500)) }).then { eventStream ->
-          render stringChunks(
-            eventStream.events.map { it.data }
-          )
+          render stringChunks(data(eventStream))
         }
       }
     }

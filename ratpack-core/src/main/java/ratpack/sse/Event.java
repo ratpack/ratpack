@@ -31,7 +31,7 @@ import ratpack.func.Function;
  * @deprecated since 1.10 - use {@link ServerSentEvent}
  */
 @Deprecated
-public interface Event<T> extends ServerSentEvent {
+public interface Event<T> {
 
   /**
    * The stream item that this event.
