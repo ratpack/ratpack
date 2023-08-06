@@ -31,8 +31,8 @@ import java.util.List;
 
 public class DefaultServerSentEvent extends AbstractReferenceCounted implements ServerSentEvent, ServerSentEventBuilder {
 
-  static final byte NEWLINE_BYTE = (byte) '\n';
-  static final ByteBuf NEWLINE_BYTE_BUF = Unpooled.unreleasableBuffer(
+  private static final byte NEWLINE_BYTE = (byte) '\n';
+  public static final ByteBuf NEWLINE_BYTE_BUF = Unpooled.unreleasableBuffer(
       Unpooled.wrappedBuffer(new byte[]{NEWLINE_BYTE}).asReadOnly()
   );
 
@@ -121,22 +121,10 @@ public class DefaultServerSentEvent extends AbstractReferenceCounted implements 
   }
 
   public static String asMultilineString(List<ByteBuf> lines) {
-    if (lines.isEmpty()) {
-      return "";
-    }
-    if (lines.size() == 1) {
-      return lines.get(0).toString(StandardCharsets.UTF_8);
-    }
-
-    int components = lines.size() + lines.size() - 1;
-    ByteBuf[] byteBufs = new ByteBuf[components];
-    byteBufs[0] = lines.get(0);
-    for (int i = 1; i < lines.size(); ++i) {
-      byteBufs[i * 2 - 1] = NEWLINE_BYTE_BUF.slice();
-      byteBufs[i * 2] = lines.get(i);
-    }
-
-    return Unpooled.wrappedBuffer(byteBufs).toString(StandardCharsets.UTF_8);
+    ByteBuf joined = ServerSentEvent.join(lines);
+    String string = joined.toString(StandardCharsets.UTF_8);
+    joined.release();
+    return string;
   }
 
   public static List<ByteBuf> toLines(ByteBuf text) {

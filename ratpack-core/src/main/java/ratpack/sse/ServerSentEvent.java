@@ -17,6 +17,7 @@
 package ratpack.sse;
 
 import io.netty.buffer.ByteBuf;
+import io.netty.buffer.Unpooled;
 import io.netty.util.ReferenceCounted;
 import ratpack.sse.internal.DefaultServerSentEvent;
 
@@ -94,7 +95,6 @@ public interface ServerSentEvent extends ReferenceCounted {
     return DefaultServerSentEvent.asMultilineString(getData());
   }
 
-
   /**
    * The “comment” value of the event.
    *
@@ -137,4 +137,30 @@ public interface ServerSentEvent extends ReferenceCounted {
   @Override
   ServerSentEvent touch(Object hint);
 
+  /**
+   * Joins a list of byte buf lines to a single byte buf.
+   * <p>
+   * Can be used with {@link #getData()} or {@link #getComment()} to obtain the multi-line value.
+   *
+   * @param lines a list of UTF-8 lines
+   * @return a new byte buffer of the lines joined with a newline
+   */
+  static ByteBuf join(List<ByteBuf> lines) {
+    if (lines.isEmpty()) {
+      return Unpooled.EMPTY_BUFFER;
+    }
+    if (lines.size() == 1) {
+      return lines.get(0).retainedSlice();
+    }
+
+    int components = lines.size() * 2 - 1;
+    ByteBuf[] byteBufs = new ByteBuf[components];
+    byteBufs[0] = lines.get(0).retainedSlice();
+    for (int i = 1; i < lines.size(); ++i) {
+      byteBufs[i * 2 - 1] = DefaultServerSentEvent.NEWLINE_BYTE_BUF.slice();
+      byteBufs[i * 2] = lines.get(i).retainedSlice();
+    }
+
+    return Unpooled.wrappedBuffer(byteBufs);
+  }
 }
