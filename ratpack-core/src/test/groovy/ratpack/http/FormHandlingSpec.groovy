@@ -111,7 +111,7 @@ class FormHandlingSpec extends RatpackGroovyDslSpec {
       while (!httpPostRequestEncoder.isEndOfInput()) {
         chunks << httpPostRequestEncoder.readChunk(null as ByteBufAllocator).content()
       }
-      requestSpec.body.buffer(Unpooled.wrappedBuffer(chunks as ByteBuf[]))
+      requestSpec.body.buffer(Unpooled.wrappedUnmodifiableBuffer(chunks as ByteBuf[]))
     }
 
     then:
@@ -146,7 +146,7 @@ class FormHandlingSpec extends RatpackGroovyDslSpec {
       while (!httpPostRequestEncoder.isEndOfInput()) {
         chunks << httpPostRequestEncoder.readChunk(null as ByteBufAllocator).content()
       }
-      requestSpec.body.buffer(Unpooled.wrappedBuffer(chunks as ByteBuf[]))
+      requestSpec.body.buffer(Unpooled.wrappedUnmodifiableBuffer(chunks as ByteBuf[]))
     }
     then:
     postText() == "File content: bar"
@@ -180,7 +180,7 @@ class FormHandlingSpec extends RatpackGroovyDslSpec {
       while (!httpPostRequestEncoder.isEndOfInput()) {
         chunks << httpPostRequestEncoder.readChunk(null as ByteBufAllocator).content()
       }
-      requestSpec.body.buffer(Unpooled.wrappedBuffer(chunks as ByteBuf[]))
+      requestSpec.body.buffer(Unpooled.wrappedUnmodifiableBuffer(chunks as ByteBuf[]))
     }
     then:
     postText() == "File type: text/plain; charset=utf-8"
@@ -214,7 +214,7 @@ class FormHandlingSpec extends RatpackGroovyDslSpec {
       while (!httpPostRequestEncoder.isEndOfInput()) {
         chunks << httpPostRequestEncoder.readChunk(null as ByteBufAllocator).content()
       }
-      requestSpec.body.buffer(Unpooled.wrappedBuffer(chunks as ByteBuf[]))
+      requestSpec.body.buffer(Unpooled.wrappedUnmodifiableBuffer(chunks as ByteBuf[]))
     }
     then:
     postText() == "File type: text/plain; charset=us-ascii"

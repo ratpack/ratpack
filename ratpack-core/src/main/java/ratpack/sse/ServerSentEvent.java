@@ -161,6 +161,6 @@ public interface ServerSentEvent extends ReferenceCounted {
       byteBufs[i * 2] = lines.get(i).slice();
     }
 
-    return Unpooled.wrappedBuffer(byteBufs);
+    return Unpooled.wrappedUnmodifiableBuffer(byteBufs);
   }
 }
