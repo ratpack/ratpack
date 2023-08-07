@@ -155,10 +155,10 @@ public interface ServerSentEvent extends ReferenceCounted {
 
     int components = lines.size() * 2 - 1;
     ByteBuf[] byteBufs = new ByteBuf[components];
-    byteBufs[0] = lines.get(0).retainedSlice();
+    byteBufs[0] = lines.get(0).slice();
     for (int i = 1; i < lines.size(); ++i) {
       byteBufs[i * 2 - 1] = DefaultServerSentEvent.NEWLINE_BYTE_BUF.slice();
-      byteBufs[i * 2] = lines.get(i).retainedSlice();
+      byteBufs[i * 2] = lines.get(i).slice();
     }
 
     return Unpooled.wrappedBuffer(byteBufs);
