@@ -61,7 +61,8 @@ public class DefaultServerSentEventResponse implements ServerSentEventResponse {
     if (getStatus().equals(Status.NO_CONTENT)) {
       return Streams.empty();
     } else {
-      return new ServerSentEventDecodingPublisher(getBody(), allocator);
+      return new ServerSentEventDecodingPublisher(getBody(), allocator)
+        .map(e -> e.touch("emit downstream"));
     }
   }
 

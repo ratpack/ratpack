@@ -15,13 +15,13 @@
  */
 package ratpack.sse.internal;
 
+import com.google.common.collect.ImmutableList;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.ByteBufAllocator;
 import io.netty.buffer.Unpooled;
 import io.netty.util.ByteProcessor;
 import ratpack.func.Action;
 import ratpack.sse.ServerSentEvent;
-import ratpack.sse.ServerSentEventBuilder;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -33,18 +33,14 @@ public class ServerSentEventDecoder implements AutoCloseable {
   private static final char[] DATA_FIELD_NAME = "data".toCharArray();
   private static final char[] ID_FIELD_NAME = "id".toCharArray();
 
-  private static final ByteProcessor SKIP_TILL_LINE_DELIMITER_PROCESSOR = value -> !isLineDelimiter((char) value);
+  private static final byte COLON_BYTE = (byte) ':';
+  private static final byte NEWLINE_BYTE = (byte) '\n';
+  private static final byte SPACE_BYTE = (byte) ' ';
 
-  private static final ByteProcessor SKIP_LINE_DELIMITERS_AND_SPACES_PROCESSOR = value -> isLineDelimiter((char) value) || (char) value == ' ';
+  private static final ByteProcessor IS_NEWLINE_OR_SPACE = value -> value == NEWLINE_BYTE || value == SPACE_BYTE;
 
-  private static final ByteProcessor SKIP_COLON_AND_WHITE_SPACE_PROCESSOR = value -> {
-    char valueChar = (char) value;
-    return valueChar == ':' || valueChar == ' ';
-  };
 
-  private static final ByteProcessor SCAN_COLON_PROCESSOR = value -> (char) value != ':';
-
-  private static final ByteProcessor SCAN_EOL_PROCESSOR = value -> !isLineDelimiter((char) value);
+  private static final ByteProcessor IS_COLON_OR_SPACE = value -> value == COLON_BYTE || value == SPACE_BYTE;
 
   private enum State {
     ReadFieldName,
@@ -61,9 +57,9 @@ public class ServerSentEventDecoder implements AutoCloseable {
     EventType
   }
 
-  private List<ByteBuf> eventId = new ArrayList<>(1);
-  private List<ByteBuf> eventType = new ArrayList<>(1);
-  private List<ByteBuf> eventData = new ArrayList<>(1);
+  private List<ByteBuf> idBuffer = new ArrayList<>(1);
+  private List<ByteBuf> eventBuffer = new ArrayList<>(1);
+  private List<ByteBuf> dataBuffer = new ArrayList<>(1);
 
   private ByteBuf buffer; // Can be field value of name, according to the current state.
 
@@ -122,9 +118,9 @@ public class ServerSentEventDecoder implements AutoCloseable {
             break;
           }
 
-          int endOfNameIndex = scanAndFindColon(in);
+          int endOfNameIndex = findColon(in);
           if (endOfNameIndex == -1) {
-            endOfNameIndex = scanAndFindEndOfLine(in);
+            endOfNameIndex = findNewline(in);
           }
 
           if (endOfNameIndex == -1) {
@@ -142,8 +138,8 @@ public class ServerSentEventDecoder implements AutoCloseable {
           ByteBuf fieldNameBuffer;
           if (buffer == null) {
             // Consume the data from the input buffer.
-            fieldNameBuffer = allocator.buffer(fieldNameLengthInTheCurrentBuffer, fieldNameLengthInTheCurrentBuffer);
-            in.readBytes(fieldNameBuffer, fieldNameLengthInTheCurrentBuffer);
+            fieldNameBuffer = in.retainedSlice(in.readerIndex(), fieldNameLengthInTheCurrentBuffer);
+            in.skipBytes(fieldNameLengthInTheCurrentBuffer);
           } else {
             // Read the remaining data into the temporary buffer
             in.readBytes(buffer, fieldNameLengthInTheCurrentBuffer);
@@ -163,7 +159,7 @@ public class ServerSentEventDecoder implements AutoCloseable {
           break;
         case ReadFieldValue:
 
-          final int endOfLineStartIndex = scanAndFindEndOfLine(in);
+          final int endOfLineStartIndex = findNewline(in);
           if (endOfLineStartIndex == -1) { // End of line not found, accumulate data into a temporary buffer.
             if (buffer == null) {
               buffer = allocator.buffer(in.readableBytes());
@@ -180,13 +176,13 @@ public class ServerSentEventDecoder implements AutoCloseable {
             List<ByteBuf> field;
             switch (currentFieldType) {
               case Data:
-                field = eventData;
+                field = dataBuffer;
                 break;
               case Id:
-                field = eventId;
+                field = idBuffer;
                 break;
               default: // type
-                field = eventType;
+                field = eventBuffer;
                 break;
             }
 
@@ -200,46 +196,36 @@ public class ServerSentEventDecoder implements AutoCloseable {
   }
 
   private void emit() throws Exception {
-    boolean any = false;
-    ServerSentEventBuilder event = ServerSentEvent.builder();
-    ByteBuf id = single(eventId);
-    if (id.readableBytes() > 0) {
-      any = true;
-      event.id(id);
-    }
-    ByteBuf type = single(eventType);
-    if (type.readableBytes() > 0) {
-      any = true;
-      event.event(type);
-    }
-    List<ByteBuf> data = multi(eventData);
-    if (!data.isEmpty()) {
-      any = true;
-      event.unsafeDataLines(data);
-    }
+    ServerSentEvent event = ServerSentEvent.builder()
+        .id(single(idBuffer))
+        .event(single(eventBuffer))
+        .unsafeDataLines(multi(dataBuffer))
+        .build();
 
-    if (any) {
-      emitter.execute(event.build());
+    if (!event.getData().isEmpty() || event.getEvent().isReadable() || event.getId().isReadable()) {
+      emitter.execute(event.touch("emitting"));
+    } else {
+      event.release();
     }
 
     state = State.ReadFieldName;
   }
 
-  private List<ByteBuf> multi(List<ByteBuf> bufs) {
+  private static List<ByteBuf> multi(List<ByteBuf> buffers) {
     try {
-      if (bufs.isEmpty()) {
+      if (buffers.isEmpty()) {
         return Collections.emptyList();
-      } else if (bufs.size() == 1) {
-        return Collections.singletonList(bufs.get(0));
+      } else if (buffers.size() == 1) {
+        return ImmutableList.of(buffers.get(0));
       } else {
-        return Collections.unmodifiableList(new ArrayList<>(bufs));
+        return ImmutableList.copyOf(buffers);
       }
     } finally {
-      bufs.clear();
+      buffers.clear();
     }
   }
 
-  private ByteBuf single(List<ByteBuf> bufs) {
+  private static ByteBuf single(List<ByteBuf> bufs) {
     try {
       if (bufs.isEmpty()) {
         return Unpooled.EMPTY_BUFFER;
@@ -267,7 +253,7 @@ public class ServerSentEventDecoder implements AutoCloseable {
      * -- If the name does not exactly match the expected value, then reject the field name.
      */
     Type toReturn = Type.Data;
-    skipLineDelimiters(fieldNameBuffer);
+    skipSpaceAndNewlines(fieldNameBuffer);
     int readableBytes = fieldNameBuffer.readableBytes();
     final int readerIndexAtStart = fieldNameBuffer.readerIndex();
     char[] fieldNameToVerify = DATA_FIELD_NAME;
@@ -314,17 +300,17 @@ public class ServerSentEventDecoder implements AutoCloseable {
 
   @Override
   public void close() {
-    if (eventId != null) {
-      eventId.forEach(ByteBuf::release);
-      eventId = null;
+    if (idBuffer != null) {
+      idBuffer.forEach(ByteBuf::release);
+      idBuffer = null;
     }
-    if (eventType != null) {
-      eventType.forEach(ByteBuf::release);
-      eventType = null;
+    if (eventBuffer != null) {
+      eventBuffer.forEach(ByteBuf::release);
+      eventBuffer = null;
     }
-    if (eventData != null) {
-      eventData.forEach(ByteBuf::release);
-      eventData = null;
+    if (dataBuffer != null) {
+      dataBuffer.forEach(ByteBuf::release);
+      dataBuffer = null;
     }
 
     if (buffer != null) {
@@ -335,30 +321,30 @@ public class ServerSentEventDecoder implements AutoCloseable {
     state = State.Closed;
   }
 
-  private static int scanAndFindColon(ByteBuf byteBuf) {
-    return byteBuf.forEachByte(SCAN_COLON_PROCESSOR);
+  private static int findColon(ByteBuf byteBuf) {
+    return find(byteBuf, COLON_BYTE);
   }
 
-  private static int scanAndFindEndOfLine(ByteBuf byteBuf) {
-    return byteBuf.forEachByte(SCAN_EOL_PROCESSOR);
+  private static int findNewline(ByteBuf byteBuf) {
+    return find(byteBuf, NEWLINE_BYTE);
   }
 
-  private static boolean skipLineDelimiters(ByteBuf byteBuf) {
-    return skipTillMatching(byteBuf, SKIP_LINE_DELIMITERS_AND_SPACES_PROCESSOR);
+  private static void skipSpaceAndNewlines(ByteBuf byteBuf) {
+    skipWhile(byteBuf, IS_NEWLINE_OR_SPACE);
   }
 
   private static boolean skipColonAndWhiteSpaces(ByteBuf byteBuf) {
-    return skipTillMatching(byteBuf, SKIP_COLON_AND_WHITE_SPACE_PROCESSOR);
+    return skipWhile(byteBuf, IS_COLON_OR_SPACE);
   }
 
   private static boolean skipTillEOL(ByteBuf in) {
-    return skipTillMatching(in, SKIP_TILL_LINE_DELIMITER_PROCESSOR);
+    return skipUntil(in, NEWLINE_BYTE);
   }
 
-  private static boolean skipTillMatching(ByteBuf byteBuf, ByteProcessor processor) {
+  private static boolean skipWhile(ByteBuf byteBuf, ByteProcessor processor) {
     final int lastIndexProcessed = byteBuf.forEachByte(processor);
     if (lastIndexProcessed == -1) {
-      byteBuf.readerIndex(byteBuf.readerIndex() + byteBuf.readableBytes()); // If all the remaining bytes are to be ignored, discard the buffer.
+      byteBuf.readerIndex(byteBuf.writerIndex());
     } else {
       byteBuf.readerIndex(lastIndexProcessed);
     }
@@ -366,8 +352,19 @@ public class ServerSentEventDecoder implements AutoCloseable {
     return lastIndexProcessed != -1;
   }
 
-  private static boolean isLineDelimiter(char c) {
-    return c == '\n';
+  private static boolean skipUntil(ByteBuf byteBuf, byte target) {
+    int indexOf = find(byteBuf, target);
+    if (indexOf == -1) {
+      byteBuf.readerIndex(byteBuf.writerIndex());
+      return false;
+    } else {
+      byteBuf.readerIndex(indexOf);
+      return true;
+    }
+  }
+
+  private static int find(ByteBuf byteBuf, byte target) {
+    return byteBuf.indexOf(byteBuf.readerIndex(), byteBuf.writerIndex(), target);
   }
 
   private static byte peek(ByteBuf buffer) {
