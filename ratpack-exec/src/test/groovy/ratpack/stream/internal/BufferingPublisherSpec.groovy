@@ -157,7 +157,7 @@ class BufferingPublisherSpec extends BaseRatpackSpec {
     subscriber.subscription.cancel()
 
     then:
-    disposed.toList() == [3, 4, 5]
+    disposed.toList() == [2, 3]
   }
 
   def "buffered are disposed of on error"() {
