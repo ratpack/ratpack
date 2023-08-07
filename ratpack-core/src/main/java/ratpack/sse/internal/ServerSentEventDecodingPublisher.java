@@ -22,7 +22,6 @@ import io.netty.util.ReferenceCountUtil;
 import org.reactivestreams.Publisher;
 import org.reactivestreams.Subscriber;
 import org.reactivestreams.Subscription;
-import ratpack.func.Action;
 import ratpack.sse.ServerSentEvent;
 import ratpack.stream.internal.BufferingPublisher;
 
