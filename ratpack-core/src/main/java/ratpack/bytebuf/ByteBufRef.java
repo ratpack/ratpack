@@ -37,35 +37,28 @@ import java.nio.charset.Charset;
  */
 public class ByteBufRef extends ByteBuf {
 
-  private final ReferenceCounted counted;
+  protected final RefReferenceCounting counted;
 
-  private final ByteBuf delegate;
-
-  private class ReferenceCountingWrapper extends AbstractReferenceCounted {
-    @Override
-    protected void deallocate() {
-      delegate.release();
-    }
-
-    @Override
-    public ReferenceCounted touch(Object hint) {
-      return this;
-    }
-  }
+  protected final ByteBuf delegate;
 
   public ByteBufRef(ByteBuf delegate) {
     this.delegate = delegate;
-    this.counted = new ReferenceCountingWrapper();
+    this.counted = new RefReferenceCounting();
   }
 
-  private ByteBufRef(ReferenceCounted counted, ByteBuf delegate) {
+  private ByteBufRef(RefReferenceCounting counted, ByteBuf delegate) {
     this.counted = counted;
     this.delegate = delegate;
+  }
+
+  protected void deallocate() {
+    delegate.release();
   }
 
   private ByteBufRef wrap(ByteBuf delegate) {
     return new ByteBufRef(counted, delegate);
   }
+
 
   @Override
   public ByteBuf retain(int increment) {
@@ -1109,5 +1102,21 @@ public class ByteBufRef extends ByteBuf {
     counted.touch();
     delegate.touch(hint);
     return this;
+  }
+
+  protected class RefReferenceCounting extends AbstractReferenceCounted {
+    @Override
+    protected void deallocate() {
+      ByteBufRef.this.deallocate();
+    }
+
+    @Override
+    public ReferenceCounted touch(Object hint) {
+      return this;
+    }
+
+    public void reset() {
+      setRefCnt(1);
+    }
   }
 }

@@ -228,7 +228,7 @@ public class ServerSentEvents implements Renderable {
     response.getHeaders().add(HttpHeaderConstants.TRANSFER_ENCODING, HttpHeaderConstants.CHUNKED);
 
     ByteBufAllocator byteBufAllocator = context.getDirectChannelAccess().getChannel().alloc();
-    Publisher<ByteBuf> buffers = Streams.map(events, i -> ServerSentEventEncoder.INSTANCE.encode(i));
+    Publisher<ByteBuf> buffers = Streams.map(events, ServerSentEventEncoder.INSTANCE::encode);
 
     EventLoop executor = context.getDirectChannelAccess().getChannel().eventLoop();
     Clock clock = System::nanoTime;
