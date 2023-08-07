@@ -22,26 +22,20 @@ import io.netty.util.internal.ObjectPool;
 import ratpack.bytebuf.ByteBufRef;
 import ratpack.sse.ServerSentEvent;
 
+import java.nio.charset.StandardCharsets;
 import java.util.List;
-
-import static io.netty.util.CharsetUtil.UTF_8;
 
 public class ServerSentEventEncoder {
 
   public static final ServerSentEventEncoder INSTANCE = new ServerSentEventEncoder();
 
-  private static final ByteBuf EVENT_PREFIX = constant("event: ".getBytes(UTF_8));
-  private static final ObjectPool<ByteBuf> EVENT_PREFIX_POOL = pooledConstant(EVENT_PREFIX);
+  private static final ObjectPool<ByteBuf> EVENT_PREFIX_POOL = pooledConstant("event: ");
 
-  private static final ByteBuf DATA_PREFIX = constant("data: ".getBytes(UTF_8));
+  private static final ObjectPool<ByteBuf> DATA_PREFIX_POOL = pooledConstant("data: ");
 
-  private static final ObjectPool<ByteBuf> DATA_PREFIX_POOL = pooledConstant(DATA_PREFIX);
-  private static final ByteBuf ID_PREFIX = constant("id: ".getBytes(UTF_8));
+  private static final ObjectPool<ByteBuf> ID_PREFIX_POOL = pooledConstant("id: ");
 
-  private static final ObjectPool<ByteBuf> ID_PREFIX_POOL = pooledConstant(ID_PREFIX);
-
-  private static final ByteBuf COMMENT_PREFIX = constant(": ".getBytes(UTF_8));
-  private static final ObjectPool<ByteBuf> COMMENT_PREFIX_POOL = pooledConstant(COMMENT_PREFIX);
+  private static final ObjectPool<ByteBuf> COMMENT_PREFIX_POOL = pooledConstant(": ");
 
 
   private static final ByteBuf NEWLINE = DefaultServerSentEvent.NEWLINE_BYTE_BUF;
@@ -106,19 +100,23 @@ public class ServerSentEventEncoder {
 
       bufs[i] = NEWLINE_POOL.get();
 
-      return Unpooled.wrappedBuffer(bufs);
+      return Unpooled.wrappedUnmodifiableBuffer(bufs);
     }
   }
 
-  private static ByteBuf constant(byte[] bytes) {
-    return Unpooled.unreleasableBuffer(Unpooled.wrappedBuffer(bytes).asReadOnly());
+  private static ObjectPool<ByteBuf> pooledConstant(String string) {
+    return pooledConstant(string.getBytes(StandardCharsets.UTF_8));
+  }
+
+  private static ObjectPool<ByteBuf> pooledConstant(byte[] bytes) {
+    return pooledConstant(Unpooled.wrappedBuffer(bytes));
   }
 
   private static ObjectPool<ByteBuf> pooledConstant(ByteBuf byteBuf) {
     return ObjectPool.newPool(new ObjectPool.ObjectCreator<ByteBuf>() {
       @Override
       public ByteBuf newObject(ObjectPool.Handle<ByteBuf> handle) {
-        return new ByteBufRef(byteBuf.slice()) {
+        return new ByteBufRef(byteBuf.asReadOnly()) {
           @Override
           protected void deallocate() {
             delegate.resetReaderIndex();
