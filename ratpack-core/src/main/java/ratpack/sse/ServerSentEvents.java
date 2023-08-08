@@ -253,7 +253,11 @@ public class ServerSentEvents implements Renderable {
         if (buffer == null) {
           buffer = byteBufAllocator.buffer(bufferSize);
         }
-        ServerSentEventEncoder.encodeTo(item, buffer);
+        try {
+          ServerSentEventEncoder.encodeTo(item, buffer);
+        } finally {
+          item.close();
+        }
       }
 
       @Override

@@ -130,10 +130,10 @@ public interface ServerSentEvent extends AutoCloseable {
 
     int components = lines.size() * 2 - 1;
     ByteBuf[] byteBufs = new ByteBuf[components];
-    byteBufs[0] = lines.get(0).slice();
+    byteBufs[0] = lines.get(0).retainedSlice();
     for (int i = 1; i < lines.size(); ++i) {
       byteBufs[i * 2 - 1] = DefaultServerSentEvent.NEWLINE_BYTE_BUF.slice();
-      byteBufs[i * 2] = lines.get(i).slice();
+      byteBufs[i * 2] = lines.get(i).retainedSlice();
     }
 
     return Unpooled.wrappedUnmodifiableBuffer(byteBufs);
