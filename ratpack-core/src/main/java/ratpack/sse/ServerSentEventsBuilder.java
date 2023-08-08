@@ -39,27 +39,25 @@ public interface ServerSentEventsBuilder {
    * <p>
    * Use {@link #buffered()} to use sensible defaults.
    *
-   * @param numEvents the number of events to buffer (must be &gt; 0)
    * @param numBytes the number of bytes to buffer (must be &gt; 0)
    * @param duration the amount of time to buffer events (use 0 to disable)
    * @return {@code this}
-   * @see #buffered(int, int, Duration)
+   * @see #buffered(int, Duration)
    */
-  ServerSentEventsBuilder buffered(int numEvents, int numBytes, Duration duration);
+  ServerSentEventsBuilder buffered(int numBytes, Duration duration);
 
   /**
    * Applies sensible buffering defaults, for low latency.
    * <ul>
-   * <li>Events: 512</li>
    * <li>Bytes: 57344</li>
    * <li>Duration: 1 second</li>
    * </ul>
    *
    * @return {@code this}
-   * @see #buffered(int, int, Duration)
+   * @see #buffered(int, Duration)
    */
   default ServerSentEventsBuilder buffered() {
-    return buffered(512, 57344, Duration.ofSeconds(1));
+    return buffered(57344, Duration.ofSeconds(1));
   }
 
   /**

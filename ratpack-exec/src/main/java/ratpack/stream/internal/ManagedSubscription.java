@@ -22,65 +22,101 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import ratpack.func.Action;
 
-import java.util.concurrent.atomic.AtomicBoolean;
-import java.util.concurrent.atomic.AtomicLong;
+import java.util.concurrent.atomic.AtomicIntegerFieldUpdater;
+import java.util.concurrent.atomic.AtomicLongFieldUpdater;
 
 public abstract class ManagedSubscription<T> implements Subscription {
 
+  private static final int INIT = 0;
+  private static final int ACTIVE = 1;
+  private static final int STOPPED = 2;
   private static final Logger LOGGER = LoggerFactory.getLogger(ManagedSubscription.class);
 
   private volatile boolean open;
-  private final AtomicLong demand = new AtomicLong();
+  private volatile long demand;
 
   private final Action<? super T> disposer;
-  private final Subscriber<? super T> subscriber;
+  private final Subscriber<? super T> downstream;
 
-  private final AtomicBoolean done = new AtomicBoolean();
+  private volatile int state = INIT;
 
-  public ManagedSubscription(Subscriber<? super T> subscriber, Action<? super T> disposer) {
-    this.subscriber = subscriber;
+  private volatile boolean emitting;
+  private volatile long emitDemand;
+
+  @SuppressWarnings("rawtypes")
+  private static final AtomicLongFieldUpdater<ManagedSubscription> EMIT_DEMAND_UPDATER = AtomicLongFieldUpdater.newUpdater(ManagedSubscription.class, "emitDemand");
+
+  @SuppressWarnings("rawtypes")
+  private static final AtomicLongFieldUpdater<ManagedSubscription> DEMAND_UPDATER = AtomicLongFieldUpdater.newUpdater(ManagedSubscription.class, "demand");
+
+  @SuppressWarnings("rawtypes")
+  private static final AtomicIntegerFieldUpdater<ManagedSubscription> DONE_UPDATER = AtomicIntegerFieldUpdater.newUpdater(ManagedSubscription.class, "state");
+
+  public ManagedSubscription(Subscriber<? super T> downstream, Action<? super T> disposer) {
+    this.downstream = downstream;
     this.disposer = disposer;
   }
 
   @Override
   public final void request(long n) {
     if (n < 1) {
-      subscriber.onError(new IllegalArgumentException("3.9 While the Subscription is not cancelled, Subscription.request(long n) MUST throw a java.lang.IllegalArgumentException if the argument is <= 0."));
+      downstream.onError(new IllegalArgumentException("3.9 While the Subscription is not cancelled, Subscription.request(long n) MUST throw a java.lang.IllegalArgumentException if the argument is <= 0."));
       cancel();
       return;
     }
 
     if (!open) {
+      n = adjustRequest(n);
       if (n == Long.MAX_VALUE) {
         open = true;
-        demand.set(Long.MAX_VALUE);
+        DEMAND_UPDATER.set(this, Long.MAX_VALUE);
       } else {
-        long newDemand = demand.addAndGet(n);
+        long newDemand = DEMAND_UPDATER.addAndGet(this, n);
         if (newDemand < 1 || newDemand == Long.MAX_VALUE) {
           open = true;
           n = Long.MAX_VALUE;
-          demand.set(Long.MAX_VALUE);
+          DEMAND_UPDATER.set(this, Long.MAX_VALUE);
         }
       }
 
-      onRequest(n);
+      if (emitting) {
+        EMIT_DEMAND_UPDATER.addAndGet(this, n);
+      } else {
+        if (state == INIT) {
+          state = ACTIVE;
+          onInit();
+        }
+        onRequest(n);
+      }
     }
   }
 
+  protected long adjustRequest(long n) {
+    return n;
+  }
+
   public long getDemand() {
-    return isDone() ? 0 : demand.get();
+    return isDone() ? 0 : demand;
   }
 
   protected boolean shouldEmit() {
-    return isDone() || demand.get() > 0;
+    return isDone() || demand > 0;
   }
 
   protected boolean isDone() {
-    return done.get();
+    return state == STOPPED;
+  }
+
+  protected boolean isOpen() {
+    return open;
   }
 
   public boolean hasDemand() {
     return getDemand() > 0;
+  }
+
+  protected void onInit() {
+
   }
 
   protected abstract void onRequest(long n);
@@ -92,25 +128,37 @@ public abstract class ManagedSubscription<T> implements Subscription {
       dispose(item);
     } else {
       if (!open) {
-        demand.decrementAndGet();
+        DEMAND_UPDATER.decrementAndGet(this);
       }
-      subscriber.onNext(item);
+      emitting = true;
+      try {
+        downstream.onNext(item);
+      } finally {
+        emitting = false;
+        if (emitDemand != 0) {
+          onRequest(EMIT_DEMAND_UPDATER.getAndSet(this, 0));
+        }
+      }
     }
   }
 
   public void emitError(Throwable error) {
     if (fireDone()) {
-      subscriber.onError(error);
+      downstream.onError(error);
     }
   }
 
   public void emitComplete() {
     if (fireDone()) {
-      subscriber.onComplete();
+      downstream.onComplete();
     }
   }
 
   protected void dispose(T item) {
+    doDispose(disposer, item);
+  }
+
+  protected static <T> void doDispose(Action<? super T> disposer, T item) {
     try {
       disposer.execute(item);
     } catch (Exception e) {
@@ -121,7 +169,7 @@ public abstract class ManagedSubscription<T> implements Subscription {
   }
 
   private boolean fireDone() {
-    return done.compareAndSet(false, true);
+    return DONE_UPDATER.getAndSet(this, STOPPED) != STOPPED;
   }
 
   @Override

@@ -20,13 +20,11 @@ import java.time.Duration;
 
 public class ServerSentEventStreamBufferSettings {
 
-  public final int events;
   public final int bytes;
   public final Duration window;
 
-  public ServerSentEventStreamBufferSettings(int events, int bytes, Duration window) {
+  public ServerSentEventStreamBufferSettings(int bytes, Duration window) {
     this.window = window;
-    this.events = events;
     this.bytes = bytes;
   }
 

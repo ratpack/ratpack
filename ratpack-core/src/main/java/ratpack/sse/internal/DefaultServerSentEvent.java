@@ -19,7 +19,6 @@ package ratpack.sse.internal;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.ByteBufUtil;
 import io.netty.buffer.Unpooled;
-import io.netty.util.AbstractReferenceCounted;
 import io.netty.util.ReferenceCountUtil;
 import ratpack.sse.ServerSentEvent;
 import ratpack.sse.ServerSentEventBuilder;
@@ -29,7 +28,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
-public class DefaultServerSentEvent extends AbstractReferenceCounted implements ServerSentEvent, ServerSentEventBuilder {
+public class DefaultServerSentEvent implements ServerSentEvent, ServerSentEventBuilder {
 
   private static final byte NEWLINE_BYTE = (byte) '\n';
   public static final ByteBuf NEWLINE_BYTE_BUF = Unpooled.unreleasableBuffer(
@@ -158,40 +157,11 @@ public class DefaultServerSentEvent extends AbstractReferenceCounted implements 
   }
 
   @Override
-  public ServerSentEvent retain() {
-    super.retain();
-    return this;
-  }
-
-  @Override
-  public ServerSentEvent retain(int increment) {
-    super.retain(increment);
-    return this;
-  }
-
-  @Override
-  protected void deallocate() {
+  public void close() {
     ReferenceCountUtil.safeRelease(id);
     ReferenceCountUtil.safeRelease(event);
     data.forEach(ReferenceCountUtil::safeRelease);
     comment.forEach(ReferenceCountUtil::safeRelease);
   }
 
-  @Override
-  public ServerSentEvent touch(Object hint) {
-    id.touch(hint);
-    event.touch(hint);
-    data.forEach(d -> d.touch(hint));
-    comment.forEach(d -> d.touch(hint));
-    return this;
-  }
-
-  @Override
-  public ServerSentEvent touch() {
-    id.touch();
-    event.touch();
-    data.forEach(ByteBuf::touch);
-    comment.forEach(ByteBuf::touch);
-    return this;
-  }
 }

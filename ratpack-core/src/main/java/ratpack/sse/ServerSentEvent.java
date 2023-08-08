@@ -18,7 +18,6 @@ package ratpack.sse;
 
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
-import io.netty.util.ReferenceCounted;
 import ratpack.sse.internal.DefaultServerSentEvent;
 
 import java.util.List;
@@ -33,7 +32,7 @@ import static ratpack.sse.internal.DefaultServerSentEvent.asString;
  *
  * @since 1.10
  */
-public interface ServerSentEvent extends ReferenceCounted {
+public interface ServerSentEvent extends AutoCloseable {
 
   /**
    * Creates a builder for an event.
@@ -114,30 +113,6 @@ public interface ServerSentEvent extends ReferenceCounted {
   }
 
   /**
-   * {@inheritDoc}
-   */
-  @Override
-  ServerSentEvent retain();
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override
-  ServerSentEvent retain(int increment);
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override
-  ServerSentEvent touch();
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override
-  ServerSentEvent touch(Object hint);
-
-  /**
    * Joins a list of byte buf lines to a single byte buf.
    * <p>
    * Can be used with {@link #getData()} or {@link #getComment()} to obtain the multi-line value.
@@ -163,4 +138,12 @@ public interface ServerSentEvent extends ReferenceCounted {
 
     return Unpooled.wrappedUnmodifiableBuffer(byteBufs);
   }
+
+  /**
+   * Releases all the buffers held by this event.
+   * <p>
+   * This must be called exactly once for each event.
+   */
+  @Override
+  void close();
 }

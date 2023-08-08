@@ -32,7 +32,7 @@ public class ServerSentEventDecodingPublisher extends BufferingPublisher<ServerS
       return new Subscription() {
 
         Subscription upstream;
-        final ServerSentEventDecoder decoder = new ServerSentEventDecoder(allocator, e -> write.item(e.touch("decoded")));
+        final ServerSentEventDecoder decoder = new ServerSentEventDecoder(allocator, write::item);
 
         volatile boolean emitting;
 
