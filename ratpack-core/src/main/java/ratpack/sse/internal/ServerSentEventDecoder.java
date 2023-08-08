@@ -203,9 +203,9 @@ public class ServerSentEventDecoder implements AutoCloseable {
         .build();
 
     if (!event.getData().isEmpty() || event.getEvent().isReadable() || event.getId().isReadable()) {
-      emitter.execute(event.touch("emitting"));
+      emitter.execute(event);
     } else {
-      event.release();
+      event.close();
     }
 
     state = State.ReadFieldName;

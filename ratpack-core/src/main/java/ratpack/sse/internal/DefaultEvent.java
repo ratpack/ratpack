@@ -64,7 +64,7 @@ public class DefaultEvent<T> implements ratpack.sse.Event<T> {
           .data(Strings.emptyToNull(e.getDataAsString()))
           .comment(Strings.emptyToNull(e.getCommentAsString()));
     } finally {
-      e.release();
+      e.close();
     }
   }
 
