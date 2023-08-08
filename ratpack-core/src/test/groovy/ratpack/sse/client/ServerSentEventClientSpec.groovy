@@ -60,7 +60,7 @@ class ServerSentEventClientSpec extends BaseHttpClientSpec {
   static TransformablePublisher<String> data(ServerSentEventResponse eventStream) {
     eventStream.events.map {
       def s = it.dataAsString
-      it.release()
+      it.close()
       s
     }
   }

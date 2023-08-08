@@ -57,35 +57,35 @@ import static java.util.Objects.requireNonNull;
  * import ratpack.sse.ServerSentEvent;
  * import ratpack.sse.ServerSentEvents;
  * import ratpack.test.embed.EmbeddedApp;
- * <p>
+ *
  * import java.time.Duration;
  * import java.util.Arrays;
  * import java.util.Objects;
- * <p>
+ *
  * import static ratpack.stream.Streams.periodically;
- * <p>
+ *
  * import static java.util.stream.Collectors.joining;
- * <p>
+ *
  * import static org.junit.Assert.assertEquals;
- * <p>
+ *
  * public class Example {
  *   public static void main(String[] args) throws Exception {
  *     EmbeddedApp.fromHandler(context -> {
  *       Publisher<ServerSentEvent> stream = periodically(context, Duration.ofMillis(5), i ->
  *         i < 5 ? ServerSentEvent.builder().id(i.toString()).event("counter").data("event " + i).build() : null
  *       );
- * <p>
+ *
  *       context.render(ServerSentEvents.builder().build(stream));
  *     }).test(httpClient -> {
  *       ReceivedResponse response = httpClient.get();
  *       assertEquals("text/event-stream;charset=UTF-8", response.getHeaders().get("Content-Type"));
- * <p>
+ *
  *       String expectedOutput = Arrays.asList(0, 1, 2, 3, 4)
  *         .stream()
  *         .map(i -> "id: " + i + "\nevent: counter\ndata: event " + i + "\n")
  *         .collect(joining("\n"))
  *         + "\n";
- * <p>
+ *
  *       assertEquals(expectedOutput, response.getBody().getText());
  *     });
  *   }

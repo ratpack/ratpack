@@ -28,7 +28,7 @@ class ServerSentEventStreamDecoderSpec extends RatpackGroovyDslSpec {
   def decoder = new ServerSentEventDecoder(ByteBufAllocator.DEFAULT, events.&add)
 
   def cleanup() {
-    events*.release()
+    events*.close()
   }
 
   def "can decode valid server sent event"() {
