@@ -20,6 +20,7 @@ import io.netty.buffer.ByteBuf;
 import io.netty.buffer.ByteBufAllocator;
 import io.netty.buffer.Unpooled;
 import io.netty.channel.EventLoop;
+import io.netty.util.ReferenceCountUtil;
 import org.reactivestreams.Publisher;
 import org.reactivestreams.Subscriber;
 import org.reactivestreams.Subscription;
@@ -99,7 +100,7 @@ import static java.util.Objects.requireNonNull;
 public class ServerSentEvents implements Renderable {
 
   private static final ByteBuf HEARTBEAT = Unpooled.unreleasableBuffer(
-      Unpooled.wrappedBuffer(": keepalive heartbeat\n\n".getBytes(StandardCharsets.UTF_8))
+    Unpooled.wrappedBuffer(": keepalive heartbeat\n\n".getBytes(StandardCharsets.UTF_8))
   );
   private final Publisher<? extends ServerSentEvent> publisher;
 
@@ -167,59 +168,59 @@ public class ServerSentEvents implements Renderable {
     // Subscribe so we can listen for the first event
     DefaultExecution execution = DefaultExecution.require();
     execution.delimit(context::error, continuation ->
-        Execution.fork().eventLoop(execution.getEventLoop()).start(e -> publisher.subscribe(new Subscriber<ServerSentEvent>() {
+      Execution.fork().eventLoop(execution.getEventLoop()).start(e -> publisher.subscribe(new Subscriber<ServerSentEvent>() {
 
-          private Subscription subscription;
-          private Subscriber<? super ServerSentEvent> subscriber;
+        private Subscription subscription;
+        private Subscriber<? super ServerSentEvent> subscriber;
 
-          @Override
-          public void onSubscribe(Subscription s) {
-            subscription = s;
-            subscription.request(1);
+        @Override
+        public void onSubscribe(Subscription s) {
+          subscription = s;
+          subscription.request(1);
+        }
+
+        @Override
+        public void onNext(ServerSentEvent event) {
+          if (subscriber == null) {
+            // This is the first event, we need to set up the forward to the response.
+
+            // A publisher for the item we have consumed.
+            Publisher<ServerSentEvent> consumedPublisher = Streams.publish(Collections.singleton(event));
+
+            // A publisher that will forward what we haven't consumed.
+            Publisher<ServerSentEvent> restPublisher = s -> {
+              // Upstream signals will flow through us, and we need to forward to this subscriber
+              subscriber = s;
+
+              // Pass through our subscription so that the new subscriber controls demand.
+              s.onSubscribe(requireNonNull(subscription));
+            };
+
+            // Join them together so that we send the whole thing.
+            continuation.resume(() -> renderStream(context, Streams.concat(Arrays.asList(consumedPublisher, restPublisher))));
+          } else {
+            subscriber.onNext(event);
           }
+        }
 
-          @Override
-          public void onNext(ServerSentEvent event) {
-            if (subscriber == null) {
-              // This is the first event, we need to set up the forward to the response.
-
-              // A publisher for the item we have consumed.
-              Publisher<ServerSentEvent> consumedPublisher = Streams.publish(Collections.singleton(event));
-
-              // A publisher that will forward what we haven't consumed.
-              Publisher<ServerSentEvent> restPublisher = s -> {
-                // Upstream signals will flow through us, and we need to forward to this subscriber
-                subscriber = s;
-
-                // Pass through our subscription so that the new subscriber controls demand.
-                s.onSubscribe(requireNonNull(subscription));
-              };
-
-              // Join them together so that we send the whole thing.
-              continuation.resume(() -> renderStream(context, Streams.concat(Arrays.asList(consumedPublisher, restPublisher))));
-            } else {
-              subscriber.onNext(event);
-            }
+        @Override
+        public void onError(Throwable t) {
+          if (subscriber == null) {
+            continuation.resume(() -> context.error(t));
+          } else {
+            subscriber.onError(t);
           }
+        }
 
-          @Override
-          public void onError(Throwable t) {
-            if (subscriber == null) {
-              continuation.resume(() -> context.error(t));
-            } else {
-              subscriber.onError(t);
-            }
+        @Override
+        public void onComplete() {
+          if (subscriber == null) {
+            continuation.resume(() -> emptyStream(context));
+          } else {
+            subscriber.onComplete();
           }
-
-          @Override
-          public void onComplete() {
-            if (subscriber == null) {
-              continuation.resume(() -> emptyStream(context));
-            } else {
-              subscriber.onComplete();
-            }
-          }
-        }))
+        }
+      }))
     );
   }
 
@@ -234,13 +235,13 @@ public class ServerSentEvents implements Renderable {
 
 
     Publisher<ByteBuf> buffers = downstream -> downstream.onSubscribe(new ByteBufBufferingSubscription<ServerSentEvent>(
-        events, ServerSentEvent::close,
-        downstream,
-        executor,
-        System::nanoTime,
-        bufferSettings == null ? Duration.ZERO : bufferSettings.window,
-        heartbeatFrequency == null ? Duration.ZERO : heartbeatFrequency,
-        HEARTBEAT
+      events, ServerSentEvent::close,
+      downstream,
+      executor,
+      System::nanoTime,
+      bufferSettings == null ? Duration.ZERO : bufferSettings.window,
+      heartbeatFrequency == null ? Duration.ZERO : heartbeatFrequency,
+      HEARTBEAT
     ) {
 
       final int watermark = bufferSettings == null ? 0 : bufferSettings.bytes;
@@ -274,9 +275,8 @@ public class ServerSentEvents implements Renderable {
 
       @Override
       protected void discard() {
-        if (buffer != null) {
-          buffer.release();
-        }
+        ReferenceCountUtil.safeRelease(buffer);
+        this.buffer = null;
       }
 
       @Override

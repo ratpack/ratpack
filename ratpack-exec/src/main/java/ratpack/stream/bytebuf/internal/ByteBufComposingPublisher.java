@@ -20,6 +20,7 @@ import io.netty.buffer.ByteBuf;
 import io.netty.buffer.ByteBufAllocator;
 import io.netty.buffer.CompositeByteBuf;
 import io.netty.buffer.Unpooled;
+import io.netty.util.ReferenceCountUtil;
 import org.reactivestreams.Publisher;
 import org.reactivestreams.Subscriber;
 import ratpack.stream.TransformablePublisher;
@@ -73,8 +74,7 @@ public class ByteBufComposingPublisher implements TransformablePublisher<ByteBuf
 
       @Override
       protected void discard() {
-        ByteBuf buffer = this.buffer;
-        buffer.release();
+        ReferenceCountUtil.release(buffer);
         this.buffer = null;
       }
     });
