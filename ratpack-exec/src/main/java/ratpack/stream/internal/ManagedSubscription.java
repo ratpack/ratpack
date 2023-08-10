@@ -67,6 +67,9 @@ public abstract class ManagedSubscription<T> implements Subscription {
 
     if (!open) {
       n = adjustRequest(n);
+      if (n < 1) {
+        return;
+      }
       if (n == Long.MAX_VALUE) {
         open = true;
         DEMAND_UPDATER.set(this, Long.MAX_VALUE);

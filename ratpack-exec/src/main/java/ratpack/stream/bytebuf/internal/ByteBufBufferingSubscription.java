@@ -79,15 +79,13 @@ public abstract class ByteBufBufferingSubscription<T> extends MiddlemanSubscript
   @Override
   protected long adjustRequest(long request) {
     if (needsKeepAlive) {
-      sentKeepAlive = true;
       emitKeepAlive();
+      return request - 1;
+    } else if (sentKeepAlive) {
+      return request - 1;
+    } else {
+      return request;
     }
-
-    if (sentKeepAlive) {
-      request -= 1;
-    }
-
-    return request;
   }
 
   private void scheduleKeepAliveCheck(long inNanos) {
@@ -107,6 +105,7 @@ public abstract class ByteBufBufferingSubscription<T> extends MiddlemanSubscript
   }
 
   private void emitKeepAlive() {
+    sentKeepAlive = true;
     emitNext(keepAliveHeartbeat.retainedSlice());
     scheduleKeepAliveCheck(keepAliveFrequencyNanos);
   }
