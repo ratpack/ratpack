@@ -21,15 +21,15 @@ import org.reactivestreams.Subscriber;
 import org.reactivestreams.Subscription;
 import ratpack.func.Action;
 
-public abstract class MiddlemanSubscription<T, U> extends ManagedSubscription<T> {
+public abstract class MiddlemanSubscription<U, D> extends ManagedSubscription<D> {
 
   private final Publisher<? extends U> upstream;
   private final Action<? super U> upstreamDisposer;
   private volatile Subscription upstreamSubscription;
 
   public MiddlemanSubscription(
-      Subscriber<? super T> downstream,
-      Action<? super T> downstreamDisposer,
+      Subscriber<? super D> downstream,
+      Action<? super D> downstreamDisposer,
       Publisher<? extends U> upstream,
       Action<? super U> upstreamDisposer
   ) {
@@ -38,12 +38,15 @@ public abstract class MiddlemanSubscription<T, U> extends ManagedSubscription<T>
     this.upstreamDisposer = upstreamDisposer;
   }
 
-  @Override
-  protected void onInit() {
+  public void connect() {
     upstream.subscribe(new Subscriber<U>() {
       @Override
       public void onSubscribe(Subscription s) {
         upstreamSubscription = s;
+        downstream.onSubscribe(MiddlemanSubscription.this);
+        if (!isDone()) {
+          onConnected();
+        }
       }
 
       @Override
@@ -65,6 +68,10 @@ public abstract class MiddlemanSubscription<T, U> extends ManagedSubscription<T>
         receiveComplete();
       }
     });
+  }
+
+  protected void onConnected() {
+
   }
 
   @Override
