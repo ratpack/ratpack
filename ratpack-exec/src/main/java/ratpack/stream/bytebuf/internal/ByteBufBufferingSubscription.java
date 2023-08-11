@@ -28,7 +28,7 @@ import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
 import java.util.function.LongSupplier;
 
-public abstract class ByteBufBufferingSubscription<T> extends MiddlemanSubscription<ByteBuf, T> {
+public abstract class ByteBufBufferingSubscription<T> extends MiddlemanSubscription<T, ByteBuf> {
 
   private final ScheduledExecutorService executor;
   private final LongSupplier clock;
@@ -39,32 +39,37 @@ public abstract class ByteBufBufferingSubscription<T> extends MiddlemanSubscript
   private boolean needsFlush;
 
   private final long keepAliveFrequencyNanos;
-  private final ByteBuf keepAliveHeartbeat;
+  private final ByteBuf keepAliveItem;
   private ScheduledFuture<?> keepAliveCheckFuture;
   private boolean needsKeepAlive;
   private long lastEmitAt;
-  private boolean sentKeepAlive;
+  private int keepAlivesSentSinceLastItem;
 
   public ByteBufBufferingSubscription(
-      Publisher<? extends T> upstream,
-      Action<? super T> upstreamDisposer,
-      Subscriber<? super ByteBuf> subscriber,
-      ScheduledExecutorService executor,
-      LongSupplier clock,
-      Duration flushFrequency,
-      Duration keepAliveFrequency,
-      ByteBuf keepAliveHeartbeat
+    Publisher<? extends T> upstream,
+    Action<? super T> upstreamDisposer,
+    Subscriber<? super ByteBuf> subscriber,
+    ScheduledExecutorService executor,
+    LongSupplier clock,
+    Duration flushFrequency,
+    Duration keepAliveFrequency,
+    ByteBuf keepAliveItem
   ) {
     super(subscriber, ByteBuf::release, upstream, upstreamDisposer);
     this.executor = executor;
     this.clock = clock;
     this.flushFrequencyNanos = flushFrequency.toNanos();
     this.keepAliveFrequencyNanos = keepAliveFrequency.toNanos();
-    this.keepAliveHeartbeat = keepAliveHeartbeat;
+    this.keepAliveItem = keepAliveItem;
   }
 
   @Override
-  protected void onInit() {
+  public void connect() {
+    super.connect();
+  }
+
+  @Override
+  protected void onConnected() {
     lastFlushAt = lastEmitAt = System.nanoTime();
     if (flushFrequencyNanos > 0) {
       scheduleFlushCheck(flushFrequencyNanos);
@@ -72,19 +77,18 @@ public abstract class ByteBufBufferingSubscription<T> extends MiddlemanSubscript
     if (keepAliveFrequencyNanos > 0) {
       scheduleKeepAliveCheck(keepAliveFrequencyNanos);
     }
-    super.onInit();
+    super.onConnected();
   }
 
-
   @Override
-  protected long adjustRequest(long request) {
+  protected void onRequest(long n) {
+    n = n - keepAlivesSentSinceLastItem;
+    if (n > 0) {
+      super.onRequest(n);
+    }
+
     if (needsKeepAlive) {
       emitKeepAlive();
-      return request - 1;
-    } else if (sentKeepAlive) {
-      return request - 1;
-    } else {
-      return request;
     }
   }
 
@@ -105,8 +109,8 @@ public abstract class ByteBufBufferingSubscription<T> extends MiddlemanSubscript
   }
 
   private void emitKeepAlive() {
-    sentKeepAlive = true;
-    emitNext(keepAliveHeartbeat.retainedSlice());
+    ++keepAlivesSentSinceLastItem;
+    emit(keepAliveItem.retainedSlice());
     scheduleKeepAliveCheck(keepAliveFrequencyNanos);
   }
 
@@ -189,6 +193,11 @@ public abstract class ByteBufBufferingSubscription<T> extends MiddlemanSubscript
 
   @Override
   public void emitNext(ByteBuf item) {
+    keepAlivesSentSinceLastItem = 0;
+    emit(item);
+  }
+
+  private void emit(ByteBuf item) {
     lastEmitAt = clock.getAsLong();
     needsKeepAlive = false;
     super.emitNext(item);

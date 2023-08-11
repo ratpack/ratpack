@@ -28,15 +28,14 @@ import java.util.concurrent.atomic.AtomicLongFieldUpdater;
 public abstract class ManagedSubscription<T> implements Subscription {
 
   private static final int INIT = 0;
-  private static final int ACTIVE = 1;
-  private static final int STOPPED = 2;
+  private static final int STOPPED = 1;
   private static final Logger LOGGER = LoggerFactory.getLogger(ManagedSubscription.class);
 
   private volatile boolean open;
   private volatile long demand;
 
   private final Action<? super T> disposer;
-  private final Subscriber<? super T> downstream;
+  protected final Subscriber<? super T> downstream;
 
   private volatile int state = INIT;
 
@@ -66,10 +65,6 @@ public abstract class ManagedSubscription<T> implements Subscription {
     }
 
     if (!open) {
-      n = adjustRequest(n);
-      if (n < 1) {
-        return;
-      }
       if (n == Long.MAX_VALUE) {
         open = true;
         DEMAND_UPDATER.set(this, Long.MAX_VALUE);
@@ -85,17 +80,9 @@ public abstract class ManagedSubscription<T> implements Subscription {
       if (emitting) {
         EMIT_DEMAND_UPDATER.addAndGet(this, n);
       } else {
-        if (state == INIT) {
-          state = ACTIVE;
-          onInit();
-        }
         onRequest(n);
       }
     }
-  }
-
-  protected long adjustRequest(long n) {
-    return n;
   }
 
   public long getDemand() {
@@ -116,10 +103,6 @@ public abstract class ManagedSubscription<T> implements Subscription {
 
   public boolean hasDemand() {
     return getDemand() > 0;
-  }
-
-  protected void onInit() {
-
   }
 
   protected abstract void onRequest(long n);
