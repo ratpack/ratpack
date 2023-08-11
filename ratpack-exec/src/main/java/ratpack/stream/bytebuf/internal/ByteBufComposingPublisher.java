@@ -43,7 +43,7 @@ public class ByteBufComposingPublisher implements TransformablePublisher<ByteBuf
 
   @Override
   public void subscribe(Subscriber<? super ByteBuf> downstream) {
-    downstream.onSubscribe(new ByteBufBufferingSubscription<ByteBuf>(upstream, ByteBuf::release, downstream, null, System::nanoTime, Duration.ZERO, Duration.ZERO, Unpooled.EMPTY_BUFFER) {
+    new ByteBufBufferingSubscription<ByteBuf>(upstream, ByteBuf::release, downstream, null, System::nanoTime, Duration.ZERO, Duration.ZERO, Unpooled.EMPTY_BUFFER) {
       private CompositeByteBuf buffer;
 
       protected boolean bufferIsFull() {
@@ -77,7 +77,7 @@ public class ByteBufComposingPublisher implements TransformablePublisher<ByteBuf
         ReferenceCountUtil.release(buffer);
         this.buffer = null;
       }
-    });
+    }.connect();
   }
 
 }
