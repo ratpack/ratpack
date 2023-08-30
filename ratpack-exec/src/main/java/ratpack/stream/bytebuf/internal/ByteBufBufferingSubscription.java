@@ -101,6 +101,8 @@ public abstract class ByteBufBufferingSubscription<T> extends MiddlemanSubscript
   }
 
   private void keepAliveCheck() {
+    keepAliveCheckFuture = null;
+
     long now = clock.getAsLong();
     long heartbeatDue = lastEmitAt + keepAliveFrequencyNanos;
     needsKeepAlive = heartbeatDue <= now;
@@ -108,8 +110,6 @@ public abstract class ByteBufBufferingSubscription<T> extends MiddlemanSubscript
     if (needsKeepAlive) {
       if (hasDemand()) {
         emitKeepAlive();
-      } else {
-        keepAliveCheckFuture = null;
       }
     } else {
       scheduleKeepAliveCheck(heartbeatDue - now);
@@ -174,14 +174,18 @@ public abstract class ByteBufBufferingSubscription<T> extends MiddlemanSubscript
 
   @Override
   protected final void onCancel() {
+    ScheduledFuture<?> flushCheckFuture = this.flushCheckFuture;
     if (flushCheckFuture != null) {
       flushCheckFuture.cancel(false);
-      flushCheckFuture = null;
+      this.flushCheckFuture = null;
     }
+
+    ScheduledFuture<?> keepAliveCheckFuture = this.keepAliveCheckFuture;
     if (keepAliveCheckFuture != null) {
       keepAliveCheckFuture.cancel(false);
-      keepAliveCheckFuture = null;
+      this.keepAliveCheckFuture = null;
     }
+
     super.onCancel();
     discard();
   }
