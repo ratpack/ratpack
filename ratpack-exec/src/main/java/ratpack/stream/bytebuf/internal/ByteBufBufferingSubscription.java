@@ -89,11 +89,15 @@ public abstract class ByteBufBufferingSubscription<T> extends MiddlemanSubscript
 
     if (needsKeepAlive) {
       emitKeepAlive();
+    } else if (keepAliveCheckFuture == null && keepAliveFrequencyNanos > 0) {
+      scheduleKeepAliveCheck(keepAliveFrequencyNanos);
     }
   }
 
   private void scheduleKeepAliveCheck(long inNanos) {
-    keepAliveCheckFuture = executor.schedule(this::keepAliveCheck, inNanos, TimeUnit.NANOSECONDS);
+    if (!isDone() && keepAliveCheckFuture == null) {
+      keepAliveCheckFuture = executor.schedule(this::keepAliveCheck, inNanos, TimeUnit.NANOSECONDS);
+    }
   }
 
   private void keepAliveCheck() {
@@ -101,8 +105,12 @@ public abstract class ByteBufBufferingSubscription<T> extends MiddlemanSubscript
     long heartbeatDue = lastEmitAt + keepAliveFrequencyNanos;
     needsKeepAlive = heartbeatDue <= now;
 
-    if (needsKeepAlive && hasDemand()) {
-      emitKeepAlive();
+    if (needsKeepAlive) {
+      if (hasDemand()) {
+        emitKeepAlive();
+      } else {
+        keepAliveCheckFuture = null;
+      }
     } else {
       scheduleKeepAliveCheck(heartbeatDue - now);
     }
@@ -137,7 +145,9 @@ public abstract class ByteBufBufferingSubscription<T> extends MiddlemanSubscript
   }
 
   private void scheduleFlushCheck(long scheduleFor) {
-    flushCheckFuture = executor.schedule(this::flushCheck, scheduleFor, TimeUnit.NANOSECONDS);
+    if (!isDone()) {
+      flushCheckFuture = executor.schedule(this::flushCheck, scheduleFor, TimeUnit.NANOSECONDS);
+    }
   }
 
   @Override
