@@ -89,22 +89,33 @@ public abstract class ByteBufBufferingSubscription<T> extends MiddlemanSubscript
 
     if (needsKeepAlive) {
       emitKeepAlive();
+    } else if (keepAliveCheckFuture == null && keepAliveFrequencyNanos > 0) {
+      scheduleKeepAliveCheck(keepAliveFrequencyNanos);
     }
   }
 
   private void scheduleKeepAliveCheck(long inNanos) {
-    keepAliveCheckFuture = executor.schedule(this::keepAliveCheck, inNanos, TimeUnit.NANOSECONDS);
+    if (!isDone() && keepAliveCheckFuture == null) {
+      keepAliveCheckFuture = executor.schedule(this::keepAliveCheck, inNanos, TimeUnit.NANOSECONDS);
+    }
   }
 
   private void keepAliveCheck() {
+    keepAliveCheckFuture = null;
+
     long now = clock.getAsLong();
     long heartbeatDue = lastEmitAt + keepAliveFrequencyNanos;
     needsKeepAlive = heartbeatDue <= now;
 
-    if (needsKeepAlive && hasDemand()) {
-      emitKeepAlive();
+    if (needsKeepAlive) {
+      if (hasDemand()) {
+        emitKeepAlive();
+      }
     } else {
-      scheduleKeepAliveCheck(heartbeatDue - now);
+      long nextHeartbeatCheckNanos = heartbeatDue - now;
+      if (nextHeartbeatCheckNanos > 0) {
+        scheduleKeepAliveCheck(nextHeartbeatCheckNanos);
+      }
     }
   }
 
@@ -137,7 +148,9 @@ public abstract class ByteBufBufferingSubscription<T> extends MiddlemanSubscript
   }
 
   private void scheduleFlushCheck(long scheduleFor) {
-    flushCheckFuture = executor.schedule(this::flushCheck, scheduleFor, TimeUnit.NANOSECONDS);
+    if (!isDone()) {
+      flushCheckFuture = executor.schedule(this::flushCheck, scheduleFor, TimeUnit.NANOSECONDS);
+    }
   }
 
   @Override
@@ -164,14 +177,18 @@ public abstract class ByteBufBufferingSubscription<T> extends MiddlemanSubscript
 
   @Override
   protected final void onCancel() {
+    ScheduledFuture<?> flushCheckFuture = this.flushCheckFuture;
     if (flushCheckFuture != null) {
       flushCheckFuture.cancel(false);
-      flushCheckFuture = null;
+      this.flushCheckFuture = null;
     }
+
+    ScheduledFuture<?> keepAliveCheckFuture = this.keepAliveCheckFuture;
     if (keepAliveCheckFuture != null) {
       keepAliveCheckFuture.cancel(false);
-      keepAliveCheckFuture = null;
+      this.keepAliveCheckFuture = null;
     }
+
     super.onCancel();
     discard();
   }
