@@ -112,7 +112,10 @@ public abstract class ByteBufBufferingSubscription<T> extends MiddlemanSubscript
         emitKeepAlive();
       }
     } else {
-      scheduleKeepAliveCheck(heartbeatDue - now);
+      long nextHeartbeatCheckNanos = heartbeatDue - now;
+      if (nextHeartbeatCheckNanos > 0) {
+        scheduleKeepAliveCheck(nextHeartbeatCheckNanos);
+      }
     }
   }
 
