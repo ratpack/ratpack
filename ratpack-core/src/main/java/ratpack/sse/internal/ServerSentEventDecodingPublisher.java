@@ -18,7 +18,6 @@ package ratpack.sse.internal;
 
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.ByteBufAllocator;
-import io.netty.util.ReferenceCountUtil;
 import org.reactivestreams.Publisher;
 import org.reactivestreams.Subscriber;
 import org.reactivestreams.Subscription;
@@ -28,7 +27,7 @@ import ratpack.stream.internal.BufferingPublisher;
 public class ServerSentEventDecodingPublisher extends BufferingPublisher<ServerSentEvent> {
 
   public ServerSentEventDecodingPublisher(Publisher<? extends ByteBuf> publisher, ByteBufAllocator allocator) {
-    super(ReferenceCountUtil::safeRelease, write -> {
+    super(ServerSentEvent::close, write -> {
       return new Subscription() {
 
         Subscription upstream;
