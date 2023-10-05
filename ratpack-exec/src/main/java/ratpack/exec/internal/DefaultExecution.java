@@ -159,6 +159,11 @@ public class DefaultExecution implements Execution {
     drain();
   }
 
+  public void error(Throwable throwable) {
+    execStream.error(throwable);
+    drain();
+  }
+
   public void eventLoopDrain() {
     eventLoop.execute(this::drain);
   }
