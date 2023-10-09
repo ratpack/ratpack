@@ -389,7 +389,7 @@ public class DefaultExecution implements Execution {
     }
 
     @Override
-    boolean exec() throws Exception {
+    boolean exec() {
       execStream = parent;
       return true;
     }
@@ -577,7 +577,7 @@ public class DefaultExecution implements Execution {
           if (segments.isEmpty()) {
             segments = null;
           }
-          segment.execute();
+          Objects.requireNonNull(segment).execute();
           return true;
         }
       } else {
@@ -632,15 +632,12 @@ public class DefaultExecution implements Execution {
 
     @Override
     void error(Throwable throwable) {
-      execStream = parent;
       if (resumed && resumer == null) {
-        parent.error(throwable);
+        execStream = parent;
+        execStream.error(throwable);
       } else {
-        try {
-          onError.execute(throwable);
-        } catch (Throwable e) {
-          execStream.error(e);
-        }
+        execStream = new SingleEventExecStream(parent, parent::error, continuation -> continuation.resume(() -> onError.execute(throwable)));
+        drain();
       }
     }
   }
@@ -649,10 +646,12 @@ public class DefaultExecution implements Execution {
     final Queue<ExecStream> events = PlatformDependent.newMpscQueue();
 
     final ExecStream nextEvent = new NonUserCodeExecStream(this);
+    private final Action<? super Throwable> onError;
 
     MultiEventExecStream(ExecStream parent, Action<? super Throwable> onError, Action<? super ContinuationStream> initial) {
       super(parent);
-      events.add(new SingleEventExecStream(nextEvent, onError, continuation -> continuation.resume(() ->
+      this.onError = onError;
+      events.add(new SingleEventExecStream(nextEvent, Action.throwException(), continuation -> continuation.resume(() ->
         initial.execute(new ContinuationStream() {
           public void event(Block action) {
             addEvent(nextEvent, action);
@@ -663,15 +662,15 @@ public class DefaultExecution implements Execution {
           }
 
           private void addEvent(ExecStream parent, Block action) {
-            events.add(new SingleEventExecStream(parent, onError, continuation -> continuation.resume(action)));
-            drain();
+            events.add(new SingleEventExecStream(parent, Action.throwException(), continuation -> continuation.resume(action)));
+             drain();
           }
         })
       )));
     }
 
     @Override
-    boolean exec() throws Exception {
+    boolean exec() {
       ExecStream next = events.poll();
       if (next == null) {
         return false;
@@ -681,6 +680,11 @@ public class DefaultExecution implements Execution {
       }
     }
 
+    @Override
+    void error(Throwable throwable) {
+      execStream = new SingleEventExecStream(parent, parent::error, continuation -> continuation.resume(() -> onError.execute(throwable)));
+      drain();
+    }
   }
 
   private static final class Ref implements ExecutionRef {
