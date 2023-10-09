@@ -18,6 +18,7 @@ package ratpack.exec
 
 import org.reactivestreams.Subscriber
 import org.reactivestreams.Subscription
+import ratpack.exec.internal.DefaultExecution
 import ratpack.func.Action
 import ratpack.func.Function
 import ratpack.http.ResponseChunks
@@ -410,4 +411,39 @@ class StreamExecutionSpec extends RatpackGroovyDslSpec {
     thrown IllegalStateException
   }
 
+  def "stream error handler can receive async thrown error"() {
+    when:
+    harness.yield {
+      Promise.async { down ->
+        DefaultExecution.require().delimitStream({ down.error(new IllegalStateException("stream handler", it)) }) {
+          it.event {
+            println "1"
+          }
+          it.event {
+            Promise.error(new RuntimeException("!"))
+              .onError { error ->
+                Promise.sync {
+                  throw error
+                }
+                  .onError {
+                    throw error
+                  }
+                  .then {
+                    println "2"
+                  }
+              }
+              .then {
+                println "3"
+              }
+          }
+          it.complete {
+            down.success(true)
+          }
+        }
+      }
+    }.valueOrThrow
+
+    then:
+    thrown(IllegalStateException)
+  }
 }
