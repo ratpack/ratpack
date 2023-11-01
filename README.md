@@ -1,6 +1,6 @@
 [![Build Status](https://circleci.com/gh/ratpack/ratpack/tree/master.svg?style=svg)](https://circleci.com/gh/ratpack/ratpack)
 [![codecov.io](http://codecov.io/github/ratpack/ratpack/coverage.svg?branch=master)](http://codecov.io/github/ratpack/ratpack?branch=master)
-[![Revved up by Gradle Enterprise](https://img.shields.io/badge/Revved%20up%20by-Gradle%20Enterprise-06A0CE?logo=Gradle&labelColor=02303A)](https://ge.ratpack.io/scans)
+[![Revved up by Develocity](https://img.shields.io/badge/Revved%20up%20by-Develocity-06A0CE?logo=Gradle&labelColor=02303A)](https://ge.ratpack.io/scans)
 
 [![Ratpack.io](/ratpack-site/src/assets/images/ratpack-logo.png?raw=true)](https://ratpack.io)
 
