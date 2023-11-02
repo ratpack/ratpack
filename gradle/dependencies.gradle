@@ -20,7 +20,7 @@ ext {
     commonsCodec     : "1.14",
     commonsLang3     : "3.12.0",
     commonsLogging   : "1.2",
-    dropwizardMetrics: "4.2.9",
+    dropwizardMetrics: "4.2.21",
     groovy           : "3.0.9", // Gradle 7.4 uses Groovy 3.0.9
     guava            : "31.1-jre",
     guice            : "5.1.0",
