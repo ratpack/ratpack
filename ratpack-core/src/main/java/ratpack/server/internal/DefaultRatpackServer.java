@@ -42,7 +42,6 @@ import ratpack.func.Factory;
 import ratpack.func.Function;
 import ratpack.handling.Handler;
 import ratpack.handling.HandlerDecorator;
-import ratpack.http.internal.ConnectionIdleTimeout;
 import ratpack.impose.Impositions;
 import ratpack.impose.UserRegistryImposition;
 import ratpack.registry.Registry;
@@ -326,8 +325,6 @@ public class DefaultRatpackServer implements RatpackServer {
           @Override
           protected void initChannel(SocketChannel ch) {
             ChannelPipeline pipeline = ch.pipeline();
-
-            new ConnectionIdleTimeout(pipeline, serverConfig.getIdleTimeout());
 
             if (sslContext != null) {
               SSLEngine sslEngine = sslContext.newEngine(ByteBufAllocator.DEFAULT);
