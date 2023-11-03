@@ -55,7 +55,7 @@ public class DefaultResponseTransmitter implements ResponseTransmitter {
     ERROR_RESPONSE_HEADERS.set(HttpHeaderNames.CONNECTION, HttpHeaderValues.CLOSE);
   }
 
-  private final AtomicBoolean transmitted;
+  private final AtomicBoolean responseInitiated;
   private final Channel channel;
   private final Clock clock;
   private final Request ratpackRequest;
@@ -64,6 +64,7 @@ public class DefaultResponseTransmitter implements ResponseTransmitter {
   private final boolean isSsl;
   private final HttpRequest nettyRequest;
 
+  private final Runnable onRequestFinished;
   private List<Action<? super RequestOutcome>> outcomeListeners;
 
   private Instant stopTime;
@@ -71,15 +72,16 @@ public class DefaultResponseTransmitter implements ResponseTransmitter {
   private boolean done;
 
   public DefaultResponseTransmitter(
-    AtomicBoolean transmitted,
+    AtomicBoolean responseInitiated,
     Channel channel,
     Clock clock,
     HttpRequest nettyRequest,
     Request ratpackRequest,
     HttpHeaders responseHeaders,
-    @Nullable RequestBody requestBody
+    @Nullable RequestBody requestBody,
+    Runnable onRequestFinished
   ) {
-    this.transmitted = transmitted;
+    this.responseInitiated = responseInitiated;
     this.channel = channel;
     this.clock = clock;
     this.ratpackRequest = ratpackRequest;
@@ -87,10 +89,11 @@ public class DefaultResponseTransmitter implements ResponseTransmitter {
     this.requestBody = requestBody;
     this.nettyRequest = nettyRequest;
     this.isSsl = channel.pipeline().get(SslHandler.class) != null;
+    this.onRequestFinished = onRequestFinished;
   }
 
   private void preSendResponse(HttpResponseStatus responseStatus, ResponseBodyWriter responseBodyWriter, boolean drainRequestBeforeResponse) {
-    if (transmitted.compareAndSet(false, true)) {
+    if (responseInitiated.compareAndSet(false, true)) {
       this.responseBodyWriter = responseBodyWriter;
       stopTime = clock.instant();
       if (requestBody == null) {
@@ -230,8 +233,7 @@ public class DefaultResponseTransmitter implements ResponseTransmitter {
     }
 
     if (result.isSuccess() && keepAlive) {
-      channel.read();
-      ConnectionIdleTimeout.of(channel).reset();
+      onRequestFinished.run();
     } else {
       channel.close();
     }
@@ -276,7 +278,6 @@ public class DefaultResponseTransmitter implements ResponseTransmitter {
   private boolean isHead() {
     return ratpackRequest.getMethod().isHead();
   }
-
 
   @Override
   public void transmit(HttpResponseStatus status, Path file) {

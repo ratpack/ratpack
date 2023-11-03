@@ -24,12 +24,14 @@ import io.netty.handler.codec.http.*;
 import io.netty.handler.ssl.SslHandler;
 import io.netty.handler.ssl.SslHandshakeCompletionEvent;
 import io.netty.handler.timeout.IdleStateEvent;
+import io.netty.util.Attribute;
 import io.netty.util.AttributeKey;
 import io.netty.util.CharsetUtil;
 import io.netty.util.ReferenceCountUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import ratpack.exec.ExecController;
+import ratpack.exec.Execution;
 import ratpack.func.Action;
 import ratpack.handling.Handler;
 import ratpack.handling.Handlers;
@@ -45,6 +47,7 @@ import ratpack.registry.Registry;
 import ratpack.render.internal.DefaultRenderController;
 import ratpack.server.ServerConfig;
 
+import javax.annotation.Nullable;
 import javax.net.ssl.SSLEngine;
 import javax.net.ssl.SSLPeerUnverifiedException;
 import java.io.IOException;
@@ -52,18 +55,14 @@ import java.net.InetSocketAddress;
 import java.nio.CharBuffer;
 import java.nio.channels.ClosedChannelException;
 import java.time.Clock;
+import java.time.Duration;
+import java.util.ArrayDeque;
 import java.util.Locale;
+import java.util.Queue;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 @ChannelHandler.Sharable
 public class NettyHandlerAdapter extends ChannelInboundHandlerAdapter {
-
-  private static final AttributeKey<Action<Object>> CHANNEL_SUBSCRIBER_ATTRIBUTE_KEY = AttributeKey.valueOf(NettyHandlerAdapter.class, "subscriber");
-  private static final AttributeKey<ResponseTransmitter> RESPONSE_TRANSMITTER_KEY = AttributeKey.valueOf(NettyHandlerAdapter.class, "responseTransmitter");
-  private static final AttributeKey<RequestBodyAccumulator> BODY_ACCUMULATOR_KEY = AttributeKey.valueOf(NettyHandlerAdapter.class, "requestBody");
-
-  @SuppressWarnings("deprecation")
-  private static final AttributeKey<javax.security.cert.X509Certificate> CLIENT_CERT_KEY = AttributeKey.valueOf(NettyHandlerAdapter.class, "principal");
 
   private final static Logger LOGGER = LoggerFactory.getLogger(NettyHandlerAdapter.class);
 
@@ -74,18 +73,40 @@ public class NettyHandlerAdapter extends ChannelInboundHandlerAdapter {
   private final Registry serverRegistry;
   private final boolean development;
   private final Clock clock;
+  private final Duration idleTimeout;
+  private final ServerConfig serverConfig;
 
-  public NettyHandlerAdapter(Registry serverRegistry, Handler handler) throws Exception {
+  public NettyHandlerAdapter(Registry serverRegistry, Handler handler) {
+    this.serverConfig = serverRegistry.get(ServerConfig.class);
     this.handlers = ChainHandler.unpack(handler);
     this.serverRegistry = serverRegistry;
-    this.applicationConstants = new DefaultContext.ApplicationConstants(this.serverRegistry, new DefaultRenderController(), serverRegistry.get(ExecController.class), Handlers.notFound());
-    this.development = serverRegistry.get(ServerConfig.class).isDevelopment();
+    this.applicationConstants = new DefaultContext.ApplicationConstants(
+      this.serverRegistry,
+      new DefaultRenderController(),
+      serverRegistry.get(ExecController.class),
+      Handlers.notFound()
+    );
+    this.development = serverConfig.isDevelopment();
     this.clock = serverRegistry.get(Clock.class);
+    this.idleTimeout = serverConfig.getIdleTimeout();
   }
 
   @Override
   public void handlerAdded(ChannelHandlerContext ctx) {
-    ctx.channel().closeFuture().addListener(future -> channelClosed(ctx.channel()));
+    Attribute<ChannelState> attr = ctx.channel().attr(ChannelState.KEY);
+    if (attr.get() == null) {
+      ChannelState state = new ChannelState(new ConnectionIdleTimeout(ctx.pipeline(), idleTimeout));
+      attr.set(state);
+      ctx.channel().closeFuture().addListener(future -> {
+        if (state.responseTransmitter != null) {
+          state.responseTransmitter.onConnectionClosed();
+        }
+
+        if (state.requestBody != null) {
+          state.requestBody.onClose();
+        }
+      });
+    }
   }
 
   @Override
@@ -96,33 +117,60 @@ public class NettyHandlerAdapter extends ChannelInboundHandlerAdapter {
 
   @Override
   public void channelRead(ChannelHandlerContext ctx, Object msg) throws Exception {
-    if (msg instanceof HttpRequest) {
-      newRequest(ctx, (HttpRequest) msg);
-    } else if (msg instanceof HttpContent) {
-      ((HttpContent) msg).touch();
-      RequestBodyAccumulator bodyAccumulator = ctx.channel().attr(BODY_ACCUMULATOR_KEY).get();
-      if (bodyAccumulator == null) {
-        ((HttpContent) msg).release();
-      } else {
-        bodyAccumulator.add((HttpContent) msg);
-      }
-
-      // Read for the next request proactively so that we
-      // detect if the client closes the connection.
-      if (msg instanceof LastHttpContent) {
-        ctx.channel().read();
-      }
+    ChannelState state = state(ctx);
+    if (state.messageQueue == null) {
+      handleMessage(ctx, msg, state);
     } else {
-      Action<Object> subscriber = ctx.channel().attr(CHANNEL_SUBSCRIBER_ATTRIBUTE_KEY).get();
-      if (subscriber == null) {
-        super.channelRead(ctx, ReferenceCountUtil.touch(msg));
-      } else {
-        subscriber.execute(ReferenceCountUtil.touch(msg));
-      }
+      // There are no bounds on the queue at this level.
+      // We are relying on the upstream TCP buffers to provide the bounding.
+      state.messageQueue.add(msg);
     }
   }
 
-  private void newRequest(ChannelHandlerContext ctx, HttpRequest nettyRequest) throws Exception {
+  private void handleMessage(ChannelHandlerContext ctx, Object msg, ChannelState state) throws Exception {
+    if (msg instanceof HttpRequest) {
+      handleRequest(ctx, (HttpRequest) msg, state);
+    } else if (msg instanceof HttpContent) {
+      handleContent(ctx, (HttpContent) msg, state);
+    } else {
+      handleOther(ctx, msg, state);
+    }
+  }
+
+  private void handleRequest(ChannelHandlerContext ctx, HttpRequest request, ChannelState state) {
+    state.requestedNextRequest = false;
+    if (state.responseTransmitter == null) {
+      newRequest(ctx, request, state);
+    } else {
+      state.messageQueue = new ArrayDeque<>();
+      state.messageQueue.add(request);
+    }
+  }
+
+  private static void handleContent(ChannelHandlerContext ctx, HttpContent httpContent, ChannelState state) {
+    if (state.requestBody == null) {
+      httpContent.release();
+    } else {
+      state.requestBody.add(httpContent.touch());
+    }
+
+    // Read for the next request proactively so that we detect if the client closes the connection.
+    if (httpContent instanceof LastHttpContent) {
+      state.requestedNextRequest = true;
+      ctx.channel().read();
+    }
+  }
+
+  private void handleOther(ChannelHandlerContext ctx, Object msg, ChannelState state) throws Exception {
+    Action<Object> subscriber = state.rawSubscriber;
+    if (subscriber == null) {
+      super.channelRead(ctx, ReferenceCountUtil.touch(msg));
+    } else {
+      subscriber.execute(ReferenceCountUtil.touch(msg));
+    }
+  }
+
+  private void newRequest(ChannelHandlerContext ctx, HttpRequest nettyRequest, ChannelState state) {
     if (!nettyRequest.decoderResult().isSuccess()) {
       LOGGER.debug("Failed to decode HTTP request.", nettyRequest.decoderResult().cause());
       sendError(ctx, HttpResponseStatus.BAD_REQUEST);
@@ -131,24 +179,17 @@ public class NettyHandlerAdapter extends ChannelInboundHandlerAdapter {
 
     Headers requestHeaders = new NettyHeadersBackedHeaders(nettyRequest.headers());
 
-    //Find the content length we will use this as an indicator of a body
     long contentLength = HttpUtil.getContentLength(nettyRequest, -1L);
     String transferEncoding = requestHeaders.get(HttpHeaderNames.TRANSFER_ENCODING);
-
-    //If there is a content length or transfer encoding that indicates there is a body
     boolean hasBody = (contentLength > 0) || (transferEncoding != null);
 
-    RequestBody requestBody = hasBody ? new RequestBody(contentLength, nettyRequest, ctx) : null;
+    state.requestBody = hasBody
+      ? new RequestBody(contentLength, nettyRequest, ctx)
+      : null;
 
     Channel channel = ctx.channel();
-
-    if (requestBody != null) {
-      channel.attr(BODY_ACCUMULATOR_KEY).set(requestBody);
-    }
     InetSocketAddress remoteAddress = (InetSocketAddress) channel.remoteAddress();
     InetSocketAddress socketAddress = (InetSocketAddress) channel.localAddress();
-
-    ConnectionIdleTimeout connectionIdleTimeout = ConnectionIdleTimeout.of(channel);
 
     DefaultRequest request = new DefaultRequest(
       clock.instant(),
@@ -158,77 +199,134 @@ public class NettyHandlerAdapter extends ChannelInboundHandlerAdapter {
       nettyRequest.uri(),
       remoteAddress,
       socketAddress,
-      serverRegistry.get(ServerConfig.class),
-      requestBody,
-      connectionIdleTimeout,
-      channel.attr(CLIENT_CERT_KEY).get()
+      serverConfig,
+      state.requestBody,
+      state.idleTimeout,
+      state.clientCert
     );
 
     HttpHeaders nettyHeaders = new DefaultHttpHeaders();
     MutableHeaders responseHeaders = new NettyHeadersBackedMutableHeaders(nettyHeaders);
-    AtomicBoolean transmitted = new AtomicBoolean(false);
+    AtomicBoolean responseInitiated = new AtomicBoolean(false);
 
-    DefaultResponseTransmitter responseTransmitter = new DefaultResponseTransmitter(transmitted, channel, clock, nettyRequest, request, nettyHeaders, requestBody);
-
-    ctx.channel().attr(RESPONSE_TRANSMITTER_KEY).set(responseTransmitter);
-
-    Action<Action<Object>> subscribeHandler = thing -> {
-      transmitted.set(true);
-      ctx.channel().attr(CHANNEL_SUBSCRIBER_ATTRIBUTE_KEY).set(thing);
-    };
+    state.responseTransmitter = new DefaultResponseTransmitter(
+      responseInitiated,
+      channel,
+      clock,
+      nettyRequest,
+      request,
+      nettyHeaders,
+      state.requestBody,
+      () -> onResponseSent(ctx, state)
+    );
 
     DefaultContext.RequestConstants requestConstants = new DefaultContext.RequestConstants(
       applicationConstants,
       request,
       channel,
-      responseTransmitter,
-      subscribeHandler
+      state.responseTransmitter,
+      rawChannelSubscriber -> {
+        responseInitiated.set(true);
+        state.rawSubscriber = rawChannelSubscriber;
+      }
     );
 
-    Response response = new DefaultResponse(responseHeaders, ctx.alloc(), responseTransmitter, connectionIdleTimeout);
+    Response response = new DefaultResponse(
+      responseHeaders,
+      ctx.alloc(),
+      state.responseTransmitter,
+      state.idleTimeout
+    );
+
     requestConstants.response = response;
 
-    DefaultContext.start(channel.eventLoop(), requestConstants, serverRegistry, handlers, execution -> {
-      if (!transmitted.get()) {
-        Handler lastHandler = requestConstants.handler;
-        StringBuilder description = new StringBuilder();
-        description
-          .append("No response sent for ")
-          .append(request.getMethod().getName())
-          .append(" request to ")
-          .append(request.getUri());
+    DefaultContext.start(
+      channel.eventLoop(),
+      requestConstants,
+      serverRegistry,
+      handlers,
+      execution -> {
+        if (!responseInitiated.get()) {
+          unhandledRequest(ctx, execution, requestConstants, request, response, state.responseTransmitter);
+        }
+      });
+  }
 
-        if (lastHandler != null) {
-          description.append(" (last handler: ");
-
-          if (lastHandler instanceof DescribingHandler) {
-            ((DescribingHandler) lastHandler).describeTo(description);
-          } else {
-            DescribingHandlers.describeTo(lastHandler, description);
-          }
-          description.append(")");
+  private void onResponseSent(ChannelHandlerContext ctx, ChannelState state) {
+    state.idleTimeout.reset();
+    state.responseTransmitter = null;
+    Queue<Object> queue = state.messageQueue;
+    if (queue != null) {
+      while (true) {
+        Object next = queue.poll();
+        try {
+          handleMessage(ctx, next, state(ctx));
+        } catch (Exception e) {
+          ctx.fireExceptionCaught(e);
+          return;
         }
 
-        String message = description.toString();
-        LOGGER.warn(message);
-
-        response.getHeaders().clear();
-
-        ByteBuf body;
-        if (development) {
-          CharBuffer charBuffer = CharBuffer.wrap(message);
-          body = ByteBufUtil.encodeString(ctx.alloc(), charBuffer, CharsetUtil.UTF_8);
-          response.contentType(HttpHeaderConstants.PLAIN_TEXT_UTF8);
-        } else {
-          body = Unpooled.EMPTY_BUFFER;
+        if (next instanceof LastHttpContent || queue.isEmpty()) {
+          break;
         }
-
-        response.getHeaders().set(HttpHeaderConstants.CONTENT_LENGTH, body.readableBytes());
-        execution.getController().fork()
-          .eventLoop(execution.getEventLoop())
-          .start(e -> responseTransmitter.transmit(HttpResponseStatus.INTERNAL_SERVER_ERROR, body));
       }
-    });
+
+      if (queue.isEmpty()) {
+        state.messageQueue = null;
+      }
+    }
+
+    if (!state.requestedNextRequest) {
+      state.requestedNextRequest = true;
+      ctx.channel().read();
+    }
+  }
+
+  private void unhandledRequest(
+    ChannelHandlerContext ctx,
+    Execution execution,
+    DefaultContext.RequestConstants requestConstants,
+    DefaultRequest request,
+    Response response,
+    ResponseTransmitter responseTransmitter
+  ) {
+    Handler lastHandler = requestConstants.handler;
+    StringBuilder description = new StringBuilder();
+    description
+      .append("No response sent for ")
+      .append(request.getMethod().getName())
+      .append(" request to ")
+      .append(request.getUri());
+
+    if (lastHandler != null) {
+      description.append(" (last handler: ");
+
+      if (lastHandler instanceof DescribingHandler) {
+        ((DescribingHandler) lastHandler).describeTo(description);
+      } else {
+        DescribingHandlers.describeTo(lastHandler, description);
+      }
+      description.append(")");
+    }
+
+    String message = description.toString();
+    LOGGER.warn(message);
+
+    response.getHeaders().clear();
+
+    ByteBuf body;
+    if (development) {
+      CharBuffer charBuffer = CharBuffer.wrap(message);
+      body = ByteBufUtil.encodeString(ctx.alloc(), charBuffer, CharsetUtil.UTF_8);
+      response.contentType(HttpHeaderConstants.PLAIN_TEXT_UTF8);
+    } else {
+      body = Unpooled.EMPTY_BUFFER;
+    }
+
+    response.getHeaders().set(HttpHeaderConstants.CONTENT_LENGTH, body.readableBytes());
+    execution.getController().fork()
+      .eventLoop(execution.getEventLoop())
+      .start(e -> responseTransmitter.transmit(HttpResponseStatus.INTERNAL_SERVER_ERROR, body));
   }
 
   @Override
@@ -247,8 +345,11 @@ public class NettyHandlerAdapter extends ChannelInboundHandlerAdapter {
 
   @Override
   public void userEventTriggered(ChannelHandlerContext ctx, Object evt) throws Exception {
+    ChannelState state = state(ctx);
     if (evt instanceof IdleStateEvent) {
-      ConnectionClosureReason.setIdle(ctx.channel());
+      if (state.requestBody != null) {
+        state.requestBody.onIdleTimeout();
+      }
       ctx.close();
     }
     if (evt instanceof SslHandshakeCompletionEvent && ((SslHandshakeCompletionEvent) evt).isSuccess()) {
@@ -256,7 +357,7 @@ public class NettyHandlerAdapter extends ChannelInboundHandlerAdapter {
       if (engine.getWantClientAuth() || engine.getNeedClientAuth()) {
         try {
           @SuppressWarnings("deprecation") javax.security.cert.X509Certificate clientCert = engine.getSession().getPeerCertificateChain()[0];
-          ctx.channel().attr(CLIENT_CERT_KEY).set(clientCert);
+          state.clientCert = clientCert;
         } catch (SSLPeerUnverifiedException ignore) {
           // ignore - there is no way to avoid this exception that I can determine
         }
@@ -268,24 +369,13 @@ public class NettyHandlerAdapter extends ChannelInboundHandlerAdapter {
 
   @Override
   public void channelWritabilityChanged(ChannelHandlerContext ctx) throws Exception {
-    ResponseTransmitter responseTransmitter = ctx.channel().attr(RESPONSE_TRANSMITTER_KEY).get();
+    ChannelState state = state(ctx);
+    ResponseTransmitter responseTransmitter = state.responseTransmitter;
     if (responseTransmitter != null) {
       responseTransmitter.onWritabilityChanged();
     }
 
     super.channelWritabilityChanged(ctx);
-  }
-
-  private void channelClosed(Channel channel) {
-    ResponseTransmitter responseTransmitter = channel.attr(RESPONSE_TRANSMITTER_KEY).get();
-    if (responseTransmitter != null) {
-      responseTransmitter.onConnectionClosed();
-    }
-
-    RequestBodyAccumulator bodyAccumulator = channel.attr(BODY_ACCUMULATOR_KEY).get();
-    if (bodyAccumulator != null) {
-      bodyAccumulator.onClose();
-    }
   }
 
   private static boolean isIgnorableException(Throwable throwable) {
@@ -314,4 +404,37 @@ public class NettyHandlerAdapter extends ChannelInboundHandlerAdapter {
     // Close the connection as soon as the error message is sent.
     ctx.writeAndFlush(response).addListener(ChannelFutureListener.CLOSE);
   }
+
+  private static ChannelState state(ChannelHandlerContext ctx) {
+    return ctx.channel().attr(ChannelState.KEY).get();
+  }
+
+  private static final class ChannelState {
+
+    private static final AttributeKey<ChannelState> KEY = AttributeKey.valueOf(NettyHandlerAdapter.class, "channel");
+
+    @Nullable
+    Queue<Object> messageQueue;
+
+    @Nullable
+    @SuppressWarnings("deprecation")
+    javax.security.cert.X509Certificate clientCert;
+
+    @Nullable
+    Action<Object> rawSubscriber;
+
+    ResponseTransmitter responseTransmitter;
+
+    RequestBody requestBody;
+
+    boolean requestedNextRequest;
+
+    final ConnectionIdleTimeout idleTimeout;
+
+
+    ChannelState(ConnectionIdleTimeout idleTimeout) {
+      this.idleTimeout = idleTimeout;
+    }
+  }
+
 }

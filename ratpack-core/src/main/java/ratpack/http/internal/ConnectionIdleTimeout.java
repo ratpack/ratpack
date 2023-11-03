@@ -16,17 +16,14 @@
 
 package ratpack.http.internal;
 
-import io.netty.channel.Channel;
 import io.netty.channel.ChannelPipeline;
 import io.netty.handler.timeout.IdleStateHandler;
-import io.netty.util.AttributeKey;
 
 import java.time.Duration;
 import java.util.concurrent.TimeUnit;
 
 public class ConnectionIdleTimeout implements RequestIdleTimeout {
 
-  private final static AttributeKey<ConnectionIdleTimeout> ATTRIBUTE_KEY = AttributeKey.valueOf(ConnectionIdleTimeout.class.getName());
   private static final String HANDLER_NAME = "timeout";
 
   private final ChannelPipeline channelPipeline;
@@ -37,15 +34,9 @@ public class ConnectionIdleTimeout implements RequestIdleTimeout {
     this.channelPipeline = channelPipeline;
     this.timeout = timeout;
 
-    channelPipeline.channel().attr(ATTRIBUTE_KEY).set(this);
-
     if (!timeout.isZero()) {
       init(timeout);
     }
-  }
-
-  public static ConnectionIdleTimeout of(Channel channel) {
-    return channel.attr(ATTRIBUTE_KEY).get();
   }
 
   @Override

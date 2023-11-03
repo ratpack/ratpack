@@ -39,6 +39,7 @@ import java.util.function.Consumer;
 public class RequestBody implements RequestBodyReader, RequestBodyAccumulator {
 
   private static final HttpResponse CONTINUE_RESPONSE = new DefaultFullHttpResponse(HttpVersion.HTTP_1_1, HttpResponseStatus.CONTINUE, Unpooled.EMPTY_BUFFER);
+  private boolean idleTimeout;
 
   enum State {
     UNREAD, READING, READ, DISCARDED, TOO_LARGE
@@ -79,6 +80,11 @@ public class RequestBody implements RequestBodyReader, RequestBodyAccumulator {
         listener.onEarlyClose();
       }
     }
+  }
+
+  @Override
+  public void onIdleTimeout() {
+    this.idleTimeout = true;
   }
 
   @Override
@@ -265,7 +271,15 @@ public class RequestBody implements RequestBodyReader, RequestBodyAccumulator {
   }
 
   private ConnectionClosedException closedException() {
-    return new ConnectionClosedException(ConnectionClosureReason.get(ctx.channel()));
+    return new ConnectionClosedException(connectionClosedReason());
+  }
+
+  private String connectionClosedReason() {
+    if (idleTimeout) {
+      return "Connection to " + ctx.channel().remoteAddress().toString() + " was closed due to idle timeout";
+    } else {
+      return "Remote " + ctx.channel().remoteAddress() + " closed the connection";
+    }
   }
 
   @Override
