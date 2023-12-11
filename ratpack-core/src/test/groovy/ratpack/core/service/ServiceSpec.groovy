@@ -25,7 +25,7 @@ import java.util.concurrent.CyclicBarrier
 
 class ServiceSpec extends RatpackGroovyDslSpec {
 
-  List<String> events = [].asSynchronized()
+  List<String> events = [].<String> asSynchronized()
 
   class RecordingService implements Service {
 
