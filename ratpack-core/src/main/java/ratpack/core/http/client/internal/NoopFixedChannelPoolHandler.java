@@ -17,8 +17,11 @@
 package ratpack.core.http.client.internal;
 
 import io.netty.channel.Channel;
+import io.netty.channel.ChannelPipeline;
 import io.netty.channel.pool.AbstractChannelPoolHandler;
 import io.netty.handler.proxy.HttpProxyHandler;
+import io.netty.handler.proxy.Socks4ProxyHandler;
+import io.netty.handler.proxy.Socks5ProxyHandler;
 import io.netty.handler.timeout.IdleStateHandler;
 
 import java.net.InetSocketAddress;
@@ -42,9 +45,21 @@ public class NoopFixedChannelPoolHandler extends AbstractChannelPoolHandler impl
 
   @Override
   public void channelCreated(Channel ch) throws Exception {
-    if  (proxy != null && proxy.shouldProxy(host)) {
-      SocketAddress proxyAddress = new InetSocketAddress(proxy.getHost(), proxy.getPort());
-      ch.pipeline().addLast(new HttpProxyHandler(proxyAddress));
+    if (proxy != null && proxy.shouldProxy(host)) {
+      ChannelPipeline pipeline = ch.pipeline();
+      switch (proxy.getType()) {
+        case SOCKS4:
+          SocketAddress socks4ProxyAddress = InetSocketAddress.createUnresolved(proxy.getHost(), proxy.getPort());
+          pipeline.addLast(new Socks4ProxyHandler(socks4ProxyAddress));
+          break;
+        case SOCKS5:
+          SocketAddress socks5ProxyAddress = InetSocketAddress.createUnresolved(proxy.getHost(), proxy.getPort());
+          pipeline.addLast(new Socks5ProxyHandler(socks5ProxyAddress));
+          break;
+        default:
+          SocketAddress httpProxyAddress = new InetSocketAddress(proxy.getHost(), proxy.getPort());
+          pipeline.addLast(new HttpProxyHandler(httpProxyAddress));
+      }
     }
   }
 

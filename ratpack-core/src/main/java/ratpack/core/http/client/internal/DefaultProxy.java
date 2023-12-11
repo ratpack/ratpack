@@ -27,10 +27,13 @@ public class DefaultProxy implements ProxyInternal {
   private final int port;
   private final Collection<String> nonProxyHosts;
 
-  public DefaultProxy(String host, int port, Collection<String> nonProxyHosts) {
+  private final Type type;
+
+  public DefaultProxy(String host, int port, Collection<String> nonProxyHosts, Type type) {
     this.host = host;
     this.port = port;
     this.nonProxyHosts = nonProxyHosts;
+    this.type = type;
   }
 
   @Override
@@ -46,6 +49,11 @@ public class DefaultProxy implements ProxyInternal {
   @Override
   public Collection<String> getNonProxyHosts() {
     return nonProxyHosts;
+  }
+
+  @Override
+  public Type getType() {
+    return type;
   }
 
   @Override
@@ -101,6 +109,7 @@ public class DefaultProxy implements ProxyInternal {
     private String host;
     private int port;
     private Collection<String> nonProxyHosts = Collections.emptyList();
+    private Type type = Type.HTTP;
 
     @Override
     public ProxySpec host(String host) {
@@ -120,8 +129,14 @@ public class DefaultProxy implements ProxyInternal {
       return this;
     }
 
+    @Override
+    public ProxySpec type(Type type) {
+      this.type = type;
+      return this;
+    }
+
     ProxyInternal build() {
-      return new DefaultProxy(host, port, nonProxyHosts);
+      return new DefaultProxy(host, port, nonProxyHosts, type);
     }
   }
 }
