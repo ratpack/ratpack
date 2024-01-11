@@ -25,9 +25,11 @@ dependencies {
   compile commonDependencies.slf4j
 
   compile "io.netty:netty-buffer:$commonVersions.netty"
-  compile "io.netty:netty-transport-native-epoll:${commonVersions.netty}:linux-x86_64"
-  compile "io.netty:netty-tcnative:${commonVersions.nettyTCNative}:linux-x86_64"
+  compile "io.netty:netty-transport:$commonVersions.netty"
   compile "org.reactivestreams:reactive-streams:${commonVersions.reactiveStreams}"
+
+  runtimeOnly "io.netty:netty-tcnative:${commonVersions.nettyTCNative}:linux-x86_64"
+  runtimeOnly "io.netty:netty-transport-native-epoll:${commonVersions.netty}:linux-x86_64"
 
   testCompile("org.reactivestreams:reactive-streams-tck:${commonVersions.reactiveStreams}") {
     exclude group: "junit", module: "junit"
