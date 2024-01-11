@@ -37,10 +37,7 @@ class ChunkedFileResponseBodyWriter implements ResponseBodyWriter {
   public ChannelFuture write(Channel channel) {
     ChannelPromise channelPromise = channel.newPromise();
     Blocking.get(() -> Files.newByteChannel(file))
-      .then(fileChannel -> {
-        channel.write(new HttpChunkedInput(new ChunkedNioStream(fileChannel)), channelPromise);
-        channel.flush();
-      });
+      .then(fileChannel -> channel.writeAndFlush(new HttpChunkedInput(new ChunkedNioStream(fileChannel)), channelPromise));
     return channelPromise;
   }
 
