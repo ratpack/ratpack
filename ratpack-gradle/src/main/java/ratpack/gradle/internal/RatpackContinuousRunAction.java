@@ -40,6 +40,7 @@ public class RatpackContinuousRunAction implements Action<Task> {
   private static final GradleVersion V2_13 = GradleVersion.version("2.13");
   private static final GradleVersion V2_14 = GradleVersion.version("2.14");
   private static final GradleVersion V4_2 = GradleVersion.version("4.2");
+  private static final GradleVersion V8_0 = GradleVersion.version("8.0");
   private static final String FLATTEN_CLASSLOADERS = "ratpack.flattenClassloaders";
 
   private final GradleVersion gradleVersion;
@@ -222,7 +223,7 @@ public class RatpackContinuousRunAction implements Action<Task> {
     List<String> args = task.getArgs();
     return new RatpackSpec(nonChanging.toArray(new URL[0]),
       changing.toArray(new URL[0]),
-      task.getMainClass().get(),
+      getMainClass(task),
       args.toArray(new String[0])
     );
   }
@@ -235,6 +236,13 @@ public class RatpackContinuousRunAction implements Action<Task> {
     }
   }
 
+  private String getMainClass(JavaExec task) {
+    if (gradleVersion.compareTo(V8_0) < 0) {
+      return task.getMain();
+    } else {
+      return task.getMainClass().get();
+    }
+  }
 
   final private static class ProxyBacking implements InvocationHandler {
     public ProxyBacking(RatpackAdapter delegate) {
