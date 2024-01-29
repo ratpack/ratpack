@@ -23,7 +23,7 @@ import org.gradle.deployment.internal.DeploymentRegistry;
 import org.gradle.internal.Factory;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.process.internal.JavaExecHandleBuilder;
-import org.gradle.util.VersionNumber;
+import ratpack.gradle.GradleVersion;
 import ratpack.gradle.continuous.RatpackDeploymentHandle;
 import ratpack.gradle.continuous.run.*;
 
@@ -37,12 +37,13 @@ import java.util.Set;
 import java.util.function.Supplier;
 
 public class RatpackContinuousRunAction implements Action<Task> {
-  private static final VersionNumber V2_13 = VersionNumber.parse("2.13");
-  private static final VersionNumber V2_14 = VersionNumber.parse("2.14");
-  private static final VersionNumber V4_2 = VersionNumber.parse("4.2");
+  private static final GradleVersion V2_13 = GradleVersion.version("2.13");
+  private static final GradleVersion V2_14 = GradleVersion.version("2.14");
+  private static final GradleVersion V4_2 = GradleVersion.version("4.2");
+  private static final GradleVersion V8_0 = GradleVersion.version("8.0");
   private static final String FLATTEN_CLASSLOADERS = "ratpack.flattenClassloaders";
 
-  private final VersionNumber gradleVersion;
+  private final GradleVersion gradleVersion;
   private final String absoluteRootDirPath;
   private final Supplier<ServiceRegistry> serviceRegistrySupplier;
 
@@ -52,8 +53,7 @@ public class RatpackContinuousRunAction implements Action<Task> {
     Supplier<ServiceRegistry> serviceRegistrySupplier
   ) {
     this.serviceRegistrySupplier = serviceRegistrySupplier;
-    VersionNumber realVersionNumber = VersionNumber.parse(gradleVersion);
-    this.gradleVersion = new VersionNumber(realVersionNumber.getMajor(), realVersionNumber.getMinor(), realVersionNumber.getMicro(), null);
+    this.gradleVersion = GradleVersion.version(gradleVersion);
     this.absoluteRootDirPath = absoluteRootDirPath;
   }
 
@@ -223,7 +223,7 @@ public class RatpackContinuousRunAction implements Action<Task> {
     List<String> args = task.getArgs();
     return new RatpackSpec(nonChanging.toArray(new URL[0]),
       changing.toArray(new URL[0]),
-      task.getMain(),
+      getMainClass(task),
       args.toArray(new String[0])
     );
   }
@@ -236,6 +236,13 @@ public class RatpackContinuousRunAction implements Action<Task> {
     }
   }
 
+  private String getMainClass(JavaExec task) {
+    if (gradleVersion.compareTo(V8_0) < 0) {
+      return task.getMain();
+    } else {
+      return task.getMainClass().get();
+    }
+  }
 
   final private static class ProxyBacking implements InvocationHandler {
     public ProxyBacking(RatpackAdapter delegate) {

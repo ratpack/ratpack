@@ -25,6 +25,7 @@ import org.gradle.api.file.CopySpec;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.plugins.ApplicationPlugin;
 import org.gradle.api.plugins.JavaPluginConvention;
+import org.gradle.api.plugins.JavaPluginExtension;
 import org.gradle.api.provider.Property;
 import org.gradle.api.tasks.JavaExec;
 import org.gradle.api.tasks.SourceSet;
@@ -33,6 +34,7 @@ import org.gradle.api.tasks.SourceSetOutput;
 import org.gradle.api.tasks.application.CreateStartScripts;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.jvm.tasks.Jar;
+import ratpack.gradle.internal.Invoker;
 import ratpack.gradle.internal.IoUtil;
 import ratpack.gradle.internal.RatpackContinuousRunAction;
 import ratpack.gradle.internal.ServiceRegistrySupplier;
@@ -48,6 +50,7 @@ public class RatpackPlugin implements Plugin<Project> {
   private static final GradleVersion GRADLE_VERSION_BASELINE = GradleVersion.version("2.6");
   private static final GradleVersion GRADLE_5 = GradleVersion.version("5.0");
   private static final GradleVersion GRADLE_6 = GradleVersion.version("6.0");
+  private static final GradleVersion GRADLE_7_1 = GradleVersion.version("7.1");
 
   public void apply(Project project) {
     GradleVersion gradleVersion = GradleVersion.version(project.getGradle().getGradleVersion());
@@ -61,7 +64,7 @@ public class RatpackPlugin implements Plugin<Project> {
 
     final RatpackExtension ratpackExtension = project.getExtensions().getByType(RatpackExtension.class);
 
-    SourceSetContainer sourceSets = project.getConvention().getPlugin(JavaPluginConvention.class).getSourceSets();
+    SourceSetContainer sourceSets = getSourceSets(project, gradleVersion);
     SourceSet mainSourceSet = sourceSets.getByName(SourceSet.MAIN_SOURCE_SET_NAME);
     mainSourceSet.getResources().srcDir((Callable<File>) ratpackExtension::getBaseDir);
 
@@ -158,6 +161,18 @@ public class RatpackPlugin implements Plugin<Project> {
       }
     });
 
+  }
+
+  private static SourceSetContainer getSourceSets(Project project, GradleVersion gradleVersion) {
+    if (gradleVersion.compareTo(GRADLE_7_1) < 0) {
+      return project.getConvention().getPlugin(JavaPluginConvention.class).getSourceSets();
+    } else {
+      return (SourceSetContainer) Invoker.invokeParamless(
+        JavaPluginExtension.class,
+        project.getExtensions().getByType(JavaPluginExtension.class),
+        "getSourceSets"
+      );
+    }
   }
 
   @SuppressWarnings("deprecation")
