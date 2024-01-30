@@ -40,7 +40,7 @@ import java.util.concurrent.ThreadLocalRandom;
  * import ratpack.handling.RequestId;
  * import ratpack.http.client.ReceivedResponse;
  * import ratpack.test.embed.EmbeddedApp;
- * import static org.junit.Assert.*;
+ * import static org.junit.jupiter.api.Assertions.*;
  *
  * public class Example {
  *   public static void main(String... args) throws Exception {
@@ -93,7 +93,7 @@ public interface RequestId extends CharSequence {
    *
    * import java.util.concurrent.atomic.AtomicLong;
    *
-   * import static org.junit.Assert.assertEquals;
+   * import static org.junit.jupiter.api.Assertions.assertEquals;
    *
    * public class Example {
    *   public static void main(String... args) throws Exception {
@@ -152,7 +152,7 @@ public interface RequestId extends CharSequence {
      * import ratpack.handling.RequestId;
      * import ratpack.test.embed.EmbeddedApp;
      *
-     * import static org.junit.Assert.assertEquals;
+     * import static org.junit.jupiter.api.Assertions.assertEquals;
      *
      * public class Example {
      *   public static void main(String... args) throws Exception {

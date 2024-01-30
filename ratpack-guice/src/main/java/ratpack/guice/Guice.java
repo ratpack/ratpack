@@ -67,7 +67,7 @@ import static ratpack.util.Exceptions.uncheck;
  * import javax.inject.Inject;
  * import javax.inject.Singleton;
  *
- * import static org.junit.Assert.*;
+ * import static org.junit.jupiter.api.Assertions.*;
  *
  * public class Example {
  *

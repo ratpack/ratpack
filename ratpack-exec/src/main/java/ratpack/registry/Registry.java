@@ -34,7 +34,7 @@ import java.util.function.Supplier;
  * import ratpack.handling.Context;
  * import ratpack.registry.Registry;
  *
- * import static org.junit.Assert.assertTrue;
+ * import static org.junit.jupiter.api.Assertions.assertTrue;
  *
  * public class Thing {
  *   private final String name
@@ -62,7 +62,7 @@ import java.util.function.Supplier;
  * import static ratpack.handling.Handlers.chain;
  * import static ratpack.func.Action.noop;
  *
- * import static org.junit.Assert.assertEquals;
+ * import static org.junit.jupiter.api.Assertions.assertEquals;
  *
  * Handler chain = chain(new UpstreamHandler(), new DownstreamHandler());
  * HandlingResult result = RequestFixture.handle(chain, noop());
@@ -85,7 +85,7 @@ import java.util.function.Supplier;
  * import com.google.common.base.Joiner;
  * import ratpack.registry.Registry;
  *
- * import static org.junit.Assert.assertEquals;
+ * import static org.junit.jupiter.api.Assertions.assertEquals;
  *
  * public class Example {
  *   public static void main(String... args) throws Exception {
@@ -229,7 +229,7 @@ public interface Registry {
    * import java.util.List;
    * import com.google.common.collect.Lists;
    *
-   * import static org.junit.Assert.assertEquals;
+   * import static org.junit.jupiter.api.Assertions.assertEquals;
    *
    * public class Example {
    *

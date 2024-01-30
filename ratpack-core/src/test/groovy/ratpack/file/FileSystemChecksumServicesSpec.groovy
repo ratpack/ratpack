@@ -16,13 +16,13 @@
 
 package ratpack.file
 
-import org.junit.Rule
-import org.junit.rules.TemporaryFolder
 import ratpack.file.internal.CachingFileSystemChecksumService
 import ratpack.file.internal.DefaultFileSystemChecksumService
 import ratpack.file.internal.FileSystemChecksumServices
 import ratpack.server.ServerConfig
 import ratpack.test.embed.EphemeralBaseDir
+import ratpack.test.internal.spock.TempDir
+import ratpack.test.internal.spock.TemporaryFolder
 import ratpack.test.internal.BaseRatpackSpec
 import spock.lang.AutoCleanup
 
@@ -31,7 +31,7 @@ import java.nio.file.NoSuchFileException
 
 class FileSystemChecksumServicesSpec extends BaseRatpackSpec {
 
-  @Rule
+  @TempDir
   TemporaryFolder temporaryFolder
 
   @AutoCleanup

@@ -34,7 +34,7 @@ import java.lang.annotation.*;
  * import java.util.List;
  *
  * import static java.util.Arrays.asList;
- * import static org.junit.Assert.assertEquals;
+ * import static org.junit.jupiter.api.Assertions.assertEquals;
  *
  * public class Example {
  *

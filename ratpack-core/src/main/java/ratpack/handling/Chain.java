@@ -121,7 +121,7 @@ import java.util.Optional;
  * import com.google.common.io.BaseEncoding;
  * import java.util.Arrays;
  * import java.util.Locale;
- * import static org.junit.Assert.*;
+ * import static org.junit.jupiter.api.Assertions.*;
  *
  * public class Example {
  *   public static void main(String... args) throws Exception {
@@ -175,7 +175,7 @@ import java.util.Optional;
  * The following two code snippets are identical:
  * <pre class="java">{@code
  * import ratpack.test.embed.EmbeddedApp;
- * import static org.junit.Assert.*;
+ * import static org.junit.jupiter.api.Assertions.*;
  *
  * public class Example {
  *   public static void main(String... args) throws Exception {
@@ -194,7 +194,7 @@ import java.util.Optional;
  * }</pre>
  * <pre class="java">{@code
  * import ratpack.test.embed.EmbeddedApp;
- * import static org.junit.Assert.*;
+ * import static org.junit.jupiter.api.Assertions.*;
  *
  * public class Example {
  *   public static void main(String... args) throws Exception {
@@ -214,7 +214,7 @@ import java.util.Optional;
  * The correct way to do this is to use {@link #path(String, Handler)} and {@link Context#byMethod(Action)}.
  * <pre class="java">{@code
  * import ratpack.test.embed.EmbeddedApp;
- * import static org.junit.Assert.*;
+ * import static org.junit.jupiter.api.Assertions.*;
  *
  * public class Example {
  *   public static void main(String... args) throws Exception {
@@ -237,7 +237,7 @@ import java.util.Optional;
  * Given the following, a POST to /foo will yield a 405 response.
  * <pre class="java">{@code
  * import ratpack.test.embed.EmbeddedApp;
- * import static org.junit.Assert.assertEquals;
+ * import static org.junit.jupiter.api.Assertions.assertEquals;
  *
  * public class Example {
  *   public static void main(String... args) throws Exception {
@@ -271,7 +271,7 @@ public interface Chain {
    * import ratpack.test.embed.EphemeralBaseDir;
    * import ratpack.test.embed.EmbeddedApp;
    *
-   * import static org.junit.Assert.assertEquals;
+   * import static org.junit.jupiter.api.Assertions.assertEquals;
    *
    * public class Example {
    *   public static void main(String... args) throws Exception {
@@ -874,7 +874,7 @@ public interface Chain {
    * <pre class="java">{@code
    * import ratpack.test.embed.EmbeddedApp;
    *
-   * import static org.junit.Assert.assertEquals;
+   * import static org.junit.jupiter.api.Assertions.assertEquals;
    *
    * public class Example {
    *
@@ -948,7 +948,7 @@ public interface Chain {
    * <pre class="java">{@code
    * import ratpack.test.embed.EmbeddedApp;
    *
-   * import static org.junit.Assert.assertEquals;
+   * import static org.junit.jupiter.api.Assertions.assertEquals;
    *
    * public class Example {
    *
@@ -1039,7 +1039,7 @@ public interface Chain {
    * import ratpack.error.ClientErrorHandler;
    * import ratpack.test.embed.EmbeddedApp;
    *
-   * import static org.junit.Assert.assertEquals;
+   * import static org.junit.jupiter.api.Assertions.assertEquals;
    *
    * public class Example {
    *   public static void main(String... args) throws Exception {

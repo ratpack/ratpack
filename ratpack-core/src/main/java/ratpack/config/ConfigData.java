@@ -34,7 +34,7 @@ import ratpack.util.Types;
  * <pre class="java">{@code
  * import com.google.common.collect.ImmutableMap;
  * import ratpack.test.embed.EmbeddedApp;
- * import static org.junit.Assert.*;
+ * import static org.junit.jupiter.api.Assertions.*;
  *
  * public class Example {
  *   public static class MyAppConfig {

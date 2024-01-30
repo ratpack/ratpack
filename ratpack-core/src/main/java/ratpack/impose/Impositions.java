@@ -51,8 +51,8 @@ import java.util.Optional;
  * import ratpack.impose.ServerConfigImposition;
  * import ratpack.test.embed.EmbeddedApp;
  *
- * import static groovy.util.GroovyTestCase.assertEquals;
  * import static java.util.Collections.singletonMap;
+ * import static org.junit.jupiter.api.Assertions.*;
  *
  * public class Example {
  *   public static void main(String[] args) throws Exception {

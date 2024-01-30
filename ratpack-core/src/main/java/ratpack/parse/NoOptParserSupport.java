@@ -35,7 +35,7 @@ import ratpack.http.TypedData;
  * import ratpack.test.handling.RequestFixture;
  * import ratpack.util.Types;
  *
- * import static org.junit.Assert.assertEquals;
+ * import static org.junit.jupiter.api.Assertions.assertEquals;
  *
  * public class Example {
  *   public static class IntParser extends NoOptParserSupport {

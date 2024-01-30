@@ -16,8 +16,8 @@
 
 package ratpack.spring;
 
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
@@ -26,16 +26,16 @@ import org.springframework.boot.test.SpringApplicationConfiguration;
 import org.springframework.boot.test.TestRestTemplate;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
+import org.springframework.test.context.junit.jupiter.SpringExtension;
 import ratpack.error.ServerErrorHandler;
 import ratpack.func.Action;
 import ratpack.handling.Chain;
 import ratpack.server.RatpackServer;
 import ratpack.spring.config.EnableRatpack;
 
-import static org.junit.Assert.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
-@RunWith(SpringJUnit4ClassRunner.class)
+@ExtendWith(SpringExtension.class)
 @SpringApplicationConfiguration(classes = SpringBootErrorHandlingTests.Application.class)
 @IntegrationTest("server.port=0")
 public class SpringBootErrorHandlingTests {

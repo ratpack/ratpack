@@ -44,7 +44,7 @@ import javax.sql.DataSource;
  * import java.sql.PreparedStatement;
  * import java.sql.ResultSet;
  *
- * import static org.junit.Assert.*;
+ * import static org.junit.jupiter.api.Assertions.*;
  *
  * public class Example {
  *   static class InitDb implements Service {

@@ -82,7 +82,7 @@ public abstract class RxRatpack {
    * import ratpack.test.embed.EmbeddedApp;
    * import io.reactivex.Observable;
    *
-   * import static org.junit.Assert.assertEquals;
+   * import static org.junit.jupiter.api.Assertions.assertEquals;
    *
    * public class Example {
    *   public static void main(String... args) throws Exception {
@@ -123,7 +123,7 @@ public abstract class RxRatpack {
    * import ratpack.exec.Promise;
    * import ratpack.test.exec.ExecHarness;
    *
-   * import static org.junit.Assert.assertEquals;
+   * import static org.junit.jupiter.api.Assertions.assertEquals;
    *
    * public class Example {
    *   public static String value;
@@ -185,7 +185,7 @@ public abstract class RxRatpack {
    * import io.reactivex.Observable;
    * import java.util.List;
    * import java.util.Arrays;
-   * import static org.junit.Assert.assertEquals;
+   * import static org.junit.jupiter.api.Assertions.assertEquals;
    *
    * public class Example {
    *   public static class AsyncService {
@@ -240,7 +240,7 @@ public abstract class RxRatpack {
    * import java.util.List;
    * import java.util.Arrays;
    *
-   * import static org.junit.Assert.assertEquals;
+   * import static org.junit.jupiter.api.Assertions.assertEquals;
    *
    * public class Example {
    *   public static class AsyncService {
@@ -302,7 +302,7 @@ public abstract class RxRatpack {
    * import ratpack.test.exec.ExecHarness;
    * import io.reactivex.Single;
    *
-   * import static org.junit.Assert.assertEquals;
+   * import static org.junit.jupiter.api.Assertions.assertEquals;
    *
    * public class Example {
    *   public static class AsyncService {
@@ -353,7 +353,7 @@ public abstract class RxRatpack {
    * import io.reactivex.BackpressureStrategy;
    * import java.util.List;
    *
-   * import static org.junit.Assert.assertEquals;
+   * import static org.junit.jupiter.api.Assertions.assertEquals;
    *
    * public class Example {
    *   public static class AsyncService {
@@ -397,7 +397,7 @@ public abstract class RxRatpack {
    * import io.reactivex.BackpressureStrategy;
    * import java.util.List;
    *
-   * import static org.junit.Assert.assertEquals;
+   * import static org.junit.jupiter.api.Assertions.assertEquals;
    *
    * public class Example {
    *   public static class AsyncService {
@@ -440,7 +440,7 @@ public abstract class RxRatpack {
    * import java.util.Arrays;
    * import java.util.List;
    *
-   * import static org.junit.Assert.*;
+   * import static org.junit.jupiter.api.Assertions.*;
    *
    * public class Example {
    *   public static void main(String... args) throws Exception {
@@ -488,8 +488,8 @@ public abstract class RxRatpack {
    *
    * import io.reactivex.Observable;
    *
-   * import static org.junit.Assert.assertEquals;
-   * import static org.junit.Assert.assertNotEquals;
+   * import static org.junit.jupiter.api.Assertions.assertEquals;
+   * import static org.junit.jupiter.api.Assertions.assertNotEquals;
    *
    * public class Example {
    *   public static void main(String[] args) throws Exception {
@@ -545,7 +545,7 @@ public abstract class RxRatpack {
    *
    * import io.reactivex.Observable;
    *
-   * import static org.junit.Assert.assertEquals;
+   * import static org.junit.jupiter.api.Assertions.assertEquals;
    *
    * public class Example {
    *   public static void main(String[] args) throws Exception {
@@ -599,7 +599,7 @@ public abstract class RxRatpack {
    * import java.util.Collections;
    * import java.util.concurrent.CyclicBarrier;
    *
-   * import static org.junit.Assert.assertEquals;
+   * import static org.junit.jupiter.api.Assertions.assertEquals;
    *
    * public class Example {
    *   public static void main(String[] args) throws Exception {

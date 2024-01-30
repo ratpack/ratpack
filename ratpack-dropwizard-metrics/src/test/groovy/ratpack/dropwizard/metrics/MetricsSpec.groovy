@@ -27,8 +27,6 @@ import groovy.json.JsonSlurper
 import io.netty.buffer.ByteBufAllocator
 import io.netty.buffer.PooledByteBufAllocator
 import io.netty.buffer.UnpooledByteBufAllocator
-import org.junit.Rule
-import org.junit.rules.TemporaryFolder
 import org.slf4j.Logger
 import ratpack.dropwizard.metrics.internal.PooledByteBufAllocatorMetricSet
 import ratpack.dropwizard.metrics.internal.UnpooledByteBufAllocatorMetricSet
@@ -42,6 +40,8 @@ import ratpack.groovy.test.embed.GroovyEmbeddedApp
 import ratpack.http.client.HttpClient
 import ratpack.test.embed.EmbeddedApp
 import ratpack.test.internal.RatpackGroovyDslSpec
+import ratpack.test.internal.spock.TempDir
+import ratpack.test.internal.spock.TemporaryFolder
 import ratpack.websocket.RecordingWebSocketClient
 import spock.lang.AutoCleanup
 import spock.util.concurrent.BlockingVariable
@@ -56,7 +56,7 @@ class MetricsSpec extends RatpackGroovyDslSpec {
   @SuppressWarnings("GroovyUnusedDeclaration")
   PollingConditions polling = new PollingConditions()
 
-  @Rule
+  @TempDir
   TemporaryFolder reportDirectory
 
   @AutoCleanup

@@ -21,7 +21,7 @@ import ratpack.server.RatpackServer;
 import ratpack.test.ServerBackedApplicationUnderTest;
 import ratpack.test.http.TestHttpClient;
 
-import static org.junit.Assert.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 public class HelloWorldAppSnippetExecuter extends ServerCaptureSnippetExecuter {
 

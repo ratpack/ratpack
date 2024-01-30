@@ -135,7 +135,7 @@ public abstract class ServerBackedApplicationUnderTest implements CloseableAppli
    * import ratpack.test.MainClassApplicationUnderTest;
    *
    * import static java.util.Collections.singletonMap;
-   * import static org.junit.Assert.assertEquals;
+   * import static org.junit.jupiter.api.Assertions.assertEquals;
    *
    * public class Example {
    *

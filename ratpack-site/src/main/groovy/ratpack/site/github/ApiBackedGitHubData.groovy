@@ -37,8 +37,8 @@ class ApiBackedGitHubData implements GitHubData {
   @Override
   Promise<IssueSet> closed(RatpackVersion version) {
     gitHubApi.issues(state: "closed", milestone: version.githubNumber.toString(), sort: "number", direction: "asc").map { JsonNode issues ->
-      def issuesBuilder = ImmutableList.builder()
-      def pullRequestsBuilder = ImmutableList.builder()
+      ImmutableList.Builder<Issue> issuesBuilder = ImmutableList.builder()
+      ImmutableList.Builder<Issue> pullRequestsBuilder = ImmutableList.builder()
 
       issues.each { JsonNode it ->
         def number = it.get("number").asInt()

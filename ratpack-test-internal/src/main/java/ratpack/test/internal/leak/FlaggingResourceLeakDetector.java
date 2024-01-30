@@ -14,24 +14,24 @@
  * limitations under the License.
  */
 
-package ratpack.test.internal.leak
+package ratpack.test.internal.leak;
 
-import groovy.transform.CompileStatic
-import io.netty.util.ResourceLeakDetector
+import io.netty.util.ResourceLeakDetector;
 
-@CompileStatic
-class FlaggingResourceLeakDetector<T> extends ResourceLeakDetector<T> {
+import java.util.Queue;
 
-    private final Queue<String> leaks
+public class FlaggingResourceLeakDetector<T> extends ResourceLeakDetector<T> {
+
+    private final Queue<String> leaks;
 
     FlaggingResourceLeakDetector(Class<T> resourceType, int samplingInterval, Queue<String> leaks) {
-        super(resourceType, samplingInterval)
-        this.leaks = leaks
+        super(resourceType, samplingInterval);
+        this.leaks = leaks;
     }
 
     @Override
     protected void reportTracedLeak(String resourceType, String records) {
-      leaks.add(records)
+      leaks.add(records);
     }
 
 }

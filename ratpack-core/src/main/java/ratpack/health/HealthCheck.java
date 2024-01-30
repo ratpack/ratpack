@@ -215,7 +215,7 @@ public interface HealthCheck {
    * import ratpack.exec.Promise;
    * import ratpack.registry.Registry;
    * import ratpack.health.HealthCheck;
-   * import static org.junit.Assert.*;
+   * import static org.junit.jupiter.api.Assertions.*;
    *
    * public class Example {
    *   public static void main(String... args) throws Exception {

@@ -16,14 +16,14 @@
 
 package ratpack.test.internal.spock;
 
-import org.spockframework.runtime.extension.AbstractAnnotationDrivenExtension;
-import org.spockframework.runtime.extension.builtin.UnrollNameProvider;
+import org.spockframework.runtime.extension.IAnnotationDrivenExtension;
+import org.spockframework.runtime.extension.builtin.UnrollIterationNameProvider;
 import org.spockframework.runtime.model.FeatureInfo;
 import org.spockframework.runtime.model.IterationInfo;
 import org.spockframework.runtime.model.NameProvider;
 import org.spockframework.runtime.model.SpecInfo;
 
-public final class InheritedUnrollExtension extends AbstractAnnotationDrivenExtension<InheritedUnroll> {
+public final class InheritedUnrollExtension implements IAnnotationDrivenExtension<InheritedUnroll> {
 
   @Override
   public void visitSpecAnnotation(InheritedUnroll unroll, SpecInfo spec) {
@@ -43,13 +43,12 @@ public final class InheritedUnrollExtension extends AbstractAnnotationDrivenExte
 
   private NameProvider<IterationInfo> chooseNameProvider(InheritedUnroll unroll, FeatureInfo feature) {
     if (unroll.value().length() > 0) {
-      return new UnrollNameProvider(feature, unroll.value());
+      return new UnrollIterationNameProvider(feature, unroll.value(), false);
     } else if (feature.getName().contains("#")) {
-      return new UnrollNameProvider(feature, feature.getName());
+      return new UnrollIterationNameProvider(feature, feature.getName(), false);
     } else {
       return null;
     }
   }
 
 }
-

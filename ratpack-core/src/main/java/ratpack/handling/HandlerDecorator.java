@@ -32,7 +32,7 @@ import ratpack.registry.Registry;
  * import ratpack.handling.Context;
  * import ratpack.util.Types;
  * import ratpack.test.embed.EmbeddedApp;
- * import static org.junit.Assert.*;
+ * import static org.junit.jupiter.api.Assertions.*;
  *
  * import java.util.LinkedList;
  * import java.util.Arrays;
@@ -86,7 +86,7 @@ import ratpack.registry.Registry;
  * import com.google.inject.Inject;
  * import com.google.inject.multibindings.Multibinder;
  *
- * import static org.junit.Assert.*;
+ * import static org.junit.jupiter.api.Assertions.*;
  *
  * import java.util.LinkedList;
  * import java.util.Arrays;

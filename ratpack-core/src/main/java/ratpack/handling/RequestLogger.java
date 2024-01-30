@@ -34,7 +34,7 @@ import ratpack.handling.internal.NcsaRequestLogger;
  * <pre class="java">{@code
  * import ratpack.handling.RequestLogger;
  * import ratpack.test.embed.EmbeddedApp;
- * import static org.junit.Assert.*;
+ * import static org.junit.jupiter.api.Assertions.*;
  *
  * public class Example {
  *   public static void main(String... args) throws Exception {
@@ -72,7 +72,7 @@ public interface RequestLogger extends Handler {
    * <pre class="java">{@code
    * import ratpack.handling.RequestLogger;
    * import ratpack.test.embed.EmbeddedApp;
-   * import static org.junit.Assert.*;
+   * import static org.junit.jupiter.api.Assertions.*;
    *
    * public class Example {
    *   public static void main(String... args) throws Exception {

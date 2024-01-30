@@ -29,7 +29,6 @@ import java.nio.file.attribute.BasicFileAttributes
 
 import static java.nio.file.StandardCopyOption.COPY_ATTRIBUTES
 import static java.nio.file.StandardCopyOption.REPLACE_EXISTING
-import static org.junit.Assert.assertTrue
 
 /**
  * A specialized file that makes creating directory structures more convenient.
@@ -88,7 +87,7 @@ class TestFile extends File {
     }
 
     TestFile assertIsFile() {
-        assertTrue(String.format("%s is not a file", this), isFile())
+        assert isFile() : String.format("%s is not a file", this)
         this
     }
 

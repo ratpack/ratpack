@@ -37,7 +37,7 @@ import com.google.common.reflect.TypeToken;
  * import ratpack.test.handling.HandlingResult;
  * import ratpack.test.handling.RequestFixture;
  *
- * import static org.junit.Assert.assertEquals;
+ * import static org.junit.jupiter.api.Assertions.assertEquals;
  *
  * public class Example {
  *
