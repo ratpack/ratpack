@@ -20,27 +20,20 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Iterables;
 import com.google.common.reflect.TypeToken;
 import com.google.inject.*;
-import com.google.inject.matcher.AbstractMatcher;
+import com.google.inject.matcher.Matcher;
 import com.google.inject.matcher.Matchers;
 import io.netty.buffer.ByteBufAllocator;
 import org.aopalliance.intercept.MethodInterceptor;
-import ratpack.exec.api.Blocks;
+import ratpack.config.FileSystemBinding;
 import ratpack.core.error.ClientErrorHandler;
 import ratpack.core.error.ServerErrorHandler;
-import ratpack.exec.ExecController;
-import ratpack.exec.ExecInitializer;
-import ratpack.exec.Execution;
-import ratpack.config.FileSystemBinding;
 import ratpack.core.file.MimeTypes;
 import ratpack.core.file.internal.FileRenderer;
 import ratpack.core.form.internal.FormParser;
-import ratpack.guice.ExecutionScoped;
-import ratpack.guice.RequestScoped;
 import ratpack.core.handling.Redirector;
 import ratpack.core.http.Request;
 import ratpack.core.http.Response;
 import ratpack.core.http.client.HttpClient;
-import ratpack.exec.registry.Registry;
 import ratpack.core.render.internal.CharSequenceRenderer;
 import ratpack.core.render.internal.PromiseRenderer;
 import ratpack.core.render.internal.PublisherRenderer;
@@ -49,6 +42,13 @@ import ratpack.core.server.PublicAddress;
 import ratpack.core.server.RatpackServer;
 import ratpack.core.server.ServerConfig;
 import ratpack.core.sse.client.ServerSentEventClient;
+import ratpack.exec.ExecController;
+import ratpack.exec.ExecInitializer;
+import ratpack.exec.Execution;
+import ratpack.exec.api.Blocks;
+import ratpack.exec.registry.Registry;
+import ratpack.guice.ExecutionScoped;
+import ratpack.guice.RequestScoped;
 
 import java.lang.reflect.Method;
 import java.util.List;
@@ -169,7 +169,7 @@ public class RatpackBaseRegistryModule extends AbstractModule {
     }
   }
 
-  private static class NotGroovyMethodMatcher extends AbstractMatcher<Method> {
+  private static class NotGroovyMethodMatcher implements Matcher<Method> {
     @Override
     public boolean matches(Method method) {
       return !method.isSynthetic();

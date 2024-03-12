@@ -19,7 +19,7 @@ package ratpack.dropwizard.metrics.internal;
 import com.codahale.metrics.MetricRegistry;
 import ratpack.exec.stream.internal.MulticastPublisher;
 
-import javax.inject.Inject;
+import jakarta.inject.Inject;
 
 /**
  * A message broadcaster for sending metrics to its subscribers.

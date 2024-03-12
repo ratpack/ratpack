@@ -21,7 +21,7 @@ import com.codahale.metrics.graphite.GraphiteReporter;
 import ratpack.dropwizard.metrics.DropwizardMetricsConfig;
 import ratpack.dropwizard.metrics.GraphiteConfig;
 
-import javax.inject.Inject;
+import jakarta.inject.Inject;
 
 /**
  * A Provider implementation that sets up a {@link GraphiteReporter} for a {@link MetricRegistry}.

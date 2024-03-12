@@ -20,7 +20,7 @@ import com.codahale.metrics.MetricRegistry;
 import ratpack.dropwizard.metrics.BlockingExecTimingInterceptor;
 import ratpack.dropwizard.metrics.DropwizardMetricsConfig;
 
-import javax.inject.Inject;
+import jakarta.inject.Inject;
 import javax.inject.Provider;
 
 /**

@@ -20,7 +20,7 @@ import com.codahale.metrics.MetricRegistry;
 import ratpack.dropwizard.metrics.CsvConfig;
 import ratpack.dropwizard.metrics.DropwizardMetricsConfig;
 
-import javax.inject.Inject;
+import jakarta.inject.Inject;
 
 /**
  * A Provider implementation that sets up a {@link CsvReporter} for a {@link MetricRegistry}.
