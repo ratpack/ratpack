@@ -22,7 +22,7 @@ import ratpack.dropwizard.metrics.RequestTimingHandler;
 import ratpack.core.handling.Context;
 
 import jakarta.inject.Inject;
-import javax.inject.Provider;
+import jakarta.inject.Provider;
 
 /**
  * Provide an instance of a request timing handler.

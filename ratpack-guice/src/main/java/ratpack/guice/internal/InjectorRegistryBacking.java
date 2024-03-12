@@ -21,7 +21,7 @@ import com.google.common.collect.FluentIterable;
 import com.google.common.collect.ImmutableList;
 import com.google.common.reflect.TypeToken;
 import com.google.inject.Injector;
-import com.google.inject.Provider;
+import jakarta.inject.Provider;
 import ratpack.exec.registry.RegistryBacking;
 
 public class InjectorRegistryBacking implements RegistryBacking {

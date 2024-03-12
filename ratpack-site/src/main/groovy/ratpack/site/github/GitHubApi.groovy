@@ -21,7 +21,7 @@ import com.fasterxml.jackson.databind.ObjectReader
 import ratpack.exec.Promise
 import ratpack.core.http.client.HttpClient
 
-@javax.inject.Singleton
+@jakarta.inject.Singleton
 class GitHubApi {
 
   private final String api

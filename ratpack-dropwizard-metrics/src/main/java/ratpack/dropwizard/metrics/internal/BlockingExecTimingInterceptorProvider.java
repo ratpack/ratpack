@@ -21,7 +21,7 @@ import ratpack.dropwizard.metrics.BlockingExecTimingInterceptor;
 import ratpack.dropwizard.metrics.DropwizardMetricsConfig;
 
 import jakarta.inject.Inject;
-import javax.inject.Provider;
+import jakarta.inject.Provider;
 
 /**
  * Provide a timer for blocking executions.
