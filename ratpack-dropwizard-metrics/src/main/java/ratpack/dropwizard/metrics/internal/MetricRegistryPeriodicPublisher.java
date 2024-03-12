@@ -21,7 +21,7 @@ import ratpack.dropwizard.metrics.DropwizardMetricsConfig;
 import ratpack.exec.ExecController;
 import ratpack.exec.stream.internal.PeriodicPublisher;
 
-import javax.inject.Inject;
+import jakarta.inject.Inject;
 import java.time.Duration;
 
 public class MetricRegistryPeriodicPublisher extends PeriodicPublisher<MetricRegistry> {

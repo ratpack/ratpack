@@ -303,7 +303,7 @@ class GroovyScriptAppSpec extends RatpackGroovyScriptAppSpec {
       import ratpack.groovy.Groovy.Ratpack
 
       import org.slf4j.*
-      import javax.inject.Inject
+      import jakarta.inject.Inject
       import groovy.util.logging.*
 
       final Logger log = LoggerFactory.getLogger(Ratpack)

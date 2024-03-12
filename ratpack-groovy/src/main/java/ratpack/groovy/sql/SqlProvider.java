@@ -18,7 +18,7 @@ package ratpack.groovy.sql;
 
 import groovy.sql.Sql;
 
-import javax.inject.Inject;
+import jakarta.inject.Inject;
 import javax.inject.Provider;
 import javax.sql.DataSource;
 

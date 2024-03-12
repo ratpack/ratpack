@@ -36,7 +36,7 @@ import java.time.Duration;
  * import ratpack.hikari.HikariModule;
  * import ratpack.test.embed.EmbeddedApp;
  *
- * import javax.inject.Inject;
+ * import jakarta.inject.Inject;
  *
  * import static org.junit.jupiter.api.Assertions.assertEquals;
  *

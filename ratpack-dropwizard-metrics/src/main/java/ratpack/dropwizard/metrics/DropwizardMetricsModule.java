@@ -43,7 +43,7 @@ import ratpack.core.service.Service;
 import ratpack.core.service.StartEvent;
 import ratpack.core.service.StopEvent;
 
-import javax.inject.Inject;
+import jakarta.inject.Inject;
 
 import java.util.ArrayList;
 import java.util.Collections;

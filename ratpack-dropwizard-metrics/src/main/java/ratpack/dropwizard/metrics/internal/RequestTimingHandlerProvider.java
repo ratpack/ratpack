@@ -21,7 +21,7 @@ import ratpack.dropwizard.metrics.DropwizardMetricsConfig;
 import ratpack.dropwizard.metrics.RequestTimingHandler;
 import ratpack.core.handling.Context;
 
-import javax.inject.Inject;
+import jakarta.inject.Inject;
 import javax.inject.Provider;
 
 /**

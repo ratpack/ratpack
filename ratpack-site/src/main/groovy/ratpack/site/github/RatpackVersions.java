@@ -21,7 +21,7 @@ import com.google.common.collect.Iterables;
 import ratpack.exec.Promise;
 import ratpack.exec.util.ParallelBatch;
 
-import javax.inject.Inject;
+import jakarta.inject.Inject;
 import javax.inject.Singleton;
 import java.util.List;
 import java.util.regex.Pattern;

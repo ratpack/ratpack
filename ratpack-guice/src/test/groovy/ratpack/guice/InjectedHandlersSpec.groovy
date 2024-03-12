@@ -21,7 +21,7 @@ import ratpack.core.handling.Context
 import ratpack.core.handling.Handler
 import ratpack.test.internal.RatpackGroovyDslSpec
 
-import javax.inject.Inject
+import jakarta.inject.Inject
 
 class InjectedHandlersSpec extends RatpackGroovyDslSpec {
 
