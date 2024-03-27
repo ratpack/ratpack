@@ -45,7 +45,8 @@ class LinkCrawlSpec extends BaseRatpackSpec {
       "http://www.slf4j.org",
       "https://travis-ci.org",
       "http://www.gebish.org",
-      "https://github.com/alkemist"
+      "https://github.com/alkemist",
+      "http://breakpoint-sass.com/"
     ]
 
     def crawler = new Crawler(aut.address.toString()) {
