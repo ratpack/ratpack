@@ -18,7 +18,6 @@ package ratpack.test.exec;
 
 import ratpack.exec.*;
 import ratpack.func.Action;
-import ratpack.func.Exceptions;
 import ratpack.func.Function;
 import ratpack.exec.registry.RegistrySpec;
 import ratpack.test.exec.internal.DefaultExecHarness;

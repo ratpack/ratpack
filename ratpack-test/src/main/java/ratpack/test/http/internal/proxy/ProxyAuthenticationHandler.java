@@ -31,16 +31,15 @@ import java.util.Base64;
 import static java.nio.charset.StandardCharsets.ISO_8859_1;
 
 public class ProxyAuthenticationHandler extends SimpleChannelInboundHandler<HttpRequest> {
-  public static final Logger LOGGER = LoggerFactory.getLogger(TestHttpProxyServer.class);
 
   private final ProxyCredentials proxyCredentials;
 
-  public ProxyAuthenticationHandler(  ProxyCredentials proxyCredentials) {
+  public ProxyAuthenticationHandler(ProxyCredentials proxyCredentials) {
     this.proxyCredentials = proxyCredentials;
   }
 
   @Override
-  protected void channelRead0(ChannelHandlerContext ctx, HttpRequest request) throws Exception {
+  protected void channelRead0(ChannelHandlerContext ctx, HttpRequest request) {
     String basicAuthToken = request.headers().get(HttpHeaders.PROXY_AUTHORIZATION);
     if (basicAuthToken == null || basicAuthToken.isEmpty()) {
       respondProxyAuthenticationRequired(ctx);
