@@ -36,7 +36,7 @@ class ResponseHeaderValidationSpec extends RatpackGroovyDslSpec {
     then:
     def response = get()
     response.headers.names == ['content-type', 'content-length'].toSet()
-    response.body.text == "java.lang.IllegalArgumentException: only ' ' and '\\t' are allowed after '\\n': value\r\nAnotherHeader: another value"
+    response.body.text == "java.lang.IllegalArgumentException: Failed to convert object value for header 'Test'"
   }
 
 }

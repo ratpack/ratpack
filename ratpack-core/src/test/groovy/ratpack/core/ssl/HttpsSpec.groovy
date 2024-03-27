@@ -17,30 +17,25 @@
 package ratpack.core.ssl
 
 import com.google.common.base.Throwables
+import io.netty.handler.codec.DecoderException
 import io.netty.handler.codec.PrematureChannelClosureException
 import io.netty.handler.ssl.ClientAuth
 import io.netty.handler.ssl.SslContext
 import io.netty.handler.ssl.SslContextBuilder
 import io.netty.handler.ssl.util.SelfSignedCertificate
-import org.apache.logging.log4j.LogManager
-import org.apache.logging.log4j.core.Logger
-import org.apache.logging.log4j.core.appender.WriterAppender
-import ratpack.core.server.internal.NettyHandlerAdapter
 import ratpack.test.internal.RatpackGroovyDslSpec
 import spock.lang.Shared
 import sun.security.provider.certpath.SunCertPathBuilderException
 
-import javax.net.ssl.SNIHostName
 import java.security.cert.CertificateException
 import java.security.cert.X509Certificate
 
 class HttpsSpec extends RatpackGroovyDslSpec {
 
   @Shared
-  nonLocalHostCert = new SelfSignedCertificate("barbar")
-
+    nonLocalHostCert = new SelfSignedCertificate("barbar")
   @Shared
-  localHostCert = new SelfSignedCertificate("localhost")
+    localHostCert = new SelfSignedCertificate("localhost")
 
   def "client requires verified domain name in cert - #valid"() {
     given:
@@ -71,7 +66,7 @@ class HttpsSpec extends RatpackGroovyDslSpec {
       try {
         getText()
         throw new IllegalStateException("should have failed")
-      } catch (UncheckedIOException e) {
+      } catch (DecoderException e) {
         def root = Throwables.getRootCause(e)
         assert root instanceof CertificateException
         assert root.message == "No name matching localhost found"
@@ -105,16 +100,37 @@ class HttpsSpec extends RatpackGroovyDslSpec {
       }
     }
 
+    and:
+    getText()
+
     then:
-    try {
-      getText()
-      throw new IllegalStateException("should have failed")
-    } catch (UncheckedIOException e) {
-      def root = Throwables.getRootCause(e)
-      assert root instanceof SunCertPathBuilderException
-      assert root.message == "unable to find valid certification path to requested target"
+    def e = thrown(DecoderException)
+    def root = Throwables.getRootCause(e)
+    root instanceof SunCertPathBuilderException
+    root.message == "unable to find valid certification path to requested target"
+  }
+
+
+  def "handles early ssl terminate"() {
+    given:
+    def serverSocket = new ServerSocket(0, 1)
+    Thread.start {
+      serverSocket.accept().close()
     }
 
+    when:
+    handlers {
+      get {
+        render "ok"
+      }
+    }
+
+    and:
+    getText("https://localhost:$serverSocket.localPort")
+
+    then:
+    def e = thrown(Exception)
+    e instanceof PrematureChannelClosureException || Throwables.getRootCause(e) instanceof IOException
   }
 
   def "can obtain clients ID"() {
@@ -143,100 +159,5 @@ class HttpsSpec extends RatpackGroovyDslSpec {
 
     then:
     requestSpec { it.sslContext(clientContext) }.text == nonLocalHostCert.cert().subjectDN.name
-  }
-
-  def "suppresses exceptions from non-HTTPS request"() {
-    given:
-    // Look up and modifying the underlying log4j configuration
-    // so we can capture the log output in this test
-    Logger logs = (Logger) LogManager.getLogger(NettyHandlerAdapter)
-    def sw = new StringWriter()
-
-    def builder = WriterAppender.newBuilder()
-    builder.setTarget(sw)
-    builder.setName("testCapture")
-    def testAppender = builder.build()
-    testAppender.start()
-
-    logs.setAdditive(true)
-    logs.addAppender(testAppender)
-
-    SslContext localhostContext = SslContextBuilder.forServer(localHostCert.certificate(), localHostCert.privateKey()).build()
-    serverConfig {
-      ssl(localhostContext)
-    }
-
-    when:
-    handlers {
-      get {
-        render "ok"
-      }
-    }
-
-    then:
-    try {
-      getText("http://localhost:${applicationUnderTest.address.port}")
-    } catch(PrematureChannelClosureException e) {
-      assert e.getMessage().contains("closed the connection prematurely")
-    }
-
-    and:
-    def lines = sw.toString().trim().split("\n")
-    lines.size() == 1
-    lines[0].startsWith("not an SSL/TLS record") || // This is the error message if using dynamic linking to OpenSSL
-      lines[0].startsWith("error:1000009c:SSL routines:OPENSSL_internal:HTTP_REQUEST") // This is th error message if using static linking to BoringSSL
-
-    cleanup:
-    testAppender.stop()
-    logs.removeAppender(testAppender)
-    logs.setAdditive(false)
-  }
-
-  def "can serve multiple certificates using sni"() {
-    given:
-    def ratpackCert = new SelfSignedCertificate("*.ratpack.io")
-    SslContext localhostContext = SslContextBuilder.forServer(localHostCert.certificate(), localHostCert.privateKey()).build()
-    SslContext ratpackDomainContext = SslContextBuilder.forServer(ratpackCert.certificate(), ratpackCert.privateKey()).build()
-
-    SslContext clientContext = SslContextBuilder.forClient()
-      .trustManager(localHostCert.cert(), ratpackCert.cert())
-      .build()
-
-    serverConfig {
-      ssl(localhostContext) { b ->
-        b.add("*.ratpack.io", ratpackDomainContext)
-      }
-    }
-
-    when:
-    handlers {
-      get {
-        render "ok"
-      }
-    }
-
-    then: "Requested using localhost with a trusted cert"
-    requestSpec {
-      it.sslContext(clientContext)
-    }.getText()
-
-    and: "Request fails if cert host isn't trusted"
-    try {
-      requestSpec {
-        it.sslContext(clientContext)
-      }.getText("https://127.0.0.1:${applicationUnderTest.address.port}/")
-    } catch (UncheckedIOException e) {
-      def root = Throwables.getRootCause(e)
-      assert root instanceof CertificateException
-      assert root.message == "No subject alternative names present"
-    }
-
-    and: "Request succeeds is provided a trusted alternative SNI name for the request"
-    requestSpec {
-      it.sslContext(clientContext)
-      it.sslParams { p ->
-        p.setServerNames([new SNIHostName("api.ratpack.io")])
-      }
-    }.getText("https://127.0.0.1:${applicationUnderTest.address.port}/")
   }
 }

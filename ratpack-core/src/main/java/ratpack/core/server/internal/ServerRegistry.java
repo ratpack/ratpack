@@ -18,24 +18,18 @@ package ratpack.core.server.internal;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.base.Throwables;
-import com.google.common.collect.ImmutableList;
 import io.netty.buffer.ByteBufAllocator;
 import ratpack.config.ConfigObject;
+import ratpack.config.FileSystemBinding;
 import ratpack.core.error.ClientErrorHandler;
 import ratpack.core.error.ServerErrorHandler;
 import ratpack.core.error.internal.DefaultDevelopmentErrorHandler;
 import ratpack.core.error.internal.DefaultProductionErrorHandler;
 import ratpack.core.error.internal.ErrorHandler;
-import ratpack.exec.ExecController;
-import ratpack.exec.ExecInitializer;
-import ratpack.exec.ExecInterceptor;
-import ratpack.exec.internal.ExecControllerInternal;
-import ratpack.config.FileSystemBinding;
 import ratpack.core.file.MimeTypes;
 import ratpack.core.file.internal.ActivationBackedMimeTypes;
 import ratpack.core.file.internal.FileRenderer;
 import ratpack.core.form.internal.FormParser;
-import ratpack.func.Function;
 import ratpack.core.handling.Redirector;
 import ratpack.core.handling.RequestId;
 import ratpack.core.handling.internal.UuidBasedRequestIdGenerator;
@@ -44,34 +38,33 @@ import ratpack.core.http.client.HttpClient;
 import ratpack.core.impose.Impositions;
 import ratpack.core.jackson.internal.JsonParser;
 import ratpack.core.jackson.internal.JsonRenderer;
-import ratpack.exec.registry.Registry;
-import ratpack.exec.registry.RegistryBuilder;
 import ratpack.core.render.internal.*;
 import ratpack.core.server.*;
 import ratpack.core.sse.client.ServerSentEventClient;
+import ratpack.exec.ExecController;
+import ratpack.exec.registry.Registry;
+import ratpack.exec.registry.RegistryBuilder;
+import ratpack.func.Function;
 
 import java.time.Clock;
 import java.util.Optional;
 
 import static ratpack.func.Exceptions.uncheck;
 
-@SuppressWarnings("deprecation")
+
 public abstract class ServerRegistry {
 
-  public static Registry serverRegistry(RatpackServer ratpackServer, Impositions impositions, ExecControllerInternal execController, ServerConfig serverConfig, Function<? super Registry, ? extends Registry> userRegistryFactory) {
+  public static Registry serverRegistry(RatpackServer ratpackServer, Impositions impositions, ExecController execController, ServerConfig serverConfig, Function<? super Registry, ? extends Registry> userRegistryFactory) {
     Registry baseRegistry = buildBaseRegistry(ratpackServer, impositions, execController, serverConfig);
-    Registry userRegistry = buildUserRegistry(userRegistryFactory, baseRegistry);
-
-    execController.setInterceptors(ImmutableList.copyOf(userRegistry.getAll(ExecInterceptor.class)));
-    execController.setInitializers(ImmutableList.copyOf(userRegistry.getAll(ExecInitializer.class)));
+    Registry userRegistry = buildUserRegistry(impositions, userRegistryFactory, baseRegistry);
 
     return baseRegistry.join(userRegistry);
   }
 
-  private static Registry buildUserRegistry(Function<? super Registry, ? extends Registry> userRegistryFactory, Registry baseRegistry) {
+  private static Registry buildUserRegistry(Impositions impositions, Function<? super Registry, ? extends Registry> userRegistryFactory, Registry baseRegistry) {
     Registry userRegistry;
     try {
-      userRegistry = userRegistryFactory.apply(baseRegistry);
+      userRegistry = impositions.imposeOver(() -> userRegistryFactory.apply(baseRegistry));
     } catch (Exception e) {
       Throwables.throwIfUnchecked(e);
       throw new StartupFailureException("Failed to build user registry", e);

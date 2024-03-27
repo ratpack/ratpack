@@ -36,8 +36,6 @@ import java.net.URISyntaxException;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.atomic.AtomicBoolean;
 
-import static io.netty.handler.codec.http.HttpHeaderNames.SEC_WEBSOCKET_KEY;
-import static io.netty.handler.codec.http.HttpHeaderNames.SEC_WEBSOCKET_VERSION;
 import static io.netty.handler.codec.http.HttpMethod.valueOf;
 import static ratpack.func.Exceptions.toException;
 import static ratpack.func.Exceptions.uncheck;
@@ -62,8 +60,7 @@ public class WebSocketEngine {
     Request request = context.getRequest();
     HttpMethod method = valueOf(request.getMethod().getName());
     FullHttpRequest nettyRequest = new DefaultFullHttpRequest(HttpVersion.HTTP_1_1, method, request.getUri());
-    nettyRequest.headers().add(SEC_WEBSOCKET_VERSION, request.getHeaders().get(SEC_WEBSOCKET_VERSION));
-    nettyRequest.headers().add(SEC_WEBSOCKET_KEY, request.getHeaders().get(SEC_WEBSOCKET_KEY));
+    nettyRequest.headers().add(request.getHeaders().getNettyHeaders());
 
     final WebSocketServerHandshaker handshaker = factory.newHandshaker(nettyRequest);
 
@@ -106,12 +103,12 @@ public class WebSocketEngine {
         final Channel channel = directAccessChannel.getChannel();
 
         channel.closeFuture().addListener(fu -> {
-            try {
-              handler.onClose(new DefaultWebSocketClose<>(true, openResult));
-            } catch (Exception e) {
-              throw uncheck(e);
-            }
-          });
+          try {
+            handler.onClose(new DefaultWebSocketClose<>(true, openResult));
+          } catch (Exception e) {
+            throw uncheck(e);
+          }
+        });
 
         directAccessChannel.takeOwnership(msg -> {
           openLatch.await();

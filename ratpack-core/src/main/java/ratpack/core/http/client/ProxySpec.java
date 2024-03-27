@@ -26,6 +26,14 @@ import java.util.Collection;
 public interface ProxySpec {
 
   /**
+   * The protocol to use when connecting to the proxy. Defaults to HTTP.
+   *
+   * @param protocol the protocol to use when connecting to the proxy
+   * @return {@code this}
+   */
+  ProxySpec protocol(Proxy.ProxyProtocol protocol);
+
+  /**
    * Configure the host that will proxy outbound HTTP requests.
    * @param host the host name for the HTTP proxy
    * @return {@code this}
@@ -38,6 +46,15 @@ public interface ProxySpec {
    * @return {@code this}
    */
   ProxySpec port(int port);
+
+  /**
+   * Configure the username and password to use when connecting to the proxy.
+   *
+   * @param username the username to use when connecting to the HTTP proxy
+   * @param password the password to use when connecting to the HTTP proxy
+   * @return {@code this}
+   */
+  ProxySpec credentials(String username, String password);
 
   /**
    * Configure a collection of patterns for which if any are matched, the outbound request will bypass the HTTP proxy.

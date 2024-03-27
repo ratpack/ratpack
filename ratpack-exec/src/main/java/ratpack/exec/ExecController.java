@@ -17,11 +17,11 @@
 package ratpack.exec;
 
 import io.netty.channel.EventLoopGroup;
-import ratpack.exec.internal.DefaultExecController;
+import ratpack.exec.internal.DefaultExecControllerBuilder;
 import ratpack.exec.internal.ExecThreadBinding;
-import ratpack.func.Action;
 import ratpack.func.Block;
 
+import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.ScheduledExecutorService;
@@ -54,6 +54,15 @@ public interface ExecController extends AutoCloseable {
    */
   static ExecController require() throws UnmanagedThreadException {
     return current().orElseThrow(UnmanagedThreadException::new);
+  }
+
+  /**
+   * Creates a new builder.
+   *
+   * @return a new builder
+   */
+  static ExecControllerBuilder builder() {
+    return new DefaultExecControllerBuilder();
   }
 
   /**
@@ -97,6 +106,60 @@ public interface ExecController extends AutoCloseable {
   EventLoopGroup getEventLoopGroup();
 
   /**
+   * The number of threads that will be used for computation.
+   * <p>
+   * This is determined by the {@link ServerConfig#getThreads()} value of the launch config that created this controller.
+   *
+   * @return the number of threads that will be used for computation
+   */
+  int getNumThreads();
+
+  /**
+   * Adds a callback to run when stopping this exec controller.
+   *
+   * @param block the callback to execute when stopping this controller
+   * @return false if the controller is stopped or stopping and the block will not be executed, otherwise true
+   * @since 1.10
+   */
+  boolean onClose(Block block);
+
+  /**
+   * The registered interceptors for this controller.
+   * <p>
+   * The returned list is immutable and will not contain any future additions.
+   *
+   * @return the registered interceptors for this controller
+   * @since 1.10
+   */
+  List<? extends ExecInterceptor> getInterceptors();
+
+  /**
+   * The registered initializers for this controller.
+   * <p>
+   * The returned list is immutable and will not contain any future additions.
+   *
+   * @return the registered initializers for this controller
+   * @since 1.10
+   */
+  List<? extends ExecInitializer> getInitializers();
+
+  /**
+   * Adds the given interceptors to this controller.
+   *
+   * @param interceptors the given interceptors to this controller
+   * @since 1.10
+   */
+  void addInterceptors(Iterable<? extends ExecInterceptor> interceptors);
+
+  /**
+   * Adds the given initializers to this controller.
+   *
+   * @param initializers the given interceptors to this controller
+   * @since 1.10
+   */
+  void addInitializers(Iterable<? extends ExecInitializer> initializers);
+
+  /**
    * Shuts down this controller, terminating the event loop and blocking threads.
    * <p>
    * This method returns immediately, not waiting for the actual shutdown to occur.
@@ -105,28 +168,4 @@ public interface ExecController extends AutoCloseable {
    */
   @Override
   void close();
-
-  /**
-   * Construct a new execution controller from the provided specification.
-   *
-   * @param definition the configuration of the execution controller.
-   * @return an execution controller
-   * @throws Exception if any exception is thrown when applying the configuration.
-   * @since 2.0
-   */
-  static ExecController of(Action<? super ExecControllerSpec> definition) throws Exception {
-    return DefaultExecController.of(definition);
-  }
-
-  /**
-   * Registers a block to be executed when this controller closes.
-   * <p>
-   * This method is additive.
-   *
-   * @param block the code block to execute on shutdown
-   * @return {@code false} if the controller is already closed and the block is not added, {@code true} otherwise.
-   * @since 2.0
-   */
-  boolean onClose(Block block);
-
 }

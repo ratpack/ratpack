@@ -56,7 +56,7 @@ class DefaultResponseTransmitterBlackboxVerification extends SubscriberBlackboxV
     HttpHeaders responseHeaders = mock(HttpHeaders)
 
 
-    new DefaultResponseTransmitter(new AtomicBoolean(), channel, Clock.systemDefaultZone(), nettyRequest, null, responseHeaders, null).transmitter(HttpResponseStatus.OK)
+    new DefaultResponseTransmitter(new AtomicBoolean(), channel, Clock.systemDefaultZone(), nettyRequest, null, responseHeaders, null,  {}).transmitter(HttpResponseStatus.OK)
   }
 
   @Override

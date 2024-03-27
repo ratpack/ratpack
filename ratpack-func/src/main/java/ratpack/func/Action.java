@@ -18,6 +18,7 @@ package ratpack.func;
 
 import com.google.common.collect.ImmutableList;
 import ratpack.func.internal.ConditionalAction;
+import ratpack.func.internal.NoopAction;
 
 import java.util.function.Consumer;
 
@@ -45,9 +46,9 @@ public interface Action<T> {
    *
    * @return an action that does precisely nothing
    */
+  @SuppressWarnings("unchecked")
   static <T> Action<T> noop() {
-    return thing -> {
-    };
+    return (Action<T>) NoopAction.INSTANCE;
   }
 
   /**

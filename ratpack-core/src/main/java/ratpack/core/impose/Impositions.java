@@ -124,6 +124,28 @@ public final class Impositions {
   }
 
   /**
+   * Sets impositions that will be available during execution of the given function, replacing any existing.
+   * <p>
+   * The given impositions will only be returned from {@link #current()} if called from the same thread that is calling this method.
+   *
+   * @param impositions the impositions to impose during the given function
+   * @param during the function to execute while the impositions are imposed
+   * @param <T> the type of result of the given function
+   * @return the result of the given function
+   * @throws Exception any thrown by {@code during}
+   * @since 1.10
+   */
+  public static <T> T imposeOver(Impositions impositions, Factory<? extends T> during) throws Exception {
+    Deque<Impositions> queue = IMPOSITIONS.get();
+    try {
+      IMPOSITIONS.set(Queues.newArrayDeque());
+      return impose(impositions, during);
+    } finally {
+      IMPOSITIONS.set(queue);
+    }
+  }
+
+  /**
    * Delegates to {@link #impose(Impositions, Factory)}, with {@code this} as the impositions.
    *
    * @param during the function to execute while the impositions are imposed
@@ -133,6 +155,19 @@ public final class Impositions {
    */
   public <T> T impose(Factory<? extends T> during) throws Exception {
     return impose(this, during);
+  }
+
+  /**
+   * Delegates to {@link #imposeOver(Impositions, Factory)}, with {@code this} as the impositions.
+   *
+   * @param during the function to execute while the impositions are imposed
+   * @param <T> the type of result of the given function
+   * @return the result of the given function
+   * @throws Exception any thrown by {@code during}
+   * @since 1.10
+   */
+  public <T> T imposeOver(Factory<? extends T> during) throws Exception {
+    return imposeOver(this, during);
   }
 
   /**

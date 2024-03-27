@@ -24,16 +24,21 @@ import org.reactivestreams.Publisher
 import org.reactivestreams.Subscriber
 import org.reactivestreams.Subscription
 import ratpack.core.http.client.HttpClient
+import ratpack.core.http.internal.DefaultResponse
+import ratpack.exec.ExecInterceptor
 import ratpack.exec.Execution
 import ratpack.exec.stream.StreamEvent
 import ratpack.exec.stream.Streams
+import ratpack.func.Block
 import ratpack.test.internal.RatpackGroovyDslSpec
 import spock.util.concurrent.BlockingVariable
 import spock.util.concurrent.PollingConditions
 
+import java.nio.charset.StandardCharsets
 import java.time.Duration
 import java.time.Instant
 import java.util.concurrent.ConcurrentLinkedQueue
+import java.util.concurrent.atomic.AtomicReference
 
 import static ratpack.core.http.ResponseChunks.stringChunks
 import static ratpack.exec.stream.Streams.publish
@@ -46,7 +51,7 @@ class ResponseStreamingSpec extends RatpackGroovyDslSpec {
       all {
         request.maxContentLength = 12
         render stringChunks(
-          publish(["abc"] * 3)
+            publish(["abc"] * 3)
         )
       }
     }
@@ -56,13 +61,35 @@ class ResponseStreamingSpec extends RatpackGroovyDslSpec {
     r.status == Status.PAYLOAD_TOO_LARGE
   }
 
+  def "idle timeout is disabled when streaming response"() {
+    when:
+    serverConfig {
+      idleTimeout(Duration.ofSeconds(1))
+    }
+    handlers {
+      all {
+        render stringChunks(
+            publish(["abc"] * 3).gate { resumer ->
+              Thread.start {
+                sleep(2000)
+                resumer.run()
+              }
+            }
+        )
+      }
+    }
+
+    then:
+    text == "abc" * 3
+  }
+
   def "unread request body is silently discarded when streaming a response"() {
     when:
     handlers {
       all {
         request.maxContentLength = 100_000
         render stringChunks(
-          publish(["abc"] * 3)
+            publish(["abc"] * 3)
         )
       }
     }
@@ -196,7 +223,7 @@ class ResponseStreamingSpec extends RatpackGroovyDslSpec {
         }
         request.maxContentLength = 100_000
         render stringChunks(
-          publish(["abc"] * 3)
+            publish(["abc"] * 3)
         )
       }
     }
@@ -271,4 +298,124 @@ class ResponseStreamingSpec extends RatpackGroovyDslSpec {
     then:
     thrown PrematureChannelClosureException
   }
+
+  def "can stream response concurrently with sending body"() {
+    when:
+    serverConfig {
+      threads(1)
+      maxChunkSize(1)
+    }
+    handlers {
+      all { ctx ->
+        (response as DefaultResponse)
+            .sendStream(request.bodyStream.map {
+              Unpooled.compositeBuffer(2)
+                  .addComponent(true, it)
+                  .addComponent(true, Unpooled.wrappedBuffer("\n".bytes))
+            }, false)
+      }
+    }
+
+    and:
+    def socket = socket()
+    def input = new BufferedReader(new InputStreamReader(socket.inputStream, StandardCharsets.UTF_8))
+    def output = new OutputStreamWriter(socket.outputStream, StandardCharsets.UTF_8)
+    def pieces = 100
+    output.with {
+      write("POST / HTTP/1.1\r\n")
+      write("Content-Length: ${pieces}\r\n")
+      write("\r\n")
+      flush()
+    }
+
+    then:
+    input.readLine() == "HTTP/1.1 200 OK"
+    input.readLine() == "transfer-encoding: chunked"
+    input.readLine() == ""
+
+    and:
+    pieces.times {
+      output.with { write("a"); flush() }
+      assert input.readLine() == "2"
+      assert input.readLine() == "a"
+      assert input.readLine() == ""
+    }
+    input.readLine() == "0"
+
+    cleanup:
+    output?.close()
+    input?.close()
+  }
+
+  def "stream response close listener is in context of execution"() {
+    when:
+    def array = new byte[1024 * 1024]
+    Arrays.fill(array, 1 as byte)
+    def data = Unpooled.wrappedBuffer(array)
+    def exec = new AtomicReference<Execution>()
+    def execSuspended = new BlockingVariable<Boolean>()
+    def execSet = new BlockingVariable<Boolean>()
+    serverConfig {
+      maxChunkSize(array.size())
+    }
+    bindings {
+      bindInstance(ExecInterceptor, new ExecInterceptor() {
+        @Override
+        void intercept(Execution execution, ExecInterceptor.ExecType execType, Block executionSegment) throws Exception {
+          try {
+            executionSegment.execute()
+          } finally {
+            if (execution == exec.get() && execType == ExecInterceptor.ExecType.COMPUTE) {
+              execSuspended.set(true)
+            }
+          }
+        }
+      })
+    }
+    handlers {
+      all { ctx ->
+        exec.set(Execution.current())
+
+        context.onClose {
+          execSet.set(Execution.current().is(exec.get()))
+        }
+
+        response.sendStream(Streams.yield { data.retainedSlice() })
+      }
+    }
+
+    and:
+    def socket = socket()
+    def input = new BufferedReader(new InputStreamReader(socket.inputStream, StandardCharsets.UTF_8))
+    def output = new OutputStreamWriter(socket.outputStream, StandardCharsets.UTF_8)
+    output.with {
+      write("POST / HTTP/1.1\r\n")
+      write("\r\n")
+      flush()
+    }
+
+    then:
+    input.readLine() == "HTTP/1.1 200 OK"
+    input.readLine() == "transfer-encoding: chunked"
+    input.readLine() == ""
+
+    and:
+    10.times {
+      input.readLine()
+      input.readLine()
+    }
+
+    when:
+    execSuspended.get()
+    input.close()
+
+    then:
+    execSet.get()
+
+    cleanup:
+    data?.release()
+    output?.close()
+    input?.close()
+  }
+
 }

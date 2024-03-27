@@ -322,6 +322,22 @@ public interface RequestSpec {
   Duration getReadTimeout();
 
   /**
+   * Configure a HTTP proxy for this request.
+   *
+   * @param proxy the proxy configuration
+   * @return {@code this}
+   * @since 1.10
+   */
+  RequestSpec proxy(Action<? super ProxySpec> proxy);
+
+  /**
+   * The configured proxy instance for this request.
+   * @return The configure proxy instance for the request
+   * @since 1.10
+   */
+  Proxy getProxy();
+
+  /**
    * The body of the request, used for specifying the body content.
    *
    * @return the (writable) body of the request

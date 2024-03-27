@@ -22,6 +22,7 @@ import io.netty.util.Mapping;
 import ratpack.config.ConfigData;
 import ratpack.config.ConfigObject;
 import ratpack.config.internal.DelegatingConfigData;
+import ratpack.exec.ExecController;
 import ratpack.config.FileSystemBinding;
 import ratpack.core.server.DecodingErrorLevel;
 import ratpack.core.server.NoBaseDirException;
@@ -50,6 +51,11 @@ public class DefaultServerConfig extends DelegatingConfigData implements ServerC
   @Override
   public int getPort() {
     return serverConfigData.getPort();
+  }
+
+  @Override
+  public Optional<ExecController> getInheritedExecController() {
+    return Optional.ofNullable(serverConfigData.getExecController());
   }
 
   @Nullable
@@ -141,6 +147,11 @@ public class DefaultServerConfig extends DelegatingConfigData implements ServerC
   @Override
   public Optional<Integer> getConnectQueueSize() {
     return serverConfigData.getConnectQueueSize();
+  }
+
+  @Override
+  public boolean isTcpKeepAlive() {
+    return serverConfigData.isTcpKeepAlive();
   }
 
   @Override

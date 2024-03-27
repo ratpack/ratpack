@@ -31,7 +31,7 @@ class InstrumentedSimpleChannelPoolHandlerSpec extends BaseRatpackSpec {
 
   void 'it should handle construction and listening to ChannelPool changes'() {
     when:
-    InstrumentedSimpleChannelPoolHandler handler = new InstrumentedSimpleChannelPoolHandler(channelKey, null)
+    InstrumentedSimpleChannelPoolHandler handler = new InstrumentedSimpleChannelPoolHandler(channelKey)
 
     then:
     assert handler.host == 'ratpack.io'

@@ -45,6 +45,7 @@ import java.util.function.Supplier;
 public class RatpackPlugin implements Plugin<Project> {
 
   private static final GradleVersion GRADLE_VERSION_BASELINE = GradleVersion.version("7.0");
+  private static final GradleVersion GRADLE_7_1 = GradleVersion.version("7.1");
 
   public void apply(Project project) {
     GradleVersion gradleVersion = GradleVersion.version(project.getGradle().getGradleVersion());
@@ -146,11 +147,6 @@ public class RatpackPlugin implements Plugin<Project> {
       }
     });
 
-  }
-
-  @SuppressWarnings("deprecation")
-  private Supplier<String> getDeprecatedArchiveName(Jar jarTask) {
-    return jarTask::getArchiveName;
   }
 
 }

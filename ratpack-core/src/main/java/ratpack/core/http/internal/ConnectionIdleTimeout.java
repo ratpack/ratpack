@@ -16,18 +16,15 @@
 
 package ratpack.core.http.internal;
 
-import io.netty.channel.Channel;
 import io.netty.channel.ChannelPipeline;
 import io.netty.handler.timeout.IdleStateHandler;
-import io.netty.util.AttributeKey;
 
 import java.time.Duration;
 import java.util.concurrent.TimeUnit;
 
 public class ConnectionIdleTimeout implements RequestIdleTimeout {
 
-  private final static AttributeKey<ConnectionIdleTimeout> ATTRIBUTE_KEY = AttributeKey.valueOf(ConnectionIdleTimeout.class.getName());
-  private static final String HANDLER_NAME = "timeout";
+  private static final String HANDLER_NAME = ConnectionIdleTimeout.class.getName();
 
   private final ChannelPipeline channelPipeline;
   private final Duration timeout;
@@ -37,26 +34,24 @@ public class ConnectionIdleTimeout implements RequestIdleTimeout {
     this.channelPipeline = channelPipeline;
     this.timeout = timeout;
 
-    channelPipeline.channel().attr(ATTRIBUTE_KEY).set(this);
-
     if (!timeout.isZero()) {
       init(timeout);
     }
   }
 
-  public static ConnectionIdleTimeout of(Channel channel) {
-    return channel.attr(ATTRIBUTE_KEY).get();
-  }
-
   @Override
-  public void setRequestIdleTimeout(Duration duration) {
+  public void setRequestIdleTimeout(Duration idleTimeout) {
+    if (idleTimeout.isNegative()) {
+      throw new IllegalArgumentException("idleTimeout must not be negative");
+    }
+
     if (handlerRegistered) {
       channelPipeline.remove(HANDLER_NAME);
     }
-    if (duration.isZero()) {
+    if (idleTimeout.isZero()) {
       handlerRegistered = false;
     } else {
-      init(duration);
+      init(idleTimeout);
     }
   }
 

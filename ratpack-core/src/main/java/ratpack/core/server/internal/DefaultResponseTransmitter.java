@@ -55,7 +55,7 @@ public class DefaultResponseTransmitter implements ResponseTransmitter {
     ERROR_RESPONSE_HEADERS.set(HttpHeaderNames.CONNECTION, HttpHeaderValues.CLOSE);
   }
 
-  private final AtomicBoolean transmitted;
+  private final AtomicBoolean responseInitiated;
   private final Channel channel;
   private final Clock clock;
   private final Request ratpackRequest;
@@ -64,6 +64,7 @@ public class DefaultResponseTransmitter implements ResponseTransmitter {
   private final boolean isSsl;
   private final HttpRequest nettyRequest;
 
+  private final Runnable onRequestFinished;
   private List<Action<? super RequestOutcome>> outcomeListeners;
 
   private Instant stopTime;
@@ -71,15 +72,16 @@ public class DefaultResponseTransmitter implements ResponseTransmitter {
   private boolean done;
 
   public DefaultResponseTransmitter(
-    AtomicBoolean transmitted,
+    AtomicBoolean responseInitiated,
     Channel channel,
     Clock clock,
     HttpRequest nettyRequest,
     Request ratpackRequest,
     HttpHeaders responseHeaders,
-    @Nullable RequestBody requestBody
+    @Nullable RequestBody requestBody,
+    Runnable onRequestFinished
   ) {
-    this.transmitted = transmitted;
+    this.responseInitiated = responseInitiated;
     this.channel = channel;
     this.clock = clock;
     this.ratpackRequest = ratpackRequest;
@@ -87,15 +89,16 @@ public class DefaultResponseTransmitter implements ResponseTransmitter {
     this.requestBody = requestBody;
     this.nettyRequest = nettyRequest;
     this.isSsl = channel.pipeline().get(SslHandler.class) != null;
+    this.onRequestFinished = onRequestFinished;
   }
 
-  private void sendResponse(HttpResponseStatus responseStatus, ResponseBodyWriter responseBodyWriter) {
-    if (transmitted.compareAndSet(false, true)) {
+  private void preSendResponse(HttpResponseStatus responseStatus, ResponseBodyWriter responseBodyWriter, boolean drainRequestBeforeResponse) {
+    if (responseInitiated.compareAndSet(false, true)) {
       this.responseBodyWriter = responseBodyWriter;
       stopTime = clock.instant();
       if (requestBody == null) {
-        sendResponseAfterRequestBodyDrain(responseStatus, responseBodyWriter);
-      } else {
+        sendResponse(responseStatus, responseBodyWriter, true);
+      } else if (drainRequestBeforeResponse) {
         requestBody.drain()
           .onError(e -> {
             LOGGER.warn("An error occurred draining the unread request body. The connection will be closed", e);
@@ -109,15 +112,17 @@ public class DefaultResponseTransmitter implements ResponseTransmitter {
                 break;
               case DISCARDED:
                 addConnectionCloseResponseHeader();
-                sendResponseAfterRequestBodyDrain(responseStatus, responseBodyWriter);
+                sendResponse(responseStatus, responseBodyWriter, false);
                 break;
               case DRAINED:
-                sendResponseAfterRequestBodyDrain(responseStatus, responseBodyWriter);
+                sendResponse(responseStatus, responseBodyWriter, false);
                 break;
               default:
                 throw new IllegalStateException("unhandled drain outcome: " + outcome);
             }
           });
+      } else {
+        sendResponse(responseStatus, responseBodyWriter, true);
       }
     } else {
       responseBodyWriter.dispose();
@@ -134,7 +139,7 @@ public class DefaultResponseTransmitter implements ResponseTransmitter {
     }
   }
 
-  private void sendResponseAfterRequestBodyDrain(HttpResponseStatus responseStatus, ResponseBodyWriter bodyWriter) {
+  private void sendResponse(HttpResponseStatus responseStatus, ResponseBodyWriter bodyWriter, boolean drainRequestBeforeResponse) {
     try {
       boolean responseRequestedConnectionClose = responseHeaders.contains(HttpHeaderNames.CONNECTION, HttpHeaderValues.CLOSE, true);
       boolean requestRequestedConnectionClose = !HttpUtil.isKeepAlive(this.nettyRequest);
@@ -155,7 +160,7 @@ public class DefaultResponseTransmitter implements ResponseTransmitter {
         HttpUtil.setTransferEncodingChunked(headersResponse, true);
       }
 
-      sendResponseHeadersAndBody(responseStatus, bodyWriter, keepAlive, headersResponse);
+      sendResponseHeadersAndBody(responseStatus, bodyWriter, keepAlive, headersResponse, drainRequestBeforeResponse);
     } catch (Exception e) {
       bodyWriter.dispose();
       LOGGER.warn("Error finalizing response", e);
@@ -163,55 +168,88 @@ public class DefaultResponseTransmitter implements ResponseTransmitter {
     }
   }
 
-  private void sendResponseHeadersAndBody(HttpResponseStatus responseStatus, ResponseBodyWriter bodyWriter, boolean keepAlive, HttpResponse headersResponse) {
+  private void sendResponseHeadersAndBody(HttpResponseStatus responseStatus, ResponseBodyWriter bodyWriter, boolean keepAlive, HttpResponse headersResponse, boolean drainRequestBeforeResponse) {
     Promise.<Future<? super Void>>async(down ->
-      channel.writeAndFlush(headersResponse).addListener(down::success)
-    )
+        channel.writeAndFlush(headersResponse).addListener(down::success)
+      )
       .then(result -> {
         if (result.isSuccess()) {
           sendResponseBody(responseStatus, bodyWriter, keepAlive);
         } else {
-          if (channel.isOpen()) {
-            LOGGER.warn("Error writing response headers", result.cause());
-            channel.close();
-          }
-
-          bodyWriter.dispose();
-          notifyListeners(responseStatus);
+          closeAfterHeaderSendFailure(responseStatus, bodyWriter, drainRequestBeforeResponse, result);
         }
       });
   }
 
-  private void sendResponseBody(HttpResponseStatus responseStatus, ResponseBodyWriter bodyWriter, boolean keepAlive) {
-    bodyWriter.write(channel).addListener(result -> {
-      if (channel.isOpen()) {
-        if (!result.isSuccess()) {
-          LOGGER.warn("Error from response body writer", result.cause());
-        }
+  private void closeAfterHeaderSendFailure(HttpResponseStatus responseStatus, ResponseBodyWriter bodyWriter, boolean drainRequestBeforeResponse, Future<? super Void> result) {
+    if (channel.isOpen()) {
+      LOGGER.warn("Error writing response headers", result.cause());
+      channel.close();
+    }
 
-        if (result.isSuccess() && keepAlive) {
-          channel.read();
-          ConnectionIdleTimeout.of(channel).reset();
-        } else {
+    bodyWriter.dispose();
+    if (requestBody != null && drainRequestBeforeResponse) {
+      requestBody.drain()
+        .onError(e -> {
+          LOGGER.warn("An error occurred draining the unread request body after sending the response. The connection will be closed", e);
           channel.close();
-        }
-      }
-
+          notifyListeners(responseStatus);
+        })
+        .then(outcome -> {
+          switch (outcome) {
+            case TOO_LARGE:
+            case DISCARDED:
+              channel.close();
+              notifyListeners(responseStatus);
+              break;
+            case DRAINED:
+              notifyListeners(responseStatus);
+              break;
+            default:
+              throw new IllegalStateException("unhandled drain outcome: " + outcome);
+          }
+        });
+    } else {
       notifyListeners(responseStatus);
-    });
+    }
+  }
+
+  private void sendResponseBody(HttpResponseStatus responseStatus, ResponseBodyWriter bodyWriter, boolean keepAlive) {
+    Promise.<Future<? super Void>>async(down ->
+        bodyWriter.write(channel).addListener(down::success)
+      )
+      .then(result -> {
+        if (channel.isOpen()) {
+          closeChannelAfterSendingBody(keepAlive, result);
+        }
+
+        notifyListeners(responseStatus);
+      });
+  }
+
+  private void closeChannelAfterSendingBody(boolean keepAlive, Future<? super Void> result) {
+    if (!result.isSuccess()) {
+      LOGGER.warn("Error from response body writer", result.cause());
+    }
+
+    if (result.isSuccess() && keepAlive) {
+      onRequestFinished.run();
+    } else {
+      channel.close();
+    }
   }
 
   private void forceCloseWithResponse(HttpResponseStatus status) {
     Promise.async(down ->
-      channel.writeAndFlush(new DefaultFullHttpResponse(
-        HttpVersion.HTTP_1_1,
-        status,
-        Unpooled.EMPTY_BUFFER,
-        ERROR_RESPONSE_HEADERS,
-        EmptyHttpHeaders.INSTANCE
-      ))
-        .addListener(future -> down.success(future.isSuccess()))
-    )
+        channel.writeAndFlush(new DefaultFullHttpResponse(
+            HttpVersion.HTTP_1_1,
+            status,
+            Unpooled.EMPTY_BUFFER,
+            ERROR_RESPONSE_HEADERS,
+            EmptyHttpHeaders.INSTANCE
+          ))
+          .addListener(future -> down.success(future.isSuccess()))
+      )
       .onError(__ -> {
         channel.close();
         notifyListeners(status);
@@ -231,9 +269,9 @@ public class DefaultResponseTransmitter implements ResponseTransmitter {
   public void transmit(HttpResponseStatus responseStatus, ByteBuf body) {
     if (body.readableBytes() == 0) {
       body.release();
-      sendResponse(responseStatus, EMPTY_BODY);
+      preSendResponse(responseStatus, EMPTY_BODY, true);
     } else {
-      sendResponse(responseStatus, new LastHttpContentResponseBodyWriter(new DefaultLastHttpContent(body.touch())));
+      preSendResponse(responseStatus, new LastHttpContentResponseBodyWriter(new DefaultLastHttpContent(body.touch())), true);
     }
   }
 
@@ -241,11 +279,10 @@ public class DefaultResponseTransmitter implements ResponseTransmitter {
     return ratpackRequest.getMethod().isHead();
   }
 
-
   @Override
   public void transmit(HttpResponseStatus status, Path file) {
     if (isHead()) {
-      sendResponse(status, EMPTY_BODY);
+      preSendResponse(status, EMPTY_BODY, true);
     } else {
       String sizeString = responseHeaders.getAsString(HttpHeaderConstants.CONTENT_LENGTH);
       long size = sizeString == null ? 0 : Long.parseLong(sizeString);
@@ -257,13 +294,13 @@ public class DefaultResponseTransmitter implements ResponseTransmitter {
         ? new ZeroCopyFileResponseBodyWriter(file, size)
         : new ChunkedFileResponseBodyWriter(file);
 
-      sendResponse(status, responseBodyWriter);
+      preSendResponse(status, responseBodyWriter, true);
     }
   }
 
   @Override
-  public void transmit(HttpResponseStatus status, Publisher<? extends ByteBuf> publisher) {
-    sendResponse(status, new StreamingResponseBodyWriter(publisher));
+  public void transmit(HttpResponseStatus status, Publisher<? extends ByteBuf> publisher, boolean drainRequestBeforeResponse) {
+    preSendResponse(status, new StreamingResponseBodyWriter(publisher), drainRequestBeforeResponse);
   }
 
   private void notifyListeners(final HttpResponseStatus responseStatus) {

@@ -87,14 +87,14 @@ public interface ExecHarness extends AutoCloseable {
    *   }
    * }
    * }</pre>
-   *
+   * <p>
    * When using Ratpack's RxJava integration, ExecHarness can be used to test {@code rx.Observable} instances by first converting them to a promise.
    * See the {@code ratpack.rx2.RxRatpack.single(Observable)} documentation for an example of testing observables.
    *
    * @return a new execution harness
    */
   static ExecHarness harness() {
-    return harness(Action.noop());
+    return new DefaultExecHarness(ExecController.builder().build());
   }
 
   /**
@@ -104,17 +104,7 @@ public interface ExecHarness extends AutoCloseable {
    * @return an execution harness
    */
   static ExecHarness harness(int numThreads) {
-    return harness(spec -> spec.compute(c -> c.threads(numThreads)));
-  }
-
-  /**
-   * Create a harness that is backed by an execution controller with the provided configuration
-   * @param definition the controller specification
-   * @return an execution harness
-   * @since 2.0
-   */
-  static ExecHarness harness(Action<? super ExecControllerSpec> definition) {
-    return new DefaultExecHarness(Exceptions.uncheck(() -> ExecController.of(definition)));
+    return new DefaultExecHarness(ExecController.builder().numThreads(numThreads).build());
   }
 
   default ExecStarter fork() {
@@ -183,7 +173,7 @@ public interface ExecHarness extends AutoCloseable {
 
   /**
    * Initiates an execution and blocks until it completes.
-   *
+   * <p>
    * If an uncaught exception is thrown during the execution, it will be thrown by this method.
    * <p>
    * This method is useful for testing an execution that has some detectable side effect, as this method does not return the “result” of the execution.
@@ -199,7 +189,7 @@ public interface ExecHarness extends AutoCloseable {
 
   /**
    * Initiates an execution and blocks until it completes.
-   *
+   * <p>
    * If an uncaught exception is thrown during the execution, it will be thrown by this method.
    * <p>
    * This method is useful for testing an execution that has some detectable side effect, as this method does not return the “result” of the execution.

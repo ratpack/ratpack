@@ -198,7 +198,7 @@ public class BufferingPublisher<T> implements TransformablePublisher<T> {
           draining.set(false);
         }
         T peek = buffer.peek();
-        if (peek != null && (wanted.get() > 0 || peek == ON_COMPLETE || peek == ON_ERROR)) {
+        if (peek != null && (wanted.get() > 0 || peek == ON_COMPLETE || peek == ON_ERROR || downstream == null)) {
           drain();
         }
       }

@@ -16,6 +16,7 @@
 
 package ratpack.exec.stream.internal
 
+import org.reactivestreams.Subscriber
 import org.reactivestreams.Subscription
 import ratpack.func.Action
 import ratpack.func.Function
@@ -100,6 +101,50 @@ class BufferingPublisherSpec extends BaseRatpackSpec {
     then:
     writeStream.buffered == 1
     writeStream.requested == 0
+  }
+
+  def "buffer is disposed if cancelled in on next"() {
+    when:
+    Subscription subscription
+    p.subscribe(new Subscriber<Integer>() {
+      @Override
+      void onSubscribe(Subscription s) {
+        subscription = s
+        s.request(1)
+      }
+
+      @Override
+      void onNext(Integer integer) {
+        if (integer == 3) {
+          subscription.cancel()
+        }
+      }
+
+      @Override
+      void onError(Throwable t) {
+
+      }
+
+      @Override
+      void onComplete() {
+
+      }
+    })
+
+    and:
+    writeStream.item(1)
+    writeStream.item(2)
+    writeStream.item(3)
+    writeStream.item(4)
+    writeStream.item(5)
+
+    and:
+    subscription.request(1)
+    subscription.request(1)
+    subscription.request(1)
+
+    then:
+    disposed.toList() == [4, 5]
   }
 
   def "buffered are disposed of when cancelled"() {

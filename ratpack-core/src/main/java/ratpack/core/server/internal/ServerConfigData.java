@@ -21,7 +21,9 @@ import io.netty.util.Mapping;
 import ratpack.config.FileSystemBinding;
 import ratpack.core.server.DecodingErrorLevel;
 import ratpack.core.server.ServerConfig;
+import ratpack.exec.ExecController;
 
+import javax.annotation.Nullable;
 import java.net.InetAddress;
 import java.net.URI;
 import java.net.URISyntaxException;
@@ -54,6 +56,8 @@ public class ServerConfigData {
 
   private Duration idleTimeout = Duration.ZERO;
   private boolean registerShutdownHook = true;
+  private boolean tcpKeepAlive;
+  private ExecController execController;
 
   public ServerConfigData(FileSystemBinding baseDir, InetAddress address, int port, boolean development, URI publicAddress) {
     this.baseDir = baseDir;
@@ -61,6 +65,15 @@ public class ServerConfigData {
     this.port = port;
     this.development = development;
     this.publicAddress = publicAddress;
+  }
+
+  @Nullable
+  public ExecController getExecController() {
+    return execController;
+  }
+
+  public void setExecController(ExecController execController) {
+    this.execController = execController;
   }
 
   public int getPort() {
@@ -239,5 +252,13 @@ public class ServerConfigData {
 
   public void setDecodingErrorLevel(DecodingErrorLevel decoderErrorLog) {
     this.decodingErrorLevel = decoderErrorLog;
+  }
+
+  public boolean isTcpKeepAlive() {
+    return tcpKeepAlive;
+  }
+
+  public void setTcpKeepAlive(boolean tcpKeepAlive) {
+    this.tcpKeepAlive = tcpKeepAlive;
   }
 }

@@ -56,7 +56,7 @@ import java.util.Optional;
  *   }
  * }
  * }</pre>
- *
+ * <p>
  * Server objects are thread safe in that every instance method is {@code synchronized}.
  *
  * @see RatpackServerSpec
@@ -76,8 +76,8 @@ public interface RatpackServer {
    *
    * @param definition the server definition
    * @return a Ratpack server
-   * @see RatpackServerSpec
    * @throws Exception any thrown by creating the server
+   * @see RatpackServerSpec
    */
   static RatpackServer of(Action<? super RatpackServerSpec> definition) throws Exception {
     return new DefaultRatpackServer(definition, Impositions.current());
@@ -101,6 +101,7 @@ public interface RatpackServer {
    *
    * @return either <em>http</em> or <em>https</em> depending on whether the server is using SSL or not
    */
+  @Nullable
   String getScheme();
 
   /**
@@ -149,7 +150,7 @@ public interface RatpackServer {
 
   /**
    * Blocks until the server stops, returning immediately if not running.
-   *
+   * <p>
    * This method does not initiate stopping.
    * It can be used when some other event is expected to stop the server.
    *

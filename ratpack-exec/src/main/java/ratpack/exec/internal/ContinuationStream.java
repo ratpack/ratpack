@@ -20,8 +20,8 @@ import ratpack.func.Block;
 
 public interface ContinuationStream {
 
-  boolean complete(Block rest);
+  void complete(Block rest);
 
-  boolean event(Block event);
+  void event(Block event);
 
 }

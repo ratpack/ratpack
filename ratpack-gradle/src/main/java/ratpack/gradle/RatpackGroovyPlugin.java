@@ -27,6 +27,8 @@ import java.util.Optional;
 
 public class RatpackGroovyPlugin implements Plugin<Project> {
 
+  private static final GradleVersion V6_0 = GradleVersion.version("6.0");
+  private static final GradleVersion V8_0 = GradleVersion.version("8.0");
   private static final String MAIN_CLASS_NAME = "ratpack.groovy.GroovyRatpackMain";
 
   @Override

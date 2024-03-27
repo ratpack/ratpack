@@ -175,7 +175,7 @@ data: Event 3
     response.headers["Content-Encoding"] == "gzip"
 
     new GZIPInputStream(response.body.inputStream).text ==
-      "id: 1\nevent: add\ndata: Event 1\n\nid: 2\nevent: add\ndata: Event 2\n\n: last\n\n"
+        "id: 1\nevent: add\ndata: Event 1\n\nid: 2\nevent: add\ndata: Event 2\n\n: last\n\n"
   }
 
   def "can send empty stream"() {
@@ -288,10 +288,10 @@ data: Event 4
           }
         }
         render ServerSentEvents.builder()
-          .keepAlive(Duration.ofMillis(10))
-          .build(stream.map {
-            ServerSentEvent.builder().id(it.toString()).data("Event ${it}".toString()).build()
-          })
+            .keepAlive(Duration.ofMillis(10))
+            .build(stream.map {
+              ServerSentEvent.builder().id(it.toString()).data("Event ${it}".toString()).build()
+            })
       }
     }
 
@@ -328,10 +328,10 @@ data: Event 1
           }
         }
         render ServerSentEvents.builder()
-          .keepAlive(Duration.ofMillis(10))
-          .build(stream.map {
-            ServerSentEvent.builder().id(it.toString()).data("Event ${it}".toString()).build()
-          })
+            .keepAlive(Duration.ofMillis(10))
+            .build(stream.map {
+              ServerSentEvent.builder().id(it.toString()).data("Event ${it}".toString()).build()
+            })
       }
     }
 
@@ -364,15 +364,15 @@ data: Event 1
       all {
         def stream = flatYield { req ->
           Promise.async { down ->
-            execution.eventLoop.schedule({ down.success(req.requestNum > 1 ? null : req.requestNum) }, 1000, TimeUnit.MILLISECONDS)
+            execution.eventLoop.schedule({ down.success(req.requestNum > 1 ? null : req.requestNum) }, 1, TimeUnit.SECONDS)
           }
         }
         render ServerSentEvents.builder()
-          .keepAlive(Duration.ofMillis(600))
-          .buffered(2, 1024 * 1024 * 10, Duration.ofMillis(4000))
-          .build(stream.map {
-            ServerSentEvent.builder().id(it.toString()).data("Event ${it}".toString()).build()
-          })
+            .keepAlive(Duration.ofMillis(600))
+            .buffered(30, Duration.ofMillis(4000))
+            .build(stream.map {
+              ServerSentEvent.builder().id(it.toString()).data("Event ${it}".toString()).build()
+            })
       }
     }
 

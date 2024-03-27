@@ -63,6 +63,19 @@ class ContentAggregatingRequestAction extends RequestActionSupport<ReceivedRespo
       @Override
       protected void channelRead0(ChannelHandlerContext ctx, FullHttpResponse response) throws Exception {
         response.touch();
+        Throwable decoderFailure = response.decoderResult().cause();
+        if (decoderFailure != null) {
+          response.release();
+          forceDispose(ctx.pipeline()).addListener(future -> {
+            Throwable disposeError = future.cause();
+            if (disposeError != null) {
+              decoderFailure.addSuppressed(disposeError);
+            }
+            downstream.error(decoderFailure);
+          });
+          return;
+        }
+
         dispose(ctx.pipeline(), response).addListener(future -> {
           if (future.isSuccess()) {
             ByteBuf content = new ByteBufRef(response.content());
@@ -73,6 +86,7 @@ class ContentAggregatingRequestAction extends RequestActionSupport<ReceivedRespo
             });
             downstream.success(toReceivedResponse(response, content));
           } else {
+            response.release();
             downstream.error(future.cause());
           }
         });

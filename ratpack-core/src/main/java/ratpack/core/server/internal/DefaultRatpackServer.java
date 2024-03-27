@@ -16,6 +16,7 @@
 
 package ratpack.core.server.internal;
 
+import com.google.common.collect.ImmutableList;
 import com.google.common.reflect.TypeToken;
 import io.netty.bootstrap.ServerBootstrap;
 import io.netty.buffer.ByteBufAllocator;
@@ -33,37 +34,25 @@ import io.netty.util.ReferenceCountUtil;
 import io.netty.util.ResourceLeakDetector;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import ratpack.func.Nullable;
-import ratpack.exec.Blocking;
-import ratpack.exec.ExecController;
-import ratpack.exec.Promise;
-import ratpack.exec.Throttle;
-import ratpack.exec.internal.DefaultExecController;
-import ratpack.exec.internal.ExecControllerInternal;
-import ratpack.exec.internal.ExecThreadBinding;
-import ratpack.func.Action;
-import ratpack.func.Factory;
-import ratpack.func.Function;
+import ratpack.config.ConfigObject;
 import ratpack.core.handling.Handler;
 import ratpack.core.handling.HandlerDecorator;
-import ratpack.core.http.internal.ConnectionIdleTimeout;
 import ratpack.core.impose.Impositions;
 import ratpack.core.impose.UserRegistryImposition;
-import ratpack.exec.registry.Registry;
-import ratpack.core.server.RatpackServer;
-import ratpack.core.server.RatpackServerSpec;
-import ratpack.core.server.ReloadInformant;
-import ratpack.core.server.ServerConfig;
+import ratpack.core.server.*;
 import ratpack.core.service.internal.DefaultEvent;
 import ratpack.core.service.internal.ServicesGraph;
-import ratpack.func.Exceptions;
-import ratpack.func.Types;
+import ratpack.exec.*;
+import ratpack.exec.internal.ExecThreadBinding;
+import ratpack.exec.registry.Registry;
 import ratpack.exec.util.internal.TransportDetector;
+import ratpack.func.*;
 
 import java.io.FileOutputStream;
 import java.net.InetSocketAddress;
 import java.nio.file.Path;
 import java.time.Duration;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
@@ -90,21 +79,25 @@ public class DefaultRatpackServer implements RatpackServer {
 
     private final InetSocketAddress boundAddress;
     private final Channel channel;
-    private final ExecControllerInternal execController;
+    private final ExecController execController;
     private final boolean useSsl;
     private final DefaultRatpackServer.ApplicationState applicationState;
     private final CountDownLatch stopLatch = new CountDownLatch(1);
 
+    private final boolean inheritedExecController;
+
     RunningState(
       InetSocketAddress boundAddress,
       Channel channel,
-      ExecControllerInternal execController,
+      ExecController execController,
+      boolean inheritedExecController,
       boolean useSsl,
       DefaultRatpackServer.ApplicationState applicationState
     ) {
       this.boundAddress = boundAddress;
       this.channel = channel;
       this.execController = execController;
+      this.inheritedExecController = inheritedExecController;
       this.useSsl = useSsl;
       this.applicationState = applicationState;
     }
@@ -123,7 +116,8 @@ public class DefaultRatpackServer implements RatpackServer {
     private boolean reloading;
   }
 
-  private RunningState runningState;
+  @Nullable
+  private volatile RunningState runningState;
 
   private final ReloadingState reloadingState = new ReloadingState();
 
@@ -141,6 +135,7 @@ public class DefaultRatpackServer implements RatpackServer {
 
   @Override
   public synchronized void start() throws Exception {
+    RunningState runningState;
     if (isRunning()) {
       return;
     }
@@ -150,20 +145,22 @@ public class DefaultRatpackServer implements RatpackServer {
     LOGGER.info("Starting server...");
 
     applicationState.definitionBuild = buildUserDefinition();
+    RatpackServerDefinition definition = applicationState.definitionBuild.definition;
     if (applicationState.definitionBuild.error != null) {
-      if (applicationState.definitionBuild.definition.serverConfig.isDevelopment()) {
+      if (definition.serverConfig.isDevelopment()) {
         LOGGER.warn("Exception raised getting server config (will use default config until reload):", applicationState.definitionBuild.error);
       } else {
         throw Exceptions.toException(applicationState.definitionBuild.error);
       }
     }
 
-    ServerConfig serverConfig = applicationState.definitionBuild.definition.serverConfig;
-    ExecControllerInternal execController = (DefaultExecController) ExecController.of(spec ->
-      spec.compute(c ->
-        c.threads(serverConfig.getThreads())
-      )
-    );
+    ServerConfig serverConfig = definition.serverConfig;
+    boolean inheritedExecController = serverConfig.getInheritedExecController().isPresent();
+    ExecController execController = serverConfig.getInheritedExecController()
+      .orElseGet(() -> ExecController.builder()
+        .numThreads(serverConfig.getThreads())
+        .build()
+      );
     try {
       ChannelHandler channelHandler = ExecThreadBinding.bindFor(true, execController, () ->
         buildHandler(
@@ -172,6 +169,7 @@ public class DefaultRatpackServer implements RatpackServer {
           impositions,
           reloadingState,
           execController,
+          inheritedExecController,
           this::buildUserDefinition
         )
       );
@@ -179,10 +177,11 @@ public class DefaultRatpackServer implements RatpackServer {
       InetSocketAddress boundAddress = (InetSocketAddress) channel.localAddress();
 
       // App is now considered running
-      runningState = new RunningState(
+      this.runningState = runningState = new RunningState(
         boundAddress,
         channel,
         execController,
+        inheritedExecController,
         serverConfig.getSslContext() != null,
         applicationState
       );
@@ -191,11 +190,11 @@ public class DefaultRatpackServer implements RatpackServer {
       throw e;
     }
 
-    postStart();
+    postStart(runningState);
   }
 
-  private void postStart() throws Exception {
-    ServerConfig serverConfig = runningState.applicationState.definitionBuild.definition.serverConfig;
+  private void postStart(RunningState runningState) throws Exception {
+    ServerConfig serverConfig = Objects.requireNonNull(runningState.applicationState.definitionBuild).definition.serverConfig;
     try {
       String startMessage = String.format("Ratpack started %sfor %s://%s:%s", serverConfig.isDevelopment() ? "(development) " : "", getScheme(), getBindHost(), getBindPort());
 
@@ -255,7 +254,7 @@ public class DefaultRatpackServer implements RatpackServer {
   }
 
   private DefinitionBuild buildUserDefinition() throws Exception {
-    return Impositions.impose(impositions, () -> {
+    return impositions.imposeOver(() -> {
       try {
         return new DefinitionBuild(impositions, RatpackServerDefinition.build(definitionFactory), null);
       } catch (Exception e) {
@@ -269,13 +268,14 @@ public class DefaultRatpackServer implements RatpackServer {
     ApplicationState applicationState,
     Impositions impositions,
     ReloadingState reloadingState,
-    ExecControllerInternal execController,
+    ExecController execController,
+    boolean inheritedExecController,
     Factory<DefinitionBuild> definitionBuilder
   ) throws Exception {
-    if (applicationState.definitionBuild.definition.serverConfig.isDevelopment()) {
-      return new ReloadHandler(server, applicationState, reloadingState, impositions, execController, definitionBuilder);
+    if (Objects.requireNonNull(applicationState.definitionBuild).definition.serverConfig.isDevelopment()) {
+      return new ReloadHandler(server, applicationState, reloadingState, impositions, execController, inheritedExecController, definitionBuilder);
     } else {
-      return buildAdapter(server, applicationState, reloadingState, impositions, execController);
+      return buildAdapter(server, applicationState, reloadingState, impositions, execController, inheritedExecController);
     }
   }
 
@@ -303,18 +303,21 @@ public class DefaultRatpackServer implements RatpackServer {
     serverConfig.getConnectQueueSize().ifPresent(i ->
       serverBootstrap.option(ChannelOption.SO_BACKLOG, i)
     );
+    serverBootstrap.childOption(ChannelOption.SO_KEEPALIVE, serverConfig.isTcpKeepAlive());
+
+    serverBootstrap
+      .option(ChannelOption.ALLOCATOR, ByteBufAllocator.DEFAULT)
+      .childOption(ChannelOption.ALLOCATOR, ByteBufAllocator.DEFAULT);
+
+    applyServerChildOptions(serverConfig, serverBootstrap);
 
     return serverBootstrap
       .group(execController.getEventLoopGroup())
       .channel(TransportDetector.getServerSocketChannelImpl())
-      .option(ChannelOption.ALLOCATOR, ByteBufAllocator.DEFAULT)
-      .childOption(ChannelOption.ALLOCATOR, ByteBufAllocator.DEFAULT)
       .childHandler(new ChannelInitializer<SocketChannel>() {
         @Override
         protected void initChannel(SocketChannel ch) {
           ChannelPipeline pipeline = ch.pipeline();
-
-          new ConnectionIdleTimeout(pipeline, serverConfig.getIdleTimeout());
 
           Mapping<String, SslContext> sniSslContext = serverConfig.getSslContext();
           if (sniSslContext != null) {
@@ -340,18 +343,47 @@ public class DefaultRatpackServer implements RatpackServer {
       .channel();
   }
 
+  private static void applyServerChildOptions(ServerConfig serverConfig, ServerBootstrap serverBootstrap) {
+    for (ConfigObject<?> configObject : serverConfig.getRequiredConfig()) {
+      if (ServerChannelOptions.class.isAssignableFrom(configObject.getType())) {
+        ServerChannelOptions serverChannelOptions = (ServerChannelOptions) configObject.getObject();
+        serverChannelOptions.setOptions(new ServerChannelOptions.OptionSetter() {
+          @Override
+          public <T> ServerChannelOptions.OptionSetter set(ChannelOption<T> option, T value) {
+            serverBootstrap.option(option, value);
+            return this;
+          }
+        });
+        serverChannelOptions.setChildOptions(new ServerChannelOptions.OptionSetter() {
+          @Override
+          public <T> ServerChannelOptions.OptionSetter set(ChannelOption<T> option, T value) {
+            serverBootstrap.childOption(option, value);
+            return this;
+          }
+        });
+      }
+    }
+  }
+
+
   private static NettyHandlerAdapter buildAdapter(
     RatpackServer server,
     ApplicationState applicationState,
     ReloadingState reloadingState,
     Impositions impositions,
-    ExecControllerInternal execController
+    ExecController execController,
+    boolean inheritedExecController
   ) throws Exception {
     LOGGER.info("Building registry...");
     applicationState.serverRegistry = buildServerRegistry(
-      applicationState.definitionBuild.definition.serverConfig,
+      Objects.requireNonNull(applicationState.definitionBuild).definition.serverConfig,
       applicationState.definitionBuild.userRegistryFactory, server, impositions, execController
     );
+
+    if (!inheritedExecController) {
+      execController.addInterceptors(ImmutableList.copyOf(applicationState.serverRegistry.getAll(ExecInterceptor.class)));
+      execController.addInitializers(ImmutableList.copyOf(applicationState.serverRegistry.getAll(ExecInitializer.class)));
+    }
 
     Handler ratpackHandler = buildRatpackHandler(
       applicationState.serverRegistry,
@@ -370,7 +402,7 @@ public class DefaultRatpackServer implements RatpackServer {
     Function<? super Registry, ? extends Registry> userRegistryFactory,
     RatpackServer ratpackServer,
     Impositions impositions,
-    ExecControllerInternal execController
+    ExecController execController
   ) {
     return ServerRegistry.serverRegistry(ratpackServer, impositions, execController, serverConfig, userRegistryFactory);
   }
@@ -389,10 +421,10 @@ public class DefaultRatpackServer implements RatpackServer {
 
   @Override
   public synchronized void stop() throws Exception {
-    if (!isRunning()) {
+    RunningState runningState = this.runningState;
+    if (runningState == null) {
       return;
     }
-    RunningState runningState = this.runningState;
     this.runningState = null;
 
     try {
@@ -410,10 +442,10 @@ public class DefaultRatpackServer implements RatpackServer {
         runningState.channel.close().sync();
       }
 
-      if (runningState.execController != null) {
-        try {
-          shutdownServices(runningState.applicationState, reloadingState);
-        } finally {
+      try {
+        shutdownServices(runningState.applicationState, reloadingState);
+      } finally {
+        if (!runningState.inheritedExecController) {
           runningState.execController.close();
         }
       }
@@ -460,7 +492,7 @@ public class DefaultRatpackServer implements RatpackServer {
 
   @Override
   public Optional<Registry> getRegistry() {
-    return Optional.of(runningState)
+    return Optional.ofNullable(runningState)
       .map(r -> r.applicationState)
       .map(a -> a.serverRegistry);
   }
@@ -472,19 +504,21 @@ public class DefaultRatpackServer implements RatpackServer {
 
   @Override
   public synchronized String getScheme() {
-    return isRunning() ? this.runningState.useSsl ? "https" : "http" : null;
+    return Optional.ofNullable(this.runningState)
+      .map(r -> r.useSsl ? "https" : "http")
+      .orElse(null);
   }
 
   public synchronized int getBindPort() {
-    return runningState == null || runningState.boundAddress == null ? -1 : runningState.boundAddress.getPort();
+    return Optional.ofNullable(this.runningState)
+      .map(r -> r.boundAddress.getPort())
+      .orElse(-1);
   }
 
   public synchronized String getBindHost() {
-    if (runningState == null || runningState.boundAddress == null) {
-      return null;
-    } else {
-      return HostUtil.determineHost(runningState.boundAddress);
-    }
+    return Optional.ofNullable(this.runningState)
+      .map(r -> HostUtil.determineHost(r.boundAddress))
+      .orElse(null);
   }
 
   private static InetSocketAddress buildSocketAddress(ServerConfig serverConfig) {
@@ -501,8 +535,9 @@ public class DefaultRatpackServer implements RatpackServer {
     private final ApplicationState applicationState;
     private final ReloadingState reloadingState;
     private final Impositions impositions;
-    private final ExecControllerInternal execController;
+    private final ExecController execController;
     private final Throttle reloadThrottle = Throttle.ofSize(1);
+    private final boolean inheritedExecController;
     private final Factory<DefinitionBuild> definitionBuilder;
 
     private ChannelInboundHandlerAdapter inner;
@@ -512,7 +547,8 @@ public class DefaultRatpackServer implements RatpackServer {
       ApplicationState applicationState,
       ReloadingState reloadingState,
       Impositions impositions,
-      ExecControllerInternal execController,
+      ExecController execController,
+      boolean inheritedExecController,
       Factory<DefinitionBuild> definitionBuilder
     ) {
       this.server = server;
@@ -520,10 +556,11 @@ public class DefaultRatpackServer implements RatpackServer {
       this.reloadingState = reloadingState;
       this.impositions = impositions;
       this.execController = execController;
+      this.inheritedExecController = inheritedExecController;
       this.definitionBuilder = definitionBuilder;
-      this.lastServerConfig = applicationState.definitionBuild.definition.serverConfig;
+      this.lastServerConfig = Objects.requireNonNull(applicationState.definitionBuild).definition.serverConfig;
       try {
-        this.inner = buildAdapter(server, applicationState, reloadingState, impositions, execController);
+        this.inner = buildAdapter(server, applicationState, reloadingState, impositions, execController, inheritedExecController);
       } catch (Exception e) {
         LOGGER.warn("An error occurred during startup. This will be ignored due to being in development mode.", e);
         this.inner = null;
@@ -537,12 +574,8 @@ public class DefaultRatpackServer implements RatpackServer {
       super.channelActive(ctx);
     }
 
-    ChannelInboundHandlerAdapter getDelegate() {
-      return inner;
-    }
-
     @Override
-    public void channelRead(ChannelHandlerContext ctx, Object msg) throws Exception {
+    public void channelRead(ChannelHandlerContext ctx, Object msg) {
       if (execController == null) {
         ReferenceCountUtil.release(msg);
         ctx.fireChannelReadComplete();
@@ -561,7 +594,7 @@ public class DefaultRatpackServer implements RatpackServer {
         Promise.<ChannelHandler>async(f -> {
             boolean rebuild = false;
 
-            if (inner == null || applicationState.definitionBuild.error != null) {
+            if (inner == null || Objects.requireNonNull(applicationState.definitionBuild).error != null) {
               rebuild = true;
             } else if (msg instanceof HttpRequest) {
               Optional<ReloadInformant> reloadInformant = applicationState.serverRegistry.first(RELOAD_INFORMANT_TYPE, r -> r.shouldReload(applicationState.serverRegistry) ? r : null);
@@ -575,7 +608,7 @@ public class DefaultRatpackServer implements RatpackServer {
               Blocking.get(() -> {
                   applicationState.definitionBuild = definitionBuilder.create();
                   lastServerConfig = applicationState.definitionBuild.definition.serverConfig;
-                  return buildAdapter(server, applicationState, reloadingState, impositions, execController);
+                  return buildAdapter(server, applicationState, reloadingState, impositions, execController, inheritedExecController);
                 })
                 .wiretap(r -> {
                   if (r.isSuccess()) {

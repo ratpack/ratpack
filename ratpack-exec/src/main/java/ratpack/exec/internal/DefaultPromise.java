@@ -78,7 +78,7 @@ public class DefaultPromise<T> implements Promise<T> {
       upstream.connect(downstream);
     } catch (ExecutionException e) {
       throw e;
-    } catch (Exception e) {
+    } catch (Throwable e) {
       throwError(e);
     }
   }
@@ -91,7 +91,7 @@ public class DefaultPromise<T> implements Promise<T> {
   public <O> Promise<O> transform(Function<? super Upstream<? extends T>, ? extends Upstream<O>> upstreamTransformer) {
     try {
       return new DefaultPromise<>(upstreamTransformer.apply(upstream));
-    } catch (Exception e) {
+    } catch (Throwable e) {
       throw Exceptions.uncheck(e);
     }
   }

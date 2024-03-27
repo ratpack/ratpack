@@ -91,7 +91,7 @@ public abstract class WebSockets {
   public static void websocketByteBufBroadcast(final Context context, final Publisher<ByteBuf> broadcaster) {
     websocket(context, new AutoCloseWebSocketHandler<AutoCloseable>() {
       @Override
-      public AutoCloseable onOpen(final WebSocket webSocket) throws Exception {
+      public AutoCloseable onOpen(final WebSocket webSocket) {
         WebsocketBroadcastSubscriber subscriber = new WebsocketBroadcastSubscriber(webSocket);
         Streams.bindExec(broadcaster, ByteBuf::release).subscribe(subscriber);
         return subscriber;

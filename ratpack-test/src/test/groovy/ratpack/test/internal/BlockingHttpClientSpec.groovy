@@ -25,11 +25,7 @@ import java.time.Duration
 class BlockingHttpClientSpec extends RatpackGroovyDslSpec {
 
   @AutoCleanup
-  ExecController execController = ExecController.of { spec ->
-    spec.compute { c ->
-      c.threads(2)
-    }
-  }
+  ExecController execController = ExecController.builder().numThreads(2).build()
 
   def "can use blocking http client"() {
     when:
@@ -43,7 +39,7 @@ class BlockingHttpClientSpec extends RatpackGroovyDslSpec {
     def client = new BlockingHttpClient()
 
     then:
-    client.request(HttpClient.of {it.execController(execController) }, applicationUnderTest.address, execController, Duration.ofSeconds(5), {}).body.text == "ok"
+    client.request(HttpClient.of { it.execController(execController) }, applicationUnderTest.address, execController, Duration.ofSeconds(5), {}).body.text == "ok"
   }
 
 }

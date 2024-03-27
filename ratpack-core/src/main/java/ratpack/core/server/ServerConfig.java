@@ -28,8 +28,9 @@ import ratpack.core.http.Request;
 import ratpack.core.impose.Impositions;
 import ratpack.core.server.internal.DefaultServerConfigBuilder;
 import ratpack.core.server.internal.ServerEnvironment;
-import ratpack.func.Nullable;
+import ratpack.exec.ExecController;
 import ratpack.func.Action;
+import ratpack.func.Nullable;
 import ratpack.func.Types;
 
 import java.net.InetAddress;
@@ -69,10 +70,24 @@ public interface ServerConfig extends ConfigData {
 
   /**
    * The default number of threads an application should use.
-   *
+   * <p>
    * Calculated as {@code Runtime.getRuntime().availableProcessors() * 2}.
    */
   int DEFAULT_THREADS = Runtime.getRuntime().availableProcessors() * 2;
+
+  /**
+   * The default number of core blocking threads an application should use.
+   * <p>
+   * Calculated as {@code Runtime.getRuntime().availableProcessors() * 2}.
+   */
+  int DEFAULT_CORE_BLOCKING_THREADS = Runtime.getRuntime().availableProcessors() * 2;
+
+  /**
+   * The default blocking thread idle timeout an application should use.
+   * <p>
+   * Calculated as {@code Duration.ofSeconds(60)}.
+   */
+  Duration DEFAULT_BLOCKING_THREAD_IDLE_TIMEOUT = Duration.ofSeconds(60);
 
   /**
    * The default maximum chunk size to use when reading request/response bodies.
@@ -130,6 +145,16 @@ public interface ServerConfig extends ConfigData {
   int getPort();
 
   /**
+   * The exec controller to inherit if supplied.
+   *
+   * @return The exec controller to inherit if supplied.
+   * @see ServerConfigBuilder#inheritExecController(boolean)
+   * @see ServerConfigBuilder#execController(ExecController)
+   * @since 1.10
+   */
+  Optional<ExecController> getInheritedExecController();
+
+  /**
    * The path to write the port that the application is listening on.
    * <p>
    * Defaults to empty
@@ -155,7 +180,6 @@ public interface ServerConfig extends ConfigData {
    * Required config is declared via the {@link ServerConfigBuilder#require(String, Class)} when building.
    * All required config is made part of the base registry (which the server registry joins with),
    * which automatically makes the config objects available to the server registry.
-   *
    *
    * @return the declared required config
    * @see ServerConfigBuilder#require(String, Class)
@@ -190,11 +214,11 @@ public interface ServerConfig extends ConfigData {
    * <p>
    * When {@code true}, the application will be {@link RatpackServer#stop() stopped} when the JVM starts shutting down.
    * This allows graceful shutdown of the application when the process is terminated.
-   *
+   * <p>
    * Defaults to {@code true}.
    *
-   * @since 1.6
    * @return whether the shutdown hook was registered
+   * @since 1.6
    */
   boolean isRegisterShutdownHook();
 
@@ -209,7 +233,6 @@ public interface ServerConfig extends ConfigData {
    * The SSL context to use if the application will serve content over HTTPS.
    *
    * @return The SSL context or <code>null</code> if the application does not use SSL.
-   * @since 2.0 this returns a full mapping to support SNI.
    */
   Mapping<String, SslContext> getSslContext();
 
@@ -260,6 +283,16 @@ public interface ServerConfig extends ConfigData {
    * @since 1.5
    */
   Optional<Integer> getConnectQueueSize();
+
+  /**
+   * Whether to enable TCP keep-alive for connections.
+   * <p>
+   * The default value is {@code false}.
+   *
+   * @return whether to enable TCP keep-alive for connections
+   * @since 1.10
+   */
+  boolean isTcpKeepAlive();
 
   /**
    * The maximum loop count for a write operation until <a href="http://docs.oracle.com/javase/7/docs/api/java/nio/channels/WritableByteChannel.html?is-external=true#write(java.nio.ByteBuffer)" target="_blank">WritableByteChannel.write(ByteBuffer)</a> returns a non-zero value.

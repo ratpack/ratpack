@@ -114,7 +114,7 @@ The following people have contributed their time to Ratpack in the past, but are
 * [Prism](http://prismjs.com/) by [Lea Verou](http://lea.verou.me/)
 * [Normalize.css](http://necolas.github.io/normalize.css/) by [Nicolas Gallagher](https://github.com/necolas)
 * [Modernizr](http://modernizr.com/)
-* [Breakpoint](http://breakpoint-sass.com/) by [Mason Wendell](http://thecodingdesigner.com/) and [Sam Richard](http://snugug.com/)
+* [Breakpoint](https://github.com/at-import/breakpoint) by [Mason Wendell](http://thecodingdesigner.com/) and [Sam Richard](http://snugug.com/)
 
 #### Fonts
 

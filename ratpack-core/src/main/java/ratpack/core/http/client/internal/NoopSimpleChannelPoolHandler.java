@@ -17,31 +17,14 @@
 package ratpack.core.http.client.internal;
 
 import io.netty.channel.Channel;
-import io.netty.channel.pool.AbstractChannelPoolHandler;
-import io.netty.handler.proxy.HttpProxyHandler;
-import ratpack.func.Nullable;
 
-import java.net.InetSocketAddress;
-import java.net.SocketAddress;
-
-public class NoopSimpleChannelPoolHandler extends AbstractChannelPoolHandler implements InstrumentedChannelPoolHandler {
+public class NoopSimpleChannelPoolHandler extends ProxyChannelPoolHandler implements InstrumentedChannelPoolHandler {
 
   private final String host;
 
-  @Nullable
-  private final ProxyInternal proxy;
-
-  public NoopSimpleChannelPoolHandler(HttpChannelKey channelKey, @Nullable ProxyInternal proxy) {
+  public NoopSimpleChannelPoolHandler(HttpChannelKey channelKey) {
+    super(channelKey);
     this.host = channelKey.host;
-    this.proxy = proxy;
-  }
-
-  @Override
-  public void channelCreated(Channel ch) {
-    if (proxy != null && proxy.shouldProxy(host)) {
-      SocketAddress proxyAddress = new InetSocketAddress(proxy.getHost(), proxy.getPort());
-      ch.pipeline().addLast(new HttpProxyHandler(proxyAddress));
-    }
   }
 
   @Override

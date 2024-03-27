@@ -2,7 +2,7 @@
 This file contains the in progress release notes during the cycle.
 It should not be considered the final announcement for any release at any time.
 -->
-
+* Add support for basic HTTP proxy authentication
 
 # v2.0.0
 ## New modules
