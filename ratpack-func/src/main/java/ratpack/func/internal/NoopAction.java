@@ -18,12 +18,27 @@ package ratpack.func.internal;
 
 import ratpack.func.Action;
 
-public class NoopAction implements Action<Object> {
+public class NoopAction<T> implements Action<T> {
 
-  public static final NoopAction INSTANCE = new NoopAction();
+  public static final Action<Object> INSTANCE = new NoopAction<>();
+
+  private NoopAction() {
+  }
 
   @Override
-  public void execute(Object o) throws Exception {
+  public void execute(T t) throws Exception {
 
+  }
+
+  @Override
+  @SuppressWarnings("unchecked")
+  public <O extends T> Action<O> append(Action<? super O> action) {
+    return (Action<O>) action;
+  }
+
+  @Override
+  @SuppressWarnings("unchecked")
+  public <O extends T> Action<O> prepend(Action<? super O> action) {
+    return (Action<O>) action;
   }
 }
