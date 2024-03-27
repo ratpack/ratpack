@@ -625,7 +625,7 @@ public interface ServerConfigBuilder extends ConfigDataBuilder {
    *             .get(ctx -> ctx.render(ctx.get(MyConfig.class).value))
    *         )
    *     ).test(httpClient ->
-   *       Assert.assertEquals("foo", httpClient.getText())
+   *       assertEquals("foo", httpClient.getText())
    *     );
    *   }
    * }
