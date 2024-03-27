@@ -25,7 +25,7 @@ import com.codahale.metrics.jvm.GarbageCollectorMetricSet;
 import com.codahale.metrics.jvm.MemoryUsageGaugeSet;
 import com.codahale.metrics.jvm.ThreadStatesGaugeSet;
 import com.google.inject.Injector;
-import com.google.inject.Provider;
+import jakarta.inject.Provider;
 import com.google.inject.matcher.Matchers;
 import com.google.inject.multibindings.Multibinder;
 import io.netty.buffer.ByteBufAllocator;
@@ -43,7 +43,7 @@ import ratpack.core.service.Service;
 import ratpack.core.service.StartEvent;
 import ratpack.core.service.StopEvent;
 
-import javax.inject.Inject;
+import jakarta.inject.Inject;
 
 import java.util.ArrayList;
 import java.util.Collections;

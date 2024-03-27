@@ -64,8 +64,8 @@ import static ratpack.func.Exceptions.uncheck;
  * import ratpack.core.handling.Handler;
  * import ratpack.test.embed.EmbeddedApp;
  *
- * import javax.inject.Inject;
- * import javax.inject.Singleton;
+ * import jakarta.inject.Inject;
+ * import jakarta.inject.Singleton;
  *
  * import static org.junit.jupiter.api.Assertions.*;
  *

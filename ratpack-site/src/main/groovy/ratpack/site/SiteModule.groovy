@@ -26,8 +26,8 @@ import ratpack.core.render.RenderableDecorator
 import ratpack.core.server.ServerConfig
 import ratpack.site.github.*
 
-import javax.inject.Provider
-import javax.inject.Singleton
+import jakarta.inject.Provider
+import jakarta.inject.Singleton
 import java.time.Duration
 
 @Slf4j

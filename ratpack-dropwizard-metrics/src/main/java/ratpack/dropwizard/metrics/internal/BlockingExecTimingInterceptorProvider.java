@@ -20,8 +20,8 @@ import com.codahale.metrics.MetricRegistry;
 import ratpack.dropwizard.metrics.BlockingExecTimingInterceptor;
 import ratpack.dropwizard.metrics.DropwizardMetricsConfig;
 
-import javax.inject.Inject;
-import javax.inject.Provider;
+import jakarta.inject.Inject;
+import jakarta.inject.Provider;
 
 /**
  * Provide a timer for blocking executions.

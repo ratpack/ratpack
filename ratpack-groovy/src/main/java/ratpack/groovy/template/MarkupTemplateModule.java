@@ -25,7 +25,7 @@ import ratpack.guice.ConfigurableModule;
 import ratpack.core.render.Renderer;
 import ratpack.core.server.ServerConfig;
 
-import javax.inject.Singleton;
+import jakarta.inject.Singleton;
 import java.nio.file.Path;
 
 /**

@@ -21,7 +21,7 @@ import ratpack.groovy.template.TextTemplate;
 import ratpack.core.handling.Context;
 import ratpack.core.render.RendererSupport;
 
-import javax.inject.Inject;
+import jakarta.inject.Inject;
 
 public class TextTemplateRenderer extends RendererSupport<TextTemplate> {
 
