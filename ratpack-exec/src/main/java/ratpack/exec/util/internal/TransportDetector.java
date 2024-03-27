@@ -27,10 +27,15 @@ import io.netty.channel.socket.nio.NioSocketChannel;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import ratpack.func.Exceptions;
+import ratpack.func.Nullable;
 
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
+import java.util.Arrays;
+import java.util.Locale;
 import java.util.concurrent.ThreadFactory;
+
+import static java.util.Objects.requireNonNull;
 
 public abstract class TransportDetector {
 
@@ -39,41 +44,72 @@ public abstract class TransportDetector {
   private static final Transport TRANSPORT = determineTransport();
 
   private static Transport determineTransport() {
-    Transport transport = new NativeTransport("io.netty.channel.epoll", "Epoll");
-    if (transport.isAvailable()) {
-      LOGGER.debug("Using epoll transport");
-      return transport;
+    String transportName = System.getProperty("ratpack.nativeTransport");
+    if (transportName != null) {
+      NativeTransport nativeTransport = nativeTransportForName(transportName);
+      if (!nativeTransport.isPresent()) {
+        throw new IllegalStateException("Classes for native transport '" + nativeTransport + "' are not present");
+      }
+
+      if (nativeTransport.isAvailable()) {
+        LOGGER.debug("Using explicitly requested transport {}", nativeTransport);
+        return nativeTransport;
+      } else {
+        Throwable unavailabilityCause = nativeTransport.unavailabilityCause();
+        if (unavailabilityCause == null) {
+          throw new IllegalStateException("Requested native transport '" + nativeTransport + "' is unavailable - with no cause");
+        } else {
+          throw new IllegalStateException("Requested native transport '" + nativeTransport + "' is unavailable", unavailabilityCause);
+        }
+      }
     }
 
-    transport = new NativeTransport("io.netty.channel.kqueue", "KQueue");
-    if (transport.isAvailable()) {
-      LOGGER.debug("Using kqueue transport");
-      return transport;
+    for (NativeTransport nativeTransport : NativeTransport.values()) {
+      if (nativeTransport.stable && nativeTransport.isAvailable()) {
+        LOGGER.debug("Using " + nativeTransport + " transport");
+        return nativeTransport;
+      }
     }
 
     LOGGER.debug("Using nio transport");
-    return new NioTransport();
+    return NioTransport.INSTANCE;
+  }
+
+  private static NativeTransport nativeTransportForName(String transportName) {
+    transportName = transportName.toUpperCase(Locale.ROOT);
+    try {
+      return NativeTransport.valueOf(transportName);
+    } catch (IllegalArgumentException e) {
+      throw new IllegalStateException("Requested unknown native transport '" + transportName + "' (known: " + Arrays.toString(NativeTransport.values()) + ")");
+    }
   }
 
   public static Class<? extends ServerSocketChannel> getServerSocketChannelImpl() {
-    return TRANSPORT.getServerSocketChannelImpl();
+    return transport().getServerSocketChannelImpl();
+  }
+
+  private static Transport transport() {
+    if (Boolean.getBoolean("ratpack.nativeTransport.disable")) {
+      return NioTransport.INSTANCE;
+    } else {
+      return TRANSPORT;
+    }
   }
 
   public static Class<? extends SocketChannel> getSocketChannelImpl() {
-    return TRANSPORT.getSocketChannelImpl();
+    return transport().getSocketChannelImpl();
   }
 
   public static Class<? extends DatagramChannel> getDatagramChannelImpl() {
-    return TRANSPORT.getDatagramChannelImpl();
+    return transport().getDatagramChannelImpl();
   }
 
   public static EventLoopGroup eventLoopGroup(int nThreads, ThreadFactory threadFactory) {
-    return TRANSPORT.eventLoopGroup(nThreads, threadFactory);
+    return transport().eventLoopGroup(nThreads, threadFactory);
   }
 
   private interface Transport {
 
-    boolean isAvailable();
 
     Class<? extends ServerSocketChannel> getServerSocketChannelImpl();
 
@@ -86,10 +122,11 @@ public abstract class TransportDetector {
 
   private static class NioTransport implements Transport {
 
-    @Override
-    public boolean isAvailable() {
-      return true;
+    private static final NioTransport INSTANCE = new NioTransport();
+
+    private NioTransport() {
     }
+
 
     @Override
     public Class<? extends ServerSocketChannel> getServerSocketChannelImpl() {
@@ -112,43 +149,83 @@ public abstract class TransportDetector {
     }
   }
 
-  private static class NativeTransport implements Transport {
+  private enum NativeTransport implements Transport {
 
+    IO_URING("io.netty.incubator.channel.uring", "IOUring", false),
+    EPOLL("io.netty.channel.epoll", "Epoll", true),
+    KQUEUE("io.netty.channel.kqueue", "KQueue", true);
+
+    @Nullable
+    private final Class<?> entryPoint;
+
+    @Nullable
     private final NativeTransportImpl impl;
+    private final boolean stable;
 
-    NativeTransport(String packageName, String classPrefix) {
-      String property = "ratpack." + classPrefix.toLowerCase() + ".disable";
+    NativeTransport(String packageName, String classPrefix, boolean stable) {
+      this.stable = stable;
+      String property = "ratpack." + name().toLowerCase() + ".disable";
       boolean disabled = Boolean.getBoolean(property);
-      if (disabled || !isAvailable(packageName, classPrefix)) {
+      if (disabled) {
         this.impl = null;
+        this.entryPoint = null;
       } else {
-        this.impl = loadImpl(packageName, classPrefix);
+        this.entryPoint = loadEntryPoint(packageName, classPrefix);
+        if (entryPoint == null || !isAvailable(entryPoint)) {
+          this.impl = null;
+        } else {
+          this.impl = loadImpl(packageName, classPrefix);
+        }
       }
     }
 
-    @Override
+    public boolean isPresent() {
+      return entryPoint != null;
+    }
+
     public boolean isAvailable() {
       return impl != null;
     }
 
+    @Nullable
+    private Throwable unavailabilityCause() {
+      if (entryPoint == null) {
+        return null;
+      }
+      Object unavailabilityCause;
+      try {
+        unavailabilityCause = entryPoint.getMethod("unavailabilityCause").invoke(null);
+      } catch (IllegalAccessException | InvocationTargetException | NoSuchMethodException e) {
+        LOGGER.debug("{}.unavailabilityCause() failed", entryPoint.getName(), e);
+        return null;
+      }
+
+      if (unavailabilityCause instanceof Throwable) {
+        return (Throwable) unavailabilityCause;
+      } else {
+        LOGGER.debug("{}.unavailabilityCause() returned non throwable: {}", entryPoint.getName(), unavailabilityCause);
+        return null;
+      }
+    }
+
     @Override
     public Class<? extends ServerSocketChannel> getServerSocketChannelImpl() {
-      return impl.serverSocketChannelClass;
+      return requireNonNull(impl).serverSocketChannelClass;
     }
 
     @Override
     public Class<? extends SocketChannel> getSocketChannelImpl() {
-      return impl.socketChannelClass;
+      return requireNonNull(impl).socketChannelClass;
     }
 
     @Override
     public Class<? extends DatagramChannel> getDatagramChannelImpl() {
-      return impl.datagramChannelClass;
+      return requireNonNull(impl).datagramChannelClass;
     }
 
     @Override
     public EventLoopGroup eventLoopGroup(int nThreads, ThreadFactory threadFactory) {
-      return impl.eventLoopGroup(nThreads, threadFactory);
+      return requireNonNull(impl).eventLoopGroup(nThreads, threadFactory);
     }
 
     private static NativeTransportImpl loadImpl(String packageName, String classPrefix) {
@@ -165,16 +242,16 @@ public abstract class TransportDetector {
       }
     }
 
-    private static boolean isAvailable(String packageName, String classPrefix) {
+    @Nullable
+    private static Class<?> loadEntryPoint(String packageName, String classPrefix) {
       try {
-        Class<?> clazz = loadClass(Object.class, packageName, classPrefix, null);
-        return invokeIsAvailable(clazz);
+        return loadClass(Object.class, packageName, classPrefix, null);
       } catch (ClassNotFoundException e) {
         LOGGER.debug("{} was not found", packageName);
-        return false;
+        return null;
       } catch (Exception e) {
         LOGGER.debug("{} failed to load", packageName, e);
-        return false;
+        return null;
       }
     }
 
@@ -193,7 +270,7 @@ public abstract class TransportDetector {
       }
     }
 
-    private static boolean invokeIsAvailable(Class<?> clazz) {
+    private static boolean isAvailable(Class<?> clazz) {
       Object result;
       try {
         result = clazz.getMethod("isAvailable").invoke(null);
@@ -214,8 +291,8 @@ public abstract class TransportDetector {
           }
 
           if (unavailabilityCause instanceof Throwable) {
-            //noinspection VerifyFormattedMessage
-            LOGGER.debug("{} unavailability cause", clazz.getName(), unavailabilityCause);
+            //noinspection RedundantCast
+            LOGGER.debug("{} unavailability cause", clazz.getName(), (Throwable) unavailabilityCause);
           }
         }
         return isAvailable;

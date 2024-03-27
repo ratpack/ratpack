@@ -21,14 +21,13 @@ import io.netty.buffer.ByteBufAllocator;
 import org.reactivestreams.Publisher;
 import org.reactivestreams.Subscriber;
 import org.reactivestreams.Subscription;
-import ratpack.func.Action;
 import ratpack.core.sse.ServerSentEvent;
 import ratpack.exec.stream.internal.BufferingPublisher;
 
 public class ServerSentEventDecodingPublisher extends BufferingPublisher<ServerSentEvent> {
 
   public ServerSentEventDecodingPublisher(Publisher<? extends ByteBuf> publisher, ByteBufAllocator allocator) {
-    super(Action.noop(), write -> {
+    super(ServerSentEvent::close, write -> {
       return new Subscription() {
 
         Subscription upstream;

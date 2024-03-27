@@ -90,10 +90,14 @@ abstract class RequestActionSupport<T> implements Upstream<T> {
     this.execution = execution;
     this.redirectCount = redirectCount;
     this.expectContinue = expectContinue;
-    this.channelKey = new HttpChannelKey(requestConfig.uri, requestConfig.connectTimeout, execution);
+    this.channelKey = new HttpChannelKey(requestConfig.uri, proxy(client), requestConfig.connectTimeout, execution);
     this.channelPool = client.getChannelPoolMap().get(channelKey);
 
     finalizeHeaders();
+  }
+
+  private ProxyInternal proxy(HttpClientInternal client) {
+    return requestConfig.proxy == null ? client.getProxyInternal() : requestConfig.proxy;
   }
 
   protected abstract void addResponseHandlers(ChannelPipeline p, Downstream<? super T> downstream);
@@ -133,6 +137,7 @@ abstract class RequestActionSupport<T> implements Upstream<T> {
     String requestUri = getFullPath(requestConfig.uri);
     HttpMessage request;
     if (requestConfig.content.getContentLength() == 0) {
+      requestConfig.content.discard();
       request = new DefaultFullHttpRequest(
         HttpVersion.HTTP_1_1,
         requestConfig.method.getNettyMethod(),
@@ -189,14 +194,6 @@ abstract class RequestActionSupport<T> implements Upstream<T> {
                   downstream.error(writeFuture.cause());
                 });
             }
-          });
-      } else {
-        forceDispose(channel.pipeline())
-          .addListener(disposeFuture -> {
-            if (!disposeFuture.isSuccess()) {
-              firstFuture.cause().addSuppressed(disposeFuture.cause());
-            }
-            downstream.error(firstFuture.cause());
           });
       }
     });
@@ -314,6 +311,7 @@ abstract class RequestActionSupport<T> implements Upstream<T> {
                 if (done.compareAndSet(false, true)) {
                   if (pending > 0) {
                     reset();
+                    channel.flush();
                     forceDispose(channel.pipeline())
                       .addListener(future -> {
                         Throwable t = new IllegalStateException("Publisher completed before sending advertised number of bytes");

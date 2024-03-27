@@ -29,6 +29,9 @@ import ratpack.config.ConfigSource;
 import ratpack.config.EnvironmentParser;
 import ratpack.core.handling.Chain;
 import ratpack.core.impose.ServerConfigImposition;
+import ratpack.exec.ExecController;
+import ratpack.exec.ExecInitializer;
+import ratpack.exec.ExecInterceptor;
 import ratpack.func.Action;
 import ratpack.func.Function;
 import ratpack.func.Types;
@@ -100,6 +103,32 @@ public interface ServerConfigBuilder extends ConfigDataBuilder {
   }
 
   /**
+   * Indicates whether the server should inherit an exec controller from the environment.
+   * <p>
+   * This is equivalent to calling {@link #execController(ExecController)} with {@link ExecController#require()}.
+   *
+   * @param inheritExecController whether to inherit the exec controller from the environment
+   * @return {@code this}
+   * @since 1.10
+   */
+  ServerConfigBuilder inheritExecController(boolean inheritExecController);
+
+  /**
+   * Specifies that this server should inherit the given exec controller instead of creating one.
+   * <p>
+   * This can be used when embedded a Ratpack server inside another Ratpack server,
+   * to reuse the same thread pools.
+   * <p>
+   * Any {@link ExecInitializer} or {@link ExecInterceptor} implementations specified as part of this server will be ignored.
+   * Initializers and interceptors specified as part of the application that the given exec controller came from will be used.
+   *
+   * @param execController the exec controller to inherit
+   * @return {@code this}
+   * @since 1.10
+   */
+  ServerConfigBuilder execController(ExecController execController);
+
+  /**
    * Sets the port to listen for requests on.
    * <p>
    * Defaults to 5050.
@@ -150,8 +179,8 @@ public interface ServerConfigBuilder extends ConfigDataBuilder {
    *
    * @param registerShutdownHook whether to register or not
    * @return {@code this}
-   * @since 1.6
    * @see ServerConfig#isRegisterShutdownHook()
+   * @since 1.6
    */
   ServerConfigBuilder registerShutdownHook(boolean registerShutdownHook);
 
@@ -168,7 +197,7 @@ public interface ServerConfigBuilder extends ConfigDataBuilder {
 
   /**
    * The max number of bytes a request body can be.
-   *
+   * <p>
    * Default value is {@code 1048576} (1 megabyte).
    *
    * @param maxContentLength the max content length to accept
@@ -179,7 +208,7 @@ public interface ServerConfigBuilder extends ConfigDataBuilder {
 
   /**
    * The maximum size of read chunks of request/response bodies.
-   *
+   * <p>
    * Default value is {@link ServerConfig#DEFAULT_MAX_CHUNK_SIZE}.
    *
    * @param maxChunkSize the maximum size of read chunks of request/response bodies
@@ -190,7 +219,7 @@ public interface ServerConfigBuilder extends ConfigDataBuilder {
 
   /**
    * The maximum initial line length allowed for reading http requests.
-   *
+   * <p>
    * Default value is {@link ServerConfig#DEFAULT_MAX_INITIAL_LINE_LENGTH}.
    *
    * @param maxInitialLineLength the maximum length of the initial line of the request.
@@ -202,7 +231,7 @@ public interface ServerConfigBuilder extends ConfigDataBuilder {
 
   /**
    * The maximum size of all headers allowed for reading http requests.
-   *
+   * <p>
    * Default value is {@link ServerConfig#DEFAULT_MAX_HEADER_SIZE}.
    *
    * @param maxHeaderSize the maximum size of the sum of the length of all headers.
@@ -220,6 +249,15 @@ public interface ServerConfigBuilder extends ConfigDataBuilder {
    * @see ServerConfig#getConnectTimeoutMillis()
    */
   ServerConfigBuilder connectTimeoutMillis(int connectTimeoutMillis);
+
+  /**
+   * Whether to enable TCP keep-alive for connections.
+   *
+   * @param tcpKeepAlive whether to enable TCP keep-alive for connections
+   * @return {@code this}
+   * @see ServerConfig#isTcpKeepAlive()
+   */
+  ServerConfigBuilder tcpKeepAlive(boolean tcpKeepAlive);
 
   /**
    * The default read timeout of the channel.
@@ -382,8 +420,8 @@ public interface ServerConfigBuilder extends ConfigDataBuilder {
    * @param separator the separator of the key and value in each arg
    * @param args the argument values
    * @return {@code this}
-   * @since 1.1
    * @see #args(String[])
+   * @since 1.1
    */
   @Override
   ServerConfigBuilder args(String separator, String[] args);
@@ -399,8 +437,8 @@ public interface ServerConfigBuilder extends ConfigDataBuilder {
    * @param separator the separator between the key and the value
    * @param args the argument values
    * @return {@code this}
-   * @since 1.1
    * @see #args(String[])
+   * @since 1.1
    */
   @Override
   ServerConfigBuilder args(String prefix, String separator, String[] args);
@@ -437,6 +475,7 @@ public interface ServerConfigBuilder extends ConfigDataBuilder {
 
   /**
    * {@inheritDoc}
+   *
    * @since 1.4
    */
   @Override

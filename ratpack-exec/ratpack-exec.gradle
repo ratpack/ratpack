@@ -22,10 +22,13 @@ apply from: "$rootDir/gradle/versionFile.gradle"
 dependencies {
   api project(":ratpack-func")
   api "io.netty:netty-buffer:$commonVersions.netty"
-  api "io.netty:netty-transport-native-epoll:${commonVersions.netty}:linux-x86_64"
-  api "io.netty:netty-tcnative-boringssl-static:${commonVersions.nettyTCNative}:linux-x86_64"
   api "org.reactivestreams:reactive-streams:${commonVersions.reactiveStreams}"
   api commonDependencies.slf4j
+
+  implementation "io.netty:netty-transport:$commonVersions.netty"
+
+  runtimeOnly "io.netty:netty-transport-native-epoll:${commonVersions.netty}:linux-x86_64"
+  runtimeOnly "io.netty:netty-tcnative-boringssl-static:${commonVersions.nettyTCNative}:linux-x86_64"
 
   testImplementation("org.reactivestreams:reactive-streams-tck:${commonVersions.reactiveStreams}") {
     exclude group: "junit", module: "junit"

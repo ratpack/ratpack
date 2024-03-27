@@ -17,133 +17,219 @@
 package ratpack.exec.stream.bytebuf.internal;
 
 import io.netty.buffer.ByteBuf;
-import io.netty.buffer.ByteBufAllocator;
-import io.netty.buffer.CompositeByteBuf;
 import org.reactivestreams.Publisher;
 import org.reactivestreams.Subscriber;
-import org.reactivestreams.Subscription;
-import ratpack.exec.stream.internal.ManagedSubscription;
+import ratpack.func.Action;
+import ratpack.exec.stream.internal.MiddlemanSubscription;
 
-public class ByteBufBufferingSubscription extends ManagedSubscription<ByteBuf> {
+import java.time.Duration;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.ScheduledFuture;
+import java.util.concurrent.TimeUnit;
+import java.util.function.LongSupplier;
 
-  private final Publisher<? extends ByteBuf> upstream;
-  private final ByteBufAllocator alloc;
-  private final int maxNum;
-  private final long watermark;
+public abstract class ByteBufBufferingSubscription<T> extends MiddlemanSubscription<T, ByteBuf> {
 
-  private Subscription subscription;
-  private CompositeByteBuf buffer;
+  private final ScheduledExecutorService executor;
+  private final LongSupplier clock;
+
+  private final long flushFrequencyNanos;
+  private ScheduledFuture<?> flushCheckFuture;
+  private long lastFlushAt;
+  private boolean needsFlush;
+
+  private final long keepAliveFrequencyNanos;
+  private final ByteBuf keepAliveItem;
+  private ScheduledFuture<?> keepAliveCheckFuture;
+  private boolean needsKeepAlive;
+  private long lastEmitAt;
+  private int keepAlivesSentSinceLastItem;
 
   public ByteBufBufferingSubscription(
-    Publisher<? extends ByteBuf> upstream,
+    Publisher<? extends T> upstream,
+    Action<? super T> upstreamDisposer,
     Subscriber<? super ByteBuf> subscriber,
-    ByteBufAllocator alloc,
-    int maxNum,
-    long watermark
+    ScheduledExecutorService executor,
+    LongSupplier clock,
+    Duration flushFrequency,
+    Duration keepAliveFrequency,
+    ByteBuf keepAliveItem
   ) {
-    super(subscriber, ByteBuf::release);
-    this.upstream = upstream;
-    this.alloc = alloc;
-    this.maxNum = maxNum;
-    this.watermark = watermark;
+    super(subscriber, ByteBuf::release, upstream, upstreamDisposer);
+    this.executor = executor;
+    this.clock = clock;
+    this.flushFrequencyNanos = flushFrequency.toNanos();
+    this.keepAliveFrequencyNanos = keepAliveFrequency.toNanos();
+    this.keepAliveItem = keepAliveItem;
+  }
+
+  @Override
+  public void connect() {
+    super.connect();
+  }
+
+  @Override
+  protected void onConnected() {
+    lastFlushAt = lastEmitAt = System.nanoTime();
+    if (flushFrequencyNanos > 0) {
+      scheduleFlushCheck(flushFrequencyNanos);
+    }
+    if (keepAliveFrequencyNanos > 0) {
+      scheduleKeepAliveCheck(keepAliveFrequencyNanos);
+    }
+    super.onConnected();
   }
 
   @Override
   protected void onRequest(long n) {
-    if (subscription == null) {
-      upstream.subscribe(new Subscriber<ByteBuf>() {
-        @Override
-        public void onSubscribe(Subscription s) {
-          subscription = s;
-          onConnected();
-          subscription.request(n);
-        }
+    n = n - keepAlivesSentSinceLastItem;
+    if (n > 0) {
+      super.onRequest(n);
+    }
 
-        @Override
-        public void onNext(ByteBuf t) {
-          if (isDone()) {
-            t.release();
-            return;
-          }
-
-          if (t.readableBytes() == 0) {
-            t.release();
-            subscription.request(1);
-            return;
-          }
-
-          addToBuffer(t);
-          if (!maybeFlush()) {
-            subscription.request(1);
-          }
-        }
-
-        @Override
-        public void onError(Throwable t) {
-          if (buffer != null) {
-            buffer.release();
-            buffer = null;
-          }
-          emitError(t);
-        }
-
-        @Override
-        public void onComplete() {
-          if (buffer != null) {
-            flush();
-          }
-          emitComplete();
-        }
-      });
-    } else {
-      subscription.request(n);
+    if (needsKeepAlive) {
+      emitKeepAlive();
+    } else if (keepAliveCheckFuture == null && keepAliveFrequencyNanos > 0) {
+      scheduleKeepAliveCheck(keepAliveFrequencyNanos);
     }
   }
 
-  protected boolean maybeFlush() {
+  private void scheduleKeepAliveCheck(long inNanos) {
+    if (!isDone() && keepAliveCheckFuture == null) {
+      keepAliveCheckFuture = executor.schedule(this::keepAliveCheck, inNanos, TimeUnit.NANOSECONDS);
+    }
+  }
+
+  private void keepAliveCheck() {
+    keepAliveCheckFuture = null;
+
+    long now = clock.getAsLong();
+    long heartbeatDue = lastEmitAt + keepAliveFrequencyNanos;
+    needsKeepAlive = heartbeatDue <= now;
+
+    if (needsKeepAlive) {
+      if (hasDemand()) {
+        emitKeepAlive();
+      }
+    } else {
+      long nextHeartbeatCheckNanos = heartbeatDue - now;
+      if (nextHeartbeatCheckNanos > 0) {
+        scheduleKeepAliveCheck(nextHeartbeatCheckNanos);
+      }
+    }
+  }
+
+  private void emitKeepAlive() {
+    ++keepAlivesSentSinceLastItem;
+    emit(keepAliveItem.retainedSlice());
+    scheduleKeepAliveCheck(keepAliveFrequencyNanos);
+  }
+
+  private void flushCheck() {
+    long now = clock.getAsLong();
+    long sinceLastFlushNanos = now - lastFlushAt;
+    boolean flushIsDue = sinceLastFlushNanos >= flushFrequencyNanos;
+
+    if (flushIsDue) {
+      if (isEmpty()) {
+        needsFlush = true;
+        return;
+      } else {
+        doFlush(now);
+      }
+    }
+
+    scheduleFlushCheck(now - (lastFlushAt + flushFrequencyNanos));
+  }
+
+  private void doFlush(long now) {
+    lastFlushAt = now;
+    emitNext(flush());
+  }
+
+  private void scheduleFlushCheck(long scheduleFor) {
+    if (!isDone()) {
+      flushCheckFuture = executor.schedule(this::flushCheck, scheduleFor, TimeUnit.NANOSECONDS);
+    }
+  }
+
+  @Override
+  protected final void receiveNext(T item) {
+    buffer(item);
+    if (!maybeFlush()) {
+      onConsumed();
+    }
+  }
+
+  @Override
+  protected void receiveError(Throwable error) {
+    forceFlush();
+    super.receiveError(error);
+  }
+
+  @Override
+  protected void receiveComplete() {
+    forceFlush();
+    super.receiveComplete();
+  }
+
+  protected abstract void buffer(T item);
+
+  @Override
+  protected final void onCancel() {
+    ScheduledFuture<?> flushCheckFuture = this.flushCheckFuture;
+    if (flushCheckFuture != null) {
+      flushCheckFuture.cancel(false);
+      this.flushCheckFuture = null;
+    }
+
+    ScheduledFuture<?> keepAliveCheckFuture = this.keepAliveCheckFuture;
+    if (keepAliveCheckFuture != null) {
+      keepAliveCheckFuture.cancel(false);
+      this.keepAliveCheckFuture = null;
+    }
+
+    super.onCancel();
+    discard();
+  }
+
+  private void forceFlush() {
+    if (!isEmpty()) {
+      emitNext(flush());
+    }
+  }
+
+  private boolean maybeFlush() {
     if (shouldFlush()) {
-      flush();
+      doFlush(clock.getAsLong());
       return true;
     } else {
       return false;
     }
   }
 
-  protected boolean shouldFlush() {
-    return buffer != null && (buffer.numComponents() == maxNum || buffer.readableBytes() >= watermark);
-  }
-
-  protected void flush() {
-    if (buffer == null) {
-      throw new IllegalStateException();
-    }
-    CompositeByteBuf emittedBuffer = this.buffer;
-    this.buffer = null; // unset before emitting in case emit causes cancel, which would cause double release
-    emitNext(emittedBuffer);
-  }
-
-  private void addToBuffer(ByteBuf t) {
-    if (buffer == null) {
-      buffer = alloc.compositeBuffer(maxNum);
-    }
-    buffer.addComponent(true, t);
-  }
-
-  protected void onConnected() {
-
-  }
-
-  protected boolean isEmpty() {
-    return buffer == null;
-  }
-
   @Override
-  protected void onCancel() {
-    if (buffer != null) {
-      buffer.release();
-    }
-    if (subscription != null) {
-      subscription.cancel();
-    }
+  public void emitNext(ByteBuf item) {
+    keepAlivesSentSinceLastItem = 0;
+    emit(item);
   }
+
+  private void emit(ByteBuf item) {
+    lastEmitAt = clock.getAsLong();
+    needsKeepAlive = false;
+    super.emitNext(item);
+  }
+
+  private boolean shouldFlush() {
+    return (!isEmpty() && needsFlush || needsKeepAlive || bufferIsFull()) && hasDemand();
+  }
+
+  protected abstract boolean bufferIsFull();
+
+  protected abstract ByteBuf flush();
+
+  protected abstract void discard();
+
+  protected abstract boolean isEmpty();
+
 }

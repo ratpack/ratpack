@@ -24,4 +24,5 @@ public interface RequestBodyAccumulator {
 
   void onClose();
 
+  void onIdleTimeout();
 }

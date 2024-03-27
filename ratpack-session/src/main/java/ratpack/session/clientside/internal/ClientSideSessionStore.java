@@ -29,6 +29,8 @@ import io.netty.handler.codec.base64.Base64Dialect;
 import io.netty.handler.codec.http.cookie.Cookie;
 import io.netty.util.AsciiString;
 import io.netty.util.CharsetUtil;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import ratpack.exec.Operation;
 import ratpack.exec.Promise;
 import ratpack.core.http.Request;
@@ -46,6 +48,7 @@ import java.util.regex.Pattern;
 
 public class ClientSideSessionStore implements SessionStore {
 
+  private static final Logger LOGGER = LoggerFactory.getLogger(ClientSideSessionStore.class);
   private static final String SESSION_SEPARATOR = ":";
 
   private final Provider<Request> request;
@@ -112,11 +115,16 @@ public class ClientSideSessionStore implements SessionStore {
   public Promise<ByteBuf> load(AsciiString sessionId) {
     return Promise.sync(() -> {
       CookieStorage cookieStorage = getCookieStorage();
-      if (!isValid(cookieStorage)) {
-        return Unpooled.EMPTY_BUFFER;
+      ByteBuf data = deserialize(cookieStorage);
+      if (data.isReadable()) {
+        try {
+          setLastAccessTime(cookieStorage);
+        } catch (Exception e) {
+          data.release();
+          throw e;
+        }
       }
-      setLastAccessTime(cookieStorage);
-      return deserialize(cookieStorage.data);
+      return data;
     });
   }
 
@@ -136,36 +144,41 @@ public class ClientSideSessionStore implements SessionStore {
     return Promise.value(-1L);
   }
 
-  private boolean isValid(CookieStorage cookieStorage) throws Exception {
-    ByteBuf payload = null;
+  private ByteBuf deserialize(CookieStorage cookieStorage) throws Exception {
+    ByteBuf lastAccessTokenPayload = null;
 
     try {
-      payload = deserialize(cookieStorage.lastAccessToken);
-      if (payload.readableBytes() == 0) {
+      lastAccessTokenPayload = deserialize(cookieStorage.lastAccessToken);
+      if (lastAccessTokenPayload.readableBytes() == 0) {
         reset(cookieStorage);
-        return false;
+        return Unpooled.EMPTY_BUFFER;
       }
       long lastAccessTime;
       try {
-        lastAccessTime = payload.readLong();
+        lastAccessTime = lastAccessTokenPayload.readLong();
       } catch (IndexOutOfBoundsException e) {
-        // When using a NoPadding algorithm, decrypting the payload may trim one or more 0-bytes that are required in
+        // When using a NoPadding algorithm, decrypting the lastAccessTokenPayload may trim one or more 0-bytes that are required in
         // order for us to read epoch timestamps ending in one or more 0-bytes, so get the long directly instead
-        lastAccessTime = payload.getLong(payload.readerIndex());
+        lastAccessTime = lastAccessTokenPayload.getLong(lastAccessTokenPayload.readerIndex());
       }
 
       long currentTime = System.currentTimeMillis();
       long maxInactivityIntervalMillis = config.getMaxInactivityInterval().toMillis();
       if (currentTime - lastAccessTime > maxInactivityIntervalMillis) {
         reset(cookieStorage);
-        return false;
+        return Unpooled.EMPTY_BUFFER;
       }
+
+      return deserialize(cookieStorage.data);
+    } catch (Throwable t) {
+      LOGGER.debug("Error deserializing client side session storage", t);
+      reset(cookieStorage);
+      return Unpooled.EMPTY_BUFFER;
     } finally {
-      if (payload != null) {
-        payload.release();
+      if (lastAccessTokenPayload != null) {
+        lastAccessTokenPayload.release();
       }
     }
-    return true;
   }
 
   private void setLastAccessTime(CookieStorage cookieStorage) throws Exception {

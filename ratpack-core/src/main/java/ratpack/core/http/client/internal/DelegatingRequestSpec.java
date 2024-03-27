@@ -19,6 +19,8 @@ package ratpack.core.http.client.internal;
 import io.netty.handler.ssl.SslContext;
 import ratpack.core.http.HttpMethod;
 import ratpack.core.http.MutableHeaders;
+import ratpack.core.http.client.Proxy;
+import ratpack.core.http.client.ProxySpec;
 import ratpack.core.http.client.ReceivedResponse;
 import ratpack.core.http.client.RequestSpec;
 import ratpack.func.Action;
@@ -136,6 +138,17 @@ public class DelegatingRequestSpec implements RequestSpec {
   @Override
   public Duration getReadTimeout() {
     return delegate.getReadTimeout();
+  }
+
+  @Override
+  public RequestSpec proxy(Action<? super ProxySpec> proxy) {
+    delegate.proxy(proxy);
+    return this;
+  }
+
+  @Override
+  public Proxy getProxy() {
+    return delegate.getProxy();
   }
 
   @Override

@@ -43,6 +43,7 @@ import ratpack.func.MultiValueMap;
 
 import java.nio.CharBuffer;
 import java.nio.file.Path;
+import java.time.Duration;
 import java.util.*;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
@@ -56,14 +57,17 @@ public class DefaultResponse implements Response {
   private final ByteBufAllocator byteBufAllocator;
   private final ResponseTransmitter responseTransmitter;
 
+  private final RequestIdleTimeout requestIdleTimeout;
+
   private boolean contentTypeSet;
   private Set<Cookie> cookies;
   private List<Action<? super Response>> responseFinalizers;
 
-  public DefaultResponse(MutableHeaders headers, ByteBufAllocator byteBufAllocator, ResponseTransmitter responseTransmitter) {
+  public DefaultResponse(MutableHeaders headers, ByteBufAllocator byteBufAllocator, ResponseTransmitter responseTransmitter, RequestIdleTimeout requestIdleTimeout) {
     this.byteBufAllocator = byteBufAllocator;
     this.responseTransmitter = responseTransmitter;
     this.headers = new MutableHeadersWrapper(headers);
+    this.requestIdleTimeout = requestIdleTimeout;
     this.responseFinalizers = Lists.newArrayList();
   }
 
@@ -284,9 +288,17 @@ public class DefaultResponse implements Response {
 
   @Override
   public void sendStream(Publisher<? extends ByteBuf> stream) {
+    sendStream(stream, true);
+  }
+
+  // Note: some form of this method with drainRequestBodyBeforeResponse = false will be promoted to public API
+  public void sendStream(Publisher<? extends ByteBuf> stream, boolean drainRequestBodyBeforeResponse) {
+    // Disable any idle timeout as no more will be read and we are now in control of writing
+    requestIdleTimeout.setRequestIdleTimeout(Duration.ZERO);
+
     finalizeResponse(() -> {
       setCookieHeader();
-      responseTransmitter.transmit(status.getNettyStatus(), stream);
+      responseTransmitter.transmit(status.getNettyStatus(), stream, drainRequestBodyBeforeResponse);
     }, t -> {
       throw t;
     });
@@ -372,14 +384,7 @@ public class DefaultResponse implements Response {
 
   private void finalizeResponse(Iterator<Action<? super Response>> finalizers, Runnable then, Consumer<? super RuntimeException> onError) {
     if (finalizers.hasNext()) {
-      finalizers
-        .next()
-        .curry(this)
-        .map(Operation::of)
-        .onError(t -> onError.accept(Exceptions.uncheck(t)))
-        .then(() ->
-          finalizeResponse(finalizers, then, onError)
-        );
+      finalizers.next().curry(this).map(Operation::of).onError(t -> onError.accept(Exceptions.uncheck(t))).then(() -> finalizeResponse(finalizers, then, onError));
     } else {
       finalizeResponse(then, onError);
     }

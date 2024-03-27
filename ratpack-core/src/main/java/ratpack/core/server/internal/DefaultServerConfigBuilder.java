@@ -36,6 +36,7 @@ import ratpack.config.FileSystemBinding;
 import ratpack.core.config.internal.module.ServerConfigDataDeserializer;
 import ratpack.core.config.internal.module.SniSslContextDeserializer;
 import ratpack.core.impose.ForceDevelopmentImposition;
+import ratpack.exec.ExecController;
 import ratpack.core.impose.ForceServerListenPortImposition;
 import ratpack.core.impose.Impositions;
 import ratpack.core.impose.ServerConfigImposition;
@@ -92,6 +93,16 @@ public class DefaultServerConfigBuilder implements ServerConfigBuilder {
   public ServerConfigBuilder baseDir(Path baseDir) {
     this.baseDirSupplier.baseDir = FileSystemBinding.of(baseDir);
     return this;
+  }
+
+  @Override
+  public ServerConfigBuilder inheritExecController(boolean inheritExecController) {
+    return addToServer(n -> n.put("inheritExecController", inheritExecController));
+  }
+
+  @Override
+  public ServerConfigBuilder execController(ExecController execController) {
+    return addToServer(n -> n.putPOJO("execController", execController));
   }
 
   private ServerConfigBuilder addToServer(Consumer<? super ObjectNode> action) {
@@ -164,6 +175,11 @@ public class DefaultServerConfigBuilder implements ServerConfigBuilder {
   @Override
   public ServerConfigBuilder connectTimeoutMillis(int connectTimeoutMillis) {
     return addToServer(n -> n.put("connectTimeoutMillis", connectTimeoutMillis));
+  }
+
+  @Override
+  public ServerConfigBuilder tcpKeepAlive(boolean tcpKeepAlive) {
+    return addToServer(n -> n.put("tcpKeepAlive", tcpKeepAlive));
   }
 
   @Override

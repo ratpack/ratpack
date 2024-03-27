@@ -16,9 +16,18 @@
 
 package ratpack.core.http.client.internal;
 
+import io.netty.handler.ssl.SslContext;
+
 import ratpack.core.http.client.Proxy;
+import ratpack.func.Nullable;
 
 public interface ProxyInternal extends Proxy {
 
   boolean shouldProxy(String host);
+
+  boolean useSsl();
+
+  @Nullable
+  SslContext getSslContext();
+
 }

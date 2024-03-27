@@ -18,9 +18,14 @@ package ratpack.exec.stream.bytebuf.internal;
 
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.ByteBufAllocator;
+import io.netty.buffer.CompositeByteBuf;
+import io.netty.buffer.Unpooled;
+import io.netty.util.ReferenceCountUtil;
 import org.reactivestreams.Publisher;
 import org.reactivestreams.Subscriber;
 import ratpack.exec.stream.TransformablePublisher;
+
+import java.time.Duration;
 
 public class ByteBufComposingPublisher implements TransformablePublisher<ByteBuf> {
 
@@ -37,8 +42,42 @@ public class ByteBufComposingPublisher implements TransformablePublisher<ByteBuf
   }
 
   @Override
-  public void subscribe(Subscriber<? super ByteBuf> subscriber) {
-    subscriber.onSubscribe(new ByteBufBufferingSubscription(upstream, subscriber, alloc, maxNum, watermark));
+  public void subscribe(Subscriber<? super ByteBuf> downstream) {
+    new ByteBufBufferingSubscription<ByteBuf>(upstream, ByteBuf::release, downstream, null, System::nanoTime, Duration.ZERO, Duration.ZERO, Unpooled.EMPTY_BUFFER) {
+      private CompositeByteBuf buffer;
+
+      protected boolean bufferIsFull() {
+        return buffer != null && (buffer.numComponents() == maxNum || buffer.readableBytes() >= watermark);
+      }
+
+      @Override
+      protected boolean isEmpty() {
+        return buffer == null;
+      }
+
+      protected ByteBuf flush() {
+        if (buffer == null) {
+          throw new IllegalStateException();
+        }
+        CompositeByteBuf emittedBuffer = this.buffer;
+        this.buffer = null; // unset before emitting in case emit causes cancel, which would cause double release
+        return emittedBuffer;
+      }
+
+      @Override
+      protected void buffer(ByteBuf item) {
+        if (buffer == null) {
+          buffer = alloc.compositeBuffer(maxNum);
+        }
+        buffer.addComponent(true, item);
+      }
+
+      @Override
+      protected void discard() {
+        ReferenceCountUtil.release(buffer);
+        this.buffer = null;
+      }
+    }.connect();
   }
 
 }

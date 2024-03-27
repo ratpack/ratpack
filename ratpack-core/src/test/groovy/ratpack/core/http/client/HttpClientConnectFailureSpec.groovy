@@ -44,4 +44,23 @@ class HttpClientConnectFailureSpec extends BaseHttpClientSpec {
     requestBody.refCnt() == 0
   }
 
+  def "handles ssl connect failure"() {
+    setup:
+    def requestBody = ByteBufAllocator.DEFAULT.buffer().writeBytes("test".bytes)
+    def http = clientOf {}
+
+    when:
+    exec.yield { e ->
+      def u = "http://localhost:20000".toURI()
+      http.post(u) { spec ->
+        spec.body { b ->
+          b.buffer(requestBody)
+        }
+      }
+    }
+
+    then:
+    requestBody.refCnt() == 0
+  }
+
 }

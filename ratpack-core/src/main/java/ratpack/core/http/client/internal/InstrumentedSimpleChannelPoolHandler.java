@@ -17,7 +17,6 @@
 package ratpack.core.http.client.internal;
 
 import io.netty.channel.Channel;
-import ratpack.func.Nullable;
 
 import java.util.concurrent.atomic.LongAdder;
 
@@ -25,8 +24,8 @@ public class InstrumentedSimpleChannelPoolHandler extends NoopSimpleChannelPoolH
 
   private final LongAdder activeConnectionCount;
 
-  public InstrumentedSimpleChannelPoolHandler(HttpChannelKey channelKey, @Nullable ProxyInternal proxy) {
-    super(channelKey, proxy);
+  public InstrumentedSimpleChannelPoolHandler(HttpChannelKey channelKey) {
+    super(channelKey);
     this.activeConnectionCount = new LongAdder();
   }
 

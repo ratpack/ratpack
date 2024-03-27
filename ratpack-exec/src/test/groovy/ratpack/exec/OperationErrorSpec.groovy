@@ -63,6 +63,66 @@ class OperationErrorSpec extends BaseRatpackSpec {
     events[0] instanceof NullPointerException
   }
 
+  def "on error can consume error"() {
+    when:
+    exec {
+      Promise.value(1)
+        .operation { throw new IllegalArgumentException("!") }
+        .onError {
+          events << "onError"
+        }
+        .then {
+          events << "then"
+        }
+    } {
+      events << "globalOnError"
+    }
+
+    then:
+    events.size() == 2
+    events[0] == "onError"
+  }
+
+  def "flatOp on error can consume error"() {
+    when:
+    exec {
+      Promise.value(1)
+        .flatOp { throw new IllegalArgumentException("!") }
+        .onError {
+          events << "onError"
+        }
+        .then {
+          events << "then"
+        }
+    } {
+      events << "globalOnError"
+    }
+
+    then:
+    events.size() == 2
+    events[0] == "onError"
+  }
+
+  def "flatOp on error can consume op error"() {
+    when:
+    exec {
+      Promise.value(1)
+        .flatOp { Operation.of { throw new IllegalArgumentException("!") } }
+        .onError {
+          events << "onError"
+        }
+        .then {
+          events << "then"
+        }
+    } {
+      events << "globalOnError"
+    }
+
+    then:
+    events.size() == 2
+    events[0] == "onError"
+  }
+
   def "on error can be async"() {
     when:
     exec {

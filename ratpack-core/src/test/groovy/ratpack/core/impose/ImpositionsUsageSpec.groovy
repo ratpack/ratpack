@@ -33,4 +33,30 @@ class ImpositionsUsageSpec extends Specification {
     then:
     ports == [1, 2, 3]
   }
+
+  def "can impose over"() {
+    when:
+    def ports = Impositions.of { it.add(ForceServerListenPortImposition.of(1)) }.impose {
+      Impositions.of { it.add(ForceServerListenPortImposition.of(2)) }.impose {
+        Impositions.of { it.add(ForceServerListenPortImposition.of(3)) }.impose {
+          Impositions.current().impose { Impositions.current().getAll(ForceServerListenPortImposition).collect { it.port } }
+        }
+      }
+    }
+
+    then:
+    ports == [1, 2, 3, 1, 2, 3]
+
+    when:
+    ports = Impositions.of { it.add(ForceServerListenPortImposition.of(1)) }.impose {
+      Impositions.of { it.add(ForceServerListenPortImposition.of(2)) }.impose {
+        Impositions.of { it.add(ForceServerListenPortImposition.of(3)) }.impose {
+          Impositions.current().imposeOver { Impositions.current().getAll(ForceServerListenPortImposition).collect { it.port } }
+        }
+      }
+    }
+
+    then:
+    ports == [1, 2, 3]
+  }
 }

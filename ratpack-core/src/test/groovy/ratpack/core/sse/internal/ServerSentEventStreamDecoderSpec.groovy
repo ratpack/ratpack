@@ -27,6 +27,10 @@ class ServerSentEventStreamDecoderSpec extends RatpackGroovyDslSpec {
   List<ServerSentEvent> events = []
   def decoder = new ServerSentEventDecoder(ByteBufAllocator.DEFAULT, events.&add)
 
+  def cleanup() {
+    events*.close()
+  }
+
   def "can decode valid server sent event"() {
     given:
     def bytebuf = Unpooled.copiedBuffer(sseStream.bytes)
@@ -36,28 +40,28 @@ class ServerSentEventStreamDecoderSpec extends RatpackGroovyDslSpec {
     def event = events.first()
 
     then:
-    event.id == expectedEventId
-    event.event == expectedEventType
-    event.data == expectedEventData
+    event.idAsString == expectedEventId
+    event.eventAsString == expectedEventType
+    event.dataAsString == expectedEventData
 
     where:
     sseStream                                       | expectedEventId | expectedEventType | expectedEventData
     "event: fooType\ndata: fooData\nid: fooId\n\n"  | "fooId"         | "fooType"         | "fooData"
-    "event: fooType\ndata: fooData\n\n"             | null            | "fooType"         | "fooData"
-    "data: fooData\n\n"                             | null            | null              | "fooData"
-    "data: fooData\nid: fooId\n\n"                  | "fooId"         | null              | "fooData"
-    "id: fooId\n\n"                                 | "fooId"         | null              | null
-    "event: fooType\nid: fooId\n\n"                 | "fooId"         | "fooType"         | null
-    "event: fooType\n\n"                            | null            | "fooType"         | null
-    "data: fooData1\nid: fooId\ndata: fooData2\n\n" | "fooId"         | null              | "fooData1\nfooData2"
-    ":ignore this comment\ndata: fooData\n\n"       | null            | null              | "fooData"
-    "data: fooData\nfoo: ignore this\n\n"           | null            | null              | "fooData"
-    "data: fooData\nwhole-line-field-name\n\n"      | null            | null              | "fooData"
-    "data\n\n"                                      | null            | null              | ""
-    "data:\nevent:\n\n"                             | null            | ""                | ""
-    "data: foo:data\n\n"                            | null            | null              | "foo:data"
-    "data:foo\nbar\n\n"                             | null            | null              | "foo"
-    "data:foo\ndata:\n\n"                           | null            | null              | "foo\n"
+    "event: fooType\ndata: fooData\n\n"             | ""              | "fooType"         | "fooData"
+    "data: fooData\n\n"                             | ""              | ""                | "fooData"
+    "data: fooData\nid: fooId\n\n"                  | "fooId"         | ""                | "fooData"
+    "id: fooId\n\n"                                 | "fooId"         | ""                | ""
+    "event: fooType\nid: fooId\n\n"                 | "fooId"         | "fooType"         | ""
+    "event: fooType\n\n"                            | ""              | "fooType"         | ""
+    "data: fooData1\nid: fooId\ndata: fooData2\n\n" | "fooId"         | ""                | "fooData1\nfooData2"
+    ":ignore this comment\ndata: fooData\n\n"       | ""              | ""                | "fooData"
+    "data: fooData\nfoo: ignore this\n\n"           | ""              | ""                | "fooData"
+    "data: fooData\nwhole-line-field-name\n\n"      | ""              | ""                | "fooData"
+    "data\n\n"                                      | ""              | ""                | ""
+    "data:\nevent:\n\n"                             | ""              | ""                | ""
+    "data: foo:data\n\n"                            | ""              | ""                | "foo:data"
+    "data:foo\nbar\n\n"                             | ""              | ""                | "foo"
+    "data:foo\ndata:\n\n"                           | ""              | ""                | "foo\n"
   }
 
   def "can decode multiple events"() {
@@ -70,17 +74,17 @@ class ServerSentEventStreamDecoderSpec extends RatpackGroovyDslSpec {
     then:
     events.size() == 3
 
-    events[0].id == null
-    events[0].event == null
-    events[0].data == "fooData1\nfooData2"
+    events[0].idAsString == ""
+    events[0].eventAsString == ""
+    events[0].dataAsString == "fooData1\nfooData2"
 
-    events[1].id == "fooId"
-    events[1].event == "fooType"
-    events[1].data == "fooData3"
+    events[1].idAsString == "fooId"
+    events[1].eventAsString == "fooType"
+    events[1].dataAsString == "fooData3"
 
-    events[2].id == "fooId"
-    events[2].event == null
-    events[2].data == "fooData4"
+    events[2].idAsString == "fooId"
+    events[2].eventAsString == ""
+    events[2].dataAsString == "fooData4"
 
     and:
     bytebuf.refCnt() == 0
@@ -121,12 +125,12 @@ data: bar2
     } as ByteProcessor)
 
     then:
-    events[0].id == "1"
-    events[0].event == "foo1"
-    events[0].data == "bar1"
-    events[1].id == "2"
-    events[1].event == "foo2"
-    events[1].data == "bar2"
+    events[0].idAsString == "1"
+    events[0].eventAsString == "foo1"
+    events[0].dataAsString == "bar1"
+    events[1].idAsString == "2"
+    events[1].eventAsString == "foo2"
+    events[1].dataAsString == "bar2"
   }
 
 }

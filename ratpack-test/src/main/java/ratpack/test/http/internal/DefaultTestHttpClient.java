@@ -231,7 +231,7 @@ public class DefaultTestHttpClient implements TestHttpClient {
 
   @Override
   public ReceivedResponse request(String path, Action<? super RequestSpec> requestAction) {
-    try (ExecController execController = ExecController.of(spec -> spec.compute(c -> c.threads(2)))) {
+    try (ExecController execController = ExecController.builder().numThreads(2).build()) {
       URI uri = builder(path).params(params).build();
       try (HttpClient httpClient = httpClient(execController)) {
         response = client.request(httpClient, uri, execController, Duration.ofMinutes(60), requestSpec -> {

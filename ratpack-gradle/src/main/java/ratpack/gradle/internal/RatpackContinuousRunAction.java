@@ -235,7 +235,6 @@ public class RatpackContinuousRunAction implements Action<Task> {
     }
   }
 
-
   final private static class ProxyBacking implements InvocationHandler {
     public ProxyBacking(RatpackAdapter delegate) {
       this.delegate = delegate;

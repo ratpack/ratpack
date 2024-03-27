@@ -27,10 +27,11 @@ import com.fasterxml.jackson.databind.node.POJONode;
 import io.netty.util.Mapping;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import ratpack.core.server.internal.ServerConfigData;
+import ratpack.exec.ExecController;
 import ratpack.config.FileSystemBinding;
 import ratpack.core.server.DecodingErrorLevel;
 import ratpack.core.server.ServerConfig;
-import ratpack.core.server.internal.ServerConfigData;
 import ratpack.core.server.internal.ServerEnvironment;
 import ratpack.func.Types;
 
@@ -64,6 +65,14 @@ public class ServerConfigDataDeserializer extends JsonDeserializer<ServerConfigD
     ObjectCodec codec = jp.getCodec();
     ObjectNode serverNode = jp.readValueAsTree();
     ServerConfigData data = new ServerConfigData(baseDirSupplier.get(), address, port, development, publicAddress);
+
+    if (serverNode.hasNonNull("execController")) {
+      data.setExecController(toValue(codec, serverNode.get("execController"), ExecController.class));
+    } else {
+      if (serverNode.hasNonNull("inheritExecController")) {
+        data.setExecController(ExecController.current().orElseThrow(() -> new IllegalStateException("inheritExecController = false, but there is no current exec controller")));
+      }
+    }
     if (serverNode.hasNonNull("port")) {
       data.setPort(parsePort(serverNode.get("port")));
     }
@@ -120,6 +129,9 @@ public class ServerConfigDataDeserializer extends JsonDeserializer<ServerConfigD
     }
     if (serverNode.hasNonNull("connectQueueSize")) {
       parseOptionalIntValue("connectQueueSize", serverNode.get("connectQueueSize")).ifPresent(data::setConnectQueueSize);
+    }
+    if (serverNode.hasNonNull("tcpKeepAlive")) {
+      data.setTcpKeepAlive(serverNode.get("tcpKeepAlive").asBoolean(false));
     }
     if (serverNode.hasNonNull("portFile")) {
       data.setPortFile(toValue(codec, serverNode.get("portFile"), Path.class));

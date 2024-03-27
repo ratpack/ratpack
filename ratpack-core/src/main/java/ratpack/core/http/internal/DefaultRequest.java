@@ -260,9 +260,6 @@ public class DefaultRequest implements Request {
 
   @Override
   public void setIdleTimeout(Duration idleTimeout) {
-    if (idleTimeout.isNegative()) {
-      throw new IllegalArgumentException("idleTimeout must not be negative");
-    }
     this.idleTimeout.setRequestIdleTimeout(idleTimeout);
   }
 
