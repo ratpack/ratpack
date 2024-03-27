@@ -14,8 +14,8 @@
  * limitations under the License.
  */
 plugins {
-  id "com.gradle.enterprise" version "3.8.1"
-  id "com.gradle.common-custom-user-data-gradle-plugin" version "1.6.2"
+  id "com.gradle.enterprise" version "3.12.3"
+  id "com.gradle.common-custom-user-data-gradle-plugin" version "1.8.2"
 }
 
 enableFeaturePreview("GROOVY_COMPILATION_AVOIDANCE")
@@ -74,16 +74,11 @@ def setBuildFile(project) {
 setBuildFile(rootProject)
 
 buildCache {
-  remote(HttpBuildCache) {
-    url = 'https://ge.ratpack.io/cache/'
-    def cacheUsername = System.getenv('GRADLE_ENTERPRISE_CACHE_USERNAME')
-    def cachePassword = System.getenv('GRADLE_ENTERPRISE_CACHE_PASSWORD')
-    if (cacheUsername && cachePassword) {
-      push = true
-      credentials {
-        username = cacheUsername
-        password = cachePassword
-      }
-    }
+  remote(gradleEnterprise.buildCache) {
+    enabled = true
+    def ci = System.getenv("CI")
+    // Also check access key to avoid warning logs
+    def accessKey = System.getenv("GRADLE_ENTERPRISE_ACCESS_KEY")
+    push = ci && accessKey != null && !accessKey.isEmpty()
   }
 }
