@@ -247,7 +247,6 @@ public interface Request extends MutableRegistry {
    * import org.apache.commons.lang3.RandomStringUtils;
    * import org.reactivestreams.Subscriber;
    * import org.reactivestreams.Subscription;
-   * import org.junit.Assert;
    * import ratpack.exec.Promise;
    * import ratpack.http.client.ReceivedResponse;
    * import ratpack.test.embed.EmbeddedApp;
@@ -258,6 +257,8 @@ public interface Request extends MutableRegistry {
    * import java.nio.charset.StandardCharsets;
    * import java.nio.file.Path;
    * import java.nio.file.StandardOpenOption;
+   *
+   * import static org.junit.jupiter.api.Assertions.*;
    *
    * public class Example {
    *   public static void main(String[] args) throws Exception {
@@ -326,10 +327,10 @@ public interface Request extends MutableRegistry {
    *         })
    *       ).test(http -> {
    *         ReceivedResponse response = http.request(requestSpec -> requestSpec.method("POST").getBody().text(string));
-   *         Assert.assertEquals(response.getBody().getText(), "ok");
+   *         assertEquals(response.getBody().getText(), "ok");
    *
    *         String fileContents = Files.asCharSource(file.toFile(), StandardCharsets.UTF_8).read();
-   *         Assert.assertEquals(fileContents, string);
+   *         assertEquals(fileContents, string);
    *       });
    *     });
    *   }

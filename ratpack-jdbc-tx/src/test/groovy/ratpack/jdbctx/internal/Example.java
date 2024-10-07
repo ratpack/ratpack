@@ -17,7 +17,6 @@
 package ratpack.jdbctx.internal;
 
 import org.h2.jdbcx.JdbcDataSource;
-import org.junit.Assert;
 import ratpack.exec.Blocking;
 import ratpack.exec.Operation;
 import ratpack.func.Block;
@@ -33,6 +32,9 @@ import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertSame;
 
 public class Example {
 
@@ -97,7 +99,7 @@ public class Example {
           return actual;
         }
       })
-        .then(actual -> Assert.assertEquals(Arrays.asList(expected), actual));
+        .then(actual -> assertEquals(Arrays.asList(expected), actual));
   }
 
   // BEGIN EXAMPLES
@@ -115,7 +117,7 @@ public class Example {
         })
     )
       .onError(e -> {
-        Assert.assertSame(e, exception);
+        assertSame(e, exception);
         Operation.of(assertValues()).then();
       })
       .then(() -> {

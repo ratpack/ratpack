@@ -25,13 +25,14 @@ import org.codehaus.groovy.ast.ClassHelper;
 import org.codehaus.groovy.ast.ClassNode;
 import org.codehaus.groovy.ast.expr.ConstantExpression;
 import org.codehaus.groovy.classgen.GeneratorContext;
-import org.codehaus.groovy.classgen.Verifier;
 import org.codehaus.groovy.control.*;
 import org.codehaus.groovy.control.customizers.CompilationCustomizer;
 import org.codehaus.groovy.runtime.DefaultGroovyMethods;
 
+import java.lang.reflect.Field;
 import java.nio.file.Path;
 import java.security.CodeSource;
+import java.util.function.Consumer;
 
 public class ScriptEngine<T extends Script> {
 
@@ -85,25 +86,76 @@ public class ScriptEngine<T extends Script> {
     return new GroovyClassLoader(parentLoader, compilerConfiguration) {
       @Override
       protected CompilationUnit createCompilationUnit(CompilerConfiguration config, CodeSource source) {
-        return new CompilationUnit(config, source, this) {
-          {
-            verifier = new Verifier() {
-              @Override
-              public void visitClass(ClassNode node) {
-                if (node.implementsInterface(ClassHelper.GENERATED_CLOSURE_Type)) {
-                  AnnotationNode lineNumberAnnotation = new AnnotationNode(LINE_NUMBER_CLASS_NODE);
-                  lineNumberAnnotation.addMember("value", new ConstantExpression(node.getLineNumber(), true));
-                  node.addAnnotation(lineNumberAnnotation);
-                }
-
-                super.visitClass(node);
-              }
-            };
+        return new CustomCompilationUnit(config, source, this, node -> {
+          if (node.implementsInterface(ClassHelper.GENERATED_CLOSURE_Type)) {
+            AnnotationNode lineNumberAnnotation = new AnnotationNode(LINE_NUMBER_CLASS_NODE);
+            lineNumberAnnotation.addMember("value", new ConstantExpression(node.getLineNumber(), true));
+            node.addAnnotation(lineNumberAnnotation);
           }
-        };
+        });
       }
     };
+  }
 
+  // This is lifted from https://github.com/gradle/gradle/blob/c04626e744aaccf269c194fe982464826034b9a8/subprojects/core/src/main/java/org/gradle/groovy/scripts/internal/CustomCompilationUnit.java#L37
+  static class CustomCompilationUnit extends CompilationUnit {
+
+    public CustomCompilationUnit(CompilerConfiguration configuration, CodeSource codeSource, GroovyClassLoader loader, Consumer<? super ClassNode> customVerifier) {
+      super(configuration, codeSource, loader);
+      installCustomCodegen(customVerifier);
+    }
+
+    private void installCustomCodegen(Consumer<? super ClassNode> customVerifier) {
+      final IPrimaryClassNodeOperation nodeOperation = prepareCustomCodegen(customVerifier);
+      addFirstPhaseOperation(nodeOperation, Phases.CLASS_GENERATION);
+    }
+
+    @Override
+    public void addPhaseOperation(IPrimaryClassNodeOperation op, int phase) {
+      if (phase != Phases.CLASS_GENERATION) {
+        super.addPhaseOperation(op, phase);
+      }
+    }
+
+    // this is using a decoration of the existing classgen implementation
+    // it can't be implemented as a phase as our customVerifier needs to visit closures as well
+    private IPrimaryClassNodeOperation prepareCustomCodegen(Consumer<? super ClassNode> customVerifier) {
+      try {
+        final Field classgen = getClassgenField();
+        IPrimaryClassNodeOperation realClassgen = (IPrimaryClassNodeOperation) classgen.get(this);
+        final IPrimaryClassNodeOperation decoratedClassgen = decoratedNodeOperation(customVerifier, realClassgen);
+        classgen.set(this, decoratedClassgen);
+        return decoratedClassgen;
+      } catch (ReflectiveOperationException e) {
+        throw new RuntimeException("Unable to install custom rules code generation", e);
+      }
+    }
+
+    private Field getClassgenField() {
+      try {
+        final Field classgen = CompilationUnit.class.getDeclaredField("classgen");
+        classgen.setAccessible(true);
+        return classgen;
+      } catch (NoSuchFieldException e) {
+        throw new RuntimeException("Unable to detect class generation in Groovy CompilationUnit", e);
+      }
+    }
+
+    private static IPrimaryClassNodeOperation decoratedNodeOperation(Consumer<? super ClassNode> customVerifier, IPrimaryClassNodeOperation realClassgen) {
+      return new IPrimaryClassNodeOperation() {
+
+        @Override
+        public boolean needSortedInput() {
+          return realClassgen.needSortedInput();
+        }
+
+        @Override
+        public void call(SourceUnit source, GeneratorContext context, ClassNode classNode) throws CompilationFailedException {
+          customVerifier.accept(classNode);
+          realClassgen.call(source, context, classNode);
+        }
+      };
+    }
   }
 
 }

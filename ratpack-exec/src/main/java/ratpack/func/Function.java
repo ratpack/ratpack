@@ -49,7 +49,7 @@ public interface Function<I, O> {
    * <pre class="java">{@code
    * import ratpack.func.Function;
    *
-   * import static org.junit.Assert.assertEquals;
+   * import static org.junit.jupiter.api.Assertions.assertEquals;
    *
    * public class Example {
    *   public static void main(String[] args) throws Exception {
@@ -79,7 +79,7 @@ public interface Function<I, O> {
    * <pre class="java">{@code
    * import ratpack.func.Function;
    *
-   * import static org.junit.Assert.assertEquals;
+   * import static org.junit.jupiter.api.Assertions.assertEquals;
    *
    * public class Example {
    *   public static void main(String... args) throws Exception {

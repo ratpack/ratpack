@@ -49,7 +49,7 @@ import java.util.Properties;
  * import ratpack.test.ServerBackedApplicationUnderTest;
  * import ratpack.test.http.TestHttpClient;
  *
- * import static org.junit.Assert.*;
+ * import static org.junit.jupiter.api.Assertions.*;
  *
  * public class Example {
  *   public static void main(String[] args) throws Exception {
@@ -263,7 +263,7 @@ public interface ConfigDataBuilder {
    * import com.google.common.collect.ImmutableMap;
    * import ratpack.config.ConfigData;
    * import ratpack.server.ServerConfig;
-   * import static org.junit.Assert.*;
+   * import static org.junit.jupiter.api.Assertions.*;
    *
    * public class Example {
    *   public static void main(String[] args) throws Exception {
@@ -361,7 +361,7 @@ public interface ConfigDataBuilder {
    * <pre class="java">{@code
    * import ratpack.config.ConfigData;
    * import java.util.Collections;
-   * import static org.junit.Assert.assertEquals;
+   * import static org.junit.jupiter.api.Assertions.assertEquals;
    *
    * public class Example {
    *

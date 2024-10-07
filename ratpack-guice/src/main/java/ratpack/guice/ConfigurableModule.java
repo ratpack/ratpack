@@ -44,7 +44,7 @@ import java.lang.reflect.Constructor;
  * import ratpack.guice.Guice;
  * import ratpack.test.embed.EmbeddedApp;
  *
- * import static org.junit.Assert.*;
+ * import static org.junit.jupiter.api.Assertions.*;
  *
  * public class Example {
  *
@@ -83,7 +83,7 @@ import java.lang.reflect.Constructor;
  * import ratpack.guice.Guice;
  * import ratpack.test.embed.EmbeddedApp;
  *
- * import static org.junit.Assert.*;
+ * import static org.junit.jupiter.api.Assertions.*;
  *
  * public class Example {
  *   public static class StringModule extends ConfigurableModule<StringModule.Config> {

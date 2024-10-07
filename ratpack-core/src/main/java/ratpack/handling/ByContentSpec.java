@@ -30,7 +30,7 @@ import ratpack.func.Block;
  * import ratpack.test.embed.EmbeddedApp;
  * import ratpack.http.client.ReceivedResponse;
  *
- * import static org.junit.Assert.*;
+ * import static org.junit.jupiter.api.Assertions.*;
  *
  * public class Example {
  *   public static void main(String[] args) throws Exception {

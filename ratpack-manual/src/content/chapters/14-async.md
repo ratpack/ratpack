@@ -76,7 +76,7 @@ import ratpack.test.handling.HandlingResult;
 import java.util.Collections;
 import java.io.IOException;
 
-import static org.junit.Assert.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 public class Example {
 
@@ -120,7 +120,7 @@ It is essentially a mechanism for adapting 3rd party APIs to Ratpack's promise t
 import ratpack.test.embed.EmbeddedApp;
 import ratpack.exec.Promise;
 
-import static org.junit.Assert.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 public class Example {
   public static void main(String... args) throws Exception {

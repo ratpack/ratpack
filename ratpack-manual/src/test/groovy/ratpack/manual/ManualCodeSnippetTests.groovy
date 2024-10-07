@@ -19,8 +19,8 @@ package ratpack.manual
 import com.google.common.base.StandardSystemProperty
 import ratpack.rx2.RxRatpack
 import ratpack.test.internal.snippets.CodeSnippetTestCase
-import ratpack.test.internal.snippets.CodeSnippetTests
-import ratpack.test.internal.snippets.executer.GradleSnippetExecuter
+import ratpack.manual.snippets.GradleSnippetExecuter
+import ratpack.test.internal.snippets.TestCodeSnippet
 import ratpack.test.internal.snippets.executer.GroovySnippetExecuter
 import ratpack.test.internal.snippets.executer.JavaSnippetExecuter
 import ratpack.test.internal.snippets.executer.SnippetExecuter
@@ -51,7 +51,7 @@ class ManualCodeSnippetTests extends CodeSnippetTestCase {
   ]
 
   @Override
-  protected void addTests(CodeSnippetTests tests) {
+  protected Collection<TestCodeSnippet> registerTests() {
     File cwd = new File(StandardSystemProperty.USER_DIR.value())
     File root
     if (new File(cwd, "ratpack-manual.gradle").exists()) {
@@ -62,10 +62,8 @@ class ManualCodeSnippetTests extends CodeSnippetTestCase {
 
     def content = new File(root, "ratpack-manual/src/content/chapters")
 
-    FIXTURES.each { selector, executer ->
-      ManualSnippetExtractor.extract(content, selector, executer).each {
-        tests.add(it)
-      }
+    FIXTURES.collectMany { selector, executer ->
+      ManualSnippetExtractor.extract(content, selector, executer)
     }
   }
 

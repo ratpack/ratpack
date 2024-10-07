@@ -33,7 +33,7 @@ import com.github.jknack.handlebars.Helper;
  * import java.nio.file.Path;
  *
  * import static ratpack.handlebars.Template.handlebarsTemplate;
- * import static org.junit.Assert.*;
+ * import static org.junit.jupiter.api.Assertions.*;
  *
  * public class Example {
  *

@@ -16,15 +16,15 @@
 
 package ratpack.config
 
-import org.junit.Rule
-import org.junit.rules.TemporaryFolder
 import ratpack.test.internal.BaseRatpackSpec
+import ratpack.test.internal.spock.TempDir
+import ratpack.test.internal.spock.TemporaryFolder
 
 import java.nio.file.Path
 import java.security.KeyStore
 
 abstract class BaseConfigSpec extends BaseRatpackSpec {
-  @Rule
+  @TempDir
   TemporaryFolder tempFolder
 
   protected static void createKeystore(Path path, String password) {

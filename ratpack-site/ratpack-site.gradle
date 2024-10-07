@@ -225,6 +225,7 @@ processTestResources.dependsOn writeTestConfig
 
 processResources {
   inputs.files configurations.latestManual
+  duplicatesStrategy(DuplicatesStrategy.EXCLUDE)
   into "manual/" + version - "-SNAPSHOT", {
     from { zipTree(configurations.latestManual.singleFile) }
   }
@@ -273,7 +274,7 @@ distributions.main.contents {
 
 distTar {
   compression = Compression.GZIP
-  version = null
+  archiveVersion.set(null)
 }
 
 run.ext.set("ratpack.flattenClassloaders", true)

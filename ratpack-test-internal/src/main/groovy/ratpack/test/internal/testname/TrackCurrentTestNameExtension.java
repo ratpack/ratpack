@@ -17,7 +17,7 @@
 package ratpack.test.internal.testname;
 
 import org.spockframework.runtime.IRunListener;
-import org.spockframework.runtime.extension.AbstractAnnotationDrivenExtension;
+import org.spockframework.runtime.extension.IAnnotationDrivenExtension;
 import org.spockframework.runtime.model.ErrorInfo;
 import org.spockframework.runtime.model.FeatureInfo;
 import org.spockframework.runtime.model.IterationInfo;
@@ -25,65 +25,64 @@ import org.spockframework.runtime.model.SpecInfo;
 
 import java.util.Optional;
 
-public final class TrackCurrentTestNameExtension extends AbstractAnnotationDrivenExtension<TrackCurrentTestName> {
+public final class TrackCurrentTestNameExtension implements IAnnotationDrivenExtension<TrackCurrentTestName> {
 
-    @Override
-    public void visitSpecAnnotation(TrackCurrentTestName unroll, SpecInfo spec) {
-        spec.addListener(new IRunListener() {
-            @Override
-            public void beforeSpec(SpecInfo spec) {
-                nameSpec(spec);
-            }
+  @Override
+  public void visitSpecAnnotation(TrackCurrentTestName unroll, SpecInfo spec) {
+    spec.addListener(new IRunListener() {
+      @Override
+      public void beforeSpec(SpecInfo spec) {
+        nameSpec(spec);
+      }
 
-            @Override
-            public void beforeFeature(FeatureInfo feature) {
-                nameFeature(feature);
-            }
+      @Override
+      public void beforeFeature(FeatureInfo feature) {
+        nameFeature(feature);
+      }
 
-            @Override
-            public void beforeIteration(IterationInfo iteration) {
-                CurrentTestName.set(Optional.of(iteration.getFeature().getSpec().getName() + "." + iteration.getName()));
-            }
+      @Override
+      public void beforeIteration(IterationInfo iteration) {
+        CurrentTestName.set(Optional.of(iteration.getFeature().getSpec().getName() + "." + iteration.getName()));
+      }
 
-            @Override
-            public void afterIteration(IterationInfo iteration) {
-                nameFeature(iteration.getFeature());
-            }
+      @Override
+      public void afterIteration(IterationInfo iteration) {
+        nameFeature(iteration.getFeature());
+      }
 
-            @Override
-            public void afterFeature(FeatureInfo feature) {
-                nameSpec(feature.getSpec());
-            }
+      @Override
+      public void afterFeature(FeatureInfo feature) {
+        nameSpec(feature.getSpec());
+      }
 
-            @Override
-            public void afterSpec(SpecInfo spec) {
-                CurrentTestName.set(Optional.empty());
-            }
+      @Override
+      public void afterSpec(SpecInfo spec) {
+        CurrentTestName.set(Optional.empty());
+      }
 
-            @Override
-            public void error(ErrorInfo error) {
+      @Override
+      public void error(ErrorInfo error) {
 
-            }
+      }
 
-            @Override
-            public void specSkipped(SpecInfo spec) {
+      @Override
+      public void specSkipped(SpecInfo spec) {
 
-            }
+      }
 
-            @Override
-            public void featureSkipped(FeatureInfo feature) {
+      @Override
+      public void featureSkipped(FeatureInfo feature) {
 
-            }
-        });
-    }
+      }
+    });
+  }
 
-    private static void nameSpec(SpecInfo spec) {
-        CurrentTestName.set(Optional.of(spec.getName()));
-    }
+  private static void nameSpec(SpecInfo spec) {
+    CurrentTestName.set(Optional.of(spec.getName()));
+  }
 
-    private static void nameFeature(FeatureInfo feature) {
-        CurrentTestName.set(Optional.of(feature.getSpec().getName() + "." + feature.getName()));
-    }
+  private static void nameFeature(FeatureInfo feature) {
+    CurrentTestName.set(Optional.of(feature.getSpec().getName() + "." + feature.getName()));
+  }
 
 }
-

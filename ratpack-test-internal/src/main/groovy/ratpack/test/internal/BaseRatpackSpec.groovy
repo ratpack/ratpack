@@ -16,24 +16,21 @@
 
 package ratpack.test.internal
 
-import org.junit.Rule
 import ratpack.test.internal.leak.FlaggingResourceLeakDetectorFactory
-import ratpack.test.internal.leak.LeakDetection
 import ratpack.test.internal.spock.InheritedTimeout
 import ratpack.test.internal.spock.InheritedUnroll
+import ratpack.test.internal.spock.LeakDetect
 import ratpack.test.internal.testname.TrackCurrentTestName
 import spock.lang.Specification
 
 @InheritedTimeout(30)
 @InheritedUnroll
 @TrackCurrentTestName
+@LeakDetect
 abstract class BaseRatpackSpec extends Specification {
 
   static {
     FlaggingResourceLeakDetectorFactory.install()
   }
-
-  @Rule
-  LeakDetection leakDetection
 
 }

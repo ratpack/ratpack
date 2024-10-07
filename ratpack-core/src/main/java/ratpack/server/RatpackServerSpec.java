@@ -115,7 +115,7 @@ public interface RatpackServerSpec {
    *
    * import javax.inject.Inject;
    *
-   * import static org.junit.Assert.assertEquals;
+   * import static org.junit.jupiter.api.Assertions.assertEquals;
    *
    * public class Example {
    *   public static class MyHandler implements Handler {

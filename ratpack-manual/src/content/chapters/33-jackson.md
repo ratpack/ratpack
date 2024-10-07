@@ -18,7 +18,7 @@ import ratpack.test.embed.EmbeddedApp;
 import ratpack.http.client.ReceivedResponse;
 
 import static ratpack.jackson.Jackson.json;
-import static org.junit.Assert.*;
+import static org.junit.jupiter.api.Assertions.*;
 
 public class Example {
 
@@ -67,7 +67,7 @@ import java.util.List;
 import static ratpack.util.Types.listOf;
 import static ratpack.jackson.Jackson.jsonNode;
 import static ratpack.jackson.Jackson.fromJson;
-import static org.junit.Assert.*;
+import static org.junit.jupiter.api.Assertions.*;
 
 public class Example {
 
@@ -125,7 +125,7 @@ import com.google.common.reflect.TypeToken;
 import java.util.List;
 
 import static ratpack.util.Types.listOf;
-import static org.junit.Assert.*;
+import static org.junit.jupiter.api.Assertions.*;
 
 public class Example {
 
@@ -184,7 +184,7 @@ import com.fasterxml.jackson.datatype.jdk8.Jdk8Module;
 import java.util.Optional;
 
 import static ratpack.jackson.Jackson.json;
-import static org.junit.Assert.*;
+import static org.junit.jupiter.api.Assertions.*;
 
 public class Example {
 

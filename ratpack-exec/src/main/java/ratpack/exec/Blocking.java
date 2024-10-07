@@ -101,7 +101,7 @@ public abstract class Blocking {
    * import ratpack.exec.Promise;
    * import ratpack.func.Factory;
    *
-   * import static org.junit.Assert.assertEquals;
+   * import static org.junit.jupiter.api.Assertions.assertEquals;
    *
    * public class Example {
    *   static <T> T produceSync(Factory<? extends T> factory) throws Exception {
@@ -143,7 +143,7 @@ public abstract class Blocking {
    * import java.util.ArrayList;
    * import java.util.Arrays;
    *
-   * import static org.junit.Assert.assertEquals;
+   * import static org.junit.jupiter.api.Assertions.assertEquals;
    *
    * public class Example {
    *   public static void main(String... args) throws Exception {

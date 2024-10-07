@@ -16,10 +16,10 @@
 
 package ratpack.file.internal
 
-import org.junit.Rule
-import org.junit.rules.TemporaryFolder
 import ratpack.file.FileSystemBinding
 import ratpack.test.internal.BaseRatpackSpec
+import ratpack.test.internal.spock.TempDir
+import ratpack.test.internal.spock.TemporaryFolder
 
 import java.nio.file.Files
 import java.nio.file.Path
@@ -56,7 +56,7 @@ class DefaultFileSystemBindingSpec extends BaseRatpackSpec {
   }
 
 
-  @Rule
+  @TempDir
   TemporaryFolder temporaryFolder
   File newRoot
 

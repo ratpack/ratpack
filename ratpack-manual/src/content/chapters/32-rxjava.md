@@ -27,7 +27,7 @@ import ratpack.exec.Promise;
 import ratpack.exec.Blocking;
 import ratpack.test.handling.HandlingResult;
 
-import static org.junit.Assert.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static ratpack.rx2.RxRatpack.single;
 import static ratpack.test.handling.RequestFixture.requestFixture;
 
@@ -56,7 +56,7 @@ import ratpack.test.handling.RequestFixture;
 import ratpack.test.handling.HandlingResult;
 import io.reactivex.Observable;
 
-import static org.junit.Assert.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 public class Example {
   public static void main(String... args) throws Exception {

@@ -16,7 +16,7 @@
 
 package ratpack.test.internal.spock;
 
-import org.spockframework.runtime.extension.AbstractAnnotationDrivenExtension;
+import org.spockframework.runtime.extension.IAnnotationDrivenExtension;
 import org.spockframework.runtime.extension.builtin.TimeoutInterceptor;
 import org.spockframework.runtime.model.FeatureInfo;
 import org.spockframework.runtime.model.MethodInfo;
@@ -27,7 +27,7 @@ import java.lang.annotation.Annotation;
 import java.lang.management.ManagementFactory;
 import java.util.concurrent.TimeUnit;
 
-public final class InheritedTimeoutExtension extends AbstractAnnotationDrivenExtension<InheritedTimeout> {
+public final class InheritedTimeoutExtension implements IAnnotationDrivenExtension<InheritedTimeout> {
 
   @Override
   public void visitSpecAnnotation(InheritedTimeout timeout, SpecInfo spec) {

@@ -44,7 +44,7 @@ public interface ExecHarness extends AutoCloseable {
    * import ratpack.test.exec.ExecHarness;
    * import ratpack.exec.ExecResult;
    *
-   * import static org.junit.Assert.assertEquals;
+   * import static org.junit.jupiter.api.Assertions.assertEquals;
    *
    * public class Example {
    *

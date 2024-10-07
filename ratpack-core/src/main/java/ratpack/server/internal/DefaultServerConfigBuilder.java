@@ -30,7 +30,7 @@ import ratpack.config.*;
 import ratpack.config.internal.DefaultConfigData;
 import ratpack.config.internal.DefaultConfigDataBuilder;
 import ratpack.config.internal.module.JdkSslContextDeserializer;
-import ratpack.config.internal.module.NettySslContextDeserializer;
+import ratpack.core.config.internal.module.NettySslContextDeserializer;
 import ratpack.config.internal.module.ServerConfigDataDeserializer;
 import ratpack.exec.ExecController;
 import ratpack.file.FileSystemBinding;

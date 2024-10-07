@@ -25,7 +25,7 @@ Consider the following example:
 import ratpack.test.embed.EmbeddedApp;
 import ratpack.registry.Registry;
 
-import static org.junit.Assert.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 public class Example {
 
@@ -139,7 +139,7 @@ A typical use for this is using different error handling strategies for differen
 import ratpack.error.ServerErrorHandler;
 import ratpack.test.embed.EmbeddedApp;
 
-import static org.junit.Assert.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 public class Example {
 

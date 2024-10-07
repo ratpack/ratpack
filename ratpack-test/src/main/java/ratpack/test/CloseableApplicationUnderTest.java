@@ -36,7 +36,7 @@ public interface CloseableApplicationUnderTest extends ApplicationUnderTest, Aut
    * <pre class="java">{@code
    * import ratpack.test.embed.EmbeddedApp;
    *
-   * import static org.junit.Assert.assertEquals;
+   * import static org.junit.jupiter.api.Assertions.assertEquals;
    *
    * public class Example {
    *   public static void main(String... args) throws Exception {

@@ -102,7 +102,6 @@ public interface ParallelBatch<T> extends Batch<T> {
    * Note that the given function will be executed concurrently, as values become available.
    *
    * <pre class="java">{@code
-   * import org.junit.Assert;
    * import ratpack.exec.Promise;
    * import ratpack.exec.util.ParallelBatch;
    * import ratpack.func.Pair;
@@ -112,6 +111,8 @@ public interface ParallelBatch<T> extends Batch<T> {
    * import java.util.List;
    * import java.util.Map;
    * import java.util.concurrent.ConcurrentHashMap;
+   *
+   * import static org.junit.jupiter.api.Assertions.assertEquals;
    *
    * public class Example {
    *
@@ -131,10 +132,10 @@ public interface ParallelBatch<T> extends Batch<T> {
    *         .then();
    *     });
    *
-   *     Assert.assertEquals(Integer.valueOf(1), map.get("a"));
-   *     Assert.assertEquals(Integer.valueOf(2), map.get("b"));
-   *     Assert.assertEquals(Integer.valueOf(3), map.get("c"));
-   *     Assert.assertEquals(Integer.valueOf(4), map.get("d"));
+   *     assertEquals(Integer.valueOf(1), map.get("a"));
+   *     assertEquals(Integer.valueOf(2), map.get("b"));
+   *     assertEquals(Integer.valueOf(3), map.get("c"));
+   *     assertEquals(Integer.valueOf(4), map.get("d"));
    *   }
    * }
    * }</pre>

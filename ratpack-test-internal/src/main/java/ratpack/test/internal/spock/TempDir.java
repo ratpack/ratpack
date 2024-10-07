@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 the original author or authors.
+ * Copyright 2022 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,10 +14,17 @@
  * limitations under the License.
  */
 
-package ratpack.test.internal.snippets;
+package ratpack.test.internal.spock;
 
-public interface CodeSnippetTests {
+import org.spockframework.runtime.extension.ExtensionAnnotation;
 
-  void add(TestCodeSnippet testCodeSnippet);
+import java.lang.annotation.ElementType;
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
+import java.lang.annotation.Target;
 
+@Retention(RetentionPolicy.RUNTIME)
+@Target(ElementType.FIELD)
+@ExtensionAnnotation(TempDirExtension.class)
+public @interface TempDir {
 }

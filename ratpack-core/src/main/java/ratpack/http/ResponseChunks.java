@@ -46,7 +46,7 @@ import java.nio.charset.Charset;
  *
  * import static ratpack.http.ResponseChunks.stringChunks;
  *
- * import static org.junit.Assert.assertEquals;
+ * import static org.junit.jupiter.api.Assertions.assertEquals;
  *
  * public class Example {
  *   public static void main(String[] args) throws Exception {

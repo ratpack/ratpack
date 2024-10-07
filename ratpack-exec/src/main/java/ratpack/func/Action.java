@@ -162,7 +162,7 @@ public interface Action<T> {
    * import ratpack.func.Action;
    * import java.util.ArrayList;
    *
-   * import static org.junit.Assert.assertEquals;
+   * import static org.junit.jupiter.api.Assertions.assertEquals;
    *
    * public class Example {
    *   public static void main(String... args) throws Exception {
@@ -188,7 +188,7 @@ public interface Action<T> {
    * import java.util.List;
    * import java.util.ArrayList;
    *
-   * import static org.junit.Assert.assertEquals;
+   * import static org.junit.jupiter.api.Assertions.assertEquals;
    *
    * public class Example {
    *   public static void main(String... args) throws Exception {

@@ -72,7 +72,7 @@ This implementation logs to an slf4j logger named `ratpack.requests`
 import ratpack.handling.RequestLogger;
 import ratpack.http.client.ReceivedResponse;
 import ratpack.test.embed.EmbeddedApp;
-import static org.junit.Assert.*;
+import static org.junit.jupiter.api.Assertions.*;
 
 public class Example {
   public static void main(String... args) throws Exception {

@@ -33,7 +33,7 @@ import java.time.temporal.ChronoUnit;
  * import ratpack.handling.ResponseTimer;
  * import ratpack.test.embed.EmbeddedApp;
  * import ratpack.http.client.ReceivedResponse;
- * import static org.junit.Assert.*;
+ * import static org.junit.jupiter.api.Assertions.*;
  *
  * public class Example {
  *   public static void main(String... args) throws Exception {

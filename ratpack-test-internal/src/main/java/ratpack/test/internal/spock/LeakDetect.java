@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 the original author or authors.
+ * Copyright 2022 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,23 +14,17 @@
  * limitations under the License.
  */
 
-package ratpack.test.internal.snippets
+package ratpack.test.internal.spock;
 
-import org.junit.runner.Runner
-import ratpack.test.internal.snippets.junit.SnippetRunner
+import org.spockframework.runtime.extension.ExtensionAnnotation;
 
-class DefaultCodeSnippetTests implements CodeSnippetTests {
+import java.lang.annotation.ElementType;
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
+import java.lang.annotation.Target;
 
-  private final Class<?> clazz
-  private final List<Runner> runners
-
-  DefaultCodeSnippetTests(Class<?> clazz, List<Runner> runners) {
-    this.clazz = clazz
-    this.runners = runners
-  }
-
-  void add(TestCodeSnippet snippet) {
-    runners.add(new SnippetRunner(clazz, snippet))
-  }
-
+@Retention(RetentionPolicy.RUNTIME)
+@Target({ElementType.TYPE, ElementType.METHOD})
+@ExtensionAnnotation(LeakDetectExtension.class)
+public @interface LeakDetect {
 }

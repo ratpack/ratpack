@@ -65,6 +65,7 @@ tasks.named("javadoc", Javadoc) {
 }
 
 tasks.withType(Test).configureEach {
+  useJUnitPlatform()
   systemProperty "io.netty.allocator.type", "unpooled"
   systemProperty "io.netty.leakDetectionLevel", "paranoid"
 

@@ -51,7 +51,7 @@ import java.io.OutputStream;
  * import com.fasterxml.jackson.databind.ObjectMapper;
  *
  * import static ratpack.jackson.Jackson.json;
- * import static org.junit.Assert.*;
+ * import static org.junit.jupiter.api.Assertions.*;
  *
  * public class Example {
  *
@@ -100,7 +100,7 @@ import java.io.OutputStream;
  * import static ratpack.util.Types.listOf;
  * import static ratpack.jackson.Jackson.jsonNode;
  * import static ratpack.jackson.Jackson.fromJson;
- * import static org.junit.Assert.*;
+ * import static org.junit.jupiter.api.Assertions.*;
  *
  * public class Example {
  *
@@ -160,7 +160,7 @@ import java.io.OutputStream;
  * import java.util.List;
  *
  * import static ratpack.util.Types.listOf;
- * import static org.junit.Assert.*;
+ * import static org.junit.jupiter.api.Assertions.*;
  *
  * public class Example {
  *
@@ -213,7 +213,7 @@ import java.io.OutputStream;
  * import java.util.Optional;
  *
  * import static ratpack.jackson.Jackson.json;
- * import static org.junit.Assert.*;
+ * import static org.junit.jupiter.api.Assertions.*;
  *
  * public class Example {
  *
@@ -442,7 +442,7 @@ public abstract class Jackson {
    * import java.util.Arrays;
    *
    * import static ratpack.jackson.Jackson.chunkedJsonList;
-   * import static org.junit.Assert.*;
+   * import static org.junit.jupiter.api.Assertions.*;
    *
    * public class Example {
    *   public static void main(String... args) throws Exception {

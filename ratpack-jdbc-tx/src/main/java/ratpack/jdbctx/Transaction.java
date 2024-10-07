@@ -44,7 +44,6 @@ import java.util.Optional;
  *
  * <pre class="java">{@code
  * import org.h2.jdbcx.JdbcDataSource;
- * import org.junit.Assert;
  * import ratpack.exec.Blocking;
  * import ratpack.exec.Operation;
  * import ratpack.func.Block;
@@ -60,6 +59,9 @@ import java.util.Optional;
  * import java.util.ArrayList;
  * import java.util.Arrays;
  * import java.util.List;
+ *
+ * import static org.junit.jupiter.api.Assertions.assertEquals;
+ * import static org.junit.jupiter.api.Assertions.assertSame;
  *
  * public class Example {
  *
@@ -124,7 +126,7 @@ import java.util.Optional;
  *           return actual;
  *         }
  *       })
- *         .then(actual -> Assert.assertEquals(Arrays.asList(expected), actual));
+ *         .then(actual -> assertEquals(Arrays.asList(expected), actual));
  *   }
  *
  *   // BEGIN EXAMPLES
@@ -142,7 +144,7 @@ import java.util.Optional;
  *         })
  *     )
  *       .onError(e -> {
- *         Assert.assertSame(e, exception);
+ *         assertSame(e, exception);
  *         Operation.of(assertValues()).then();
  *       })
  *       .then(() -> {

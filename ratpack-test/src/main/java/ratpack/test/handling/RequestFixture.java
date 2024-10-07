@@ -55,7 +55,7 @@ public interface RequestFixture {
    * import ratpack.test.handling.RequestFixture;
    * import ratpack.test.handling.HandlingResult;
    *
-   * import static org.junit.Assert.assertEquals;
+   * import static org.junit.jupiter.api.Assertions.assertEquals;
    *
    * public class Example {
    *
@@ -101,7 +101,7 @@ public interface RequestFixture {
    * import ratpack.test.handling.RequestFixture;
    * import ratpack.test.handling.HandlingResult;
    *
-   * import static org.junit.Assert.assertEquals;
+   * import static org.junit.jupiter.api.Assertions.assertEquals;
    *
    * public class Example {
    *

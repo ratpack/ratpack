@@ -43,7 +43,7 @@ class RatpackVersion {
   }
 
   static List<RatpackVersion> fromJson(JsonNode nodes) {
-    def milestonesBuilder = new ImmutableList.Builder()
+    ImmutableList.Builder<RatpackVersion> milestonesBuilder = new ImmutableList.Builder()
 
     for (node in nodes) {
       String title = node.get("title").asText()
