@@ -113,7 +113,7 @@ public interface RatpackServerSpec {
    * import ratpack.core.handling.Handler;
    * import ratpack.test.embed.EmbeddedApp;
    *
-   * import javax.inject.Inject;
+   * import jakarta.inject.Inject;
    *
    * import static org.junit.jupiter.api.Assertions.assertEquals;
    *

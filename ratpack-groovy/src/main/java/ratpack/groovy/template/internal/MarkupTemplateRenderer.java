@@ -27,7 +27,7 @@ import ratpack.groovy.template.MarkupTemplate;
 import ratpack.core.handling.Context;
 import ratpack.core.render.RendererSupport;
 
-import javax.inject.Inject;
+import jakarta.inject.Inject;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.io.OutputStreamWriter;

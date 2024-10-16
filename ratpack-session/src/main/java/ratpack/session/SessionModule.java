@@ -35,7 +35,7 @@ import ratpack.core.http.Response;
 import ratpack.session.internal.*;
 import ratpack.func.Types;
 
-import javax.inject.Named;
+import jakarta.inject.Named;
 import java.io.Serializable;
 import java.util.HashSet;
 import java.util.Set;

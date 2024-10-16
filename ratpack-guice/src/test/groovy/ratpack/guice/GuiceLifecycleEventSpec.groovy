@@ -20,7 +20,7 @@ import ratpack.core.service.Service
 import ratpack.core.service.StartEvent
 import ratpack.test.internal.RatpackGroovyDslSpec
 
-import javax.inject.Inject
+import jakarta.inject.Inject
 
 class GuiceLifecycleEventSpec extends RatpackGroovyDslSpec {
 

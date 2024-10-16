@@ -21,7 +21,7 @@ import ratpack.core.handling.Context;
 import ratpack.core.render.RendererSupport;
 import ratpack.thymeleaf3.Template;
 
-import javax.inject.Inject;
+import jakarta.inject.Inject;
 
 public final class Thymeleaf3TemplateRenderer extends RendererSupport<Template> {
 

@@ -22,7 +22,7 @@ import ratpack.exec.Promise;
 import ratpack.config.FileSystemBinding;
 import ratpack.groovy.script.internal.ScriptEngine;
 
-import javax.inject.Inject;
+import jakarta.inject.Inject;
 import java.io.IOException;
 import java.io.UncheckedIOException;
 import java.nio.file.Files;

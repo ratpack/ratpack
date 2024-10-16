@@ -22,7 +22,7 @@ import ratpack.handlebars.Template;
 import ratpack.core.handling.Context;
 import ratpack.core.render.RendererSupport;
 
-import javax.inject.Inject;
+import jakarta.inject.Inject;
 import java.io.IOException;
 
 public class HandlebarsTemplateRenderer extends RendererSupport<Template> {

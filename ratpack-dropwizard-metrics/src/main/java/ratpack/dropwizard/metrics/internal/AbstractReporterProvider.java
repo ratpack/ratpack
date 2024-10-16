@@ -18,7 +18,7 @@ package ratpack.dropwizard.metrics.internal;
 
 import com.codahale.metrics.MetricRegistry;
 import com.codahale.metrics.Reporter;
-import com.google.inject.Provider;
+import jakarta.inject.Provider;
 import ratpack.dropwizard.metrics.DropwizardMetricsConfig;
 import ratpack.dropwizard.metrics.ReporterConfigSupport;
 

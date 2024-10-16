@@ -19,15 +19,15 @@ package ratpack.guice
 import com.google.inject.Binder
 import com.google.inject.Injector
 import com.google.inject.Module
-import com.google.inject.Provider
 import com.google.inject.Provides
 import com.google.inject.multibindings.OptionalBinder
-import ratpack.func.Nullable
-import ratpack.func.Action
-import ratpack.groovy.internal.ClosureUtil
+import jakarta.inject.Provider
+import ratpack.core.server.ServerConfig
 import ratpack.exec.registry.Registry
 import ratpack.exec.registry.RegistrySpec
-import ratpack.core.server.ServerConfig
+import ratpack.func.Action
+import ratpack.func.Nullable
+import ratpack.groovy.internal.ClosureUtil
 import ratpack.test.internal.registry.RegistryContractSpec
 
 class GuiceRegistrySpec extends RegistryContractSpec {
@@ -107,7 +107,7 @@ class GuiceRegistrySpec extends RegistryContractSpec {
     given:
     Registry reg = Guice.registry(com.google.inject.Guice.createInjector(new Module() {
       @Override
-      void configure(Binder binder) { }
+      void configure(Binder binder) {}
 
       @Provides
       String stringProvider() {
@@ -141,7 +141,7 @@ class GuiceRegistrySpec extends RegistryContractSpec {
     given:
     Registry reg = Guice.registry(com.google.inject.Guice.createInjector(new Module() {
       @Override
-      void configure(Binder binder) { }
+      void configure(Binder binder) {}
 
       @Provides
       Optional<String> stringProvider() {

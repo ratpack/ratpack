@@ -18,11 +18,15 @@ package ratpack.guice.internal;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.reflect.TypeToken;
-import com.google.inject.*;
+import com.google.inject.Binding;
+import com.google.inject.Injector;
+import com.google.inject.Key;
+import com.google.inject.TypeLiteral;
+import jakarta.inject.Provider;
 import ratpack.func.Action;
 import ratpack.func.Function;
-import ratpack.func.internal.TypeCaching;
 import ratpack.func.Types;
+import ratpack.func.internal.TypeCaching;
 
 import java.util.Map;
 import java.util.concurrent.ConcurrentMap;

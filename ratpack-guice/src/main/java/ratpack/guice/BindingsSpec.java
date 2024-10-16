@@ -19,7 +19,7 @@ package ratpack.guice;
 import com.google.common.reflect.TypeToken;
 import com.google.inject.Binder;
 import com.google.inject.Module;
-import com.google.inject.Provider;
+import jakarta.inject.Provider;
 import com.google.inject.TypeLiteral;
 import com.google.inject.multibindings.Multibinder;
 import ratpack.func.Action;

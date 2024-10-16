@@ -21,7 +21,7 @@ import com.zaxxer.hikari.pool.HikariPool
 import ratpack.core.health.HealthCheckHandler
 import ratpack.test.internal.RatpackGroovyDslSpec
 
-import javax.inject.Inject
+import jakarta.inject.Inject
 import java.time.Duration
 
 class HikariHealthCheckSpec extends RatpackGroovyDslSpec {

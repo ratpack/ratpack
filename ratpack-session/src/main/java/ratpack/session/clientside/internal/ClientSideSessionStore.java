@@ -41,7 +41,7 @@ import ratpack.session.clientside.ClientSideSessionConfig;
 import ratpack.session.clientside.Crypto;
 import ratpack.session.clientside.Signer;
 
-import javax.inject.Provider;
+import jakarta.inject.Provider;
 import java.nio.CharBuffer;
 import java.util.Optional;
 import java.util.regex.Pattern;

@@ -21,7 +21,7 @@ import com.google.common.collect.ImmutableList
 import groovy.transform.CompileStatic
 import ratpack.exec.Promise
 
-import javax.inject.Inject
+import jakarta.inject.Inject
 
 @CompileStatic
 @com.google.inject.Singleton

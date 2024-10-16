@@ -147,7 +147,7 @@ import ratpack.func.Action;
  * import ratpack.core.service.StopEvent;
  * import ratpack.guice.Guice;
  * import ratpack.func.Types;
- * import javax.inject.Inject;
+ * import jakarta.inject.Inject;
  *
  * import java.util.List;
  * import java.util.LinkedList;

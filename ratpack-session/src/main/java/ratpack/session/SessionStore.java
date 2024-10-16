@@ -57,7 +57,7 @@ import ratpack.exec.Promise;
  * import ratpack.test.embed.EphemeralBaseDir;
  * import ratpack.test.embed.EmbeddedApp;
  *
- * import javax.inject.Inject;
+ * import jakarta.inject.Inject;
  * import java.io.File;
  * import java.io.IOException;
  * import java.util.Arrays;

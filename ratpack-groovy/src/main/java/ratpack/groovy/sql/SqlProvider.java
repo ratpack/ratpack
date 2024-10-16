@@ -18,8 +18,8 @@ package ratpack.groovy.sql;
 
 import groovy.sql.Sql;
 
-import javax.inject.Inject;
-import javax.inject.Provider;
+import jakarta.inject.Inject;
+import jakarta.inject.Provider;
 import javax.sql.DataSource;
 
 public class SqlProvider implements Provider<Sql> {

@@ -22,7 +22,7 @@ import com.codahale.metrics.jmx.JmxReporter;
 import ratpack.dropwizard.metrics.DropwizardMetricsConfig;
 import ratpack.dropwizard.metrics.JmxConfig;
 
-import javax.inject.Inject;
+import jakarta.inject.Inject;
 
 /**
  * A Provider implementation that sets up a {@link JmxReporter} for a {@link MetricRegistry}.

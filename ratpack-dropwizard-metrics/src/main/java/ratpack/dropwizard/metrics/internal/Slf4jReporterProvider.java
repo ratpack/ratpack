@@ -20,7 +20,7 @@ import com.codahale.metrics.MetricRegistry;
 import ratpack.dropwizard.metrics.DropwizardMetricsConfig;
 import ratpack.dropwizard.metrics.Slf4jConfig;
 
-import javax.inject.Inject;
+import jakarta.inject.Inject;
 
 /**
  * A Provider implementation that sets up a {@link Slf4jReporter} for a {@link MetricRegistry}.

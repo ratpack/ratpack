@@ -19,7 +19,7 @@ package ratpack.guice
 import com.google.inject.AbstractModule
 import ratpack.test.internal.RatpackGroovyDslSpec
 
-import javax.inject.Provider
+import jakarta.inject.Provider
 
 class BindingsSpecSpec extends RatpackGroovyDslSpec {
 

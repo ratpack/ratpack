@@ -22,14 +22,14 @@ import com.google.common.reflect.Invokable;
 import com.google.common.reflect.TypeToken;
 import com.google.inject.AbstractModule;
 import com.google.inject.Provides;
+import jakarta.inject.Singleton;
 import ratpack.config.ConfigObject;
-import ratpack.func.Action;
-import ratpack.func.Factory;
 import ratpack.core.server.ServerConfig;
+import ratpack.func.Action;
 import ratpack.func.Exceptions;
+import ratpack.func.Factory;
 import ratpack.func.Types;
 
-import javax.inject.Singleton;
 import java.lang.reflect.Constructor;
 
 /**
