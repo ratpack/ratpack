@@ -120,6 +120,22 @@ class OperationSpec extends BaseRatpackSpec {
     e.suppressed.length == 0
   }
 
+  def "wiretap of failed operation propagates failure"() {
+    when:
+    exec.execute {
+      Operation.error(new RuntimeException("!"))
+        .wiretap {
+          events << "error"
+        }
+    }
+
+    then:
+    events == ["error"]
+    def e = thrown(RuntimeException)
+    e.message == "!"
+    e.suppressed.length == 0
+  }
+
   private <T> Promise<T> async(T t) {
     Promise.async { f -> Thread.start { f.success(t) } }
   }

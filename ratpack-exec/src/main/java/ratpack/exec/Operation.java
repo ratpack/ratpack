@@ -469,7 +469,12 @@ public interface Operation extends Upstream<Void> {
           down.error(t);
           return;
         }
-        down.success(null);
+
+        if (signal.isPresent()) {
+          down.error(signal.get());
+        } else {
+          down.success(null);
+        }
       }
 
       @Override
