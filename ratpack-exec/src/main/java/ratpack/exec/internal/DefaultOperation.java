@@ -19,7 +19,6 @@ package ratpack.exec.internal;
 import ratpack.exec.*;
 import ratpack.func.Block;
 import ratpack.func.Function;
-import ratpack.util.Exceptions;
 
 public class DefaultOperation implements Operation {
 
@@ -44,11 +43,13 @@ public class DefaultOperation implements Operation {
 
   @Override
   public Operation transform(Function<? super Upstream<Void>, ? extends Upstream<Void>> upstreamTransformer) {
+    Upstream<Void> transformedUpstream;
     try {
-      return new DefaultOperation(upstreamTransformer.apply(upstream));
+      transformedUpstream = upstreamTransformer.apply(upstream);
     } catch (Throwable e) {
-      throw Exceptions.uncheck(e);
+      return Operation.error(e);
     }
+    return new DefaultOperation(transformedUpstream);
   }
 
   @Override

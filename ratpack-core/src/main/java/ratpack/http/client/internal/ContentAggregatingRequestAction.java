@@ -61,7 +61,7 @@ class ContentAggregatingRequestAction extends RequestActionSupport<ReceivedRespo
     p.addLast(RESPONSE_HANDLER_NAME, new SimpleChannelInboundHandler<FullHttpResponse>(false) {
 
       @Override
-      protected void channelRead0(ChannelHandlerContext ctx, FullHttpResponse response) throws Exception {
+      protected void channelRead0(ChannelHandlerContext ctx, FullHttpResponse response) {
         response.touch();
         Throwable decoderFailure = response.decoderResult().cause();
         if (decoderFailure != null) {
@@ -94,7 +94,7 @@ class ContentAggregatingRequestAction extends RequestActionSupport<ReceivedRespo
       }
 
       @Override
-      public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) throws Exception {
+      public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) {
         Throwable decorated = decorateException(cause);
         forceDispose(ctx.pipeline()).addListener(future -> {
           if (!future.isSuccess()) {

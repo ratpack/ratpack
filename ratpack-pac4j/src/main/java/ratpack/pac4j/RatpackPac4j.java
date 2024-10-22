@@ -64,6 +64,7 @@ import static java.util.Arrays.asList;
  * This can be used for requiring authentication for all requests starting with a particular request path for example.
  * <p>
  * The {@link #userProfile(Context)}, {@link #login(Context, Class)} and {@link #logout(Context)} methods provide programmatic authentication mechanisms.
+ *
  * @deprecated since 1.7.0. Use <a href="https://github.com/pac4j/ratpack-pac4j">Ratpack Pac4j upstream</a> instead.
  */
 @Deprecated
@@ -397,18 +398,20 @@ public class RatpackPac4j {
    * @see #userProfile(Context)
    */
   public static <T extends UserProfile> Promise<Optional<T>> userProfile(Context ctx, Class<T> type) {
-    return Promise.async(f ->
-      toProfile(type, f, ctx.maybeGet(UserProfile.class), () ->
-        ctx.get(Session.class)
-          .get(Pac4jSessionKeys.USER_PROFILE)
-          .then(p -> {
-            if (p.isPresent()) {
-              ctx.getRequest().add(UserId.class, UserId.of(p.get().getId()));
-            }
-            toProfile(type, f, p, () -> f.success(Optional.<T>empty()));
-          })
-      )
-    );
+    return Promise.async(f -> {
+      try {
+        toProfile(type, f, ctx.maybeGet(UserProfile.class), () ->
+          ctx.get(Session.class)
+            .get(Pac4jSessionKeys.USER_PROFILE)
+            .then(p -> {
+              p.ifPresent(userProfile -> ctx.getRequest().add(UserId.class, UserId.of(userProfile.getId())));
+              toProfile(type, f, p, () -> f.success(Optional.empty()));
+            })
+        );
+      } catch (Throwable e) {
+        f.error(e);
+      }
+    });
   }
 
   /**

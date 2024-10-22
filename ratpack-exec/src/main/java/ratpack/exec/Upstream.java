@@ -37,8 +37,7 @@ public interface Upstream<T> {
    * Connect the downstream.
    *
    * @param downstream the downstream to emit data to
-   * @throws Exception any
    */
-  void connect(Downstream<? super T> downstream) throws Exception;
+  void connect(Downstream<? super T> downstream);
 
 }

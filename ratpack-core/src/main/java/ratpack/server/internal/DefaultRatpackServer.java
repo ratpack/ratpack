@@ -604,7 +604,13 @@ public class DefaultRatpackServer implements RatpackServer {
                 if (inner == null || Objects.requireNonNull(applicationState.definitionBuild).error != null) {
                   rebuild = true;
                 } else if (msg instanceof HttpRequest) {
-                  Optional<ReloadInformant> reloadInformant = applicationState.serverRegistry.first(RELOAD_INFORMANT_TYPE, r -> r.shouldReload(applicationState.serverRegistry) ? r : null);
+                  Optional<ReloadInformant> reloadInformant;
+                  try {
+                    reloadInformant = applicationState.serverRegistry.first(RELOAD_INFORMANT_TYPE, r -> r.shouldReload(applicationState.serverRegistry) ? r : null);
+                  } catch (Exception ex) {
+                    f.error(ex);
+                    return;
+                  }
                   if (reloadInformant.isPresent()) {
                     LOGGER.debug("reload requested by '" + reloadInformant.get() + "'");
                     rebuild = true;

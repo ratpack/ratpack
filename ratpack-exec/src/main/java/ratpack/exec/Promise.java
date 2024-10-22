@@ -95,7 +95,7 @@ public interface Promise<T> extends Upstream<T> {
     if (upstream instanceof Promise) {
       return (Promise<T>) upstream;
     } else {
-      return DefaultPromise.of(WrappedUserUpstream.of(upstream));
+      return DefaultPromise.of(DelimitedUpstream.of(upstream));
     }
   }
 
@@ -1805,13 +1805,11 @@ public interface Promise<T> extends Upstream<T> {
    * @return a deferred promise
    */
   default Promise<T> defer(Action<? super Runnable> releaser) {
-    return transform(up -> down ->
-      Promise.async(innerDown ->
-        releaser.execute((Runnable) () -> innerDown.success(true))
-      ).then(v ->
-        up.connect(down)
+    return transform(up -> DelimitedUpstream.of(down ->
+      DefaultExecution.require().delimit(down::error, continuation ->
+        releaser.execute((Runnable) () -> continuation.resume(() -> up.connect(down)))
       )
-    );
+    ));
   }
 
   /**

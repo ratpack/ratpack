@@ -263,7 +263,23 @@ public class DefaultHttpClient implements HttpClientInternal {
   @Override
   public Promise<ReceivedResponse> request(URI uri, final Action<? super RequestSpec> requestConfigurer) {
     return intercept(
-      Promise.async(downstream -> new ContentAggregatingRequestAction(uri, this, 0, false, Execution.current(), requestConfigurer.append(requestInterceptor)).connect(downstream)),
+      Promise.async(downstream -> {
+        ContentAggregatingRequestAction action;
+        try {
+          action = new ContentAggregatingRequestAction(
+            uri,
+            this,
+            0,
+            false,
+            Execution.current(),
+            requestConfigurer.append(requestInterceptor)
+          );
+        } catch (Exception e) {
+          downstream.error(e);
+          return;
+        }
+        action.connect(downstream);
+      }),
       responseInterceptor,
       errorInterceptor
     );
@@ -272,7 +288,23 @@ public class DefaultHttpClient implements HttpClientInternal {
   @Override
   public Promise<StreamedResponse> requestStream(URI uri, Action<? super RequestSpec> requestConfigurer) {
     return intercept(
-      Promise.async(downstream -> new ContentStreamingRequestAction(uri, this, 0, false, Execution.current(), requestConfigurer.append(requestInterceptor)).connect(downstream)),
+      Promise.async(downstream -> {
+        ContentStreamingRequestAction action;
+        try {
+          action = new ContentStreamingRequestAction(
+            uri,
+            this,
+            0,
+            false,
+            Execution.current(),
+            requestConfigurer.append(requestInterceptor)
+          );
+        } catch (Exception e) {
+          downstream.error(e);
+          return;
+        }
+        action.connect(downstream);
+      }),
       responseInterceptor,
       errorInterceptor
     );

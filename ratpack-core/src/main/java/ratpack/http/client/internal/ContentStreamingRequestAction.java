@@ -86,7 +86,7 @@ public class ContentStreamingRequestAction extends RequestActionSupport<Streamed
     }
 
     @Override
-    protected void channelRead0(ChannelHandlerContext ctx, HttpObject httpObject) throws Exception {
+    protected void channelRead0(ChannelHandlerContext ctx, HttpObject httpObject) {
       Throwable decoderFailure = httpObject.decoderResult().cause();
       if (decoderFailure != null) {
         ReferenceCountUtil.release(httpObject);

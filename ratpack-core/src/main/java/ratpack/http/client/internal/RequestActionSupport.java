@@ -104,7 +104,7 @@ abstract class RequestActionSupport<T> implements Upstream<T> {
   protected abstract void addResponseHandlers(ChannelPipeline p, Downstream<? super T> downstream);
 
   @Override
-  public void connect(final Downstream<? super T> downstream) throws Exception {
+  public void connect(final Downstream<? super T> downstream) {
     channelPool.acquire().addListener(acquireFuture -> {
       if (acquireFuture.isSuccess()) {
         Channel channel = (Channel) acquireFuture.getNow();

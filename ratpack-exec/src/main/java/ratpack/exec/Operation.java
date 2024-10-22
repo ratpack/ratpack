@@ -19,7 +19,7 @@ package ratpack.exec;
 import ratpack.api.NonBlocking;
 import ratpack.exec.internal.DefaultExecution;
 import ratpack.exec.internal.DefaultOperation;
-import ratpack.exec.internal.WrappedUserUpstream;
+import ratpack.exec.internal.DelimitedUpstream;
 import ratpack.func.*;
 
 import java.util.Optional;
@@ -72,7 +72,7 @@ public interface Operation extends Upstream<Void> {
     if (upstream instanceof Operation) {
       return (Operation) upstream;
     } else {
-      return DefaultOperation.of(WrappedUserUpstream.of(upstream));
+      return DefaultOperation.of(DelimitedUpstream.of(upstream));
     }
   }
 

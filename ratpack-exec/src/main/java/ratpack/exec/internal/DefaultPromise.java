@@ -19,7 +19,6 @@ package ratpack.exec.internal;
 import ratpack.exec.*;
 import ratpack.exec.util.retry.RetryPolicy;
 import ratpack.func.*;
-import ratpack.util.Exceptions;
 
 import java.time.Duration;
 
@@ -84,11 +83,13 @@ public class DefaultPromise<T> implements Promise<T> {
 
   @Override
   public <O> Promise<O> transform(Function<? super Upstream<? extends T>, ? extends Upstream<O>> upstreamTransformer) {
+    Upstream<O> transformedUpstream;
     try {
-      return new DefaultPromise<>(upstreamTransformer.apply(upstream));
+      transformedUpstream = upstreamTransformer.apply(upstream);
     } catch (Throwable e) {
-      throw Exceptions.uncheck(e);
+      return Promise.error(e);
     }
+    return new DefaultPromise<>(transformedUpstream);
   }
 
   @Override
@@ -100,7 +101,7 @@ public class DefaultPromise<T> implements Promise<T> {
     }
   }
 
-  public static <T> void retryAttempt(int attemptNum, int maxAttempts, Upstream<? extends T> up, Downstream<? super T> down, BiFunction<? super Integer, ? super Throwable, Promise<Duration>> onError) throws Exception {
+  public static <T> void retryAttempt(int attemptNum, int maxAttempts, Upstream<? extends T> up, Downstream<? super T> down, BiFunction<? super Integer, ? super Throwable, Promise<Duration>> onError) {
     up.connect(down.onError(e -> {
       if (attemptNum > maxAttempts) {
         down.error(e);
@@ -135,7 +136,7 @@ public class DefaultPromise<T> implements Promise<T> {
     }));
   }
 
-  public static <T> void retry(Predicate<? super Throwable> predicate, RetryPolicy retryPolicy, Upstream<? extends T> up, Downstream<? super T> down, BiAction<? super Integer, ? super Throwable> onError) throws Exception {
+  public static <T> void retry(Predicate<? super Throwable> predicate, RetryPolicy retryPolicy, Upstream<? extends T> up, Downstream<? super T> down, BiAction<? super Integer, ? super Throwable> onError) {
     up.connect(down.onError(e -> {
       if (predicate.apply(e)) {
         if (retryPolicy.isExhausted()) {
