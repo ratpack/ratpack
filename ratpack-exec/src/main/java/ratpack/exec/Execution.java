@@ -178,8 +178,8 @@ public interface Execution extends MutableRegistry {
   /**
    * A ref to the execution that forked this execution.
    *
-   * @throws IllegalStateException if this is a top level exception with no parent
    * @return a ref to the execution that forked this execution
+   * @throws IllegalStateException if this is a top level exception with no parent
    * @see #maybeParent()
    * @since 1.6
    */
@@ -314,13 +314,13 @@ public interface Execution extends MutableRegistry {
       if (duration.isZero()) {
         return Operation.noop();
       } else {
-        return Promise.async(down -> {
+        return Operation.async(down -> {
           try {
             current().getEventLoop().schedule(() -> down.success(null), duration.toNanos(), TimeUnit.NANOSECONDS);
           } catch (Throwable e) {
             down.error(e);
           }
-        }).operation();
+        });
       }
     }
   }

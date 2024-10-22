@@ -32,9 +32,9 @@ class HealthCheckHandlerSpec extends RatpackGroovyDslSpec {
   static class HealthCheckFooHealthy implements HealthCheck {
     String getName() { return "foo" }
 
-    Promise<HealthCheck.Result> check(Registry registry) throws Exception {
+    Promise<Result> check(Registry registry) throws Exception {
       return Promise.async { f ->
-        f.success(HealthCheck.Result.healthy())
+        f.success(Result.healthy())
       }
     }
   }
@@ -42,9 +42,9 @@ class HealthCheckHandlerSpec extends RatpackGroovyDslSpec {
   static class HealthCheckBarHealthy implements HealthCheck {
     String getName() { return "bar" }
 
-    Promise<HealthCheck.Result> check(Registry registry) throws Exception {
+    Promise<Result> check(Registry registry) throws Exception {
       return Promise.async { f ->
-        f.success(HealthCheck.Result.healthy())
+        f.success(Result.healthy())
       }
     }
   }
@@ -52,9 +52,9 @@ class HealthCheckHandlerSpec extends RatpackGroovyDslSpec {
   static class HealthCheckFooUnhealthy implements HealthCheck {
     String getName() { return "foo" }
 
-    Promise<HealthCheck.Result> check(Registry registry) throws Exception {
+    Promise<Result> check(Registry registry) throws Exception {
       return Promise.async { f ->
-        f.success(HealthCheck.Result.unhealthy("EXECUTION TIMEOUT"))
+        f.success(Result.unhealthy("EXECUTION TIMEOUT"))
       }
     }
   }
@@ -62,7 +62,7 @@ class HealthCheckHandlerSpec extends RatpackGroovyDslSpec {
   static class HealthCheckFooUnhealthy2 implements HealthCheck {
     String getName() { return "foo" }
 
-    Promise<HealthCheck.Result> check(Registry registry) throws Exception {
+    Promise<Result> check(Registry registry) throws Exception {
       throw new Exception("EXCEPTION PROMISE CREATION")
     }
   }
@@ -82,13 +82,13 @@ class HealthCheckHandlerSpec extends RatpackGroovyDslSpec {
 
     String getName() { return this.name }
 
-    Promise<HealthCheck.Result> check(Registry registry) throws Exception {
+    Promise<Result> check(Registry registry) throws Exception {
       return Promise.async { f ->
         if (waitingFor) {
           waitingFor.await()
         }
         output << name
-        f.success(HealthCheck.Result.healthy())
+        f.success(Result.healthy())
         if (finalized) {
           finalized.countDown()
         }
@@ -210,7 +210,7 @@ class HealthCheckHandlerSpec extends RatpackGroovyDslSpec {
     bindings {
       bindInstance(HealthCheck, HealthCheck.of("bar") {
         Promise.async { f ->
-          throw new Exception("EXCEPTION FROM PROMISE")
+          throw new RuntimeException("EXCEPTION FROM PROMISE")
         }
       })
     }
