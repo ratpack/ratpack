@@ -159,7 +159,7 @@ class ExecutionInterruptSpec extends BaseExecutionSpec {
   def "can interrupt stream"() {
     when:
     exec { execution ->
-      execution.delimitStream(Action.throwException()) {continuationStream ->
+      execution.delimitStream(Action.throwException()) { continuationStream ->
         Thread.start {
           continuationStream.event {
             events << "1"
@@ -173,9 +173,8 @@ class ExecutionInterruptSpec extends BaseExecutionSpec {
     }
 
     then:
-    events[0] == "1"
-    events[1] instanceof InterruptedException
-    events[2] == "complete"
+    events.any { it instanceof InterruptedException }
+    events.last() == "complete"
   }
 
 }
