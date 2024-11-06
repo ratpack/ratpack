@@ -139,26 +139,17 @@ public class DefaultExecution implements Execution {
     return eventLoop;
   }
 
-  private void assertIsBound() {
-    if (!isBound()) {
-      throw new IllegalStateException("not bound");
-    }
-  }
-
   public void delimit(Action<? super Throwable> onError, Action<? super Continuation> segment) {
-    assertIsBound();
     execStream.delimit(onError, segment);
     drain();
   }
 
   public void delimitStream(Action<? super Throwable> onError, Action<? super ContinuationStream> segment) {
-    assertIsBound();
     execStream.delimitStream(onError, segment);
     drain();
   }
 
   public void error(Throwable throwable) {
-    assertIsBound();
     execStream.error(throwable);
     drain();
   }
