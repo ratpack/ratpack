@@ -16,6 +16,7 @@
 
 package ratpack.exec
 
+import ratpack.exec.internal.DefaultExecution
 import ratpack.func.Action
 import ratpack.test.exec.ExecHarness
 import ratpack.test.internal.BaseRatpackSpec
@@ -31,7 +32,7 @@ class BaseExecutionSpec extends BaseRatpackSpec {
   List<Object> events = [].asSynchronized()
   def latch = new CountDownLatch(1)
 
-  def exec(Action<? super Execution> action, Action<? super Throwable> onError = { events << it }) {
+  def exec(Action<? super DefaultExecution> action, Action<? super Throwable> onError = { events << it }) {
     execStarter { it.onError(onError).start(action) }
   }
 

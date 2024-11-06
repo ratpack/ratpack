@@ -16,6 +16,8 @@
 
 package ratpack.exec
 
+import ratpack.func.Action
+
 class ExecutionInterruptSpec extends BaseExecutionSpec {
 
   def "can interrupt sync promise"() {
@@ -152,6 +154,28 @@ class ExecutionInterruptSpec extends BaseExecutionSpec {
     events[1] == "async"
     events[2] == 2
     events[3] == "complete"
+  }
+
+  def "can interrupt stream"() {
+    when:
+    exec { execution ->
+      execution.delimitStream(Action.throwException()) {continuationStream ->
+        Thread.start {
+          continuationStream.event {
+            events << "1"
+          }
+          execution.interrupt()
+          continuationStream.event {
+            events << "2"
+          }
+        }
+      }
+    }
+
+    then:
+    events[0] == "1"
+    events[1] instanceof InterruptedException
+    events[2] == "complete"
   }
 
 }
