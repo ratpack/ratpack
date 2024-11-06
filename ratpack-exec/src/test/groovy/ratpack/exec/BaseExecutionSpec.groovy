@@ -39,8 +39,9 @@ class BaseExecutionSpec extends BaseRatpackSpec {
     def spec = execHarness.controller.fork()
       .onError { events << it }
       .onComplete {
-      events << "complete"; latch.countDown()
-    }
+        events << "complete"
+        latch.countDown()
+      }
 
     exec.execute(spec)
 

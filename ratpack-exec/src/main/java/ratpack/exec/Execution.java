@@ -325,4 +325,23 @@ public interface Execution extends MutableRegistry {
     }
   }
 
+  /**
+   * Interrupts the execution typically causing the propagation of {@link InterruptedException}.
+   * <p>
+   * Interrupting an execution will cause the thread bound to the execution to be interrupted.
+   * This means that blocking operations occurring via {@link Blocking} will exhibit typical interrupt behaviour.
+   * <p>
+   * If the execution is suspended due to waiting for the return of some asynchronous operation,
+   * the execution will propagate {@link InterruptedException} immediately and ignore the resumption initiated
+   * when the async operation completes.
+   * <p>
+   * Interruption can be initiated from any thread.
+   * <p>
+   * Interruption does not guarantee that the execution halts completely.
+   * As with standard thread interruption, more work may be initiated as the {@link InterruptedException} propagates.
+   * It may be necessary to interrupt an execution several times to force it to complete.
+   *
+   * @since 1.10
+   */
+  void interrupt();
 }

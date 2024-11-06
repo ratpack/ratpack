@@ -38,6 +38,7 @@ import ratpack.registry.internal.DefaultMutableRegistry;
 import ratpack.stream.TransformablePublisher;
 
 import java.util.*;
+import java.util.concurrent.atomic.AtomicIntegerFieldUpdater;
 import java.util.function.Supplier;
 
 @SuppressWarnings("UnstableApiUsage")
@@ -60,7 +61,9 @@ public class DefaultExecution implements Execution {
   private List<ExecInterceptor> adhocInterceptors;
   private Iterable<? extends ExecInterceptor> interceptors;
 
-  private Thread thread;
+  private volatile Thread thread;
+  private static final AtomicIntegerFieldUpdater<DefaultExecution> PENDING_INTERRUPT_UPDATER = AtomicIntegerFieldUpdater.newUpdater(DefaultExecution.class, "pendingInterrupt");
+  private volatile int pendingInterrupt;
 
   public DefaultExecution(
     ExecController controller,
@@ -136,17 +139,26 @@ public class DefaultExecution implements Execution {
     return eventLoop;
   }
 
+  private void assertIsBound() {
+    if (!isBound()) {
+      throw new IllegalStateException("not bound");
+    }
+  }
+
   public void delimit(Action<? super Throwable> onError, Action<? super Continuation> segment) {
+    assertIsBound();
     execStream.delimit(onError, segment);
     drain();
   }
 
   public void delimitStream(Action<? super Throwable> onError, Action<? super ContinuationStream> segment) {
+    assertIsBound();
     execStream.delimitStream(onError, segment);
     drain();
   }
 
   public void error(Throwable throwable) {
+    assertIsBound();
     execStream.error(throwable);
     drain();
   }
@@ -193,10 +205,16 @@ public class DefaultExecution implements Execution {
   public void unbindFromThread() {
     thread = null;
     ExecThreadBinding.require().setExecution(null);
+    if (Thread.interrupted()) {
+      interrupt();
+    }
   }
 
   public void bindToThread() {
     thread = Thread.currentThread();
+    if (PENDING_INTERRUPT_UPDATER.compareAndSet(this, 1, 0)) {
+      thread.interrupt();
+    }
     ExecThreadBinding.require().setExecution(this);
   }
 
@@ -252,12 +270,16 @@ public class DefaultExecution implements Execution {
 
   private void exec() {
     while (true) {
-      try {
-        if (!(execStream.exec())) {
-          break;
+      if (Thread.interrupted()) {
+        execStream.error(new InterruptedException());
+      } else {
+        try {
+          if (!(execStream.exec())) {
+            break;
+          }
+        } catch (Throwable segmentError) {
+          execStream.error(segmentError);
         }
-      } catch (Throwable segmentError) {
-        execStream.error(segmentError);
       }
     }
 
@@ -273,7 +295,7 @@ public class DefaultExecution implements Execution {
           try {
             closeable.close();
           } catch (Throwable e) {
-            LOGGER.warn("exception raised by execution closeable " + closeable, e);
+            LOGGER.warn("exception raised by execution closeable {}", closeable, e);
           }
         }
       }
@@ -320,6 +342,17 @@ public class DefaultExecution implements Execution {
     }
     adhocInterceptors.add(execInterceptor);
     execInterceptor.intercept(this, ExecInterceptor.ExecType.COMPUTE, continuation);
+  }
+
+  @Override
+  public void interrupt() {
+    Thread thread = this.thread;
+    if (thread == null) {
+      PENDING_INTERRUPT_UPDATER.set(this, 1);
+      drain();
+    } else {
+      thread.interrupt();
+    }
   }
 
   @Override
@@ -498,7 +531,7 @@ public class DefaultExecution implements Execution {
       try {
         onError.execute(throwable);
       } catch (Throwable errorHandlerError) {
-        LOGGER.error("error handler " + onError + " threw error (this execution will terminate):", errorHandlerError);
+        LOGGER.error("error handler {} threw error (this execution will terminate):", onError, errorHandlerError);
         execStream = TerminalExecStream.INSTANCE;
       }
     }
