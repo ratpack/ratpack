@@ -19,6 +19,10 @@ package ratpack.core.http.client.internal
 import io.netty.channel.Channel
 import io.netty.channel.ChannelConfig
 import io.netty.channel.ChannelPipeline
+import io.netty.handler.proxy.HttpProxyHandler
+import io.netty.handler.proxy.Socks4ProxyHandler
+import io.netty.handler.proxy.Socks5ProxyHandler
+import ratpack.core.http.client.Proxy
 import ratpack.exec.Execution
 import ratpack.test.internal.BaseRatpackSpec
 
@@ -28,7 +32,6 @@ class NoopFixedChannelPoolHandlerSpec extends BaseRatpackSpec {
 
   Execution execution = Mock(Execution)
   URI uri = new URI('https://ratpack.io')
-    HttpChannelKey channelKey = new HttpChannelKey(uri, Duration.ofSeconds(30), execution)
   ChannelPipeline pipeline = Mock(ChannelPipeline) {
     _ * remove(IdlingConnectionHandler.INSTANCE)
     _ * addLast(IdlingConnectionHandler.INSTANCE)
@@ -44,6 +47,7 @@ class NoopFixedChannelPoolHandlerSpec extends BaseRatpackSpec {
 
   void 'it should handle construction and listening to ChannelPool changes'() {
     when:
+    HttpChannelKey channelKey = new HttpChannelKey(uri, Duration.ofSeconds(30), execution)
     NoopFixedChannelPoolHandler handler = new NoopFixedChannelPoolHandler(channelKey, Duration.ofSeconds(15))
 
     then:
@@ -73,4 +77,27 @@ class NoopFixedChannelPoolHandlerSpec extends BaseRatpackSpec {
     assert handler.getIdleConnectionCount() == 0
   }
 
+  void '#handlerType.simpleName is used for #proxyType proxy type'() {
+    given:
+    DefaultProxy proxy = new DefaultProxy(Proxy.ProxyProtocol.HTTP, "localhost", 7777, Collections.emptySet(), null, null, proxyType)
+    HttpChannelKey channelKey = new HttpChannelKey(uri, proxy, Duration.ofSeconds(30), execution)
+    NoopSimpleChannelPoolHandler handler = new NoopSimpleChannelPoolHandler(channelKey)
+
+    when:
+    handler.channelCreated(channel)
+
+    then:
+    channel.pipeline() >> pipeline
+    pipeline.addLast(_) >> { h ->
+      assert h.size() == 1
+      assert handlerType.isAssignableFrom(h[0][0].class)
+      pipeline
+    }
+
+    where:
+    proxyType         | handlerType
+    Proxy.Type.HTTP   | HttpProxyHandler
+    Proxy.Type.SOCKS4 | Socks4ProxyHandler
+    Proxy.Type.SOCKS5 | Socks5ProxyHandler
+  }
 }
