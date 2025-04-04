@@ -16,12 +16,26 @@
 
 package ratpack.server.internal;
 
+import io.netty.handler.codec.compression.StandardCompressionOptions;
 import io.netty.handler.codec.http.HttpContentCompressor;
 import io.netty.handler.codec.http.HttpHeaderValues;
 import io.netty.handler.codec.http.HttpResponse;
 import ratpack.http.internal.HttpHeaderConstants;
 
 public class IgnorableHttpContentCompressor extends HttpContentCompressor {
+
+  public IgnorableHttpContentCompressor() {
+    super(
+      StandardCompressionOptions.brotli(),
+      StandardCompressionOptions.deflate(),
+      StandardCompressionOptions.gzip(),
+      StandardCompressionOptions.zstd(
+        /* DEFAULT_COMPRESSION_LEVEL = */ 3,
+        /* DEFAULT_BLOCK_SIZE = */ 1 << 16,
+        Integer.MAX_VALUE // default maxEncodeSize is 32MiB which is too small, as this is a hard limit let's set it to Integer.MAX_VALUE
+      )
+    );
+  }
 
   @SuppressWarnings("deprecation")
   @Override
