@@ -16,24 +16,34 @@
 
 package ratpack.server.internal;
 
+import io.netty.handler.codec.compression.Brotli;
+import io.netty.handler.codec.compression.CompressionOptions;
 import io.netty.handler.codec.compression.StandardCompressionOptions;
+import io.netty.handler.codec.compression.Zstd;
 import io.netty.handler.codec.http.HttpContentCompressor;
 import io.netty.handler.codec.http.HttpHeaderValues;
 import io.netty.handler.codec.http.HttpResponse;
 import ratpack.http.internal.HttpHeaderConstants;
 
+import java.util.Objects;
+import java.util.stream.Stream;
+
 public class IgnorableHttpContentCompressor extends HttpContentCompressor {
 
+  // Define compression options for the supported encodings to fix https://github.com/netty/netty/issues/14972
   public IgnorableHttpContentCompressor() {
     super(
-      StandardCompressionOptions.brotli(),
-      StandardCompressionOptions.deflate(),
-      StandardCompressionOptions.gzip(),
-      StandardCompressionOptions.zstd(
-        /* DEFAULT_COMPRESSION_LEVEL = */ 3,
-        /* DEFAULT_BLOCK_SIZE = */ 1 << 16,
-        Integer.MAX_VALUE // default maxEncodeSize is 32MiB which is too small, as this is a hard limit let's set it to Integer.MAX_VALUE
-      )
+      Stream.of(
+        Brotli.isAvailable() ? StandardCompressionOptions.brotli() : null,
+        StandardCompressionOptions.deflate(),
+        StandardCompressionOptions.gzip(),
+        Zstd.isAvailable()
+          ? StandardCompressionOptions.zstd(
+          /* DEFAULT_COMPRESSION_LEVEL = */ 3,
+          /* DEFAULT_BLOCK_SIZE = */ 1 << 16,
+          Integer.MAX_VALUE) // default maxEncodeSize is 32MiB which is too small, as this is a hard limit let's set it to Integer.MAX_VALUE
+          : null
+      ).filter(Objects::nonNull).toArray(CompressionOptions[]::new)
     );
   }
 
