@@ -118,10 +118,10 @@ The following people have contributed their time to Ratpack in the past, but are
 
 #### Fonts
 
-Web fonts are served by [Google Web Fonts](http://www.google.com/fonts/).
+Web fonts are served by [Google Web Fonts](https://fonts.google.com/).
 
-* [Merriweather](http://www.google.com/fonts/specimen/Merriweather) and [Merriweather Sans](http://www.google.com/fonts/specimen/Merriweather+Sans) by [Eben Sorkin](http://ebensorkin.wordpress.com/about-eben-sorkin/)
-* [Engagement](http://www.google.com/fonts/specimen/Engagement) by [Astigmatic One Eye Typographic Institute](http://www.astigmatic.com/)
+* [Merriweather](https://fonts.google.com/specimen/Merriweather) and [Merriweather Sans](https://fonts.google.com/specimen/Merriweather+Sans) by [Eben Sorkin](http://ebensorkin.wordpress.com/about-eben-sorkin/)
+* [Engagement](https://fonts.google.com/specimen/Engagement) by [Astigmatic One Eye Typographic Institute](http://www.astigmatic.com/)
 
 #### Images
 
