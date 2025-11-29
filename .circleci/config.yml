@@ -135,20 +135,20 @@ jobs:
             gcloud config set project $GOOGLE_PROJECT_ID
             gcloud auth configure-docker --quiet
 
-        - gcp-gcr/gcr-auth:
-            gcloud-service-key: GOOGLE_CLOUD_KEYS
-            google-project-id: GOOGLE_PROJECT_ID
-            google-compute-zone: GOOGLE_COMPUTE_ZONE
-        - gcp-gcr/push-image:
-            google-project-id: GOOGLE_PROJECT_ID
-            registry-url: "us.gcr.io"
-            image: $IMAGE_NAME
-        - cloudrun/deploy:
-            platform: "managed"
-            image: "us.gcr.io/$GOOGLE_PROJECT_ID/$IMAGE_NAME"
-            service-name: "ratpack-site"
-            region: $GOOGLE_COMPUTE_ZONE
-            unauthenticated: true
+      - gcp-gcr/gcr-auth:
+          gcloud-service-key: GOOGLE_CLOUD_KEYS
+          google-project-id: GOOGLE_PROJECT_ID
+          google-compute-zone: GOOGLE_COMPUTE_ZONE
+      - gcp-gcr/push-image:
+          google-project-id: GOOGLE_PROJECT_ID
+          registry-url: "us.gcr.io"
+          image: $IMAGE_NAME
+      - cloudrun/deploy:
+          platform: "managed"
+          image: "us.gcr.io/$GOOGLE_PROJECT_ID/$IMAGE_NAME"
+          service-name: "ratpack-site"
+          region: $GOOGLE_COMPUTE_ZONE
+          unauthenticated: true
 workflows:
   version: 2
   build_and_publish:
