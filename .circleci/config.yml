@@ -11,7 +11,7 @@ defaults: &defaults
     TERM: dumb
     GRADLE_OPTS: -Dorg.gradle.jvmargs="-Xmx1g"
 
-version: 2
+version: 2.1
 orbs:
   gcp-gcr: circleci/gcp-gcr@0.16.1
   cloudrun: circleci/gcp-cloud-run@1.0.2
