@@ -27,7 +27,6 @@ jobs:
             - v3-gradle-{{ .Branch }}
             - v3-gradle-master
             - v3-gradle
-            -
       - run:
           name: Run
           command: ./gradlew sanityCheck --continue --max-workers=3 --build-cache
@@ -150,7 +149,6 @@ jobs:
           region: $GOOGLE_COMPUTE_ZONE
           unauthenticated: true
 workflows:
-  version: 2
   build_and_publish:
     jobs:
       - sanity-check:
