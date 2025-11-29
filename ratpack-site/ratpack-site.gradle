@@ -33,6 +33,10 @@ buildscript {
     // Use the master version of gradle-js-plugin since it fixes a Gradle 6 deprecation (from JitPack.io)
     classpath "com.github.eriwen:gradle-js-plugin:d15f4ae"
     classpath "com.google.javascript:closure-compiler:v20150315"
+    classpath "com.google.cloud.tools.jib:com.google.cloud.tools.jib.gradle.plugin:3.4.5", {
+      exclude group: "com.google.collections"
+      exclude group: "com.google.guava"
+    }
   }
 }
 
@@ -41,6 +45,7 @@ apply plugin: "io.ratpack.ratpack-java"
 apply plugin: "org.gradle.groovy"
 apply plugin: 'com.github.johnrengelman.shadow'
 apply plugin: 'io.freefair.jsass-base'
+apply plugin: 'com.google.cloud.tools.jib'
 
 repositories {
   mavenCentral()
@@ -139,6 +144,15 @@ tasks.withType(Zip) {
   zip64 = true
 }
 
+jib {
+  from {
+    image = "eclipse-temurin:11"
+  }
+  container {
+    ports = ['5050']
+  }
+}
+
 task compileSass(type: SassCompile) {
   doFirst { destinationDir.get().asFile.deleteDir() }
   source = "src/assets/sass"
@@ -153,9 +167,6 @@ task jsAll(type: com.eriwen.gradle.js.tasks.CombineJsTask) {
     "${rootDir}/shared-web-assets/js/prism.js",
   ]
   dest = file("${buildDir}/assets/js/all.min.js")
-}
-
-shadowJar {
 }
 
 task downloadChromeDriver {
@@ -280,42 +291,4 @@ run.ext.set("ratpack.flattenClassloaders", true)
 
 distZip {
   enabled = false
-}
-
-task deployToHeroku(type: SourceTask) {
-  source tasks.distTar
-
-  doLast {
-    def apiKey = project.ratpackHerokuApiKey
-    File tgz = inputs.files.singleFile
-
-    def heroku = new groovyx.net.http.RESTClient("https://api.heroku.com/apps/ratpack-site/")
-    heroku.headers['Authorization'] = "Bearer $apiKey"
-    heroku.headers['Accept'] = 'application/vnd.heroku+json; version=3'
-
-    def sourcesResponse = heroku.post(path: 'sources', requestContentType: 'application/json')
-    assert sourcesResponse.status == 201
-    def sourcesPutUrl = sourcesResponse.data.source_blob.put_url as String
-    def sourcesGetUrl = sourcesResponse.data.source_blob.get_url as String
-
-    def sourcesPutConnection = new URL(sourcesPutUrl).openConnection() as HttpURLConnection
-    sourcesPutConnection.requestMethod = "PUT"
-    sourcesPutConnection.fixedLengthStreamingMode = tgz.length()
-    sourcesPutConnection.doOutput = true
-    sourcesPutConnection.outputStream.withStream { output ->
-      tgz.newInputStream().withStream { input ->
-        output << input
-      }
-    }
-    assert sourcesPutConnection.responseCode == 200
-
-    def buildResponse = heroku.post(path: 'builds', requestContentType: 'application/json', body: [
-      source_blob: [
-        url    : sourcesGetUrl,
-        version: "git rev-parse HEAD".execute().text.trim()
-      ]
-    ])
-    def outputStreamUrl = buildResponse.data.output_stream_url as String
-    new URL(outputStreamUrl).eachLine { println it }
-  }
 }

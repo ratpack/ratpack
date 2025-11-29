@@ -15,14 +15,16 @@
  */
 def env = System.getenv()
 def publishToSlack = gradle.startParameter.projectProperties.publishToSlack != null
-def ci = System.getenv("CI")
+def ci = !!System.getenv("CI")
 
 gradleEnterprise.buildScan {
-    server = "https://ge.ratpack.io"
-    captureTaskInputFiles = true
     uploadInBackground = !ci
-    publishAlways()
-    publishIfAuthenticated()
+
+    if (ci) {
+      publishAlways()
+      termsOfServiceUrl = 'https://gradle.com/terms-of-service'
+      termsOfServiceAgree = 'yes'
+    }
 
     if (env.CIRCLE_BUILD_URL) {
       def buildLink = env.CIRCLE_BUILD_URL

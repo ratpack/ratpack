@@ -12,6 +12,9 @@ defaults: &defaults
     GRADLE_OPTS: -Dorg.gradle.jvmargs="-Xmx1g"
 
 version: 2
+orbs:
+  gcp-gcr: circleci/gcp-gcr@0.16.1
+  cloudrun: circleci/gcp-cloud-run@1.0.2
 jobs:
   sanity-check:
     <<: *defaults
@@ -87,14 +90,65 @@ jobs:
     <<: *defaults
     steps:
       - checkout
+      - setup_remote_docker:
+          docker_layer_caching: false
 
       - attach_workspace:
           at: ~/ratpack
 
       - run:
-          name: Deploy Site
-          command: ./gradlew :ratpack-site:deployToHeroku --max-workers=1 --build-cache
+          name: Install/Update Google Cloud SDK
+          command: |
+            # Remove any existing gcloud installation to avoid conflicts
+            sudo rm -rf /home/circleci/google-cloud-sdk || true
+            # Download and install Google Cloud SDK non-interactively
+            cd /home/circleci
+            curl -O https://dl.google.com/dl/cloudsdk/channels/rapid/downloads/google-cloud-cli-458.0.1-linux-x86_64.tar.gz
+            tar -xf google-cloud-cli-458.0.1-linux-x86_64.tar.gz
+            ./google-cloud-sdk/install.sh --quiet --usage-reporting=false --path-update=true
+            echo 'export PATH="$HOME/google-cloud-sdk/bin:$PATH"' >> $BASH_ENV
+            source $BASH_ENV
 
+      - run:
+          name: Setup Google Cloud credentials and environment
+          command: |
+            # Decode the service account key.
+            echo "${GCP_PROJECT_KEY}" | tr -d '[:space:]' | base64 --decode > $HOME/gcloud-service-key.json
+            # Set environment variables for orbs and subsequent steps
+            echo 'export GOOGLE_CLOUD_KEYS=$(cat $HOME/gcloud-service-key.json)' >> $BASH_ENV
+            echo "export TAG=${CIRCLE_SHA1}" >> $BASH_ENV
+            echo "export IMAGE_NAME=${CIRCLE_PROJECT_REPONAME}" >> $BASH_ENV
+
+      - run:
+          name: Build Image
+          command: |
+            source $BASH_ENV
+            ./gradlew :ratpack-site:jibDockerBuild --image=$IMAGE_NAME:$TAG --build-cache
+
+      - run:
+          name: Authenticate with Google Cloud
+          command: |
+            # Load environment variables
+            source $BASH_ENV
+            # Use the validated service account key
+            gcloud auth activate-service-account --key-file=$HOME/gcloud-service-key.json
+            gcloud config set project $GOOGLE_PROJECT_ID
+            gcloud auth configure-docker --quiet
+
+        - gcp-gcr/gcr-auth:
+            gcloud-service-key: GOOGLE_CLOUD_KEYS
+            google-project-id: GOOGLE_PROJECT_ID
+            google-compute-zone: GOOGLE_COMPUTE_ZONE
+        - gcp-gcr/push-image:
+            google-project-id: GOOGLE_PROJECT_ID
+            registry-url: "us.gcr.io"
+            image: $IMAGE_NAME
+        - cloudrun/deploy:
+            platform: "managed"
+            image: "us.gcr.io/$GOOGLE_PROJECT_ID/$IMAGE_NAME"
+            service-name: "ratpack-site"
+            region: $GOOGLE_COMPUTE_ZONE
+            unauthenticated: true
 workflows:
   version: 2
   build_and_publish:
@@ -120,4 +174,4 @@ workflows:
             - build
           filters:
             branches:
-              only: master
+              only: 1.10.x
