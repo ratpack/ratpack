@@ -122,7 +122,7 @@ jobs:
           name: Build Image
           command: |
             source $BASH_ENV
-            ./gradlew :ratpack-site:jibDockerBuild --image=$IMAGE_NAME:$TAG --build-cache
+            ./gradlew :ratpack-site:jibDockerBuild --image=us-west1-docker.pkg.dev/$GOOGLE_PROJECT_ID/ratpack/$IMAGE_NAME:$TAG --build-cache
 
       - run:
           name: Authenticate with Google Cloud
