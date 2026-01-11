@@ -13,7 +13,7 @@ defaults: &defaults
 
 version: 2.1
 orbs:
-  gcp-gcr: circleci/gcp-gcr@0.16.1
+  gcp-gcr: circleci/gcp-gcr@0.16.11
   cloudrun: circleci/gcp-cloud-run@1.0.2
 jobs:
   sanity-check:
