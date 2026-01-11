@@ -141,10 +141,10 @@ jobs:
       - gcp-gcr/push-image:
           google-project-id: GOOGLE_PROJECT_ID
           registry-url: "us-west1-docker.pkg.dev/$GOOGLE_PROJECT_ID/ratpack"
-          image: $IMAGE_NAME:$TAG
+          image: $IMAGE_NAME
       - cloudrun/deploy:
           platform: "managed"
-          image: "us-west1-docker.pkg.dev/psychic-coral-479320-t2/ratpack/$IMAGE_NAME:$TAG"
+          image: "us-west1-docker.pkg.dev/psychic-coral-479320-t2/ratpack/$IMAGE_NAME"
           service-name: "ratpack-site"
           region: $GOOGLE_COMPUTE_ZONE
           unauthenticated: true
