@@ -135,11 +135,7 @@ jobs:
             gcloud auth configure-docker --quiet
 
       - gcp-gcr/gcr-auth:
-          gcloud-service-key: GOOGLE_CLOUD_KEYS
-          google-project-id: GOOGLE_PROJECT_ID
-          google-compute-zone: GOOGLE_COMPUTE_ZONE
       - gcp-gcr/push-image:
-          google-project-id: GOOGLE_PROJECT_ID
           repository: ratpack
           registry-url: us-west1-docker.pkg.dev
           image: $IMAGE_NAME
