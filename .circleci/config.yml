@@ -134,7 +134,7 @@ jobs:
             gcloud config set project $GOOGLE_PROJECT_ID
             gcloud auth configure-docker --quiet
 
-      - gcp-gcr/gcr-auth:
+      - gcp-gcr/gcr-auth
       - gcp-gcr/push-image:
           repository: ratpack
           registry-url: us-west1-docker.pkg.dev
