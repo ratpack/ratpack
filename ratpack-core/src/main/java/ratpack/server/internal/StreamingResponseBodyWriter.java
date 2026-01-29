@@ -139,6 +139,10 @@ class StreamingResponseBodyWriter implements ResponseBodyWriter, ResponseWriting
     }
 
     private void requestOrDelimit() {
+      if (done) {
+        return;
+      }
+
       if (channel.isWritable()) {
         subscription.request(1);
       } else {
