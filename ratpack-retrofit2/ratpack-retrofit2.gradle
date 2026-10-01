@@ -28,5 +28,5 @@ dependencies {
 }
 
 ext.apiLinks = [
-  "https://square.github.io/retrofit/2.x/retrofit/"
+  "https://lysine.dev/retrofit/2.x/retrofit/"
 ]
