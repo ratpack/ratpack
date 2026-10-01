@@ -26,7 +26,3 @@ dependencies {
     exclude group: "com.fasterxml.jackson.core", module: "jackson-databind"
   }
 }
-
-ext.apiLinks = [
-  "https://square.github.io/retrofit/2.x/retrofit/"
-]
