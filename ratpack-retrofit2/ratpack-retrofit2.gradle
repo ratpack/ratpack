@@ -26,3 +26,7 @@ dependencies {
     exclude group: "com.fasterxml.jackson.core", module: "jackson-databind"
   }
 }
+
+ext.apiLinks = [
+  "https://lysine.dev/retrofit/2.x/retrofit/"
+]
