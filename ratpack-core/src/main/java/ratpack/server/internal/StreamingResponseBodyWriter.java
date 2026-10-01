@@ -82,7 +82,15 @@ class StreamingResponseBodyWriter implements ResponseBodyWriter, ResponseWriting
   @Override
   public ChannelPromise write(Channel channel) {
     channelPromise = channel.newPromise();
+    // The connection may have closed before this writer was set or subscribed, in which case onClosed() has
+    // already run, or never will. Subscribe only to cancel, so the publisher can release its resources.
+    if (!channel.isOpen()) {
+      done = true;
+    }
     publisher.subscribe(new Subscriber(channel));
+    if (done) {
+      channelPromise.trySuccess();
+    }
     return channelPromise;
   }
 
@@ -110,7 +118,7 @@ class StreamingResponseBodyWriter implements ResponseBodyWriter, ResponseWriting
         throw new NullPointerException("'subscription' is null");
       }
 
-      if (subscription != null) {
+      if (subscription != null || done) {
         incomingSubscription.cancel();
         return;
       }
@@ -140,6 +148,14 @@ class StreamingResponseBodyWriter implements ResponseBodyWriter, ResponseWriting
 
     private void requestOrDelimit() {
       if (done) {
+        return;
+      }
+
+      if (!channel.isOpen()) {
+        // The close notification may have been missed, and a closed channel never becomes writable again
+        done = true;
+        subscription.cancel();
+        channelPromise.trySuccess();
         return;
       }
 

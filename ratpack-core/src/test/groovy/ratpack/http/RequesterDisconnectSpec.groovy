@@ -16,7 +16,15 @@
 
 package ratpack.http
 
+import io.netty.buffer.ByteBuf
 import io.netty.buffer.Unpooled
+import io.netty.channel.ChannelHandlerContext
+import io.netty.channel.ChannelOutboundHandlerAdapter
+import io.netty.channel.ChannelPromise
+import io.netty.handler.codec.http.HttpResponse
+import org.reactivestreams.Publisher
+import org.reactivestreams.Subscriber
+import org.reactivestreams.Subscription
 import ratpack.exec.Promise
 import ratpack.sse.ServerSentEvents
 import ratpack.stream.Streams
@@ -24,6 +32,7 @@ import ratpack.test.internal.RatpackGroovyDslSpec
 import spock.util.concurrent.BlockingVariable
 
 import java.util.concurrent.CountDownLatch
+import java.util.concurrent.atomic.AtomicBoolean
 
 class RequesterDisconnectSpec extends RatpackGroovyDslSpec {
 
@@ -274,5 +283,105 @@ class RequesterDisconnectSpec extends RatpackGroovyDslSpec {
 
     cleanup:
     responseBodyChunk.release()
+  }
+
+  def "completes the response when the connection closes before the stream is sent"() {
+    given:
+    def executionClosed = new BlockingVariable(10)
+    def body = new RecordingPublisher()
+
+    handlers {
+      get {
+        context.onClose { executionClosed.set(true) }
+        Promise.async { down ->
+          directChannelAccess.channel.closeFuture().addListener { down.success(true) }
+        } then {
+          response.sendStream(body)
+        }
+      }
+    }
+
+    when:
+    def socket = socket()
+    withSocket(socket) {
+      write("GET / HTTP/1.1\r\n")
+      write("\r\n")
+      flush()
+    }
+    socket.close()
+
+    then:
+    executionClosed.get()
+    body.released()
+  }
+
+  def "completes the response when the connection closes after the headers are written and before the body is subscribed"() {
+    given:
+    def executionClosed = new BlockingVariable(10)
+    def body = new RecordingPublisher()
+
+    handlers {
+      get {
+        context.onClose { executionClosed.set(true) }
+        // Close as soon as the headers are written, so the close is seen before the body writer subscribes
+        directChannelAccess.channel.pipeline().addLast(new ChannelOutboundHandlerAdapter() {
+          @Override
+          void write(ChannelHandlerContext ctx, Object msg, ChannelPromise promise) {
+            if (msg instanceof HttpResponse) {
+              promise.addListener { ctx.channel().close() }
+            }
+            ctx.write(msg, promise)
+          }
+        })
+        response.sendStream(body)
+      }
+    }
+
+    when:
+    def socket = socket()
+    withSocket(socket) {
+      write("GET / HTTP/1.1\r\n")
+      write("\r\n")
+      flush()
+    }
+
+    then:
+    executionClosed.get()
+    body.released()
+
+    cleanup:
+    socket?.close()
+  }
+
+  static class RecordingPublisher implements Publisher<ByteBuf> {
+
+    final AtomicBoolean subscribed = new AtomicBoolean()
+    final AtomicBoolean cancelled = new AtomicBoolean()
+
+    @Override
+    void subscribe(Subscriber<? super ByteBuf> subscriber) {
+      subscribed.set(true)
+      subscriber.onSubscribe(new Subscription() {
+        int remaining = 3
+
+        @Override
+        void request(long n) {
+          if (remaining-- > 0) {
+            subscriber.onNext(Unpooled.wrappedBuffer("x".bytes))
+          } else {
+            subscriber.onComplete()
+          }
+        }
+
+        @Override
+        void cancel() {
+          cancelled.set(true)
+        }
+      })
+    }
+
+    boolean released() {
+      !subscribed.get() || cancelled.get()
+    }
   }
 }
