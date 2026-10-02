@@ -10,7 +10,7 @@ def passwordProperty = "ratpackSonatypeOssPassword"
 def passwordProvider = providers.gradleProperty(passwordProperty).forUseAtConfigurationTime()
 
 def nexusPublishing = extensions.getByType(NexusPublishExtension)
-nexusPublishing.transitionCheckOptions.get().with {
+nexusPublishing.transitionCheckOptions.with {
   // Check every 10s, 120 times (~20m)
   it.maxRetries.set(120)
   it.delayBetween.set(Duration.ofSeconds(10))
