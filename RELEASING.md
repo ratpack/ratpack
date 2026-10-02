@@ -47,9 +47,10 @@ When you've got the release announcement set, copy it to the description of the 
 1. GPG credentials/config
     1. We use the Gradle Signing Plugin to sign the artifacts - See [the Gradle docs](https://docs.gradle.org/current/userguide/signing_plugin.html#N15692) for how to set this up
     1. One gotcha is forgetting to distribute your public key.  See [here](http://blog.sonatype.com/2010/01/how-to-generate-pgp-signatures-with-maven/#.U9rkY2MSS6N) for more info.  If you don't do this you will get problems when syncing to Maven central.
-1. oss.sonatype.org credentials
-    1. Create an account [for oss.sonatype.org](https://issues.sonatype.org/secure/Signup!default.jspa)
-    1. Add a comment to [this JIRA ticket](https://issues.sonatype.org/browse/OSSRH-8283) with your new account, asking for permission to publish to `io.ratpack`.
-    1. Add to ~/.gradle/gradle.properties as `ratpackOssrhUsername` and `ratpackOssrhPassword`
+1. Central Portal credentials
+    1. Create an account on the [Central Publisher Portal](https://central.sonatype.com)
+    1. Ask an admin of the `ratpack` organization in the Portal to grant you access to the `io.ratpack` namespace
+    1. Generate a [user token](https://central.sonatype.com/usertoken). Old oss.sonatype.org credentials don't work.
+    1. Add the token to ~/.gradle/gradle.properties as `ratpackSonatypeOssUsername` and `ratpackSonatypeOssPassword`
 1. Gradle Plugin Portal config
     1. Access to the `ratpack_team` publish key and secret. (Ask John or Jeff)
