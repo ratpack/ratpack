@@ -78,9 +78,6 @@ jobs:
     steps:
       - checkout
 
-      - attach_workspace:
-          at: ~/build
-
       - run:
           name: Upload Artifacts
           command: ./gradlew publishToSonatypeOss --max-workers=1

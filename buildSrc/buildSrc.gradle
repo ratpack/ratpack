@@ -31,7 +31,7 @@ dependencies {
   }
   implementation "com.github.ben-manes:gradle-versions-plugin:0.38.0"
   implementation "gradle.plugin.org.kt3k.gradle.plugin:coveralls-gradle-plugin:2.12.0"
-  implementation "io.github.gradle-nexus:publish-plugin:1.1.0"
+  implementation "io.github.gradle-nexus:publish-plugin:2.0.0"
 }
 
 sourceSets {
