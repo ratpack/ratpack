@@ -61,7 +61,7 @@ tasks.withType(Javadoc).configureEach {
 }
 
 tasks.named("javadoc", Javadoc) {
-  options.links "http://ratpack.io/manual/${version - "-SNAPSHOT"}/api"
+  options.links "http://ratpack.io/manual/${rootProject.manualVersion}/api"
 }
 
 tasks.withType(Test).configureEach {
