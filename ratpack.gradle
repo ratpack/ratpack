@@ -3,6 +3,24 @@ allprojects {
   version = "1.10.0-SNAPSHOT"
 }
 
+// The manual version, without the -SNAPSHOT suffix or a snapshot label.
+ext.manualVersion = version - "-SNAPSHOT"
+
+// -PsnapshotLabel=<label> publishes a snapshot as <version>-<label>-SNAPSHOT, for example
+// 1.10.0-e77ee273-SNAPSHOT, so that a build can depend on one particular snapshot, such as one
+// commit's, while 1.10.0-SNAPSHOT keeps tracking the latest. See .circleci/config.yml.
+def snapshotLabel = findProperty("snapshotLabel")
+if (snapshotLabel) {
+  if (!(snapshotLabel ==~ /[A-Za-z0-9]+([.-][A-Za-z0-9]+)*/) || snapshotLabel.toUpperCase().endsWith("SNAPSHOT")) {
+    throw new GradleException("snapshotLabel must be letters, digits, dots and hyphens, without SNAPSHOT, got '$snapshotLabel'")
+  }
+  if (!version.endsWith("-SNAPSHOT")) {
+    throw new GradleException("snapshotLabel only applies to a -SNAPSHOT version, not $version")
+  }
+  def labelledVersion = (version - "-SNAPSHOT") + "-$snapshotLabel-SNAPSHOT"
+  allprojects { version = labelledVersion }
+}
+
 ext {
   isSnapshot = version.endsWith("SNAPSHOT")
   isTravis = System.getenv("TRAVIS") != null
