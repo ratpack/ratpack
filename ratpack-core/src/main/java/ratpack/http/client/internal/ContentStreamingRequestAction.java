@@ -19,6 +19,7 @@ package ratpack.http.client.internal;
 import io.netty.buffer.ByteBuf;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelPipeline;
+import io.netty.channel.EventLoop;
 import io.netty.channel.SimpleChannelInboundHandler;
 import io.netty.handler.codec.http.*;
 import io.netty.util.ReferenceCountUtil;
@@ -170,6 +171,24 @@ public class ContentStreamingRequestAction extends RequestActionSupport<Streamed
         });
     }
 
+    private void subscribed(BufferedWriteStream<ByteBuf> write) {
+      this.write = write;
+
+      if (received != null) {
+        for (HttpContent httpContent : received) {
+          if (httpContent.content().readableBytes() > 0) {
+            write.item(httpContent.content().touch("emitting to user code"));
+          } else {
+            httpContent.release();
+          }
+          if (httpContent instanceof LastHttpContent) {
+            dispose(channelPipeline, response).addListener(future -> write.complete());
+          }
+        }
+        received.clear();
+      }
+    }
+
     class DefaultStreamedResponse implements StreamedResponse {
       private final ChannelPipeline channelPipeline;
       private final Status status;
@@ -199,20 +218,15 @@ public class ContentStreamingRequestAction extends RequestActionSupport<Streamed
       @Override
       public TransformablePublisher<ByteBuf> getBody() {
         return new BufferingPublisher<>(ByteBuf::release, write -> {
-          Handler.this.write = write;
-
-          if (received != null) {
-            for (HttpContent httpContent : received) {
-              if (httpContent.content().readableBytes() > 0) {
-                write.item(httpContent.content().touch("emitting to user code"));
-              } else {
-                httpContent.release();
-              }
-              if (httpContent instanceof LastHttpContent) {
-                dispose(channelPipeline, response).addListener(future -> write.complete());
-              }
-            }
-            received.clear();
+          // The handler's state is only accessed on the event loop that the response is read on.
+          // The body may be subscribed to from another thread (e.g. a forked execution) while content is still
+          // arriving, so hand the subscription over to that event loop.
+          // Reads requested by the subscription are queued on the same event loop, so run after this.
+          EventLoop eventLoop = execution.getEventLoop();
+          if (eventLoop.inEventLoop()) {
+            subscribed(write);
+          } else {
+            eventLoop.execute(() -> subscribed(write));
           }
 
           return new Subscription() {

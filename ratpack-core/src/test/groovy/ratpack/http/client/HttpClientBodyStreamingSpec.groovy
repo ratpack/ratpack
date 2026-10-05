@@ -18,8 +18,10 @@ package ratpack.http.client
 
 import io.netty.buffer.PooledByteBufAllocator
 import io.netty.buffer.Unpooled
+import io.netty.channel.EventLoop
 import io.netty.handler.codec.http.HttpHeaderNames
 import io.netty.handler.codec.http.HttpHeaderValues
+import ratpack.exec.Execution
 import ratpack.exec.Promise
 import ratpack.file.FileIo
 import ratpack.http.ConnectionClosedException
@@ -27,7 +29,10 @@ import ratpack.http.Status
 import ratpack.stream.Streams
 import spock.util.concurrent.BlockingVariable
 
+import java.nio.charset.StandardCharsets
 import java.nio.file.StandardOpenOption
+import java.time.Duration
+import java.util.zip.GZIPOutputStream
 
 class HttpClientBodyStreamingSpec extends BaseHttpClientSpec {
 
@@ -665,6 +670,126 @@ class HttpClientBodyStreamingSpec extends BaseHttpClientSpec {
 
     where:
     pooled << [true, false]
+  }
+
+  def "can consume streamed response body on a different event loop while content is still being received"() {
+    given:
+    // A gzipped response, where each write the server makes ends with a block that decompresses to nothing.
+    // The client's decompressor then keeps the channel reading on its own, so content keeps arriving on the
+    // channel's event loop whether or not the body has been subscribed to.
+    def lines = (0..<3000).collect { String.format("%07d", it) }
+    def writes = gzipWrites(lines.collate(50))
+    def serverSocket = new ServerSocket(0, 50, InetAddress.loopbackAddress)
+    def serverThread = Thread.start {
+      while (!serverSocket.closed) {
+        Socket socket
+        try {
+          socket = serverSocket.accept()
+        } catch (SocketException ignore) {
+          break
+        }
+        Thread.start {
+          socket.withCloseable {
+            int last4 = 0
+            while (last4 != 0x0d0a0d0a) {
+              int b = socket.inputStream.read()
+              if (b < 0) {
+                return
+              }
+              last4 = (last4 << 8) | b
+            }
+            def head = "HTTP/1.1 200 OK\r\nContent-Encoding: gzip\r\nTransfer-Encoding: chunked\r\nConnection: close\r\n\r\n"
+            socket.outputStream.write(concat(head.bytes, writes.head()))
+            socket.outputStream.flush()
+            writes.tail().each {
+              sleep(1)
+              socket.outputStream.write(it)
+              socket.outputStream.flush()
+            }
+          }
+        }
+      }
+    }
+    serverConfig {
+      threads(2)
+    }
+    bindings {
+      bindInstance(HttpClient, HttpClient.of { it.poolSize(0) })
+    }
+
+    when:
+    handlers {
+      get { HttpClient httpClient ->
+        def requestingEventLoop = Execution.current().eventLoop
+        def otherEventLoop = Execution.current().controller.eventLoopGroup.find { it != requestingEventLoop } as EventLoop
+        httpClient.requestStream(new URI("http://localhost:${serverSocket.localPort}/")) {
+        } then { StreamedResponse response ->
+          // Let some content be buffered before subscribing, while more is arriving
+          def received = Promise.value(null).defer(Duration.ofMillis(10)).flatMap {
+            response.body.bindExec { it.release() }.reduce(new StringBuilder()) { text, buffer ->
+              text.append(buffer.toString(StandardCharsets.UTF_8))
+              buffer.release()
+              text
+            }
+          }
+          render received
+            .map {
+              def receivedLines = it.toString().readLines()
+              def firstDifference = (0..<lines.size()).find { i -> receivedLines[i] != lines[i] }
+              firstDifference == null && receivedLines.size() == lines.size() ? "ok" : "received ${receivedLines.size()} lines, first difference at line ${firstDifference}".toString()
+            }
+            .mapError { it.toString() }
+            .fork { it.eventLoop(otherEventLoop) }
+        }
+      }
+    }
+
+    then:
+    (1..20).collect { text }.findAll { it != "ok" } == []
+
+    cleanup:
+    serverSocket?.close()
+    serverThread?.join()
+  }
+
+  // Encodes the lines as a chunked gzip body, grouped into separate writes.
+  // The first write is just the gzip header, which decompresses to nothing.
+  // Every other write is a series of chunks, one separately flushed gzip block per line, ending with an empty
+  // stored block that decompresses to nothing.
+  private static List<byte[]> gzipWrites(List<List<String>> lineGroups) {
+    byte[] emptyStoredBlock = [0, 0, 0, 0xff, 0xff] as byte[]
+    def compressed = new ByteArrayOutputStream()
+    def gzip = new GZIPOutputStream(compressed, true)
+    def chunk = { byte[] bytes ->
+      concat("${Integer.toHexString(bytes.length)}\r\n".bytes, bytes, "\r\n".bytes)
+    }
+    def take = {
+      def bytes = compressed.toByteArray()
+      compressed.reset()
+      chunk(bytes)
+    }
+
+    gzip.flush()
+    List<byte[]> writes = [take()]
+    lineGroups.each { group ->
+      def write = new ByteArrayOutputStream()
+      group.each { line ->
+        gzip.write("$line\n".bytes)
+        gzip.flush()
+        write.write(take())
+      }
+      write.write(chunk(emptyStoredBlock))
+      writes << write.toByteArray()
+    }
+    gzip.close()
+    writes << concat(take(), chunk(new byte[0]))
+    writes
+  }
+
+  private static byte[] concat(byte[]... parts) {
+    def bytes = new ByteArrayOutputStream()
+    parts.each { bytes.write(it) }
+    bytes.toByteArray()
   }
 
 }
