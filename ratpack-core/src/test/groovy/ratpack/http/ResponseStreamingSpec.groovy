@@ -472,7 +472,13 @@ class ResponseStreamingSpec extends RatpackGroovyDslSpec {
 
     when:
     execSuspended.get()
-    assert !channel.get().writable
+
+    then:
+    new PollingConditions().within(10) {
+      assert !channel.get().writable
+    }
+
+    when:
     done = true
 
     then:
