@@ -10,6 +10,14 @@ The only truly mandatory requirement is to mention all contributors.
 
 When you've got the release announcement set, copy it to the description of the GitHub milestone, but don't close the milestone yet.
 
+## Build environment
+
+On Apple Silicon (arm64) Macs the `ratpack-manual` Sass compilation (jsass/libsass) has no native arm64 library and fails to build, so a full build or release currently has to be run under an x86_64 JDK via Rosetta 2, for example:
+
+    arch -x86_64 env JAVA_HOME=<path-to-x86_64-jdk-11> ./gradlew clean build
+
+Only the manual's Sass step needs this; CI (Linux x64) is unaffected.
+
 ## Pre
 
 1. Ensure there is a next (version after what is being released) milestone on GitHub
