@@ -247,14 +247,18 @@ abstract class RequestActionSupport<T> implements Upstream<T> {
 
                 if (channel.isOpen()) {
                   channel.closeFuture().addListener(cancelOnCloseListener);
-                  if (channel.isWritable()) {
-                    this.subscription.request(1);
-                  }
+                  // Install the listener before the first request. A publisher may emit synchronously
+                  // within request(), filling the channel past its high water mark and draining it again
+                  // before request() returns; if the listener were installed afterwards, the return to
+                  // writable would go unnoticed and the body would stall.
                   onWritabilityChanged = () -> {
                     if (channel.isWritable() && !done.get()) {
                       this.subscription.request(1);
                     }
                   };
+                  if (channel.isWritable()) {
+                    this.subscription.request(1);
+                  }
                 } else {
                   cancel();
                 }

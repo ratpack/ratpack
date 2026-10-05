@@ -130,6 +130,43 @@ class HttpClientBodyStreamingSpec extends BaseHttpClientSpec {
   }
 
 
+  def "can stream body from publisher that emits beyond write buffer high water mark when first requested"() {
+    given:
+    // More than the default 64KB write buffer high water mark, emitted synchronously on request,
+    // so the channel turns unwritable (and, on loopback, writable again) before onSubscribe returns.
+    def chunk = ("a" * 8192).bytes
+    def numChunks = 32
+    def size = chunk.length * numChunks
+    bindings {
+      bindInstance(HttpClient, HttpClient.of { it.poolSize(pooled ? 1 : 0) })
+    }
+    otherApp {
+      post {
+        render request.getBodyStream(size).reduce(0L) { total, received ->
+          def readable = received.readableBytes()
+          received.release()
+          total + readable
+        }.map { it.toString() }
+      }
+    }
+
+    when:
+    handlers {
+      get { HttpClient httpClient ->
+        def stream = Streams.publish((1..numChunks).collect { Unpooled.wrappedBuffer(chunk) })
+        render httpClient.request(otherAppUrl()) { it.post().maxContentLength(size).body.stream(stream, size) }
+          .map { it.body.text }
+      }
+    }
+
+    then:
+    text == size.toString()
+    text == size.toString()
+
+    where:
+    pooled << [true, false]
+  }
+
   def "client can send unknown length"() {
     given:
     def size = 1024 * 1024 * 3
