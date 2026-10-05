@@ -37,6 +37,10 @@ class ChunkedFileResponseBodyWriter implements ResponseBodyWriter {
   public ChannelFuture write(Channel channel) {
     ChannelPromise channelPromise = channel.newPromise();
     Blocking.get(() -> Files.newByteChannel(file))
+      // The response headers have already been sent, so a failure here must not propagate to the
+      // request's error handler (which would attempt a second transmission). Failing the promise
+      // instead causes the transmitter to log the failure and close the connection.
+      .onError(channelPromise::setFailure)
       .then(fileChannel -> channel.writeAndFlush(new HttpChunkedInput(new ChunkedNioStream(fileChannel)), channelPromise));
     return channelPromise;
   }

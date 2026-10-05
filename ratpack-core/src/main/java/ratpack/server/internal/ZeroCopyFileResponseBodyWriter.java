@@ -46,6 +46,9 @@ class ZeroCopyFileResponseBodyWriter implements ResponseBodyWriter {
   public ChannelFuture write(Channel channel) {
     ChannelPromise channelPromise = channel.newPromise();
     Blocking.get(() -> FileChannel.open(file, OPEN_OPTIONS))
+      // See ChunkedFileResponseBodyWriter: headers are already sent, so fail the promise rather than
+      // letting the error reach the request's error handler.
+      .onError(channelPromise::setFailure)
       .then(fileChannel -> {
         channel.write(new DefaultFileRegion(fileChannel, 0, size), channel.voidPromise());
         channel.write(LastHttpContent.EMPTY_LAST_CONTENT, channelPromise);
