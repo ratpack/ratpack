@@ -169,9 +169,10 @@ workflows:
           filters:
             branches:
               only: 1.10.x
-      - deploySite:
-          requires:
-            - build
-          filters:
-            branches:
-              only: 1.10.x
+# deploySite is temporarily disabled: the site publication pipeline is currently not working.
+#      - deploySite:
+#          requires:
+#            - build
+#          filters:
+#            branches:
+#              only: 1.10.x
