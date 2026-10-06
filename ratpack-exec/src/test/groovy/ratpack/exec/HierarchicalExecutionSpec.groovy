@@ -24,7 +24,7 @@ class HierarchicalExecutionSpec extends BaseExecutionSpec {
 
   def "current execution is parent during initializer of child"() {
     given:
-    counts(4)
+    counts(5)
     def promised = new Promised<Void>()
 
     when:
