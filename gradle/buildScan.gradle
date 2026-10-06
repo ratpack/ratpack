@@ -17,13 +17,17 @@ def env = System.getenv()
 def publishToSlack = gradle.startParameter.projectProperties.publishToSlack != null
 def ci = !!System.getenv("CI")
 
-gradleEnterprise.buildScan {
+develocity {
+  buildScan {
     uploadInBackground = !ci
 
     if (ci) {
-      publishAlways()
-      termsOfServiceUrl = 'https://gradle.com/terms-of-service'
-      termsOfServiceAgree = 'yes'
+      publishing.onlyIf { true }
+      termsOfUseUrl = 'https://gradle.com/help/legal-terms-of-use'
+      termsOfUseAgree = 'yes'
+    } else {
+      // Only publish when requested with --scan
+      publishing.onlyIf { false }
     }
 
     if (env.CIRCLE_BUILD_URL) {
@@ -52,7 +56,7 @@ gradleEnterprise.buildScan {
             String filePath = task.project.rootProject.relativePath(it.@name.text())
             it.error.collect { "${filePath}:${it.@line}:${it.@column} \u2192 ${it.@message}" }
           }.flatten()
-          errors.each { task.project.buildScan.value 'Checkstyle Issue', it }
+          errors.each { develocity.buildScan.value 'Checkstyle Issue', it }
         }
       }
       if (task instanceof CodeNarc && task.reports.xml.destination.exists()) {
@@ -64,8 +68,9 @@ gradleEnterprise.buildScan {
               it.Violation.collect { "${filePath}:${it.@lineNumber} \u2192 ${it.Message.text()}" }
             }.flatten()
           }.flatten()
-          errors.each { task.project.buildScan.value 'CodeNarc Issue', it }
+          errors.each { develocity.buildScan.value 'CodeNarc Issue', it }
         }
       }
     }
   }
+}
