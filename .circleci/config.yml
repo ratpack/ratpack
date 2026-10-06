@@ -10,6 +10,9 @@ defaults: &defaults
   environment:
     TERM: dumb
     GRADLE_OPTS: -Dorg.gradle.jvmargs="-Xmx1g"
+    # The access key is DEVELOCITY_ACCESS_KEY, set in the CircleCI project settings
+    ORG_GRADLE_PROJECT_ratpackDevelocityServer: https://community.develocity.cloud
+    ORG_GRADLE_PROJECT_ratpackDevelocityProjectId: ratpack
 
 version: 2.1
 orbs:
