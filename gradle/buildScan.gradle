@@ -17,11 +17,27 @@ def env = System.getenv()
 def publishToSlack = gradle.startParameter.projectProperties.publishToSlack != null
 def ci = !!System.getenv("CI")
 
+// Not every contributor can publish to the same Develocity server, so the server isn't hardcoded.
+// Set ratpackDevelocityServer (e.g. in ~/.gradle/gradle.properties, or as ORG_GRADLE_PROJECT_ratpackDevelocityServer)
+// to publish a Build Scan of every build to that server.
+// Set ratpackDevelocityProjectId too if that server requires a project ID.
+def develocityServer = settings.hasProperty("ratpackDevelocityServer") ? settings.ratpackDevelocityServer : null
+def develocityProjectId = settings.hasProperty("ratpackDevelocityProjectId") ? settings.ratpackDevelocityProjectId : null
+
 develocity {
+  if (develocityServer) {
+    server = develocityServer
+  }
+  if (develocityProjectId) {
+    projectId = develocityProjectId
+  }
+
   buildScan {
     uploadInBackground = !ci
 
-    if (ci) {
+    if (develocityServer) {
+      publishing.onlyIf { true }
+    } else if (ci) {
       publishing.onlyIf { true }
       termsOfUseUrl = 'https://gradle.com/help/legal-terms-of-use'
       termsOfUseAgree = 'yes'
