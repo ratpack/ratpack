@@ -1,6 +1,6 @@
 allprojects {
   group = "io.ratpack"
-  version = "1.10.0-milestone-40"
+  version = "1.10.0-SNAPSHOT"
 }
 
 // The manual version, without the -SNAPSHOT suffix or a snapshot label.
