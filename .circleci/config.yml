@@ -93,9 +93,10 @@ jobs:
       # The same commit again as 1.10.0-<short commit>-SNAPSHOT, so a build can pin this commit's
       # snapshot while 1.10.0-SNAPSHOT moves on. Only the tasks the version reaches run again
       # (the version file, resources, javadoc, jars and POMs), not compilation or tests.
+      # Their outputs include this commit's version, so no other build reuses them: don't store them in the remote cache.
       - run:
           name: Upload Commit Snapshot Artifacts
-          command: ./gradlew publishToSonatypeOss --max-workers=1 -PsnapshotLabel=${CIRCLE_SHA1:0:8}
+          command: ./gradlew publishToSonatypeOss --max-workers=1 -PsnapshotLabel=${CIRCLE_SHA1:0:8} -PratpackDevelocityBuildCachePush=false
 
   deploySite:
     <<: *defaults
