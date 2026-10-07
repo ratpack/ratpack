@@ -21,6 +21,7 @@ plugins {
 enableFeaturePreview("GROOVY_COMPILATION_AVOIDANCE")
 
 apply from: 'gradle/buildScan.gradle'
+apply from: 'gradle/buildCache.gradle'
 
 include \
     "ratpack-core",
