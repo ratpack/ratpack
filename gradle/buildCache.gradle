@@ -17,7 +17,9 @@ def ci = !!System.getenv("CI")
 
 // Set ratpackDevelocityBuildCache=true to use the build cache of the Develocity server set with ratpackDevelocityServer.
 // Builds on CI store their outputs in it; other builds only read from it.
+// Set ratpackDevelocityBuildCachePush to override that, e.g. false for a CI build whose outputs no other build reuses.
 def useDevelocityBuildCache = settings.hasProperty("ratpackDevelocityBuildCache") && Boolean.parseBoolean(settings.ratpackDevelocityBuildCache.toString())
+def pushToDevelocityBuildCache = settings.hasProperty("ratpackDevelocityBuildCachePush") ? Boolean.parseBoolean(settings.ratpackDevelocityBuildCachePush.toString()) : ci
 
 if (useDevelocityBuildCache) {
   if (!(settings.hasProperty("ratpackDevelocityServer") && settings.ratpackDevelocityServer)) {
@@ -27,7 +29,7 @@ if (useDevelocityBuildCache) {
   buildCache {
     remote(develocity.buildCache) {
       enabled = true
-      push = ci
+      push = pushToDevelocityBuildCache
     }
   }
 }
